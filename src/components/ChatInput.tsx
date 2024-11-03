@@ -6,13 +6,13 @@ const ChatInput = () => {
 
   return (
     <div className="relative flex w-full flex-col items-center">
-      <div className="relative w-full max-w-4xl">
+      <div className="relative w-full max-w-2xl">
         <textarea
           rows={1}
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           placeholder="Message ChatGPT"
-          className="w-full resize-none rounded-full bg-[#2F2F2F] px-4 py-3 pr-12 focus:outline-none"
+          className="w-full resize-none rounded-full bg-[#2F2F2F] px-4 py-4 pr-12 focus:outline-none"
           style={{ maxHeight: "200px" }}
         />
         <button className="absolute right-3 top-2.5 p-1.5 bg-white rounded-full hover:bg-gray-200">
