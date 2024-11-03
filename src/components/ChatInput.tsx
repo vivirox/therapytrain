@@ -19,9 +19,10 @@ const ChatInput = () => {
           <Paperclip className="h-5 w-5" />
         </button>
       </div>
-      <div className="mt-2 text-xs text-gray-400">
+      {/* Removed the text below */}
+      {/* <div className="mt-2 text-xs text-gray-400">
         ChatGPT can make mistakes. Check important info.
-      </div>
+      </div> */}
     </div>
   );
 };
