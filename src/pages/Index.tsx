@@ -15,12 +15,12 @@ const Index = () => {
         <ChatHeader />
         
         <div className="flex h-full flex-col items-center justify-between pt-[60px] pb-4">
-          <div className="w-full max-w-4xl px-4 pt-6">
-            <h1 className="mb-4 text-4xl font-semibold text-center">What can I help with?</h1>
+          <div className="flex-1 flex flex-col items-center justify-center w-full max-w-4xl px-4">
+            <h1 className="mb-8 text-4xl font-semibold text-center">What can I help with?</h1>
+            <ChatInput />
           </div>
           
-          <div className="flex flex-col gap-8 w-full max-w-4xl px-4">
-            <ChatInput />
+          <div className="w-full max-w-4xl px-4">
             <ActionButtons />
           </div>
         </div>
