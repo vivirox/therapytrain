@@ -15,8 +15,8 @@ const ChatInput = () => {
           className="w-full resize-none rounded-full bg-[#2F2F2F] px-4 py-4 pr-12 focus:outline-none"
           style={{ maxHeight: "200px" }}
         />
-        <button className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 bg-black rounded-full hover:bg-gray-900 text-white">
-          <ArrowUp className="h-4 w-4" />
+        <button className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 bg-white rounded-full hover:bg-gray-200">
+          <ArrowUp className="h-4 w-4 text-black" />
         </button>
       </div>
     </div>
