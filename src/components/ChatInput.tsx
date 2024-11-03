@@ -6,7 +6,7 @@ const ChatInput = () => {
 
   return (
     <div className="relative flex w-full flex-col items-center">
-      <div className="relative w-full max-w-2xl">
+      <div className="relative w-full max-w-3xl">
         <textarea
           rows={1}
           value={message}
