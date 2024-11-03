@@ -15,7 +15,7 @@ const Index = () => {
         <ChatHeader />
         
         <div className="flex h-full flex-col items-center justify-center pt-[60px] pb-4">
-          <div className="w-full max-w-4xl px-4 space-y-12">
+          <div className="w-full max-w-4xl px-4 space-y-4">
             <div>
               <h1 className="mb-8 text-4xl font-semibold text-center">What can I help with?</h1>
               <ChatInput />

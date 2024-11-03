@@ -10,17 +10,17 @@ const ActionButtons = () => {
   ];
 
   return (
-    <div className="flex gap-2 flex-wrap justify-center">
+    <div className="flex gap-2 flex-wrap justify-center mt-4">
       {actions.map((action) => (
         <button 
           key={action.label} 
-          className="flex items-center gap-2 rounded-full px-4 py-2 text-sm hover:bg-chatgpt-hover/50 border border-[#383737] transition-all duration-200"
+          className="relative flex h-[42px] items-center gap-1.5 rounded-full border border-token-border-light px-3 py-2 text-start text-[13px] shadow-xxs transition enabled:hover:bg-token-main-surface-secondary disabled:cursor-not-allowed xl:gap-2 xl:text-[14px]"
         >
           {action.icon}
           {action.label}
         </button>
       ))}
-      <button className="flex items-center gap-2 rounded-full px-4 py-2 text-sm hover:bg-chatgpt-hover/50 border border-[#383737] transition-all duration-200">
+      <button className="relative flex h-[42px] items-center gap-1.5 rounded-full border border-token-border-light px-3 py-2 text-start text-[13px] shadow-xxs transition enabled:hover:bg-token-main-surface-secondary disabled:cursor-not-allowed xl:gap-2 xl:text-[14px]">
         <MoreHorizontal className="h-4 w-4 text-gray-400" />
         More
       </button>
