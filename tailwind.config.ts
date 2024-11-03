@@ -25,8 +25,8 @@ export default {
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         chatgpt: {
-          sidebar: "#202123",
-          main: "#343541",
+          sidebar: "#171717",
+          main: "#212121",
           secondary: "#444654",
           hover: "#2A2B32",
           border: "#4E4F60"
