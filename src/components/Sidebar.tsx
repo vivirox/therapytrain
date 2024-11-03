@@ -1,4 +1,4 @@
-import { Menu, Plus, Globe, Clock, ChevronDown } from "lucide-react";
+import { Menu, Plus, Globe, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface SidebarProps {
@@ -69,9 +69,6 @@ const Sidebar = ({ isOpen, onToggle }: SidebarProps) => {
                   <div className="px-3 py-2 text-xs text-gray-500">{timeframe.title}</div>
                   {timeframe.items.map((item) => (
                     <div key={item} className="group flex h-10 items-center gap-2.5 rounded-lg px-2 hover:bg-token-sidebar-surface-secondary cursor-pointer">
-                      <div className="h-6 w-6 flex items-center justify-center">
-                        <Clock className="h-4 w-4" />
-                      </div>
                       <span className="text-sm">{item}</span>
                     </div>
                   ))}

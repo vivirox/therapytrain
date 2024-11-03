@@ -12,7 +12,7 @@ const ChatInput = () => {
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           placeholder="Message ChatGPT"
-          className="w-full resize-none rounded-lg border border-chatgpt-border bg-chatgpt-main px-4 py-3 pr-12 focus:border-chatgpt-border focus:outline-none focus:ring-1 focus:ring-chatgpt-border"
+          className="w-full resize-none rounded-full border border-chatgpt-border bg-[#2F2F2F] px-4 py-3 pr-12 focus:border-chatgpt-border focus:outline-none focus:ring-1 focus:ring-chatgpt-border"
           style={{ maxHeight: "200px" }}
         />
         <button className="absolute right-3 top-2.5 p-1 text-gray-400 hover:text-white">
