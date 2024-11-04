@@ -8,12 +8,10 @@ const Index = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   return (
-    <div className="flex flex-col md:flex-row h-screen">
-      <div className={`${isSidebarOpen ? 'block' : 'hidden'} md:block`}>
-        <Sidebar isOpen={isSidebarOpen} onToggle={() => setIsSidebarOpen(!isSidebarOpen)} />
-      </div>
+    <div className="flex h-screen">
+      <Sidebar isOpen={isSidebarOpen} onToggle={() => setIsSidebarOpen(!isSidebarOpen)} />
       
-      <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'md:ml-64' : 'ml-0'}`}>
+      <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
         <ChatHeader isSidebarOpen={isSidebarOpen} />
         
         <div className="flex h-full flex-col items-center justify-center pt-[60px] pb-4">
