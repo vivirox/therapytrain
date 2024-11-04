@@ -58,40 +58,40 @@ const Sidebar = ({ isOpen, onToggle }: SidebarProps) => {
             </div>
           )}
 
-        <div className="flex-col flex-1 transition-opacity duration-500 relative -mr-2 pr-2 overflow-y-auto">
-          <div className="bg-token-sidebar-surface-primary pt-0">
-            <div className="flex flex-col gap-2 px-2 py-2">
-              <div className="group flex h-10 items-center gap-2.5 rounded-lg px-2 hover:bg-token-sidebar-surface-secondary cursor-pointer">
-                <div className="h-6 w-6 flex items-center justify-center">
-                  <Globe className="h-4 w-4" />
+          <div className="flex-col flex-1 transition-opacity duration-500 relative -mr-2 pr-2 overflow-y-auto">
+            <div className="bg-token-sidebar-surface-primary pt-0">
+              <div className="flex flex-col gap-2 px-2 py-2">
+                <div className="group flex h-10 items-center gap-2.5 rounded-lg px-2 hover:bg-token-sidebar-surface-secondary cursor-pointer">
+                  <div className="h-6 w-6 flex items-center justify-center">
+                    <Globe className="h-4 w-4" />
+                  </div>
+                  <span className="text-sm">ChatGPT</span>
                 </div>
-                <span className="text-sm">ChatGPT</span>
-              </div>
-              <div className="group flex h-10 items-center gap-2.5 rounded-lg px-2 hover:bg-token-sidebar-surface-secondary cursor-pointer">
-                <div className="h-6 w-6 flex items-center justify-center">
-                  <Globe className="h-4 w-4" />
+                <div className="group flex h-10 items-center gap-2.5 rounded-lg px-2 hover:bg-token-sidebar-surface-secondary cursor-pointer">
+                  <div className="h-6 w-6 flex items-center justify-center">
+                    <Globe className="h-4 w-4" />
+                  </div>
+                  <span className="text-sm">Explore GPTs</span>
                 </div>
-                <span className="text-sm">Explore GPTs</span>
               </div>
-            </div>
 
-            <div className="mt-4 flex flex-col gap-4">
-              {timeframes.map((timeframe) => (
-                <div key={timeframe.title}>
-                  <div className="px-3 py-2 text-xs text-gray-500">{timeframe.title}</div>
-                  {timeframe.items.map((item) => (
-                    <div key={item} className="group flex h-10 items-center gap-2.5 rounded-lg px-2 hover:bg-token-sidebar-surface-secondary cursor-pointer">
-                      <span className="text-sm">{item}</span>
-                    </div>
-                  ))}
-                </div>
-              ))}
+              <div className="mt-4 flex flex-col gap-4">
+                {timeframes.map((timeframe) => (
+                  <div key={timeframe.title}>
+                    <div className="px-3 py-2 text-xs text-gray-500">{timeframe.title}</div>
+                    {timeframe.items.map((item) => (
+                      <div key={item} className="group flex h-10 items-center gap-2.5 rounded-lg px-2 hover:bg-token-sidebar-surface-secondary cursor-pointer">
+                        <span className="text-sm">{item}</span>
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
-        </div>
 
           <div className="flex flex-col py-2 border-t border-white/20">
-            <button className="group flex gap-2 p-2.5 text-sm items-start hover:bg-token-sidebar-surface-secondary rounded-lg px-2 text-left w-full">
+            <button className="w-full min-w-[240px] group flex gap-2 p-2.5 text-sm items-start hover:bg-token-sidebar-surface-secondary rounded-lg px-2 text-left">
               <span className="flex w-full flex-row flex-wrap-reverse justify-between">
                 <div className="flex items-center gap-2">
                   <span className="flex h-7 w-7 items-center justify-center rounded-full border border-token-border-light">
