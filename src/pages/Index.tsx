@@ -66,9 +66,10 @@ const Index = () => {
         throw new Error('Failed to get response from AI');
       }
 
+      const responseData = await response.json();
       const assistantMessage: Message = {
         role: 'assistant',
-        content: response.data.content
+        content: responseData.content[0].text
       };
 
       // Insert assistant message with a generated UUID for user_id
@@ -136,7 +137,7 @@ const Index = () => {
                             {message.content}
                           </div>
                           {message.role === 'assistant' && (
-                            <MessageActions message={message} />
+                            <MessageActions message={message.content} />
                           )}
                         </div>
                       </div>
