@@ -81,6 +81,25 @@ const Index = () => {
     }
   };
 
+  const handleAuthError = (error: any) => {
+    let errorMessage = "An error occurred during authentication";
+    
+    try {
+      const errorBody = JSON.parse(error.body);
+      if (errorBody.code === "user_already_exists") {
+        errorMessage = "This email is already registered. Please sign in instead.";
+      }
+    } catch (e) {
+      // If JSON parsing fails, use the default error message
+    }
+
+    toast({
+      title: "Authentication Error",
+      description: errorMessage,
+      variant: "destructive"
+    });
+  };
+
   return (
     <div className="flex h-screen">
       <Dialog open={showAuthDialog} onOpenChange={setShowAuthDialog}>
@@ -93,6 +112,7 @@ const Index = () => {
             appearance={{ theme: ThemeSupa }}
             theme="light"
             providers={[]}
+            onError={handleAuthError}
           />
         </DialogContent>
       </Dialog>
