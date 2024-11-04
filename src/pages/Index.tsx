@@ -39,17 +39,6 @@ const Index = () => {
       
       setMessages(newMessages);
 
-      // Insert user message with a generated UUID for user_id
-      const { error: insertError } = await supabase
-        .from('chat_messages')
-        .insert({
-          content,
-          role: 'user',
-          user_id: crypto.randomUUID() // Generate a random UUID for anonymous users
-        });
-
-      if (insertError) throw insertError;
-
       // Call edge function with API key
       const response = await fetch('/api/chat', {
         method: 'POST',
@@ -71,17 +60,6 @@ const Index = () => {
         role: 'assistant',
         content: responseData.content[0].text
       };
-
-      // Insert assistant message with a generated UUID for user_id
-      const { error: assistantInsertError } = await supabase
-        .from('chat_messages')
-        .insert({
-          content: assistantMessage.content,
-          role: 'assistant',
-          user_id: crypto.randomUUID() // Generate a random UUID for anonymous users
-        });
-
-      if (assistantInsertError) throw assistantInsertError;
 
       setMessages([...newMessages, assistantMessage]);
     } catch (error: any) {
@@ -137,7 +115,7 @@ const Index = () => {
                             {message.content}
                           </div>
                           {message.role === 'assistant' && (
-                            <MessageActions message={message.content} />
+                            <MessageActions content={message.content} />
                           )}
                         </div>
                       </div>
