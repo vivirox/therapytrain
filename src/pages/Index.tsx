@@ -12,7 +12,7 @@ const Index = () => {
       <Sidebar isOpen={isSidebarOpen} onToggle={() => setIsSidebarOpen(!isSidebarOpen)} />
       
       <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
-        <ChatHeader />
+        <ChatHeader isSidebarOpen={isSidebarOpen} />
         
         <div className="flex h-full flex-col items-center justify-center pt-[60px] pb-4">
           <div className="w-full max-w-4xl px-4 space-y-4">
