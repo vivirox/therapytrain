@@ -1,4 +1,4 @@
-import { ImagePlus, FileText, BarChart2, Code, HelpCircle, MoreHorizontal } from "lucide-react";
+import { ImagePlus, FileText, BarChart2, Code, HelpCircle } from "lucide-react";
 
 const ActionButtons = () => {
   const actions = [
@@ -20,10 +20,6 @@ const ActionButtons = () => {
           {action.label}
         </button>
       ))}
-      <button className="relative flex h-[42px] items-center gap-1.5 rounded-full border border-[#383737] px-3 py-2 text-start text-[13px] shadow-xxs transition enabled:hover:bg-token-main-surface-secondary disabled:cursor-not-allowed xl:gap-2 xl:text-[14px]">
-        <MoreHorizontal className="h-4 w-4 text-gray-400" />
-        More
-      </button>
     </div>
   );
 };
