@@ -44,9 +44,9 @@ const Index = () => {
                 {messages.map((message, index) => (
                   <div 
                     key={index}
-                    className={`py-6 ${message.role === 'assistant' ? 'bg-chatgpt-secondary' : ''}`}
+                    className={`py-6`}
                   >
-                    <div className="max-w-4xl mx-auto flex gap-4">
+                    <div className={`max-w-4xl mx-auto flex gap-4 ${message.role === 'user' ? 'flex-row-reverse' : ''}`}>
                       {message.role === 'assistant' && (
                         <div className="w-8 h-8 rounded-full bg-teal-500 flex items-center justify-center flex-shrink-0">
                           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="icon-md">
@@ -54,8 +54,10 @@ const Index = () => {
                           </svg>
                         </div>
                       )}
-                      <div className="flex-1 space-y-2">
-                        <div>{message.content}</div>
+                      <div className={`flex-1 space-y-2 ${message.role === 'user' ? 'flex justify-end' : ''}`}>
+                        <div className={`${message.role === 'user' ? 'bg-gray-700/50 rounded-lg px-4 py-2 inline-block' : ''}`}>
+                          {message.content}
+                        </div>
                         {message.role === 'assistant' && (
                           <MessageActions />
                         )}
