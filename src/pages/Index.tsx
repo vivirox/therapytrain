@@ -49,9 +49,14 @@ const Index = () => {
 
       if (error) throw error;
 
+      // Ensure we're getting a string from the response
+      const assistantContent = typeof data.content === 'object' ? 
+        data.content.text || JSON.stringify(data.content) : 
+        data.content;
+
       const assistantMessage: Message = {
         role: 'assistant',
-        content: data.content
+        content: assistantContent
       };
 
       setMessages([...newMessages, assistantMessage]);
