@@ -105,16 +105,37 @@ const Index = () => {
   return (
     <div className="flex h-screen">
       <Dialog open={showAuthDialog} onOpenChange={setShowAuthDialog}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-[425px] bg-white dark:bg-chatgpt-main border-0">
           <DialogHeader>
-            <DialogTitle>Sign in to continue</DialogTitle>
+            <DialogTitle className="text-2xl font-bold text-center mb-4">Sign in to continue</DialogTitle>
           </DialogHeader>
-          <Auth
-            supabaseClient={supabase}
-            appearance={{ theme: ThemeSupa }}
-            theme="light"
-            providers={[]}
-          />
+          <div className="bg-white dark:bg-chatgpt-main p-4 rounded-lg">
+            <Auth
+              supabaseClient={supabase}
+              appearance={{
+                theme: ThemeSupa,
+                style: {
+                  container: {
+                    width: '100%',
+                  },
+                  button: {
+                    width: '100%',
+                    backgroundColor: '#2A2B32',
+                    color: 'white',
+                  },
+                  input: {
+                    backgroundColor: 'white',
+                    border: '1px solid #e2e8f0',
+                  },
+                  label: {
+                    color: '#4a5568',
+                  },
+                },
+              }}
+              theme="light"
+              providers={[]}
+            />
+          </div>
         </DialogContent>
       </Dialog>
 
