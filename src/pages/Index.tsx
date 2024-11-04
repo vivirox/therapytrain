@@ -81,16 +81,18 @@ const Index = () => {
     }
   };
 
-  const handleAuthError = (error: any) => {
+  const handleAuthError = (error: Error) => {
     let errorMessage = "An error occurred during authentication";
     
-    try {
-      const errorBody = JSON.parse(error.body);
-      if (errorBody.code === "user_already_exists") {
-        errorMessage = "This email is already registered. Please sign in instead.";
+    if (error && typeof error === 'object' && 'message' in error) {
+      try {
+        const errorBody = JSON.parse((error as any).message);
+        if (errorBody.code === "user_already_exists") {
+          errorMessage = "This email is already registered. Please sign in instead.";
+        }
+      } catch (e) {
+        // If JSON parsing fails, use the default error message
       }
-    } catch (e) {
-      // If JSON parsing fails, use the default error message
     }
 
     toast({
@@ -112,7 +114,6 @@ const Index = () => {
             appearance={{ theme: ThemeSupa }}
             theme="light"
             providers={[]}
-            onError={handleAuthError}
           />
         </DialogContent>
       </Dialog>
