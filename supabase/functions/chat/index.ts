@@ -47,8 +47,11 @@ serve(async (req) => {
       throw new Error(data.error?.message || 'Error calling Anthropic API')
     }
 
+    // Extract just the text content from the response
+    const content = data.content[0].text
+
     return new Response(
-      JSON.stringify({ content: data.content }),
+      JSON.stringify({ content }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   } catch (error) {

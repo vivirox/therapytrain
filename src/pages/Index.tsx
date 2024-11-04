@@ -39,7 +39,6 @@ const Index = () => {
       
       setMessages(newMessages);
 
-      // Call Supabase Edge function
       const { data, error } = await supabase.functions.invoke('chat', {
         body: {
           messages: newMessages,
@@ -49,14 +48,9 @@ const Index = () => {
 
       if (error) throw error;
 
-      // Ensure we're getting a string from the response
-      const assistantContent = typeof data.content === 'object' ? 
-        data.content.text || JSON.stringify(data.content) : 
-        data.content;
-
       const assistantMessage: Message = {
         role: 'assistant',
-        content: assistantContent
+        content: data.content
       };
 
       setMessages([...newMessages, assistantMessage]);
