@@ -39,26 +39,19 @@ const Index = () => {
       
       setMessages(newMessages);
 
-      // Call edge function with API key
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`
-        },
-        body: JSON.stringify({
-          messages: newMessages
-        })
+      // Call Supabase Edge function
+      const { data, error } = await supabase.functions.invoke('chat', {
+        body: {
+          messages: newMessages,
+          apiKey: apiKey
+        }
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to get response from AI');
-      }
+      if (error) throw error;
 
-      const responseData = await response.json();
       const assistantMessage: Message = {
         role: 'assistant',
-        content: responseData.content[0].text
+        content: data.content
       };
 
       setMessages([...newMessages, assistantMessage]);
@@ -115,7 +108,7 @@ const Index = () => {
                             {message.content}
                           </div>
                           {message.role === 'assistant' && (
-                            <MessageActions content={message.content} />
+                            <MessageActions />
                           )}
                         </div>
                       </div>
