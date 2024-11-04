@@ -1,9 +1,11 @@
 import { useState } from "react";
+import { useToast } from "@/components/ui/use-toast";
 import Sidebar from "@/components/Sidebar";
 import ChatHeader from "@/components/ChatHeader";
 import ActionButtons from "@/components/ActionButtons";
 import ChatInput from "@/components/ChatInput";
 import MessageActions from "@/components/MessageActions";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Message {
   content: string;
@@ -13,13 +15,63 @@ interface Message {
 const Index = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
 
-  const handleSendMessage = (content: string) => {
-    setMessages([
-      ...messages, 
-      { role: 'user', content },
-      { role: 'assistant', content: "Hi there! How can I help you today?" }
-    ]);
+  const handleSendMessage = async (content: string) => {
+    try {
+      setIsLoading(true);
+      const newMessages = [
+        ...messages,
+        { role: 'user', content } as const
+      ];
+      setMessages(newMessages);
+
+      // Store user message
+      const { error: insertError } = await supabase
+        .from('chat_messages')
+        .insert({
+          content,
+          role: 'user',
+          user_id: (await supabase.auth.getUser()).data.user?.id
+        });
+
+      if (insertError) throw insertError;
+
+      // Get AI response
+      const response = await supabase.functions.invoke('chat', {
+        body: { messages: newMessages }
+      });
+
+      if (response.error) throw response.error;
+
+      const assistantMessage = {
+        role: 'assistant' as const,
+        content: response.data.content
+      };
+
+      // Store assistant message
+      const { error: assistantInsertError } = await supabase
+        .from('chat_messages')
+        .insert({
+          content: assistantMessage.content,
+          role: 'assistant',
+          user_id: (await supabase.auth.getUser()).data.user?.id
+        });
+
+      if (assistantInsertError) throw assistantInsertError;
+
+      setMessages([...newMessages, assistantMessage]);
+    } catch (error) {
+      console.error('Error sending message:', error);
+      toast({
+        title: "Error",
+        description: "Failed to send message. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -34,7 +86,7 @@ const Index = () => {
             <div className="w-full max-w-3xl px-4 space-y-4">
               <div>
                 <h1 className="mb-8 text-4xl font-semibold text-center">What can I help with?</h1>
-                <ChatInput onSend={handleSendMessage} />
+                <ChatInput onSend={handleSendMessage} isLoading={isLoading} />
               </div>
               <ActionButtons />
             </div>
@@ -69,7 +121,7 @@ const Index = () => {
                 </div>
               </div>
               <div className="w-full max-w-3xl mx-auto px-4 py-2">
-                <ChatInput onSend={handleSendMessage} />
+                <ChatInput onSend={handleSendMessage} isLoading={isLoading} />
               </div>
               <div className="text-xs text-center text-gray-500 py-2">
                 ChatGPT can make mistakes. Check important info.
