@@ -80,7 +80,7 @@ const Sidebar = ({ isOpen, onToggle }: SidebarProps) => {
         </div>
 
         <div className="flex flex-col py-2 border-t border-white/20">
-          <button className="group flex gap-2 p-2.5 text-sm items-center hover:bg-token-sidebar-surface-secondary rounded-lg px-2">
+          <button className="group flex gap-2 p-2.5 text-sm items-start hover:bg-token-sidebar-surface-secondary rounded-lg px-2 text-left w-full">
             <span className="flex w-full flex-row flex-wrap-reverse justify-between">
               <div className="flex items-center gap-2">
                 <span className="flex h-7 w-7 items-center justify-center rounded-full border border-token-border-light">
