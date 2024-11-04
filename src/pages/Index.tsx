@@ -21,6 +21,14 @@ const Index = () => {
   const handleSendMessage = async (content: string) => {
     try {
       setIsLoading(true);
+      
+      // Get current user
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      
+      if (userError || !user) {
+        throw new Error('You must be logged in to send messages');
+      }
+
       const newMessages = [
         ...messages,
         { role: 'user', content } as const
@@ -33,7 +41,7 @@ const Index = () => {
         .insert({
           content,
           role: 'user',
-          user_id: (await supabase.auth.getUser()).data.user?.id
+          user_id: user.id
         });
 
       if (insertError) throw insertError;
@@ -56,7 +64,7 @@ const Index = () => {
         .insert({
           content: assistantMessage.content,
           role: 'assistant',
-          user_id: (await supabase.auth.getUser()).data.user?.id
+          user_id: user.id
         });
 
       if (assistantInsertError) throw assistantInsertError;
@@ -66,7 +74,7 @@ const Index = () => {
       console.error('Error sending message:', error);
       toast({
         title: "Error",
-        description: "Failed to send message. Please try again.",
+        description: error.message || "Failed to send message. Please try again.",
         variant: "destructive"
       });
     } finally {
