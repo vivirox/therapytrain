@@ -1,8 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import "https://deno.land/x/xhr@0.1.0/mod.ts"
 
-const anthropicApiKey = Deno.env.get('ANTHROPIC_API_KEY')
-
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -14,7 +12,11 @@ serve(async (req) => {
   }
 
   try {
-    const { messages } = await req.json()
+    const { messages, apiKey } = await req.json()
+
+    if (!apiKey) {
+      throw new Error('API key is required')
+    }
 
     // Convert messages to Anthropic format
     const anthropicMessages = messages.map((msg: any) => ({
@@ -28,7 +30,7 @@ serve(async (req) => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': anthropicApiKey!,
+        'x-api-key': apiKey,
         'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify({

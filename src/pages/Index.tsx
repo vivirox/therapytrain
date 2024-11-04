@@ -16,19 +16,22 @@ const Index = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [apiKey, setApiKey] = useState("");
   const { toast } = useToast();
 
   const handleSendMessage = async (content: string) => {
+    if (!apiKey) {
+      toast({
+        title: "Error",
+        description: "Please enter your API key in the sidebar",
+        variant: "destructive"
+      });
+      return;
+    }
+
     try {
       setIsLoading(true);
       
-      // Get current user
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      
-      if (userError || !user) {
-        throw new Error('You must be logged in to send messages');
-      }
-
       const newMessages = [
         ...messages,
         { role: 'user', content } as const
@@ -41,14 +44,17 @@ const Index = () => {
         .insert({
           content,
           role: 'user',
-          user_id: user.id
+          user_id: apiKey // Using API key as user_id
         });
 
       if (insertError) throw insertError;
 
       // Get AI response
       const response = await supabase.functions.invoke('chat', {
-        body: { messages: newMessages }
+        body: { 
+          messages: newMessages,
+          apiKey: apiKey
+        }
       });
 
       if (response.error) throw response.error;
@@ -64,7 +70,7 @@ const Index = () => {
         .insert({
           content: assistantMessage.content,
           role: 'assistant',
-          user_id: user.id
+          user_id: apiKey // Using API key as user_id
         });
 
       if (assistantInsertError) throw assistantInsertError;
@@ -84,7 +90,11 @@ const Index = () => {
 
   return (
     <div className="flex h-screen">
-      <Sidebar isOpen={isSidebarOpen} onToggle={() => setIsSidebarOpen(!isSidebarOpen)} />
+      <Sidebar 
+        isOpen={isSidebarOpen} 
+        onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
+        onApiKeyChange={setApiKey}
+      />
       
       <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
         <ChatHeader isSidebarOpen={isSidebarOpen} />
