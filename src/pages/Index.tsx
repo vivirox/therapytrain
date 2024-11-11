@@ -1,7 +1,4 @@
 import { useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { Auth } from '@supabase/auth-ui-react';
-import { ThemeSupa } from '@supabase/auth-ui-shared';
 import {
   Dialog,
   DialogContent,
@@ -24,22 +21,13 @@ const Index = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [apiKey, setApiKey] = useState('');
-  const [showAuthDialog, setShowAuthDialog] = useState(false);
   const { toast } = useToast();
 
   const handleSendMessage = async (content: string) => {
-    const { data: { session } } = await supabase.auth.getSession();
-    
-    if (!session) {
-      setShowAuthDialog(true);
-      return;
-    }
-
-    if (!content.trim() || !apiKey) {
+    if (!content.trim()) {
       toast({
         title: "Error",
-        description: "Please enter a message and API key",
+        description: "Please enter a message",
         variant: "destructive"
       });
       return;
@@ -55,18 +43,12 @@ const Index = () => {
       
       setMessages(newMessages);
 
-      const { data, error } = await supabase.functions.invoke('chat', {
-        body: {
-          messages: newMessages,
-          apiKey: apiKey
-        }
-      });
-
-      if (error) throw error;
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
       const assistantMessage: Message = {
         role: 'assistant',
-        content: data.content
+        content: "I am a hardcoded response. The database connection has been removed for testing purposes. You can modify this response in the Index.tsx file."
       };
 
       setMessages([...newMessages, assistantMessage]);
@@ -83,41 +65,10 @@ const Index = () => {
 
   return (
     <div className="flex h-screen">
-      <Dialog open={showAuthDialog} onOpenChange={setShowAuthDialog}>
-        <DialogContent className="sm:max-w-[425px] bg-white dark:bg-chatgpt-main border-0">
-          <DialogHeader>
-            <DialogTitle className="text-2xl font-bold text-center mb-4">Sign in to continue</DialogTitle>
-          </DialogHeader>
-          <div className="bg-white dark:bg-chatgpt-main p-4 rounded-lg">
-            <Auth
-              supabaseClient={supabase}
-              appearance={{
-                theme: ThemeSupa,
-                style: {
-                  container: { width: '100%' },
-                  button: {
-                    width: '100%',
-                    backgroundColor: '#2A2B32',
-                    color: 'white',
-                  },
-                  input: {
-                    backgroundColor: 'white',
-                    border: '1px solid #e2e8f0',
-                  },
-                  label: { color: '#4a5568' },
-                },
-              }}
-              theme="light"
-              providers={[]}
-            />
-          </div>
-        </DialogContent>
-      </Dialog>
-
       <Sidebar 
         isOpen={isSidebarOpen} 
         onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
-        onApiKeyChange={setApiKey}
+        onApiKeyChange={() => {}} // Empty function since we don't need API key anymore
       />
       
       <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
