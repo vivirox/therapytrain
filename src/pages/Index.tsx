@@ -59,12 +59,8 @@ const Index = () => {
               </Button>
             </div>
           </div>
-          <div className="flex justify-center">
-            <img 
-              src="/lovable-uploads/93fe7282-578e-4ff0-becf-688103bd5d6e.png" 
-              alt="Brain Icon"
-              className="w-64 h-64 object-contain"
-            />
+          <div className="flex justify-center items-center">
+            <Brain className="w-64 h-64 text-blue-500 animate-pulse" />
           </div>
         </div>
       </div>
