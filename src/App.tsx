@@ -15,6 +15,7 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
+          <Route path="/auth" element={<div>Auth page coming soon</div>} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
