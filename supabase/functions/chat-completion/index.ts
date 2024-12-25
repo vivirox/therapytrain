@@ -32,7 +32,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: "llama2",
+        model: "falcon3",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: message }
