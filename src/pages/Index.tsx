@@ -16,7 +16,7 @@ const Index = () => {
               <span className="ml-2 text-xl font-bold">TherapyTrain AI</span>
             </div>
             <div className="hidden md:flex items-center space-x-8">
-              <a href="#" className="text-gray-300 hover:text-white">Home</a>
+              <a href="/" className="text-gray-300 hover:text-white">Home</a>
               <a href="#features" className="text-gray-300 hover:text-white">Features</a>
               <a href="#benefits" className="text-gray-300 hover:text-white">Benefits</a>
               <Button 
@@ -148,8 +148,8 @@ const Index = () => {
               <a href="#" className="hover:text-white">Home</a>
               <a href="#features" className="hover:text-white">Features</a>
               <a href="#benefits" className="hover:text-white">Benefits</a>
-              <a href="#" className="hover:text-white">Privacy Policy</a>
-              <a href="#" className="hover:text-white">Terms of Service</a>
+              <a href="/privacy-policy" className="hover:text-white">Privacy Policy</a>
+              <a href="/terms-of-service" className="hover:text-white">Terms of Service</a>
             </div>
           </div>
           <div className="mt-8 text-center text-sm text-gray-400">

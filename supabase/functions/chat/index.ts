@@ -1,35 +1,36 @@
-import { serve } from "https://deno.land/std@0.177.0/http/server.ts"
-import * as bcrypt from "https://deno.land/x/bcrypt@v0.4.1/mod.ts"
+import express from 'express';
+const router = express.Router();
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': process.env.ALLOWED_ORIGINS,
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   'Strict-Transport-Security': 'max-age=31536000; includeSubDomains'
-}
+};
 
-serve(async (req) => {
-  // Add request validation
-  if (!req.headers.get('authorization')) {
-    return new Response(
-      JSON.stringify({ error: 'Unauthorized' }),
-      { status: 401, headers: { ...corsHeaders } as HeadersInit }
-    )
+import { Request, Response, RequestHandler } from 'express';
+
+const chatHandler = async (req: Request, res: Response): Promise<void> => {
+  if (!req || !req.headers || !req.headers.authorization) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
   }
 
   try {
-    const { messages, apiKey } = await req.json()
+    const { messages, apiKey } = req.body;
 
-    // Validate and sanitize inputs
     if (!apiKey || !messages) {
-      throw new Error('Invalid input parameters')
+      throw new Error('Invalid input parameters');
     }
 
-    // Rest of your existing code...
-  } catch (error) {
-    console.error('Error:', error)
-    return new Response(
-      JSON.stringify({ error: 'Internal Server Error' }),
+    // Your chat logic here
 
-      { status: 500, headers: { ...corsHeaders } as HeadersInit }
-    )
+    res.status(200).json({ success: true });
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
-})
+};
+
+router.post('/chat', chatHandler);
+
+export default router;
