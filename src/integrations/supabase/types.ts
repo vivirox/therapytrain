@@ -9,6 +9,42 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      client_profiles: {
+        Row: {
+          age: number
+          background: string | null
+          category: string
+          complexity: string
+          description: string
+          id: number
+          key_traits: string[] | null
+          name: string
+          primary_issue: string
+        }
+        Insert: {
+          age: number
+          background?: string | null
+          category: string
+          complexity: string
+          description: string
+          id?: number
+          key_traits?: string[] | null
+          name: string
+          primary_issue: string
+        }
+        Update: {
+          age?: number
+          background?: string | null
+          category?: string
+          complexity?: string
+          description?: string
+          id?: number
+          key_traits?: string[] | null
+          name?: string
+          primary_issue?: string
+        }
+        Relationships: []
+      }
       kv_data: {
         Row: {
           created_at: string | null
