@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import MessageList from "@/components/MessageList";
 import ChatInput from "@/components/ChatInput";
-import Sidebar from "@/components/Sidebar";
+import ChatSidebar from "@/components/ChatSidebar";
 import { useToast } from "@/components/ui/use-toast";
 
 type Client = {
@@ -24,8 +24,6 @@ const ChatPage = () => {
   const [messages, setMessages] = useState<{ role: 'user' | 'assistant'; content: string; }[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [client, setClient] = useState<Client | null>(null);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [apiKey, setApiKey] = useState("");
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -101,13 +99,8 @@ const ChatPage = () => {
   }
 
   return (
-    <div className="flex h-screen bg-chatgpt-main">
-      <Sidebar 
-        isOpen={isSidebarOpen}
-        onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
-        onApiKeyChange={setApiKey}
-      />
-      <div className={`flex-1 flex flex-col transition-all duration-300 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
+    <div className="flex h-screen bg-[#0A0A0B]">
+      <div className="flex-1 flex flex-col">
         <div className="flex-1 overflow-hidden flex flex-col">
           <MessageList messages={messages} />
           <div className="p-4 border-t border-gray-800">
@@ -115,6 +108,7 @@ const ChatPage = () => {
           </div>
         </div>
       </div>
+      <ChatSidebar client={client} />
     </div>
   );
 };
