@@ -3,9 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import MessageList from "@/components/MessageList";
 import ChatInput from "@/components/ChatInput";
+import { useToast } from "@/components/ui/use-toast";
 
 const ChatPage = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [messages, setMessages] = useState<{ role: 'user' | 'assistant'; content: string; }[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -35,17 +37,33 @@ const ChatPage = () => {
     setMessages(prev => [...prev, { role: 'user', content: message }]);
     
     try {
-      // TODO: Implement actual AI chat functionality
-      // For now, just echo back a response
-      setTimeout(() => {
-        setMessages(prev => [...prev, { 
-          role: 'assistant', 
-          content: "I'm your AI therapist assistant. I'm here to help you practice and improve your therapeutic skills. How can I assist you today?" 
-        }]);
-        setIsLoading(false);
-      }, 1000);
+      const response = await fetch('/functions/v1/chat-completion', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
+        },
+        body: JSON.stringify({ message }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to get response from AI');
+      }
+
+      const data = await response.json();
+      
+      setMessages(prev => [...prev, { 
+        role: 'assistant', 
+        content: data.message || data.response || "I apologize, but I couldn't generate a proper response." 
+      }]);
     } catch (error) {
       console.error('Error sending message:', error);
+      toast({
+        title: "Error",
+        description: "Failed to get response from AI. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
       setIsLoading(false);
     }
   };
