@@ -11,13 +11,8 @@ serve(async (req) => {
   if (!req.headers.get('authorization')) {
     return new Response(
       JSON.stringify({ error: 'Unauthorized' }),
-      { status: 401, headers: { ...corsHeaders } }
+      { status: 401, headers: { ...corsHeaders } as HeadersInit }
     )
-  }
-
-  // Add input sanitization
-  const sanitizeInput = (input: string) => {
-    return input.replace(/<[^>]*>/g, '');
   }
 
   try {
@@ -28,17 +23,13 @@ serve(async (req) => {
       throw new Error('Invalid input parameters')
     }
 
-    const sanitizedMessages = messages.map((msg: any) => ({
-      ...msg,
-      content: sanitizeInput(msg.content)
-    }))
-
     // Rest of your existing code...
   } catch (error) {
     console.error('Error:', error)
     return new Response(
       JSON.stringify({ error: 'Internal Server Error' }),
-      { status: 500, headers: { ...corsHeaders } }
+
+      { status: 500, headers: { ...corsHeaders } as HeadersInit }
     )
   }
 })
