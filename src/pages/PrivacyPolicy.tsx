@@ -4,23 +4,53 @@ import React from 'react';
 
 const PrivacyPolicy: React.FC = () => {
     return (
-        <div className="p-4">
-            <h1>Privacy Policy</h1>
-            <p>This privacy policy describes how your personal information is collected, used, and shared when you visit or use our website.</p>
-
-            <h2>Information We Collect</h2>
-            <p>When you visit the site, we automatically collect certain information about your device, including information about your web browser, IP address, time zone, and some of the cookies that are installed on your device. Additionally, as you browse the site, we collect information about the individual web pages or products that you view, what websites or search terms referred you to the site, and information about how you interact with the site.</p>
-
-            <h2>Information We Share</h2>
-            <p>We share your Personal Information with third parties to help us use your Personal Information, as described above. We also use Google Analytics to help us understand how our customers use the site--you can read more about how Google uses your Personal Information here: https://www.google.com/intl/en/policies/privacy/. You can also opt-out of Google Analytics here: https://tools.google.com/dlpage/gaoptout.</p>
-
-            <h2>Your Rights</h2>
-            <p>If you are a European resident, you have the right to access personal information we hold about you and to ask that your personal information be corrected, updated, or deleted. If you would like to exercise this right, please contact us through the contact information below.</p>
-
-            <h2>Contact Us</h2>
-            <p>For more information about our privacy practices, if you have questions, or if you would like to make a complaint, please contact us by e-mail at support@therapytrain.com.</p>
+        <div className="min-h-screen bg-[#0A0A0B] text-white flex justify-center items-center">
+            <div className="max-w-2xl p-4">
+                <h1>Privacy Policy</h1>
+                <h2>Introduction</h2>
+                <p>Welcome to Gem City XYZ, a website designed to provide a platform for users to engage with therapy-related content and services. We are committed to protecting the privacy and security of our users' Protected Health Information (PHI).</p>
+                <h2>Definition of PHI</h2>
+                <p>PHI is any individually identifiable health information that is created or received by a covered entity, such as demographic information, medical history, treatment information, and other sensitive data.</p>
+                <h2>Types of PHI Collected</h2>
+                <p>We collect the following types of PHI:</p>
+                <ul>
+                    <li>Demographic information, such as name, address, and date of birth</li>
+                    <li>Medical history, including diagnoses, treatments, and medications</li>
+                    <li>Treatment information, including therapy sessions and progress notes</li>
+                </ul>
+                <h2>Purposes of PHI Collection</h2>
+                <p>We collect PHI for the following purposes:</p>
+                <ul>
+                    <li>Treatment: to provide therapy services to our users</li>
+                    <li>Payment: to process payments for our services</li>
+                    <li>Healthcare operations: to manage our business and improve our services</li>
+                </ul>
+                <h2>Disclosure of PHI</h2>
+                <p>We may disclose PHI to the following entities:</p>
+                <ul>
+                    <li>Healthcare providers: to coordinate care and provide treatment</li>
+                    <li>Insurance companies: to process payments and verify coverage</li>
+                    <li>Government agencies: to comply with regulatory requirements</li>
+                </ul>
+                <h2>Patient Rights</h2>
+                <p>Under HIPAA, patients have the following rights:</p>
+                <ul>
+                    <li>Right to access: to access and obtain a copy of their PHI</li>
+                    <li>Right to amend: to request corrections to their PHI</li>
+                    <li>Right to restrict disclosure: to request restrictions on the disclosure of their PHI</li>
+                </ul>
+                <h2>Security Measures</h2>
+                <p>We have implemented the following security measures to protect PHI:</p>
+                <ul>
+                    <li>Encryption: to protect PHI in transit and at rest</li>
+                    <li>Access controls: to limit access to authorized personnel</li>
+                    <li>Audit logs: to monitor and track access to PHI</li>
+                </ul>
+                <h2>Breach Notification Policy</h2>
+                <p>In the event of a breach of unsecured PHI, we will notify affected individuals within 60 days of discovery.</p>
+            </div>
         </div>
     );
-};
+}
 
 export default PrivacyPolicy;

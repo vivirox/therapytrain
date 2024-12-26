@@ -32,7 +32,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: "falcon3",
+        model: "sebdg/emotional_llama:latest",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: message }
@@ -47,13 +47,21 @@ serve(async (req) => {
     })
   } catch (error) {
     console.error('Error:', error)
-    return new Response(JSON.stringify({ error: error.message }), {
+    const errorMessage = (error as unknown as { message: string }).message;
+    return new Response(JSON.stringify({ error: errorMessage }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   }
 })
 
-function serve(arg0: (req: any) => Promise<Response>) {
+interface Request {
+  method: string;
+  // deno-lint-ignore no-explicit-any
+  json(): Promise<any>;
+}
+
+// deno-lint-ignore no-unused-vars
+function serve(arg0: (req: Request) => Promise<Response>) {
   throw new Error("Function not implemented.")
 }
