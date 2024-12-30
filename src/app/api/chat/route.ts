@@ -21,7 +21,7 @@ export async function POST(req: Request) {
       stream: true,
     }),
   })
-  const stream = response.body as ReadableStream
+  const stream = response.body as ReadableStream<Uint8Array>
 
   return new StreamingTextResponse(stream)
 }
