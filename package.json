@@ -51,6 +51,7 @@
     "@types/next-server": "^9.0.0",
     "@typescript-eslint/typescript-estree": "8.18.2",
     "@vue/devtools": "^6.6.4",
+    "astro": "^5.1.1",
     "ai": "^4.0.22",
     "bcrypt": "^5.1.1",
     "class-variance-authority": "^0.7.1",
@@ -78,6 +79,8 @@
     "tailwind-merge": "^2.6.0",
     "tailwindcss-animate": "^1.0.7",
     "ts-node": "^10.9.2",
+    "tweetnacl": "^1.0.3",
+    "tweetnacl-util": "^0.15.1",
     "vaul": "^0.9.9",
     "zod": "^3.24.1"
   },
@@ -100,6 +103,13 @@
     "vite": "^5.4.11"
   },
   "trustedDependencies": [
+    "@swc/core",
+    "bcrypt",
+    "electron",
+    "esbuild",
+    "sharp",
+    "supabase",
+    "utf-8-validate",
     "@swc/core",
     "bcrypt",
     "core-js",
