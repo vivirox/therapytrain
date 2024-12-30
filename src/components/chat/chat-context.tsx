@@ -1,31 +1,22 @@
-import { createContext, useContext, useEffect, useState } from 'react'
-import { customModel } from 'ai'
-import { DEFAULT_MODEL_NAME } from 'ai'
+import { ChatSession, Message } from '@/interfaces/types'
+import { createContext, useContext, ReactNode } from 'react'
 
-export const ChatContext = createContext({})
+interface ChatContextType {
+  messages: Array<Message>
+  isLoading: boolean
+  sendMessage: (content: string) => Promise<void>
+  currentSession: ChatSession | null
+}
 
-export function ChatProvider({ children, sessionId }) {
-  const [messages, setMessages] = useState([])
-  const aiModel = customModel(DEFAULT_MODEL_NAME)
+const ChatContext = createContext<ChatContextType | undefined>(undefined)
 
-  useEffect(() => {
-    // Subscribe to real-time message updates
-    const subscription = supabase
-      .from('chat_messages')
-      .on('INSERT', payload => {
-        setMessages(current => [...current, payload.new])
-      })
-      .subscribe()
-
-    return () => {
-      subscription.unsubscribe()
-    }
-  }, [sessionId])
-
+export const ChatProvider = ({ children }: { children: ReactNode }) => {
+  // Implementation of chat context provider
   const value = {
-    messages,
-    aiModel,
-    sessionId
+    messages: [],
+    isLoading: false,
+    sendMessage: async (content: string) => {},
+    currentSession: null
   }
 
   return (
@@ -33,4 +24,12 @@ export function ChatProvider({ children, sessionId }) {
       {children}
     </ChatContext.Provider>
   )
+}
+
+export const useChat = () => {
+  const context = useContext(ChatContext)
+  if (!context) {
+    throw new Error('useChat must be used within ChatProvider')
+  }
+  return context
 }

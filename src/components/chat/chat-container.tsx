@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Badge } from '../../components/ui/badge';
 import { ChatMessages } from './ChatMessages';
 import { MessageInput } from './MessageInput';
-import { Toast } from '../components/ui/toast';
-import { supabase } from '../utils/supabaseClient';
-import { customModel, DEFAULT_MODEL_NAME } from '../utils/ai-model';
+import { customModel, DEFAULT_MODEL_NAME } from '../../utils/ai-model';
+
+if (supabase === null) {
+  throw new Error('Supabase client instance is null');
+}; 
 
 interface ChatMessage {
   id: string;
@@ -12,6 +14,8 @@ interface ChatMessage {
   sender: string;
   timestamp: string;
 }
+
+export { ChatMessage };
 
 interface ChatContainerProps {
   therapistId: string;
