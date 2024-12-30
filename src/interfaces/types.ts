@@ -16,3 +16,6 @@ export interface Message {
 export interface ChatInterface {
   // interface properties
 }
+
+// src/interfaces/index.ts
+export type * from './types'
