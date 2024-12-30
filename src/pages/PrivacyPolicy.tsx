@@ -4,8 +4,8 @@ import React from 'react';
 
 const PrivacyPolicy: React.FC = () => {
     return (
-        <div className="min-h-screen bg-[#0A0A0B] text-white flex justify-center items-center">
-            <div className="max-w-2xl p-4">
+        <div className="min-h-screen bg-gradient-radial from-[#0A0A0B] to-black text-white">
+            <div className="max-w-2xl p-4 mx-auto bg-gradient-conic from-gray-800/50 to-gray-900/50 rounded-lg backdrop-blur">
                 <h1>Privacy Policy</h1>
                 <h2>Introduction</h2>
                 <p>Welcome to Gem City XYZ, a website designed to provide a platform for users to engage with therapy-related content and services. We are committed to protecting the privacy and security of our users' Protected Health Information (PHI).</p>

@@ -6,6 +6,12 @@ body {
   @apply bg-chatgpt-main text-white;
 }
 
+.your-element {
+  @apply bg-chatgpt-main 
+         hover:bg-chatgpt-hover 
+         hover:border-chatgpt-border;
+}
+
 .sidebar-item {
   @apply flex items-center gap-3 rounded-md px-3 py-3 text-sm transition-colors duration-200 hover:bg-chatgpt-hover cursor-pointer;
 }

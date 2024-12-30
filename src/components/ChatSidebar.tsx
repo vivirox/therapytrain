@@ -11,7 +11,7 @@ interface ChatSidebarProps {
     primary_issue: string;
     complexity: string;
     description: string;
-    key_traits?: string[];
+    key_traits?: Array<string>;
     background?: string;
   };
 }
