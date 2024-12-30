@@ -11,6 +11,12 @@ interface MetricItem {
   usageData?: Array<Usage>
 }
 
+interface AnalyticsData {
+  sessions: Array<{ id: string; value: number; label: string }>
+  engagement: Array<{ id: string; value: number; label: string }>
+  satisfaction: Array<{ id: string; value: number; label: string }>
+}
+
 export const THERAPY_METRICS = {
   sessions: [
     {
