@@ -51,6 +51,7 @@
     "@types/next": "^9.0.0",
     "@types/next-server": "^9.0.0",
     "@typescript-eslint/typescript-estree": "8.18.2",
+    "@vercel/analytics": "^1.4.1",
     "@vue/devtools": "^6.6.4",
     "ai": "^4.0.22",
     "astro": "^5.1.1",

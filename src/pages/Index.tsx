@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { Shield, Lock, Zap, Users, Award, Brain, Sparkles } from "lucide-react";
+import { Analytics } from "@vercel/analytics/react"
 
 const Index = () => {
   const navigate = useNavigate();
@@ -14,6 +15,7 @@ const Index = () => {
             <div className="flex items-center">
               <Brain className="h-8 w-8 text-blue-500" />
               <span className="ml-2 text-xl font-bold">TherapyTrain AI</span>
+              <Analytics />
             </div>
             <div className="hidden md:flex items-center space-x-8">
               <a href="/" className="text-gray-300 hover:text-white">Home</a>

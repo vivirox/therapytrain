@@ -6,7 +6,7 @@ export const securityConfig = {
     saltLength: 16,
     keyDerivation: {
       algorithm: 'pbkdf2',
-      iterations: 10000,
+      iterations: 10_000,
       digest: 'sha512'
     }
   },
