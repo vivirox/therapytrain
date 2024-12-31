@@ -1,31 +1,30 @@
 import React, { useState, useEffect } from 'react';
-import { Badge } from '../../components/ui/badge';
 import { ChatMessages } from './ChatMessages';
 import { MessageInput } from './MessageInput';
-import { Toast } from '../components/ui/toast';
-import { supabase } from '../utils/supabaseClient';
-import { customModel, DEFAULT_MODEL_NAME } from '../utils/ai-model';
+import { supabase } from '/home/vivi/therapytrain/lib/supabaseClient.ts';
 
-interface ChatMessage {
-  id: string;
-  content: string;
-  sender: string;
-  timestamp: string;
+interface Message {
+  role: string
+  session_id: string
+  id: string
+  content: string
+  sender: string
+  timestamp: string
 }
 
-export type { ChatMessage };
+export type { Message };
 
 interface ChatContainerProps {
   therapistId: string;
   clientId: string;
 }
 
+import './ChatContainer.css'; // We'll create this file next
 export function ChatContainer({ therapistId, clientId }: ChatContainerProps): JSX.Element {
-  const [messages, setMessages] = useState<Array<ChatMessage>>([]);
+  const [messages, setMessages] = useState<Array<Message>>([]);
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
-  const [generatingError, setGeneratingError] = useState<unknown>();
+  const [, setGeneratingError] = useState<unknown>();
 
-  // Fetch initial messages from Supabase API.
   useEffect(() => {
     const fetchMessages = async () => {
       try {
@@ -36,29 +35,40 @@ export function ChatContainer({ therapistId, clientId }: ChatContainerProps): JS
 
         if (error) throw error;
 
-        setMessages(data);
+        const transformedMessages: Array<Message> = data.map((msg: any) => ({
+          ...msg,
+          role: msg.sender === clientId ? 'user' : 'assistant',
+          session_id: clientId,
+        }));
+        setMessages(transformedMessages);
       } catch (err) {
         setGeneratingError(err);
       }
     };
-
     fetchMessages();
   }, [clientId]);
 
+  const handleSendMessage = async (content: string) => {
+    // Implement the logic to send a message
+    setIsGenerating(true);
+    // Add your message sending logic here
+    setIsGenerating(false);
+  };
+
   return (
-    <div className="flex flex-col h-[600px] border rounded-lg">
-      <div className="flex items-center justify-between p-4 border-b">
-        <Badge>Active Chat</Badge>
-        {isGenerating && <Badge variant="secondary">AI is typing...</Badge>}
+    <div className="chat-container">
+      <div className="chat-header">
+        <h2>Therapy Session</h2>
+        {isGenerating && <div className="loading-indicator">AI is typing...</div>}
       </div>
-      
+
       <ChatMessages 
-        messages={messages}
+        messages={messages as Array<import("/home/vivi/therapytrain/src/types/chat").Message>}
         currentUserId={clientId}
       />
 
       <MessageInput 
-        onSendMessage={/* define and pass the handleSendMessage function */}
+        onSendMessage={handleSendMessage}
         disabled={isGenerating} 
       />
     </div>

@@ -2,17 +2,16 @@ import React, { useState } from 'react'
 import { cn } from '@/lib/utils'
 
 interface MessageInputProps {
-  onSend: (content: string) => void
-  isLoading?: boolean
+  onSendMessage: (content: string) => Promise<void>
+  disabled: boolean
 }
-
-export const MessageInput: React.FC<MessageInputProps> = ({ onSend, isLoading }) => {
+export const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, disabled }) => {
   const [message, setMessage] = useState('')
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (message.trim() && !isLoading) {
-      onSend(message)
+    if (message.trim() && !disabled) {
+      onSendMessage(message)
       setMessage('')
     }
   }
@@ -28,11 +27,11 @@ export const MessageInput: React.FC<MessageInputProps> = ({ onSend, isLoading })
           "focus:outline-none focus:ring-2 focus:ring-blue-500"
         )}
         placeholder="Type your message..."
-        disabled={isLoading}
+        disabled={disabled}
       />
       <button
         type="submit"
-        disabled={isLoading}
+        disabled={disabled}
         className={cn(
           "bg-blue-600 px-4 py-2 rounded-lg",
           "hover:bg-blue-700 transition-colors",

@@ -1,13 +1,69 @@
-import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
-import { Shield, Lock, Zap, Users, Award, Brain, Sparkles } from "lucide-react";
-import { Analytics } from "@vercel/analytics/react"
+import App from '../App'
+import { createRoot } from 'react-dom/client'
+import { BrowserRouter, useNavigate } from 'react-router-dom'
+import { supabase } from '../lib/supabase'
+import { Award, Brain, LockIcon, Shield, Sparkles, Users, Zap } from 'lucide-react'
+import { Button } from 'react-day-picker'
 
-const Index = () => {
+const render = () => {
+  createRoot(document.getElementById('root')!).render(
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
+  )
+}
+
+render();
+
+if (import.meta.env.DEV) {
+  if (import.meta.hot) {
+    import.meta.hot.accept('./App', () => {
+      console.log('Hot-updating App');
+      render();
+    });
+  }
+}const Index = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-[#0A0A0B] text-white">
+    <div className="text-white">
+      {/* Navigation */}
+      <nav className="border-b border-gray-800">
+        {/* ... (keep your existing navigation code) ... */}
+      </nav>
+
+      {/* Hero Section */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+        {/* ... (keep your existing hero section code) ... */}
+      </div>
+
+      {/* Key Features */}
+      <section id="features" className="py-20 bg-[#111114]">
+        {/* ... (keep your existing features section code) ... */}
+      </section>
+
+      {/* Why Choose Section */}
+      <section id="benefits" className="py-20">
+        {/* ... (keep your existing benefits section code) ... */}
+      </section>
+
+      {/* Final CTA */}
+      <section className="py-20 bg-[#111114]">
+        {/* ... (keep your existing CTA section code) ... */}
+      </section>
+
+      {/* Footer */}
+      <footer className="border-t border-gray-800 py-12">
+        {/* ... (keep your existing footer code) ... */}
+      </footer>
+    </div>
+  );
+};
+const IndexContent = () => {
+  const navigate = useNavigate();
+
+  return (
+    <div className="text-white">
       {/* Navigation */}
       <nav className="border-b border-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -15,16 +71,14 @@ const Index = () => {
             <div className="flex items-center">
               <Brain className="h-8 w-8 text-blue-500" />
               <span className="ml-2 text-xl font-bold">TherapyTrain AI</span>
-              <Analytics />
             </div>
             <div className="hidden md:flex items-center space-x-8">
               <a href="/" className="text-gray-300 hover:text-white">Home</a>
               <a href="#features" className="text-gray-300 hover:text-white">Features</a>
               <a href="#benefits" className="text-gray-300 hover:text-white">Benefits</a>
-              <Button 
+              <Button
                 onClick={() => navigate("/auth")}
-                variant="outline"
-                className="bg-transparent border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white"
+                className="bg-transparent border border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white"
               >
                 Log In
               </Button>
@@ -42,20 +96,19 @@ const Index = () => {
               <span className="block text-blue-500">Therapeutic Practice</span>
             </h1>
             <p className="mt-6 text-gray-400 text-lg">
-              Enhance your skills with our HIPAA-compliant, AI-powered platform. 
-              Experience challenging scenarios and receive real-time feedback to 
+              Enhance your skills with our HIPAA-compliant, AI-powered platform.
+              Experience challenging scenarios and receive real-time feedback to
               become an exceptional therapist.
             </p>
             <div className="mt-8 flex space-x-4">
-              <Button 
+              <Button
                 onClick={() => navigate("/auth")}
                 className="bg-blue-500 hover:bg-blue-600 px-8"
               >
                 Start Training
               </Button>
-              <Button 
-                variant="outline"
-                className="bg-transparent border-gray-600"
+              <Button
+                className="bg-transparent border border-gray-600"
               >
                 Learn More
               </Button>
@@ -78,7 +131,8 @@ const Index = () => {
               <p className="text-gray-400">Our platform ensures the highest standards of data protection and privacy for all users.</p>
             </div>
             <div className="bg-[#1A1A1D] p-8 rounded-lg">
-              <Lock className="w-12 h-12 text-purple-500 mb-4" />
+
+              <LockIcon className="w-12 h-12 text-purple-500 mb-4" />
               <h3 className="text-xl font-semibold mb-4">Secure Environment</h3>
               <p className="text-gray-400">Advanced encryption guarantees the confidentiality of all training sessions and user data.</p>
             </div>
@@ -125,11 +179,11 @@ const Index = () => {
         <div className="max-w-3xl mx-auto text-center px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl font-bold mb-6">Ready to Elevate Your Therapeutic Skills?</h2>
           <p className="text-gray-400 mb-8">
-            Join thousands of therapists who are already benefiting from our 
-            cutting-edge training platform. Start your journey to becoming an 
+            Join thousands of therapists who are already benefiting from our
+            cutting-edge training platform. Start your journey to becoming an
             exceptional therapist today.
           </p>
-          <Button 
+          <Button
             onClick={() => navigate("/auth")}
             className="bg-blue-500 hover:bg-blue-600 px-8"
           >
@@ -163,5 +217,4 @@ const Index = () => {
     </div>
   );
 };
-
 export default Index;

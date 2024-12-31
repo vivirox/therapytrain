@@ -1,17 +1,14 @@
 import type { Config } from "tailwindcss";
 
 module.exports = {
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
   theme: {
-    extend: {
-      colors: {
-        'chatgpt': {
-          main: '#343541', 
-          hover: '#40414f', 
-          border: '#4a4b53' 
-        }
-      }
-    }
-  }
+    extend: {},
+  },
+  plugins: [],
 }
 export default {
   darkMode: ["class"],
@@ -20,6 +17,8 @@ export default {
     "./components/**/*.{ts,tsx}",
     "./app/**/*.{ts,tsx}",
     "./src/**/*.{ts,tsx}",
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
   ],
   prefix: "",
   theme: {
