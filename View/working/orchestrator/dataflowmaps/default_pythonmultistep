@@ -1,0 +1,15 @@
+{
+  "StepGUID": "pythonmultistep1",
+  "Success": {
+    "StepGUID": "pythonmultistep2",
+    "Success": {
+      "StepGUID": "pythonmultistep3"
+    },
+    "Exception": {
+      "StepGUID": "pythonmultistepexception"
+    }
+  },
+  "Exception": {
+    "StepGUID": "pythonmultistepexception"
+  }
+}

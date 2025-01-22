@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>View.UdrGenerator</name>
+    </assembly>
+    <members>
+        <member name="T:View.UdrGenerator.ViewUdrGenerator">
+            <summary>
+            UDR generator.
+            </summary>
+        </member>
+        <member name="M:View.UdrGenerator.ViewUdrGenerator.#ctor">
+            <summary>
+            Instantiate.
+            </summary>
+        </member>
+        <member name="M:View.UdrGenerator.ViewUdrGenerator.Process(View.OrchestratorBase.StepRequest)">
+            <summary>
+            Process a request.
+            </summary>
+            <param name="req">Step request.</param>
+            <returns>Step response.</returns>
+        </member>
+    </members>
+</doc>

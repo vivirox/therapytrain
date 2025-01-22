@@ -1,0 +1,111 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v8.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v8.0": {
+      "LoopbackGetStep/1.0.0": {
+        "dependencies": {
+          "Microsoft.NET.ILLink.Tasks": "8.0.11",
+          "View.OrchestratorBase": "1.0.0.1"
+        },
+        "runtime": {
+          "LoopbackGetStep.dll": {}
+        }
+      },
+      "ExpressionTree/1.0.2": {
+        "runtime": {
+          "lib/net7.0/ExpressionTree.dll": {
+            "assemblyVersion": "1.0.2.0",
+            "fileVersion": "1.0.2.0"
+          }
+        }
+      },
+      "Microsoft.NET.ILLink.Tasks/8.0.11": {},
+      "System.Text.Json/8.0.5": {},
+      "Timestamps/1.0.9": {
+        "runtime": {
+          "lib/net8.0/Timestamps.dll": {
+            "assemblyVersion": "1.0.9.0",
+            "fileVersion": "1.0.9.0"
+          }
+        }
+      },
+      "View.OrchestratorBase/1.0.0.1": {
+        "dependencies": {
+          "Timestamps": "1.0.9",
+          "View.Serializer": "1.0.4"
+        },
+        "runtime": {
+          "lib/net8.0/View.OrchestratorBase.dll": {
+            "assemblyVersion": "1.0.0.1",
+            "fileVersion": "1.0.0.1"
+          }
+        }
+      },
+      "View.Serializer/1.0.4": {
+        "dependencies": {
+          "ExpressionTree": "1.0.2",
+          "System.Text.Json": "8.0.5"
+        },
+        "runtime": {
+          "lib/net8.0/View.Serializer.dll": {
+            "assemblyVersion": "1.0.4.0",
+            "fileVersion": "1.0.4.0"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "LoopbackGetStep/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "ExpressionTree/1.0.2": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-5ioRS1XSRWXqvWi3EXb3U0SCWgH6j9F5yx5qW1cl+uJGWOgS5EJxgpqORmqfAMtOAAbV0f5qjeEYyuCHXke0ng==",
+      "path": "expressiontree/1.0.2",
+      "hashPath": "expressiontree.1.0.2.nupkg.sha512"
+    },
+    "Microsoft.NET.ILLink.Tasks/8.0.11": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-zk5lnZrYJgtuJG8L4v17Ej8rZ3PUcR2iweNV08BaO5LbYHIi2wNaVNcJoLxvqgQdnjLlKnCCfVGLDr6QHeAarQ==",
+      "path": "microsoft.net.illink.tasks/8.0.11",
+      "hashPath": "microsoft.net.illink.tasks.8.0.11.nupkg.sha512"
+    },
+    "System.Text.Json/8.0.5": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-0f1B50Ss7rqxXiaBJyzUu9bWFOO2/zSlifZ/UNMdiIpDYe4cY4LQQicP4nirK1OS31I43rn062UIJ1Q9bpmHpg==",
+      "path": "system.text.json/8.0.5",
+      "hashPath": "system.text.json.8.0.5.nupkg.sha512"
+    },
+    "Timestamps/1.0.9": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-xdCVp+T4VFXOT+Ube2Cz527fnFXFUxQK24uPMGcCmICIpIcGCXPtI7vKLnWsJ6Nfc1B92tNBK9e/I8NDq2ee6g==",
+      "path": "timestamps/1.0.9",
+      "hashPath": "timestamps.1.0.9.nupkg.sha512"
+    },
+    "View.OrchestratorBase/1.0.0.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-R0GGq7rejhXKoplZT+wMYQmaTqMofHkcD6nZHNHcdRNIOjqdGj4h+UuKBR1NpinDum1RHab6oJKBUHI9fIfjJA==",
+      "path": "view.orchestratorbase/1.0.0.1",
+      "hashPath": "view.orchestratorbase.1.0.0.1.nupkg.sha512"
+    },
+    "View.Serializer/1.0.4": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-pvGmDyvaa/hH9lyZI2u5wwaU7XN0WGvq/KRyeImR9s31zfczpoQiREoW1UNG8YtgbuEtoecrcs+puZhOLeBYAQ==",
+      "path": "view.serializer/1.0.4",
+      "hashPath": "view.serializer.1.0.4.nupkg.sha512"
+    }
+  }
+}

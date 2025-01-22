@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>View.TypeDetector</name>
+    </assembly>
+    <members>
+        <member name="T:View.TypeDetector.ViewTypeDetector">
+            <summary>
+            Content-type detector.
+            </summary>
+        </member>
+        <member name="M:View.TypeDetector.ViewTypeDetector.#ctor">
+            <summary>
+            Instantiate.
+            </summary>
+        </member>
+        <member name="M:View.TypeDetector.ViewTypeDetector.Process(View.OrchestratorBase.StepRequest)">
+            <summary>
+            Process a request.
+            </summary>
+            <param name="req">Step request.</param>
+            <returns>Step response.</returns>
+        </member>
+        <member name="M:View.TypeDetector.ViewTypeDetector.Process(System.Byte[],System.String)">
+            <summary>
+            Determine the type of supplied data.  CSV file types are inferred from the supplied content type header.
+            </summary>
+            <param name="data">Data.</param>
+            <param name="contentType">Content-type header value, if any.</param>
+            <returns>TypeResult.</returns>
+        </member>
+    </members>
+</doc>

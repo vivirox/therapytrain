@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>View.ProcessingPipeline</name>
+    </assembly>
+    <members>
+        <member name="T:View.ProcessingPipeline.ViewProcessingPipeline">
+            <summary>
+            View processing pipeline.
+            </summary>
+        </member>
+        <member name="M:View.ProcessingPipeline.ViewProcessingPipeline.#ctor">
+            <summary>
+            Instantiate.
+            </summary>
+        </member>
+        <member name="M:View.ProcessingPipeline.ViewProcessingPipeline.Process(View.OrchestratorBase.StepRequest)">
+            <summary>
+            Process a document through the pipeline.
+            </summary>
+            <param name="req">Step request.</param>
+            <returns>Step response.</returns>
+        </member>
+    </members>
+</doc>

@@ -1,0 +1,690 @@
+#
+# Docker Compose file for View AI
+#
+# Version          : v1.0.0
+# Earliest version : 2024-10-24
+# Current version  : 2024-10-30
+#
+
+#
+# Variables used for deploying services
+#
+x-embeddings-instances: &embeddings-instances 8      # Specify the number of embeddings instances
+x-semcell-instances: &semcell-instances 2            # Specify the number of semantic cell extractor instances
+x-processor-instances: &processor-instances 2        # Specify the number of document processor instances
+x-storage-instances: &storage-instances 1            # Specify the number of storage instances
+x-lexi-instances: &lexi-instances 1                  # Specify the number of lexi instances
+x-crawler-instances: &crawler-instances 1            # Specify the number of crawler instances
+x-orchestrator-instances: &orchestrator-instances 1  # Specify the number of orchestrator instances
+x-config-instances: &config-instances 1              # Specify the number of config instances
+x-vector-instances: &vector-instances 1              # Specify the number of vector instances
+
+#
+# Environment variables used within services
+#
+x-service-variables: &service-variables
+  VIEW_ACCOUNT_GUID: '305c8144-a2aa-4e63-9b1f-0a6a700b37eb'  # Supply your View account GUID here
+  VIEW_DATABASE_TYPE: Mysql                     # SqlServer, Mysql, Postgresql, or Sqlite (do not use Sqlite)
+  VIEW_DATABASE_FILE: view.db                   # Only used with Sqlite (do not use Sqlite)
+  VIEW_DATABASE_HOST: mysql                     # DNS hostname
+  VIEW_DATABASE_PORT: 3306                      # Generally 1433 for SQL Server, 3306 for MySQL, 5432 for Postgresql
+  VIEW_DATABASE_NAME: view                      # Database name
+  VIEW_DATABASE_USER: root
+  VIEW_DATABASE_PASS: password
+  VIEW_CONSOLE_LOGGING: 1                       # 1 to enable console logging, 0 to disable
+  VIEW_CONTROL_HOSTNAME: control.view.io        # Modify to change the control server endpoint
+  VIEW_CONTROL_PORT: 8403                       # Modify to change the control server websockets port
+  VIEW_CONTROL_SSL: true                        # true to enable SSL, false to disable
+  VIEW_CONTROL_SWVERSION: v1.0.0                # Modify to change the software version reported to control server
+  TERM: 'xterm-256color'
+
+networks:
+  public:            # accessible to the outside world
+    driver: bridge
+  dmz:               # amongst nginx instances
+    driver: bridge
+  private:           # where microservices are running
+    driver: bridge
+
+services:
+
+  #
+  #
+  # Public microservices
+  # Accessible through the host
+  #
+  #
+ 
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: cadvisor
+    restart: unless-stopped
+    privileged: true
+    networks:
+      - dmz
+      - public
+      - private
+    ports:
+      - "8080:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: 'rabbitmq'
+    stop_grace_period: 1m
+    ports:
+      - 5672:5672
+      - 15672:15672
+      - 15674:15674
+    volumes:
+      - ./working/rabbitmq/data/:/var/lib/rabbitmq/
+      - ./working/rabbitmq/logs/:/var/log/rabbitmq
+      - ./working/rabbitmq/definitions.json:/etc/rabbitmq/definitions.json
+      - ./working/rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
+      - ./working/rabbitmq/enabled_plugins:/etc/rabbitmq/enabled_plugins
+    environment:
+      - RABBITMQ_DEFAULT_VHOST=/
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+      - RABBITMQ_LOAD_DEFINITIONS=/etc/rabbitmq/definitions.json
+    networks:
+      - public
+      - private
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  mysql:
+    container_name: "mysql"
+    image: "mysql/mysql-server:latest"
+    ports:
+      - "3306:3306"
+    networks:
+      - public
+      - private
+    restart: on-failure
+    environment:
+      MYSQL_ONETIME_PASSWORD: null
+      MYSQL_USER: "root"
+      MYSQL_PASSWORD: "password"
+      MYSQL_ROOT_PASSWORD: "password"
+      MYSQL_DATABASE: "view"
+    stdin_open: true
+    tty: true
+    volumes:
+      - ./working/mysql/data/:/var/lib/mysql/
+      - ./working/mysql/init.sql:/docker-entrypoint-initdb.d/01_setup.sql
+      - ./working/mysql/tenants.sql:/docker-entrypoint-initdb.d/02_tenants.sql
+    healthcheck:
+      test: '/usr/bin/mysql -hmysql -uroot -ppassword --execute "SHOW DATABASES;"'
+      interval: 2s
+      timeout: 20s
+      retries: 10
+      start_period: 60s
+
+  pgvector:
+    container_name: "pgvector"
+    image: "ankane/pgvector"
+    ports:
+      - "5432:5432"
+    networks:
+      - public
+      - private
+    restart: unless-stopped
+    volumes:
+      - ./working/pgvector/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./working/pgvector/data:/var/lib/postgresql/data/
+    environment:
+      POSTGRES_DB: "vectordb"
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "password"
+      POSTGRES_HOST_AUTH_METHOD: "password"
+      <<: *service-variables
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready", "-d", "vectordb" ]
+      interval: 30s
+      timeout: 60s
+      retries: 5
+      start_period: 80s
+
+  litegraph:
+    container_name: "litegraph"
+    image: "jchristn/litegraph:v2.0.17"
+    ports:
+      - "8701:8701"
+    networks:
+      - public
+      - private
+    restart: unless-stopped
+    volumes:
+      - ./working/litegraph/litegraph.json:/app/litegraph.json
+      - ./working/litegraph/litegraph.db:/app/litegraph.db
+      - ./working/litegraph/logs/:/app/logs/
+    environment:
+      <<: *service-variables
+    healthcheck:
+      test: curl --fail http://localhost:8701
+      interval: 5s
+      retries: 6
+      start_period: 10s
+      timeout: 10s
+
+  dashboard:
+    image: "viewio/view-dashboard:v1.0.0"
+    ports:
+      - "9000:80"
+    networks:
+      - public
+      - private
+    volumes:
+      - ./working/dashboard/view.json:/usr/share/nginx/html/view.json
+      - ./working/dashboard/logs:/var/log/nginx:rw
+    environment:
+      NODE_ENV: production
+    extra_hosts:
+      - "localhost:host-gateway"
+    restart: unless-stopped
+
+  assistant:
+    image: "viewio/view-assistant:v1.0.0"
+    ports:
+      - "8331:8331"
+    networks:
+      - public
+      - private
+    environment:
+      <<: *service-variables
+      EMBEDDINGS_PRELOAD_MODELS: "all-MiniLM-L6-v2" # space separated list
+      CORS_ORIGINS: "*" # comma separated list of allowed origins
+      HF_HOME: "/app/models/"
+      #HF_TOKEN: token # huggingface token only for preloading
+    stdin_open: true
+    tty: true
+    restart: unless-stopped
+    depends_on:
+      pgvector:
+        condition: service_healthy
+
+  # Ollama with CPU only support
+  # Override the default Ollama image with the OLLAMA_IMAGE environment var
+  ollama-cpu:
+    profiles: ["cpu"]
+    image: ${OLLAMA_IMAGE:-ollama/ollama}
+    container_name: ollama
+    networks:
+      - private
+    volumes:
+      - ./working/ollama:/root/.ollama
+    restart: unless-stopped
+
+  # Ollama service with NVIDIA GPU support
+  ollama-gpu:
+    profiles: ["gpu"]
+    image: ${OLLAMA_IMAGE:-ollama/ollama}
+    container_name: ollama
+    networks:
+      - private
+    volumes:
+      - ./working/ollama:/root/.ollama
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+    restart: unless-stopped
+
+  #
+  #
+  # Private microservices
+  # Accessible only through nginx
+  # Attached to the private network
+  #
+  #
+  syslogserver:
+    image: "jchristn/syslogserver:v2.0.0"
+    networks:
+      - private
+    stdin_open: true
+    tty: true
+    restart: unless-stopped
+    volumes:
+      - ./working/syslogserver/syslog.json:/app/syslog.json
+      - ./working/syslogserver/logs/:/app/logs/
+    
+  embeddings:
+    image: "viewio/view-embeddings:v1.0.0"
+    networks:
+      - private
+    environment:
+      <<: *service-variables
+      EMBEDDINGS_PRELOAD_MODELS: "all-MiniLM-L6-v2" # space separated list
+      CORS_ORIGINS: "*" # comma separated list of allowed origins
+      HF_HOME: "/app/models/"
+      #HF_TOKEN: token # huggingface token only for preloading
+    stdin_open: true
+    tty: true
+    restart: unless-stopped
+    volumes:
+      - ./working/embeddings/models:/app/models/
+    deploy:
+      replicas: *embeddings-instances
+
+  config:
+    image: "viewio/view-config:v1.0.0"
+    networks:
+      - private
+    environment:
+      <<: *service-variables
+    stdin_open: true
+    tty: true
+    volumes:
+      - ./working/config/view.json:/app/view.json
+      - ./working/config/view.db:/app/view.db
+      - ./working/config/assets/:/app/assets/
+      - ./working/config/blobs/:/app/blobs/
+      - ./working/config/logs/:/app/logs/
+      - ./working/config/webhookreq/:/app/webhookreq/
+      - ./working/config/webhookresp/:/app/webhookresp/
+      - ./working/config/controllog/:/app/controllog/
+      - ./working/config/controlapi/:/app/controlapi/
+      - ./working/config/controltoken/:/app/controltoken/
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    deploy:
+      replicas: *config-instances
+
+  orchestrator:
+    image: "viewio/view-orchestrator:v1.0.0"
+    networks:
+      - private
+    environment:
+      <<: *service-variables
+    stdin_open: true
+    tty: true
+    volumes:
+      - ./working/orchestrator/view.json:/app/view.json
+      - ./working/orchestrator/view.db:/app/view.db
+      - ./working/orchestrator/assets/:/app/assets/
+      - ./working/orchestrator/logs/:/app/logs/
+      - ./working/orchestrator/dataflowlogs/:/app/dataflowlogs/
+      - ./working/orchestrator/dataflowmaps/:/app/dataflowmaps/
+      - ./working/orchestrator/packages/:/app/packages/
+      - ./working/orchestrator/Steps/:/app/Steps/
+      - ./working/orchestrator/ingest/:/app/ingest/
+      - ./working/orchestrator/webhookreq/:/app/webhookreq/
+      - ./working/orchestrator/webhookresp/:/app/webhookresp/
+      - ./working/orchestrator/controllog/:/app/controllog/
+      - ./working/orchestrator/controlapi/:/app/controlapi/
+      - ./working/orchestrator/controltoken/:/app/controltoken/
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    deploy:
+      replicas: *orchestrator-instances
+
+  semcell:
+    image: "viewio/view-semcell:v1.0.0"
+    networks:
+      - private
+    environment:
+      <<: *service-variables
+    stdin_open: true
+    tty: true
+    volumes:
+      - ./working/semcell/view.json:/app/view.json
+      - ./working/semcell/view.db:/app/view.db
+      - ./working/semcell/assets/:/app/assets/
+      - ./working/semcell/logs/:/app/logs/
+      - ./working/semcell/ingest/:/app/ingest/
+      - ./working/semcell/webhookreq/:/app/webhookreq/
+      - ./working/semcell/webhookresp/:/app/webhookresp/
+      - ./working/semcell/controllog/:/app/controllog/
+      - ./working/semcell/controlapi/:/app/controlapi/
+      - ./working/semcell/controltoken/:/app/controltoken/
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    deploy:
+      replicas: *semcell-instances
+
+  processor:
+    image: "viewio/view-processor:v1.0.0"
+    networks:
+      - private
+    environment:
+      <<: *service-variables
+    stdin_open: true
+    tty: true
+    volumes:
+      - ./working/processor/view.json:/app/view.json
+      - ./working/processor/assets/:/app/assets/
+      - ./working/processor/logs/:/app/logs/
+      - ./working/processor/temp/:/app/temp/
+      - ./working/processor/metadata/:/app/metadata/
+      - ./working/processor/webhookreq/:/app/webhookreq/
+      - ./working/processor/webhookresp/:/app/webhookresp/
+      - ./working/processor/controllog/:/app/controllog/
+      - ./working/processor/controlapi/:/app/controlapi/
+      - ./working/processor/controltoken/:/app/controltoken/
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    deploy:
+      replicas: *processor-instances
+
+  lexi:
+    image: "viewio/view-lexi:v1.0.0"
+    networks:
+      - private
+    environment:
+      <<: *service-variables
+    stdin_open: true
+    tty: true
+    volumes:
+      - ./working/lexi/view.json:/app/view.json
+      - ./working/lexi/view.db:/app/view.db
+      - ./working/lexi/assets/:/app/assets/
+      - ./working/lexi/logs/:/app/logs/
+      - ./working/lexi/sourcedocs/:/app/sourcedocs/
+      - ./working/lexi/temp/:/app/temp/
+      - ./working/lexi/ingest/:/app/ingest/
+      - ./working/lexi/webhookreq/:/app/webhookreq/
+      - ./working/lexi/webhookresp/:/app/webhookresp/
+      - ./working/lexi/controllog/:/app/controllog/
+      - ./working/lexi/controlapi/:/app/controlapi/
+      - ./working/lexi/controltoken/:/app/controltoken/
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      pgvector:
+        condition: service_healthy
+    deploy:
+      replicas: *lexi-instances
+
+  storage:
+    image: "viewio/view-storage:v1.0.0"
+    networks:
+      - private
+    environment:
+      <<: *service-variables
+    stdin_open: true
+    tty: true
+    volumes:
+      - ./working/storage/view.json:/app/view.json
+      - ./working/storage/view.db:/app/view.db
+      - ./working/storage/assets/:/app/assets/
+      - ./working/storage/logs/:/app/logs/
+      - ./working/storage/temp/:/app/temp/
+      - ./working/storage/disk/:/app/disk/
+      - ./working/storage/compress/:/app/compress/
+      - ./working/storage/metadata/:/app/metadata/
+      - ./working/storage/multipart/:/app/multipart/
+      - ./working/storage/webhookreq/:/app/webhookreq/
+      - ./working/storage/webhookresp/:/app/webhookresp/
+      - ./working/storage/controllog/:/app/controllog/
+      - ./working/storage/controlapi/:/app/controlapi/
+      - ./working/storage/controltoken/:/app/controltoken/
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    deploy:
+      replicas: *storage-instances
+
+  crawler:
+    image: "viewio/view-crawler:v1.0.0"
+    networks:
+      - private
+    environment:
+      <<: *service-variables
+    stdin_open: true
+    tty: true
+    volumes:
+      - ./working/crawler/view.json:/app/view.json
+      - ./working/crawler/view.db:/app/view.db
+      - ./working/crawler/assets/:/app/assets/
+      - ./working/crawler/logs/:/app/logs/
+      - ./working/crawler/temp/:/app/temp/
+      - ./working/crawler/files/:/app/files/
+      - ./working/crawler/enumerations/:/app/enumerations/
+      - ./working/crawler/webhookreq/:/app/webhookreq/
+      - ./working/crawler/webhookresp/:/app/webhookresp/
+      - ./working/crawler/controllog/:/app/controllog/
+      - ./working/crawler/controlapi/:/app/controlapi/
+      - ./working/crawler/controltoken/:/app/controltoken/
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    deploy:
+      replicas: *crawler-instances
+
+  vector:
+    image: "viewio/view-vector:v1.0.0"
+    networks:
+      - private
+    environment:
+      <<: *service-variables
+    stdin_open: true
+    tty: true
+    volumes:
+      - ./working/vector/view.json:/app/view.json
+      - ./working/vector/assets/:/app/assets/
+      - ./working/vector/logs/:/app/logs/
+      - ./working/vector/temp/:/app/temp/
+      - ./working/vector/webhookreq/:/app/webhookreq/
+      - ./working/vector/webhookresp/:/app/webhookresp/
+      - ./working/vector/controllog/:/app/controllog/
+      - ./working/vector/controlapi/:/app/controlapi/
+      - ./working/vector/controltoken/:/app/controltoken/
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    deploy:
+      replicas: *vector-instances
+
+  #
+  #
+  # Nginx instances for each microservice
+  # Should attach to both DMZ and private networks
+  #
+  #
+  
+  nginx-embeddings:
+    image: nginx:latest
+    volumes:
+      - ./working/nginx/nginx-embeddings.conf:/etc/nginx/nginx.conf
+      - ./working/nginx/logs/:/var/log/nginx
+    networks:
+      - dmz
+      - private
+    depends_on:
+      - embeddings
+
+  nginx-semcell:
+    image: nginx:latest
+    volumes:
+      - ./working/nginx/nginx-semcell.conf:/etc/nginx/nginx.conf
+      - ./working/nginx/logs/:/var/log/nginx
+    networks:
+      - dmz
+      - private
+    depends_on:
+      - semcell
+
+  nginx-processor:
+    image: nginx:latest
+    volumes:
+      - ./working/nginx/nginx-processor.conf:/etc/nginx/nginx.conf
+      - ./working/nginx/logs/:/var/log/nginx
+    networks:
+      - dmz
+      - private
+    depends_on:
+      - processor
+
+  nginx-storage-rest:
+    image: nginx:latest
+    volumes:
+      - ./working/nginx/nginx-storage-rest.conf:/etc/nginx/nginx.conf
+      - ./working/nginx/logs/:/var/log/nginx
+    networks:
+      - dmz
+      - private
+    depends_on:
+      - storage
+
+  nginx-storage-s3:
+    image: nginx:latest
+    volumes:
+      - ./working/nginx/nginx-storage-s3.conf:/etc/nginx/nginx.conf
+      - ./working/nginx/logs/:/var/log/nginx
+    networks:
+      - dmz
+      - private
+    depends_on:
+      - storage
+
+  nginx-lexi:
+    image: nginx:latest
+    volumes:
+      - ./working/nginx/nginx-lexi.conf:/etc/nginx/nginx.conf
+      - ./working/nginx/logs/:/var/log/nginx
+    networks:
+      - dmz
+      - private
+    depends_on:
+      - lexi
+
+  nginx-crawler:
+    image: nginx:latest
+    volumes:
+      - ./working/nginx/nginx-crawler.conf:/etc/nginx/nginx.conf
+      - ./working/nginx/logs/:/var/log/nginx
+    networks:
+      - dmz
+      - private
+    depends_on:
+      - crawler
+
+  nginx-orchestrator:
+    image: nginx:latest
+    volumes:
+      - ./working/nginx/nginx-orchestrator.conf:/etc/nginx/nginx.conf
+      - ./working/nginx/logs/:/var/log/nginx
+    networks:
+      - dmz
+      - private
+    depends_on:
+      - orchestrator
+
+  nginx-config:
+    image: nginx:latest
+    volumes:
+      - ./working/nginx/nginx-config.conf:/etc/nginx/nginx.conf
+      - ./working/nginx/logs/:/var/log/nginx
+    networks:
+      - dmz
+      - private
+    depends_on:
+      - config
+
+  nginx-vector:
+    image: nginx:latest
+    volumes:
+      - ./working/nginx/nginx-vector.conf:/etc/nginx/nginx.conf
+      - ./working/nginx/logs/:/var/log/nginx
+    networks:
+      - dmz
+      - private
+    depends_on:
+      - vector
+
+  #
+  #
+  # External Nginx instance
+  # Should connect DMZ nginx instances with the public network
+  #
+  #
+  
+  nginx-view:
+    image: nginx:latest
+    ports:
+      - "8000:8000"   # root
+      - "8001:8001"   # storage rest
+      - "8002:8002"   # storage S3
+      - "8003:8003"   # storage websockets
+      - "8101:8101"   # crawler rest
+      - "8103:8103"   # crawler websockets
+      - "8201:8201"   # lexi rest
+      - "8203:8203"   # lexi websockets
+      - "8301:8301"   # embeddings rest
+      - "8303:8303"   # embeddings websockets
+      - "8311:8311"   # vector rest
+      - "8313:8313"   # vector websockets
+      - "8321:8321"   # processor rest
+      - "8323:8323"   # processor websockets
+      - "8341:8341"   # semcell rest
+      - "8343:8343"   # semcell websockets
+      - "8501:8501"   # orchestrator rest
+      - "8503:8503"   # orchestrator websockets
+      - "8601:8601"   # config rest
+      - "8603:8603"   # config websockets
+    volumes:
+      - ./working/nginx/nginx-view.conf:/etc/nginx/nginx.conf:ro
+      - ./working/nginx/logs/:/var/log/nginx
+    networks:
+      - dmz
+    depends_on:
+      - nginx-embeddings
+      - nginx-semcell
+      - nginx-processor
+      - nginx-storage-rest
+      - nginx-storage-s3
+      - nginx-lexi
+      - nginx-crawler
+      - nginx-orchestrator
+      - nginx-config
+      - nginx-vector
+    healthcheck:
+      test: nginx -t || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 3
+ 
+
+

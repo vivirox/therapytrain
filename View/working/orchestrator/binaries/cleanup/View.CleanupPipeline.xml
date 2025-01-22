@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>View.CleanupPipeline</name>
+    </assembly>
+    <members>
+        <member name="T:View.CleanupPipeline.ViewCleanupPipeline">
+            <summary>
+            View cleanup pipeline.
+            </summary>
+        </member>
+        <member name="M:View.CleanupPipeline.ViewCleanupPipeline.#ctor">
+            <summary>
+            Instantiate.
+            </summary>
+        </member>
+        <member name="M:View.CleanupPipeline.ViewCleanupPipeline.Process(View.OrchestratorBase.StepRequest)">
+            <summary>
+            Cleanup documents through the pipeline.
+            </summary>
+            <param name="req">Step request.</param>
+            <returns>Step response.</returns>
+        </member>
+    </members>
+</doc>

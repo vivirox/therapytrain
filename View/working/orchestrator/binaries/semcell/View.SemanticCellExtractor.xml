@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>View.SemanticCellExtractor</name>
+    </assembly>
+    <members>
+        <member name="T:View.SemanticCellExtractor.ViewSemanticCellExtractor">
+            <summary>
+            View semantic cell extractor.
+            </summary>
+        </member>
+        <member name="M:View.SemanticCellExtractor.ViewSemanticCellExtractor.#ctor">
+            <summary>
+            Instantiate.
+            </summary>
+        </member>
+        <member name="M:View.SemanticCellExtractor.ViewSemanticCellExtractor.Process(View.OrchestratorBase.StepRequest)">
+            <summary>
+            Process a semantic cell extraction request.
+            </summary>
+            <param name="req">Request.</param>
+            <returns>Step response.</returns>
+        </member>
+    </members>
+</doc>
