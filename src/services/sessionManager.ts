@@ -1,4 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
+import EncryptionService from './encryption';
+import ZKService from './zkService';
 
 export type SessionMode = 'text' | 'video' | 'hybrid';
 
@@ -30,8 +32,13 @@ class SessionManager {
   private static instance: SessionManager;
   private currentSession: SessionState | null = null;
   private branches: Map<string, SessionBranch[]> = new Map();
+  private encryptionService: EncryptionService;
+  private zkService: ZKService;
 
-  private constructor() {}
+  private constructor() {
+    this.encryptionService = EncryptionService.getInstance();
+    this.zkService = ZKService.getInstance();
+  }
 
   static getInstance(): SessionManager {
     if (!SessionManager.instance) {
@@ -41,13 +48,32 @@ class SessionManager {
   }
 
   async startSession(clientId: string, mode: SessionMode): Promise<SessionState> {
+    // Generate encryption key for the new session
+    const sessionId = crypto.randomUUID();
+    const encryptionKey = this.encryptionService.generateSessionKey(sessionId);
+
+    // Encrypt sensitive client data
+    const encryptedClientId = this.encryptionService.encryptSessionData(sessionId, clientId);
+
+    // Generate initial ZK proof for session start
+    const initialProof = await this.zkService.generateSessionProof({
+      sessionId,
+      timestamp: Date.now(),
+      durationMinutes: 0,
+      clientDataHash: this.encryptionService.hashData(clientId),
+      metricsHash: this.encryptionService.hashData('{}'),
+      therapistId: 'therapist-id' // Replace with actual therapist ID
+    });
+
     const { data, error } = await supabase
       .from('therapy_sessions')
       .insert([{
-        client_id: clientId,
+        id: sessionId,
+        client_id: encryptedClientId,
         mode,
         start_time: new Date().toISOString(),
-        status: 'active'
+        status: 'active',
+        integrity_proof: initialProof
       }])
       .select()
       .single();
@@ -55,7 +81,7 @@ class SessionManager {
     if (error) throw new Error(`Failed to start session: ${error.message}`);
 
     this.currentSession = {
-      id: data.id,
+      id: sessionId,
       clientId,
       mode,
       currentBranch: null,
@@ -68,7 +94,7 @@ class SessionManager {
       }
     };
 
-    await this.loadSessionBranches(data.id);
+    await this.loadSessionBranches(sessionId);
     return this.currentSession;
   }
 
@@ -79,7 +105,14 @@ class SessionManager {
       .eq('session_id', sessionId);
 
     if (error) throw new Error(`Failed to load branches: ${error.message}`);
-    this.branches.set(sessionId, data);
+    
+    // Decrypt branch data
+    const decryptedBranches = data.map(branch => ({
+      ...branch,
+      nextAction: this.encryptionService.decryptSessionData(sessionId, branch.nextAction)
+    }));
+    
+    this.branches.set(sessionId, decryptedBranches);
   }
 
   async evaluateBranches(metrics: { sentiment: number; engagement: number }): Promise<SessionBranch | null> {
@@ -139,34 +172,52 @@ class SessionManager {
   }
 
   async updateMetrics(metrics: Partial<SessionState['metrics']>): Promise<void> {
-    if (!this.currentSession) return;
+    if (!this.currentSession) throw new Error('No active session');
+
+    // Generate ZK proof for metrics
+    const metricsProof = await this.zkService.generateMetricsProof(
+      this.currentSession.id,
+      { ...this.currentSession.metrics, ...metrics }
+    );
+
+    // Encrypt metrics before storing
+    const encryptedMetrics = this.encryptionService.encryptSessionData(
+      this.currentSession.id,
+      metrics
+    );
+
+    const { error } = await supabase
+      .from('therapy_sessions')
+      .update({
+        metrics: encryptedMetrics,
+        metrics_proof: metricsProof
+      })
+      .eq('id', this.currentSession.id);
+
+    if (error) throw new Error(`Failed to update metrics: ${error.message}`);
 
     this.currentSession.metrics = {
       ...this.currentSession.metrics,
       ...metrics
     };
-
-    await supabase
-      .from('therapy_sessions')
-      .update({
-        metrics: this.currentSession.metrics
-      })
-      .eq('id', this.currentSession.id);
   }
 
   async endSession(): Promise<void> {
-    if (!this.currentSession) return;
+    if (!this.currentSession) throw new Error('No active session');
 
-    await supabase
+    const { error } = await supabase
       .from('therapy_sessions')
       .update({
-        status: 'completed',
-        end_time: new Date().toISOString()
+        end_time: new Date().toISOString(),
+        status: 'completed'
       })
       .eq('id', this.currentSession.id);
 
-    this.currentSession.status = 'completed';
-    this.currentSession.endTime = new Date();
+    if (error) throw new Error(`Failed to end session: ${error.message}`);
+
+    // Clean up encryption keys
+    this.encryptionService.clearSessionKey(this.currentSession.id);
+    this.currentSession = null;
   }
 
   getCurrentSession(): SessionState | null {

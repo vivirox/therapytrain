@@ -8,7 +8,8 @@
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "setup:zk": "bun run scripts/setup_zk.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
@@ -45,6 +46,7 @@
     "@supabase/supabase-js": "^2.47.10",
     "@tanstack/react-query": "^5.56.2",
     "chart.js": "^4.4.7",
+    "circomlib": "^2.0.5",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "cmdk": "^1.0.0",
@@ -63,6 +65,7 @@
     "react-router-dom": "^6.26.2",
     "recharts": "^2.12.7",
     "sentiment": "^5.0.2",
+    "snarkjs": "^0.7.5",
     "sonner": "^1.5.0",
     "supabase": "^2.6.8",
     "tailwind-merge": "^2.5.2",
