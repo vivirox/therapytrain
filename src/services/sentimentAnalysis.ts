@@ -38,12 +38,6 @@ export interface SentimentAnalysis {
   alert: boolean;
 }
 
-export interface SentimentTrend {
-  timestamp: number;
-  score: number;
-  intensity: string;
-}
-
 const normalizeScore = (score: number): number => {
   const maxScore = 5;
   return Math.max(Math.min(score, maxScore), -maxScore);
@@ -84,15 +78,4 @@ export const analyzeMessageHistory = (messages: { content: string; timestamp?: n
   const scores = messages.map(msg => analyzeSentiment(msg.content).score);
   const average = scores.reduce((a, b) => a + b, 0) / scores.length;
   return normalizeScore(average);
-};
-
-export const getSentimentTrends = (messages: { content: string; timestamp?: number }[]): SentimentTrend[] => {
-  return messages.map(msg => {
-    const analysis = analyzeSentiment(msg.content);
-    return {
-      timestamp: msg.timestamp || Date.now(),
-      score: analysis.score,
-      intensity: analysis.intensity
-    };
-  });
 };

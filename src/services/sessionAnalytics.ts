@@ -11,22 +11,6 @@ export interface SessionMetrics {
   keyInsights: string[];
 }
 
-export interface SessionComparison {
-  sessionId: string;
-  date: string;
-  metrics: SessionMetrics;
-  improvement: {
-    sentiment: number;
-    engagement: number;
-    effectiveness: number;
-  };
-  significantChanges: Array<{
-    metric: string;
-    change: number;
-    significance: 'improved' | 'declined' | 'unchanged';
-  }>;
-}
-
 class SessionAnalytics {
   static async getSessionMetrics(sessionId: string): Promise<SessionMetrics> {
     const { data: session, error } = await supabase
@@ -60,44 +44,6 @@ class SessionAnalytics {
       topicsCovered,
       keyInsights
     };
-  }
-
-  static async compareWithPreviousSessions(
-    clientId: string,
-    currentSessionId: string,
-    limit: number = 5
-  ): Promise<SessionComparison[]> {
-    const { data: sessions, error } = await supabase
-      .from('therapy_sessions')
-      .select('id, start_time')
-      .eq('client_id', clientId)
-      .order('start_time', { ascending: false })
-      .limit(limit + 1); // +1 to include current session
-
-    if (error) throw new Error(`Failed to fetch sessions: ${error.message}`);
-
-    const comparisons = await Promise.all(
-      sessions
-        .filter(s => s.id !== currentSessionId)
-        .map(async session => {
-          const metrics = await this.getSessionMetrics(session.id);
-          const improvement = await this.calculateImprovement(session.id, metrics);
-          const significantChanges = await this.identifySignificantChanges(
-            session.id,
-            metrics
-          );
-
-          return {
-            sessionId: session.id,
-            date: new Date(session.start_time).toLocaleDateString(),
-            metrics,
-            improvement,
-            significantChanges
-          };
-        })
-    );
-
-    return comparisons;
   }
 
   private static calculateDuration(startTime: string, endTime: string): number {
@@ -166,74 +112,6 @@ class SessionAnalytics {
     if (emotionalInsights) insights.push(emotionalInsights);
 
     return insights;
-  }
-
-  private static async calculateImprovement(
-    sessionId: string,
-    currentMetrics: SessionMetrics
-  ) {
-    const { data: previousSession, error } = await supabase
-      .from('therapy_sessions')
-      .select('*')
-      .lt('id', sessionId)
-      .order('start_time', { ascending: false })
-      .limit(1)
-      .single();
-
-    if (error || !previousSession) {
-      return {
-        sentiment: 0,
-        engagement: 0,
-        effectiveness: 0
-      };
-    }
-
-    const previousMetrics = await this.getSessionMetrics(previousSession.id);
-
-    return {
-      sentiment: currentMetrics.averageSentiment - previousMetrics.averageSentiment,
-      engagement: currentMetrics.engagementScore - previousMetrics.engagementScore,
-      effectiveness: 
-        (currentMetrics.interventionCount / currentMetrics.duration) -
-        (previousMetrics.interventionCount / previousMetrics.duration)
-    };
-  }
-
-  private static async identifySignificantChanges(
-    sessionId: string,
-    currentMetrics: SessionMetrics
-  ) {
-    const changes: Array<{
-      metric: string;
-      change: number;
-      significance: 'improved' | 'declined' | 'unchanged';
-    }> = [];
-
-    const previousMetrics = await this.getSessionMetrics(sessionId);
-
-    // Define significance thresholds
-    const thresholds = {
-      sentiment: 0.2,
-      engagement: 0.15,
-      responseRate: 0.1
-    };
-
-    // Check each metric for significant changes
-    Object.entries(thresholds).forEach(([metric, threshold]) => {
-      const current = currentMetrics[metric as keyof SessionMetrics] as number;
-      const previous = previousMetrics[metric as keyof SessionMetrics] as number;
-      const change = current - previous;
-
-      if (Math.abs(change) >= threshold) {
-        changes.push({
-          metric,
-          change,
-          significance: change > 0 ? 'improved' : 'declined'
-        });
-      }
-    });
-
-    return changes;
   }
 
   private static analyzeResponsePatterns(messages: any[]): string | null {

@@ -13,6 +13,7 @@ import {
   Star,
   Clock
 } from 'lucide-react';
+import { InteractiveElement } from './tutorial/InteractiveElements';
 
 interface TutorialSystemProps {
   userId: string;
@@ -99,20 +100,71 @@ export const TutorialSystem: React.FC<TutorialSystemProps> = ({ userId }) => {
         return (
           <div className="aspect-video rounded-lg bg-gray-800">
             <Video className="w-full h-full text-gray-400" />
-            {/* Video player implementation */}
+            {step.content && (
+              <div className="mt-4">
+                <video
+                  src={step.content}
+                  controls
+                  className="w-full rounded-lg"
+                />
+              </div>
+            )}
           </div>
         );
       case 'interactive':
         return (
           <div className="p-4 border rounded-lg bg-gray-800">
-            <Brain className="w-12 h-12 text-primary mb-4" />
-            {/* Interactive elements based on step.interactiveElements */}
+            <InteractiveElement
+              config={step.interactiveElements?.[0] || { 
+                type: 'simulation',
+                data: { scenario: { setup: step.content, variables: {}, successCriteria: [] } }
+              }}
+              onComplete={async (results) => {
+                // Record the results
+                await fetch('/api/tutorial-progress', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    userId,
+                    tutorialId: currentTutorial?.id,
+                    stepId: step.id,
+                    results
+                  })
+                });
+                nextStep();
+              }}
+              onProgress={(progress) => {
+                // Update progress indicator
+              }}
+            />
           </div>
         );
       case 'quiz':
         return (
           <div className="space-y-4">
-            {/* Quiz implementation */}
+            <div className="prose prose-invert max-w-none mb-4">
+              {step.content}
+            </div>
+            {step.interactiveElements?.map((element, index) => (
+              <InteractiveElement
+                key={index}
+                config={element}
+                onComplete={async (results) => {
+                  await fetch('/api/quiz-submission', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      userId,
+                      tutorialId: currentTutorial?.id,
+                      stepId: step.id,
+                      results
+                    })
+                  });
+                  nextStep();
+                }}
+                onProgress={() => {}}
+              />
+            ))}
           </div>
         );
       default:
