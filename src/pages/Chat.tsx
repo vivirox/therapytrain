@@ -1,20 +1,15 @@
-import { useEffect, useState, useRef, lazy, Suspense } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
-import { useSupabase } from "@/hooks/useSupabase";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { useEffect, useState, useRef } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { analyzeMessageHistory, analyzeSentiment } from "@/services/sentimentAnalysis";
 import { useToast } from "@/components/ui/use-toast";
-import { Separator } from "@/components/ui/separator";
-import { Card } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import MessageList from "@/components/MessageList";
 import ChatInput from "@/components/ChatInput";
 import ChatSidebar from "@/components/ChatSidebar";
 import SessionControls from "@/components/SessionControls";
 import VideoChat from "@/components/VideoChat";
 import { SentimentIndicator } from "@/components/SentimentIndicator";
+import { supabase } from "@/integrations/supabase/client";
+import { sessionManager, type SessionMode } from '@/services/sessionManager';
 
 type Client = {
   id: number;
@@ -43,7 +38,7 @@ const ChatPage = () => {
   const [client, setClient] = useState<Client | null>(null);
   const [currentSentiment, setCurrentSentiment] = useState(0);
   const [overallSentiment, setOverallSentiment] = useState(0);
-  const [sessionMode, setSessionMode] = useState<'text' | 'video'>('text');
+  const [sessionMode, setSessionMode] = useState<SessionMode>('text');
   const [sessionId, setSessionId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 

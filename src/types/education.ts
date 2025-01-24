@@ -14,6 +14,7 @@ export interface TutorialStep {
 }
 
 export interface Tutorial {
+  type: string;
   id: string;
   title: string;
   description: string;

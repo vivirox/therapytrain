@@ -24,6 +24,7 @@ export default defineConfig(({ mode }) => ({
     cssMinify: true,
     reportCompressedSize: true,
     chunkSizeWarningLimit: 500,
+    sourcemap: true,
     rollupOptions: {
       output: {
         manualChunks: (id) => {
