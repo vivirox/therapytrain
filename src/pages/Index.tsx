@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";
+import { Button } from "../components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { Shield, Lock, Zap, Users, Award, Brain, Sparkles } from "lucide-react";
 
@@ -153,7 +153,7 @@ const Index = () => {
             </div>
           </div>
           <div className="mt-8 text-center text-sm text-gray-400">
-            <p>© 2024 TherapyTrain AI. All rights reserved.</p>
+            <p> 2024 TherapyTrain AI. All rights reserved.</p>
             <p className="mt-2">HIPAA Compliant | Secure | Confidential</p>
           </div>
         </div>

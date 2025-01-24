@@ -5,7 +5,9 @@ import TutorialSystem from '../components/education/TutorialSystem';
 import CaseStudyLibrary from '../components/education/CaseStudyLibrary';
 import SkillProgressionTracker from '../components/education/SkillProgressionTracker';
 import PeerLearning from '../components/education/PeerLearning';
+import { LearningPathView } from '../components/education/LearningPathView';
 import { RecommendationEngine } from '../services/recommendations';
+import { LearningPathService } from '../services/learningPath';
 import { useAuth } from '../hooks/useAuth';
 import { 
   BookOpen, 
@@ -13,157 +15,144 @@ import {
   TrendingUp,
   Lightbulb,
   MessageSquare,
-  Sparkles
+  Sparkles,
+  Map
 } from 'lucide-react';
 
 const Education = () => {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState('tutorials');
+  const [activeTab, setActiveTab] = useState('learning-path');
   const [recommendations, setRecommendations] = useState<{
     recommendedTutorials: any[];
     recommendedCaseStudies: any[];
   }>({ recommendedTutorials: [], recommendedCaseStudies: [] });
+  const [userSkills, setUserSkills] = useState<Record<string, number>>({});
 
   useEffect(() => {
     const fetchRecommendations = async () => {
       if (!user) return;
       try {
         const [tutorials, caseStudies] = await Promise.all([
-          fetch('/api/tutorials').then(res => res.json()),
-          fetch('/api/case-studies').then(res => res.json())
+          RecommendationEngine.getRecommendedTutorials(user.id),
+          RecommendationEngine.getRecommendedCaseStudies(user.id)
         ]);
-
-        const recs = await RecommendationEngine.getRecommendations(
-          user.id,
-          tutorials,
-          caseStudies
-        );
-        setRecommendations(recs);
+        setRecommendations({ recommendedTutorials: tutorials, recommendedCaseStudies: caseStudies });
       } catch (error) {
-        console.error('Error fetching recommendations:', error);
+        console.error('Failed to fetch recommendations:', error);
+      }
+    };
+
+    const fetchUserSkills = async () => {
+      if (!user) return;
+      try {
+        // This would come from your skills tracking system
+        const skills = {
+          'clinical-skills': 0.4,
+          'crisis-management': 0.3,
+          'therapeutic-techniques': 0.5,
+          'client-engagement': 0.6
+        };
+        setUserSkills(skills);
+      } catch (error) {
+        console.error('Failed to fetch user skills:', error);
       }
     };
 
     fetchRecommendations();
+    fetchUserSkills();
   }, [user]);
 
-  if (!user) {
-    return <div>Please log in to access educational resources</div>;
-  }
-
   return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex flex-col items-center text-center mb-12">
-          <Lightbulb className="w-16 h-16 text-primary mb-4" />
-          <h1 className="text-4xl font-bold mb-4">TherapyTrain Education</h1>
-          <p className="text-xl text-gray-400 max-w-2xl">
-            Enhance your therapeutic skills through interactive tutorials, 
-            real-world case studies, and personalized skill tracking
-          </p>
-        </div>
+    <div className="container mx-auto p-6">
+      <h1 className="text-3xl font-bold mb-6">Professional Development</h1>
+      
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="grid grid-cols-6 max-w-[800px] mb-6">
+          <TabsTrigger value="learning-path" className="flex items-center gap-2">
+            <Map className="w-4 h-4" />
+            Learning Path
+          </TabsTrigger>
+          <TabsTrigger value="tutorials" className="flex items-center gap-2">
+            <BookOpen className="w-4 h-4" />
+            Tutorials
+          </TabsTrigger>
+          <TabsTrigger value="case-studies" className="flex items-center gap-2">
+            <Lightbulb className="w-4 h-4" />
+            Case Studies
+          </TabsTrigger>
+          <TabsTrigger value="skills" className="flex items-center gap-2">
+            <TrendingUp className="w-4 h-4" />
+            Skills
+          </TabsTrigger>
+          <TabsTrigger value="peer-learning" className="flex items-center gap-2">
+            <Users className="w-4 h-4" />
+            Peer Learning
+          </TabsTrigger>
+          <TabsTrigger value="ai-insights" className="flex items-center gap-2">
+            <Sparkles className="w-4 h-4" />
+            AI Insights
+          </TabsTrigger>
+        </TabsList>
 
-        {/* Recommended Content */}
-        <div className="mb-12">
-          <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-            <Sparkles className="w-6 h-6 text-primary" />
-            Recommended for You
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card className="p-6">
-              <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                <BookOpen className="w-5 h-5" />
-                Recommended Tutorials
-              </h3>
-              <div className="space-y-4">
-                {recommendations.recommendedTutorials.map(tutorial => (
-                  <div key={tutorial.id} className="p-4 bg-gray-800 rounded-lg">
-                    <h4 className="font-medium mb-2">{tutorial.title}</h4>
-                    <p className="text-sm text-gray-400 mb-2">
-                      {tutorial.description}
-                    </p>
-                    <div className="text-sm text-primary">
-                      Why this is recommended:
-                      <ul className="list-disc list-inside mt-1">
-                        {tutorial.reasons.map((reason: string, index: number) => (
-                          <li key={index}>{reason}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </Card>
+        <TabsContent value="learning-path">
+          <Card>
+            <div className="p-6">
+              {user && (
+                <LearningPathView
+                  userId={user.id}
+                  specialization="therapeutic-techniques"
+                  initialSkillLevels={userSkills}
+                />
+              )}
+            </div>
+          </Card>
+        </TabsContent>
 
-            <Card className="p-6">
-              <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                <Users className="w-5 h-5" />
-                Recommended Case Studies
-              </h3>
-              <div className="space-y-4">
-                {recommendations.recommendedCaseStudies.map(study => (
-                  <div key={study.id} className="p-4 bg-gray-800 rounded-lg">
-                    <h4 className="font-medium mb-2">{study.title}</h4>
-                    <p className="text-sm text-gray-400 mb-2">
-                      {study.description}
-                    </p>
-                    <div className="text-sm text-primary">
-                      Why this is recommended:
-                      <ul className="list-disc list-inside mt-1">
-                        {study.reasons.map((reason: string, index: number) => (
-                          <li key={index}>{reason}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </Card>
-          </div>
-        </div>
+        <TabsContent value="tutorials">
+          <Card>
+            <div className="p-6">
+              <TutorialSystem 
+                recommendedTutorials={recommendations.recommendedTutorials} 
+              />
+            </div>
+          </Card>
+        </TabsContent>
 
-        <Tabs
-          defaultValue="tutorials"
-          value={activeTab}
-          onValueChange={setActiveTab}
-          className="space-y-8"
-        >
-          <TabsList className="grid grid-cols-4 max-w-2xl mx-auto">
-            <TabsTrigger value="tutorials" className="flex items-center gap-2">
-              <BookOpen className="w-4 h-4" />
-              Tutorials
-            </TabsTrigger>
-            <TabsTrigger value="case-studies" className="flex items-center gap-2">
-              <Users className="w-4 h-4" />
-              Case Studies
-            </TabsTrigger>
-            <TabsTrigger value="progression" className="flex items-center gap-2">
-              <TrendingUp className="w-4 h-4" />
-              My Progress
-            </TabsTrigger>
-            <TabsTrigger value="peer-learning" className="flex items-center gap-2">
-              <MessageSquare className="w-4 h-4" />
-              Peer Learning
-            </TabsTrigger>
-          </TabsList>
+        <TabsContent value="case-studies">
+          <Card>
+            <div className="p-6">
+              <CaseStudyLibrary 
+                recommendedCaseStudies={recommendations.recommendedCaseStudies} 
+              />
+            </div>
+          </Card>
+        </TabsContent>
 
-          <TabsContent value="tutorials" className="mt-6">
-            <TutorialSystem userId={user.id} />
-          </TabsContent>
+        <TabsContent value="skills">
+          <Card>
+            <div className="p-6">
+              <SkillProgressionTracker userId={user?.id} />
+            </div>
+          </Card>
+        </TabsContent>
 
-          <TabsContent value="case-studies" className="mt-6">
-            <CaseStudyLibrary userId={user.id} />
-          </TabsContent>
+        <TabsContent value="peer-learning">
+          <Card>
+            <div className="p-6">
+              <PeerLearning userId={user?.id} />
+            </div>
+          </Card>
+        </TabsContent>
 
-          <TabsContent value="progression" className="mt-6">
-            <SkillProgressionTracker userId={user.id} />
-          </TabsContent>
-
-          <TabsContent value="peer-learning" className="mt-6">
-            <PeerLearning userId={user.id} />
-          </TabsContent>
-        </Tabs>
-      </div>
+        <TabsContent value="ai-insights">
+          <Card>
+            <div className="p-6">
+              <h2 className="text-2xl font-semibold mb-4">AI Learning Insights</h2>
+              {/* AI Insights component would go here */}
+            </div>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
