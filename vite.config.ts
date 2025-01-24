@@ -19,42 +19,110 @@ export default defineConfig(({ mode }) => ({
     },
   },
   build: {
+    target: 'esnext',
+    minify: 'esbuild',
+    cssMinify: true,
+    reportCompressedSize: true,
     chunkSizeWarningLimit: 500,
     rollupOptions: {
       output: {
         manualChunks: (id) => {
+          // Split node_modules into smaller chunks
           if (id.includes('node_modules')) {
-            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
-              return 'react-vendor';
+            // Core React packages
+            if (id.includes('react/') || id.includes('react-dom/')) {
+              return 'core-react';
             }
-            if (id.includes('@radix-ui') || id.includes('@floating-ui')) {
-              return 'ui-vendor';
+            // React ecosystem packages
+            if (id.includes('react-router') || id.includes('@tanstack/react-query')) {
+              return 'react-ecosystem';
             }
-            if (id.includes('snarkjs') || id.includes('ffjavascript')) {
-              return 'crypto-vendor';
+            // UI Framework
+            if (id.includes('@radix-ui/') || id.includes('@floating-ui/')) {
+              return 'ui-framework';
             }
-            if (id.includes('chart.js') || id.includes('d3')) {
-              return 'chart-vendor';
+            // Form handling
+            if (id.includes('react-hook-form') || id.includes('@hookform/resolvers') || id.includes('zod')) {
+              return 'form-handling';
             }
-            // Group remaining node_modules into a shared vendor chunk
-            return 'vendor';
+            // Data visualization
+            if (id.includes('chart.js') || id.includes('react-chartjs-2') || id.includes('recharts')) {
+              return 'data-viz';
+            }
+            // Utilities
+            if (id.includes('date-fns') || id.includes('clsx') || id.includes('tailwind-merge')) {
+              return 'utils';
+            }
+            // AI/ML related
+            if (id.includes('sentiment') || id.includes('lovable-tagger')) {
+              return 'ai-ml';
+            }
+            // Crypto/Security
+            if (id.includes('noble') || id.includes('secp256k1') || id.includes('sha256')) {
+              return 'crypto';
+            }
+            // Animation libraries
+            if (id.includes('framer-motion') || id.includes('vaul') || id.includes('embla-carousel')) {
+              return 'animations';
+            }
+            // State management
+            if (id.includes('zustand') || id.includes('jotai') || id.includes('valtio')) {
+              return 'state-management';
+            }
+            // Remaining node_modules split by first letter to avoid large chunks
+            const moduleId = id.split('node_modules/').pop()?.split('/')[0] ?? '';
+            return `vendor-${moduleId.charAt(0).toLowerCase()}`;
           }
-          // Split components into feature-based chunks
-          if (id.includes('/components/')) {
-            if (id.includes('/ui/')) {
-              return 'ui-components';
+
+          // Application code splitting
+          if (id.includes('/src/')) {
+            // Components by feature
+            if (id.includes('/components/')) {
+              if (id.includes('/ui/')) return 'app-ui';
+              if (id.includes('/auth/')) return 'app-auth';
+              if (id.includes('/chat/')) return 'app-chat';
+              if (id.includes('/education/')) return 'app-education';
+              if (id.includes('/analytics/')) return 'app-analytics';
+              return 'app-components';
             }
-            if (id.includes('Chat') || id.includes('Message')) {
-              return 'chat-components';
+            // Services by domain
+            if (id.includes('/services/')) {
+              if (id.includes('/ai/')) return 'services-ai';
+              if (id.includes('/auth/')) return 'services-auth';
+              if (id.includes('/api/')) return 'services-api';
+              return 'services-core';
             }
-            if (id.includes('Analytics') || id.includes('Trends') || id.includes('Patterns')) {
-              return 'analytics-components';
+            // Pages
+            if (id.includes('/pages/')) {
+              return 'pages';
+            }
+            // Hooks
+            if (id.includes('/hooks/')) {
+              return 'hooks';
+            }
+            // Utils
+            if (id.includes('/utils/')) {
+              return 'utils';
             }
           }
-          // Split services into their own chunk
-          if (id.includes('/services/')) {
-            return 'services';
+        },
+        // Optimize chunk names and reduce filename length
+        chunkFileNames: (chunkInfo) => {
+          const name = chunkInfo.name || 'chunk';
+          return `assets/${name}-[hash].js`;
+        },
+        // Optimize asset names
+        assetFileNames: (assetInfo) => {
+          const extType = assetInfo.name?.split('.').pop();
+          if (extType) {
+            if (/png|jpe?g|svg|gif|tiff|bmp|ico/i.test(extType)) {
+              return 'assets/images/[name]-[hash][extname]';
+            }
+            if (/woff|woff2|eot|ttf|otf/i.test(extType)) {
+              return 'assets/fonts/[name]-[hash][extname]';
+            }
           }
+          return 'assets/[name]-[hash][extname]';
         }
       }
     }

@@ -81,6 +81,7 @@ export interface SkillProgression {
 }
 
 export interface LearningAnalytics {
+  [x: string]: any[];
   userId: string;
   timeSpent: {
     tutorials: number;

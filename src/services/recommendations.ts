@@ -105,7 +105,7 @@ export class RecommendationEngine {
     const interestScore = this.calculateCaseInterestScore(caseStudy, userBehavior);
     score += interestScore * this.INTEREST_WEIGHT;
     if (interestScore > 0.7) {
-      reasons.push('Covers topics you're interested in');
+      reasons.push('Covers topics you are interested in');
     }
 
     // Complexity appropriateness

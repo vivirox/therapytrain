@@ -8,7 +8,7 @@ import PeerLearning from '../components/education/PeerLearning';
 import { LearningPathView } from '../components/education/LearningPathView';
 import { RecommendationEngine } from '../services/recommendations';
 import { LearningPathService } from '../services/learningPath';
-import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '../components/auth/AuthProvider';
 import { 
   BookOpen, 
   Users, 

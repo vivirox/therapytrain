@@ -1,21 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  RadarChart,
-  PolarGrid,
-  PolarAngleAxis,
-  PolarRadiusAxis,
-  Radar,
-  Legend
-} from 'recharts';
+import { Suspense, LazyExoticComponent } from 'react';
+import { Loading } from './ui/loading';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import InterventionMetrics, { 
   type EffectivenessScore 
 } from '@/services/interventionMetrics';
@@ -58,22 +46,22 @@ const InterventionEffectiveness = ({ sessionId, className = '' }: Props) => {
 
   const componentData = Object.entries(effectiveness.components).map(
     ([name, value]) => ({
-      name: name.replace(/([A-Z])/g, ' $1').trim(),
-      value: value * 100
+      x: name.replace(/([A-Z])/g, ' $1').trim(),
+      y: value * 100
     })
   );
 
   const timeOfDayData = Object.entries(effectiveness.trends.timeOfDay).map(
     ([hour, value]) => ({
-      hour: `${hour}:00`,
-      effectiveness: value * 100
+      x: `${hour}:00`,
+      y: value * 100
     })
   );
 
   const typeData = Object.entries(effectiveness.trends.byType).map(
     ([type, value]) => ({
-      type,
-      effectiveness: value * 100
+      x: type,
+      y: value * 100
     })
   );
 
@@ -127,58 +115,51 @@ const InterventionEffectiveness = ({ sessionId, className = '' }: Props) => {
           </TabsContent>
 
           <TabsContent value="components">
-            <div className="h-[300px] mt-4">
-              <ResponsiveContainer width="100%" height="100%">
-                <RadarChart data={componentData}>
-                  <PolarGrid />
-                  <PolarAngleAxis dataKey="name" />
-                  <PolarRadiusAxis angle={30} domain={[0, 100]} />
-                  <Radar
-                    name="Effectiveness"
-                    dataKey="value"
-                    stroke="#8884d8"
-                    fill="#8884d8"
-                    fillOpacity={0.6}
-                  />
-                </RadarChart>
-              </ResponsiveContainer>
-            </div>
+            <Suspense fallback={<Loading message="Loading component data..." />}>
+              <div style={{ width: '100%', height: 250 }}>
+                <ResponsiveContainer>
+                  <LineChart data={componentData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="x" label={{ value: "Component", position: "bottom" }} />
+                    <YAxis label={{ value: "Score", angle: -90, position: "insideLeft" }} />
+                    <Tooltip />
+                    <Line type="monotone" dataKey="y" stroke="#0066FF" />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </Suspense>
           </TabsContent>
 
           <TabsContent value="timing">
-            <div className="h-[300px] mt-4">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={timeOfDayData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="hour" />
-                  <YAxis domain={[0, 100]} />
-                  <Tooltip />
-                  <Bar
-                    dataKey="effectiveness"
-                    fill="#82ca9d"
-                    name="Effectiveness %"
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
+            <Suspense fallback={<Loading message="Loading time of day data..." />}>
+              <div style={{ width: '100%', height: 250 }}>
+                <ResponsiveContainer>
+                  <LineChart data={timeOfDayData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="x" label={{ value: "Time", position: "bottom" }} />
+                    <YAxis label={{ value: "Score", angle: -90, position: "insideLeft" }} />
+                    <Tooltip />
+                    <Line type="monotone" dataKey="y" stroke="#44FF44" />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </Suspense>
           </TabsContent>
 
           <TabsContent value="types">
-            <div className="h-[300px] mt-4">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={typeData} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis type="number" domain={[0, 100]} />
-                  <YAxis dataKey="type" type="category" width={100} />
-                  <Tooltip />
-                  <Bar
-                    dataKey="effectiveness"
-                    fill="#8884d8"
-                    name="Effectiveness %"
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
+            <Suspense fallback={<Loading message="Loading type data..." />}>
+              <div style={{ width: '100%', height: 250 }}>
+                <ResponsiveContainer>
+                  <LineChart data={typeData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="x" label={{ value: "Type", position: "bottom" }} />
+                    <YAxis label={{ value: "Score", angle: -90, position: "insideLeft" }} />
+                    <Tooltip />
+                    <Line type="monotone" dataKey="y" stroke="#8884d8" />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </Suspense>
           </TabsContent>
         </Tabs>
       </CardContent>

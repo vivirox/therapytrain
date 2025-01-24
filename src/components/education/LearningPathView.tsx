@@ -1,8 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Typography, Card, CardContent, LinearProgress, 
-         Button, Chip, Grid, Alert } from '@mui/material';
+import { Card, CardContent, CardHeader } from '../../components/ui/card';
+import { Button } from '../../components/ui/button';
+import { Badge } from '../../components/ui/badge';
+import { Progress } from '../../components/ui/progress';
+import { Alert, AlertDescription } from '../../components/ui/alert';
+import { ScrollArea } from '../../components/ui/scroll-area';
+import { Separator } from '../../components/ui/separator';
 import { LearningPathService } from '../../services/learningPath';
 import { AIAnalyticsService } from '../../services/aiAnalytics';
+import { Loading } from '../../components/ui/loading';
 
 interface LearningPathViewProps {
   userId: string;
@@ -56,150 +62,133 @@ export const LearningPathView: React.FC<LearningPathViewProps> = ({
   };
 
   if (loading) {
-    return (
-      <Box sx={{ width: '100%', mt: 4 }}>
-        <LinearProgress />
-      </Box>
-    );
+    return <Loading message="Loading your learning path..." />;
   }
 
   if (error) {
     return (
-      <Alert severity="error" sx={{ mt: 2 }}>
-        {error}
+      <Alert variant="destructive">
+        <AlertDescription>{error}</AlertDescription>
       </Alert>
     );
   }
 
   if (!path) {
     return (
-      <Alert severity="info" sx={{ mt: 2 }}>
-        No learning path available
+      <Alert>
+        <AlertDescription>No learning path available.</AlertDescription>
       </Alert>
     );
   }
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Typography variant="h4" gutterBottom>
-        {path.title}
-      </Typography>
-      
-      <Typography variant="body1" color="text.secondary" paragraph>
-        {path.description}
-      </Typography>
+    <div className="space-y-6">
+      <div className="flex flex-col space-y-4">
+        <h2 className="text-3xl font-bold tracking-tight">{path.title}</h2>
+        <p className="text-muted-foreground">
+          {path.description}
+        </p>
+        <Progress value={(path.progress.completedNodes.length / path.nodes.length) * 100} />
+        <p className="text-sm text-muted-foreground">
+          Overall Progress: {Math.round((path.progress.completedNodes.length / path.nodes.length) * 100)}%
+        </p>
+      </div>
+
+      <Separator />
 
       {/* Progress Overview */}
-      <Card sx={{ mb: 3 }}>
+      <Card>
+        <CardHeader>
+          <h3 className="text-2xl font-semibold">Progress Overview</h3>
+        </CardHeader>
         <CardContent>
-          <Typography variant="h6" gutterBottom>
-            Progress Overview
-          </Typography>
-          <Grid container spacing={2}>
-            <Grid item xs={12} md={4}>
-              <Typography variant="subtitle2">Completed Nodes</Typography>
-              <LinearProgress 
-                variant="determinate" 
-                value={(path.progress.completedNodes.length / path.nodes.length) * 100} 
-                sx={{ mt: 1 }}
-              />
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <Typography variant="subtitle2">Total Hours</Typography>
-              <Typography variant="h6">{path.progress.totalHours}</Typography>
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <Typography variant="subtitle2">Current Pace</Typography>
-              <Chip 
-                label={path.aiRecommendations.paceAdjustment || 'maintain'} 
-                color={path.aiRecommendations.paceAdjustment === 'increase' ? 'success' : 'default'}
-                sx={{ mt: 1 }}
-              />
-            </Grid>
-          </Grid>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h4 className="text-xl font-medium">Completed Nodes</h4>
+              <Progress value={(path.progress.completedNodes.length / path.nodes.length) * 100} />
+            </div>
+            <div className="flex items-center justify-between">
+              <h4 className="text-xl font-medium">Total Hours</h4>
+              <p className="text-muted-foreground">{path.progress.totalHours}</p>
+            </div>
+            <div className="flex items-center justify-between">
+              <h4 className="text-xl font-medium">Current Pace</h4>
+              <Badge variant={path.aiRecommendations.paceAdjustment === 'increase' ? 'success' : 'default'}>
+                {path.aiRecommendations.paceAdjustment || 'maintain'}
+              </Badge>
+            </div>
+          </div>
         </CardContent>
       </Card>
 
-      {/* Current Node */}
       {currentNode && (
-        <Card sx={{ mb: 3 }}>
+        <Card>
+          <CardHeader>
+            <h3 className="text-2xl font-semibold">Current Focus</h3>
+          </CardHeader>
           <CardContent>
-            <Typography variant="h6" gutterBottom>
-              Current Focus
-            </Typography>
-            <Typography variant="subtitle1">{currentNode.title}</Typography>
-            <Typography variant="body2" color="text.secondary" paragraph>
-              {currentNode.description}
-            </Typography>
-            <Box sx={{ mt: 2 }}>
-              <Typography variant="subtitle2" gutterBottom>
-                Required for Completion:
-              </Typography>
-              <Grid container spacing={1}>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h4 className="text-xl font-medium">{currentNode.title}</h4>
+              </div>
+              <p className="text-muted-foreground">{currentNode.description}</p>
+              <div className="flex items-center space-x-4">
+                <Button onClick={() => handleNodeCompletion(currentNode.id, {
+                  score: 0.85, // This would come from actual assessment
+                  practiceHours: 2, // This would come from tracking
+                  skillProgress: { [specialization]: 0.1 } // This would come from assessments
+                })}>
+                  Mark as Complete
+                </Button>
+              </div>
+              <div className="flex items-center space-x-4">
+                <h4 className="text-xl font-medium">Required for Completion:</h4>
                 {currentNode.completionCriteria.requiredScore && (
-                  <Grid item>
-                    <Chip 
-                      label={`Score: ${currentNode.completionCriteria.requiredScore * 100}%`} 
-                      size="small" 
-                    />
-                  </Grid>
+                  <Badge variant="secondary">
+                    Score: {currentNode.completionCriteria.requiredScore * 100}%
+                  </Badge>
                 )}
                 {currentNode.completionCriteria.practiceHours && (
-                  <Grid item>
-                    <Chip 
-                      label={`Practice: ${currentNode.completionCriteria.practiceHours}hrs`} 
-                      size="small" 
-                    />
-                  </Grid>
+                  <Badge variant="secondary">
+                    Practice: {currentNode.completionCriteria.practiceHours}hrs
+                  </Badge>
                 )}
-              </Grid>
-            </Box>
-            <Button 
-              variant="contained" 
-              color="primary" 
-              sx={{ mt: 2 }}
-              onClick={() => handleNodeCompletion(currentNode.id, {
-                score: 0.85, // This would come from actual assessment
-                practiceHours: 2, // This would come from tracking
-                skillProgress: { [specialization]: 0.1 } // This would come from assessments
-              })}
-            >
-              Mark as Complete
-            </Button>
+              </div>
+            </div>
           </CardContent>
         </Card>
       )}
 
       {/* AI Recommendations */}
       <Card>
+        <CardHeader>
+          <h3 className="text-2xl font-semibold">AI Recommendations</h3>
+        </CardHeader>
         <CardContent>
-          <Typography variant="h6" gutterBottom>
-            AI Recommendations
-          </Typography>
-          <Grid container spacing={2}>
-            <Grid item xs={12} md={6}>
-              <Typography variant="subtitle2" gutterBottom>
-                Focus Areas
-              </Typography>
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h4 className="text-xl font-medium">Focus Areas</h4>
+              <div className="flex flex-wrap gap-2">
                 {path.aiRecommendations.focusAreas.map((area: string) => (
-                  <Chip key={area} label={area} size="small" />
+                  <Badge key={area} variant="secondary">
+                    {area}
+                  </Badge>
                 ))}
-              </Box>
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <Typography variant="subtitle2" gutterBottom>
-                Supplementary Resources
-              </Typography>
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+              </div>
+            </div>
+            <div className="flex items-center justify-between">
+              <h4 className="text-xl font-medium">Supplementary Resources</h4>
+              <div className="flex flex-wrap gap-2">
                 {path.aiRecommendations.supplementaryResources.map((resource: string) => (
-                  <Chip key={resource} label={resource} size="small" variant="outlined" />
+                  <Badge key={resource} variant="secondary">
+                    {resource}
+                  </Badge>
                 ))}
-              </Box>
-            </Grid>
-          </Grid>
+              </div>
+            </div>
+          </div>
         </CardContent>
       </Card>
-    </Box>
+    </div>
   );
 };

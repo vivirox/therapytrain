@@ -2,16 +2,9 @@ import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Legend
-} from 'recharts';
+import React, { Suspense } from 'react';
+import { Loading } from './ui/loading';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import SessionAnalytics, {
   type SessionComparison as SessionComparisonType
 } from '@/services/sessionAnalytics';
@@ -63,11 +56,19 @@ const SessionComparison = ({ clientId, sessionId, className = '' }: Props) => {
     );
   }
 
-  const chartData = comparisons.map(c => ({
-    date: c.date,
-    sentiment: c.metrics.averageSentiment,
-    engagement: c.metrics.engagementScore,
-    effectiveness: c.metrics.interventionCount / c.metrics.duration
+  const engagementData = comparisons.map(c => ({
+    x: new Date(c.date).toLocaleDateString(),
+    y: c.metrics.engagementScore
+  }));
+
+  const riskData = comparisons.map(c => ({
+    x: new Date(c.date).toLocaleDateString(),
+    y: c.metrics.riskLevel
+  }));
+
+  const interventionData = comparisons.map(c => ({
+    x: new Date(c.date).toLocaleDateString(),
+    y: c.metrics.interventionCount
   }));
 
   return (
@@ -116,34 +117,62 @@ const SessionComparison = ({ clientId, sessionId, className = '' }: Props) => {
           </TabsContent>
 
           <TabsContent value="trends">
-            <div className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Line
-                    type="monotone"
-                    dataKey="sentiment"
-                    stroke="#8884d8"
-                    name="Sentiment"
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="engagement"
-                    stroke="#82ca9d"
-                    name="Engagement"
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="effectiveness"
-                    stroke="#ffc658"
-                    name="Effectiveness"
-                  />
-                </LineChart>
-              </ResponsiveContainer>
+            <div className="space-y-6">
+              <Card className="p-4">
+                <h2 className="text-xl font-semibold mb-4">Session Metrics Over Time</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <Suspense fallback={<Loading message="Loading engagement data..." />}>
+                    <Card className="p-4">
+                      <h3 className="text-lg font-semibold mb-2">Engagement Score</h3>
+                      <div style={{ width: '100%', height: 250 }}>
+                        <ResponsiveContainer>
+                          <LineChart data={engagementData}>
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="x" label={{ value: "Date", position: "bottom" }} />
+                            <YAxis label={{ value: "Score", angle: -90, position: "insideLeft" }} />
+                            <Tooltip />
+                            <Line type="monotone" dataKey="y" stroke="#0066FF" />
+                          </LineChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </Card>
+                  </Suspense>
+
+                  <Suspense fallback={<Loading message="Loading risk data..." />}>
+                    <Card className="p-4">
+                      <h3 className="text-lg font-semibold mb-2">Risk Level</h3>
+                      <div style={{ width: '100%', height: 250 }}>
+                        <ResponsiveContainer>
+                          <LineChart data={riskData}>
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="x" label={{ value: "Date", position: "bottom" }} />
+                            <YAxis label={{ value: "Level", angle: -90, position: "insideLeft" }} />
+                            <Tooltip />
+                            <Line type="monotone" dataKey="y" stroke="#FF4444" />
+                          </LineChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </Card>
+                  </Suspense>
+
+                  <Suspense fallback={<Loading message="Loading intervention data..." />}>
+                    <Card className="p-4">
+                      <h3 className="text-lg font-semibold mb-2">Interventions</h3>
+                      <div style={{ width: '100%', height: 250 }}>
+                        <ResponsiveContainer>
+                          <LineChart data={interventionData}>
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="x" label={{ value: "Date", position: "bottom" }} />
+                            <YAxis label={{ value: "Count", angle: -90, position: "insideLeft" }} />
+                            <Tooltip />
+                            <Line type="monotone" dataKey="y" stroke="#00CC88" />
+                          </LineChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </Card>
+                  </Suspense>
+                </div>
+              </Card>
             </div>
           </TabsContent>
 
