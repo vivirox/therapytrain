@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, lazy, Suspense } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import MessageList from "@/components/MessageList";
@@ -26,6 +26,14 @@ type Client = {
   key_traits: string[];
   background: string;
 };
+
+// Lazy load heavier components
+const LazyVideoChat = lazy(() => import("@/components/VideoChat"));
+const LazySentimentTrends = lazy(() => import("@/components/SentimentTrends"));
+const LazyBehavioralPatterns = lazy(() => import("@/components/BehavioralPatterns"));
+const LazySessionComparison = lazy(() => import("@/components/SessionComparison"));
+const LazyInterventionEffectiveness = lazy(() => import("@/components/InterventionEffectiveness"));
+const LazyRiskAssessment = lazy(() => import("@/components/RiskAssessment"));
 
 const ChatPage = () => {
   const navigate = useNavigate();
@@ -161,21 +169,33 @@ const ChatPage = () => {
           </div>
           <div className="w-80 border-l border-gray-200 p-4 space-y-4">
             {sessionMode !== 'text' && (
-              <VideoChat className="mb-4" />
+              <Suspense fallback={<div className="animate-pulse bg-gray-200 h-40 rounded-lg mb-4" />}>
+                <LazyVideoChat className="mb-4" />
+              </Suspense>
             )}
-            <RiskAssessment
-              sessionId={sessionId}
-              clientId={clientId!}
-            />
-            <SentimentTrends trends={sentimentTrends} />
-            <BehavioralPatterns clientId={clientId!} />
-            <SessionComparison 
-              clientId={clientId!}
-              sessionId={sessionId}
-            />
-            <InterventionEffectiveness
-              sessionId={sessionId}
-            />
+            <Suspense fallback={<div className="animate-pulse bg-gray-200 h-40 rounded-lg mb-4" />}>
+              <LazyRiskAssessment
+                sessionId={sessionId}
+                clientId={clientId!}
+              />
+            </Suspense>
+            <Suspense fallback={<div className="animate-pulse bg-gray-200 h-40 rounded-lg mb-4" />}>
+              <LazySentimentTrends trends={sentimentTrends} />
+            </Suspense>
+            <Suspense fallback={<div className="animate-pulse bg-gray-200 h-40 rounded-lg mb-4" />}>
+              <LazyBehavioralPatterns clientId={clientId!} />
+            </Suspense>
+            <Suspense fallback={<div className="animate-pulse bg-gray-200 h-40 rounded-lg mb-4" />}>
+              <LazySessionComparison 
+                clientId={clientId!}
+                sessionId={sessionId}
+              />
+            </Suspense>
+            <Suspense fallback={<div className="animate-pulse bg-gray-200 h-40 rounded-lg mb-4" />}>
+              <LazyInterventionEffectiveness
+                sessionId={sessionId}
+              />
+            </Suspense>
           </div>
         </div>
       </div>

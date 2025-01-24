@@ -1,9 +1,11 @@
-import { createHash } from 'crypto';
 import { EncryptionService } from './encryption';
+import { AuditLogger } from './auditLogger';
+import { ZKProofService, SessionData, ProofData } from './zkProof';
 
-interface SessionProof {
-  proof: string;
-  publicSignals: string[];
+interface SessionMetrics {
+  interventionCount: number;
+  riskLevel: number;
+  engagementScore: number;
 }
 
 interface SessionInput {
@@ -13,18 +15,22 @@ interface SessionInput {
   clientDataHash: string;
   metricsHash: string;
   therapistId: string;
+  metrics: SessionMetrics;
 }
 
 /**
- * Development version of ZK service that simulates ZK proofs
- * In production, this would use actual ZK proofs with snarkjs
+ * Service for generating and verifying zero-knowledge proofs for session integrity
  */
 export class ZKService {
   private static instance: ZKService;
+  private zkProof: ZKProofService;
   private encryptionService: EncryptionService;
+  private auditLogger: AuditLogger;
 
   private constructor() {
+    this.zkProof = ZKProofService.getInstance();
     this.encryptionService = EncryptionService.getInstance();
+    this.auditLogger = AuditLogger.getInstance();
   }
 
   public static getInstance(): ZKService {
@@ -35,93 +41,132 @@ export class ZKService {
   }
 
   /**
-   * Generate a simulated zero-knowledge proof for session integrity
-   * @param input Session input data
-   * @returns Simulated proof and public signals
+   * Generate a zero-knowledge proof for a therapy session
    */
-  public async generateSessionProof(input: SessionInput): Promise<SessionProof> {
-    // In development, we'll create a hash-based commitment instead of a full ZK proof
-    const commitment = this.createCommitment(input);
-    
-    return {
-      proof: commitment,
-      publicSignals: [
-        input.sessionId,
-        input.timestamp.toString(),
-        input.durationMinutes.toString(),
-        // Hide private signals in production
-        this.hashValue(input.clientDataHash),
-        this.hashValue(input.metricsHash),
-        this.hashValue(input.therapistId)
-      ]
-    };
+  public async generateSessionProof(sessionData: SessionInput): Promise<ProofData> {
+    try {
+      // Validate inputs
+      this.validateInputs(sessionData);
+
+      // Generate proof
+      const proof = await this.zkProof.generateProof({
+        sessionId: sessionData.sessionId,
+        timestamp: sessionData.timestamp,
+        durationMinutes: sessionData.durationMinutes,
+        therapistId: sessionData.therapistId,
+        interventionCount: sessionData.metrics.interventionCount,
+        riskLevel: sessionData.metrics.riskLevel,
+        engagementScore: sessionData.metrics.engagementScore,
+        clientDataHash: sessionData.clientDataHash,
+        metricsHash: sessionData.metricsHash,
+      });
+      return proof;
+    } catch (error) {
+      await this.auditLogger.logProofEvent(
+        sessionData.sessionId,
+        'N/A',
+        'GENERATE',
+        'failure',
+        { error: error.message }
+      );
+      throw error;
+    }
   }
 
   /**
-   * Verify a simulated zero-knowledge proof
-   * @param proof The proof to verify
-   * @param publicSignals Public signals from the proof
-   * @returns boolean indicating if the proof is valid
+   * Verify a zero-knowledge proof for a therapy session
    */
-  public async verifyProof(proof: string, publicSignals: string[]): Promise<boolean> {
-    // In development, we'll verify the hash-based commitment
-    const [sessionId, timestamp, durationMinutes, clientHash, metricsHash, therapistHash] = publicSignals;
-    
-    const input = {
-      sessionId,
-      timestamp: parseInt(timestamp),
-      durationMinutes: parseInt(durationMinutes),
-      clientDataHash: clientHash,
-      metricsHash: metricsHash,
-      therapistId: therapistHash
-    };
+  public async verifySessionProof(proofData: ProofData, publicInputs: {
+    sessionId: string;
+    timestamp: number;
+    durationMinutes: number;
+    publicMetricsHash: string;
+  }): Promise<boolean> {
+    try {
+      // Validate public inputs
+      this.validatePublicInputs(publicInputs);
 
-    const expectedCommitment = this.createCommitment(input);
-    return proof === expectedCommitment;
+      // Verify proof
+      const isValid = await this.zkProof.verifyProof(proofData, publicInputs);
+      await this.auditLogger.logProofEvent(
+        publicInputs.sessionId,
+        'N/A',
+        'VERIFY',
+        isValid ? 'success' : 'failure',
+        { publicSignals: publicInputs }
+      );
+      return isValid;
+    } catch (error) {
+      await this.auditLogger.logProofEvent(
+        publicInputs.sessionId,
+        'N/A',
+        'VERIFY',
+        'failure',
+        { error: error.message }
+      );
+      throw error;
+    }
   }
 
-  /**
-   * Generate a proof for session metrics
-   * This allows proving that metrics are within acceptable ranges
-   * without revealing the actual values
-   */
-  public async generateMetricsProof(
-    sessionId: string,
-    metrics: { sentiment: number; engagement: number; progress: number }
-  ): Promise<SessionProof> {
-    const metricsHash = this.hashValue(JSON.stringify(metrics));
+  private validateInputs(data: SessionInput): void {
+    if (!data.sessionId || typeof data.sessionId !== 'string') {
+      throw new Error('Invalid sessionId');
+    }
 
-    return this.generateSessionProof({
-      sessionId,
-      timestamp: Date.now(),
-      durationMinutes: 60,
-      clientDataHash: this.encryptionService.hashData('client-data'),
-      metricsHash,
-      therapistId: 'therapist-id'
-    });
+    if (!Number.isInteger(data.timestamp) || data.timestamp <= 0) {
+      throw new Error('Invalid timestamp');
+    }
+
+    if (!Number.isInteger(data.durationMinutes) || data.durationMinutes < 0 || data.durationMinutes > 120) {
+      throw new Error('Invalid duration');
+    }
+
+    if (!data.therapistId || typeof data.therapistId !== 'string') {
+      throw new Error('Invalid therapistId');
+    }
+
+    if (!Number.isInteger(data.metrics.interventionCount) || data.metrics.interventionCount < 0 || data.metrics.interventionCount > 50) {
+      throw new Error('Invalid intervention count');
+    }
+
+    if (!Number.isInteger(data.metrics.riskLevel) || data.metrics.riskLevel < 0 || data.metrics.riskLevel > 10) {
+      throw new Error('Invalid risk level');
+    }
+
+    if (!Number.isInteger(data.metrics.engagementScore) || data.metrics.engagementScore < 0 || data.metrics.engagementScore > 100) {
+      throw new Error('Invalid engagement score');
+    }
+
+    if (!data.clientDataHash || typeof data.clientDataHash !== 'string') {
+      throw new Error('Invalid client data hash');
+    }
+
+    if (!data.metricsHash || typeof data.metricsHash !== 'string') {
+      throw new Error('Invalid metrics hash');
+    }
   }
 
-  /**
-   * Create a commitment (hash-based in development)
-   */
-  private createCommitment(input: SessionInput): string {
-    const values = [
-      input.sessionId,
-      input.timestamp.toString(),
-      input.durationMinutes.toString(),
-      input.clientDataHash,
-      input.metricsHash,
-      input.therapistId
-    ];
+  private validatePublicInputs(data: {
+    sessionId: string;
+    timestamp: number;
+    durationMinutes: number;
+    publicMetricsHash: string;
+  }): void {
+    if (!data.sessionId || typeof data.sessionId !== 'string') {
+      throw new Error('Invalid sessionId');
+    }
 
-    return this.hashValue(values.join('|'));
-  }
+    if (!Number.isInteger(data.timestamp) || data.timestamp <= 0) {
+      throw new Error('Invalid timestamp');
+    }
 
-  /**
-   * Hash a value using SHA-256
-   */
-  private hashValue(value: string): string {
-    return createHash('sha256').update(value).digest('hex');
+    if (!Number.isInteger(data.durationMinutes) || data.durationMinutes < 0 || data.durationMinutes > 120) {
+      throw new Error('Invalid duration');
+    }
+
+    if (!data.publicMetricsHash || typeof data.publicMetricsHash !== 'string') {
+      throw new Error('Invalid public metrics hash');
+    }
   }
 }
 

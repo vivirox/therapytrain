@@ -27,6 +27,33 @@ export default defineConfig(({ mode }) => ({
             if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
               return 'react-vendor';
             }
+            if (id.includes('@radix-ui') || id.includes('@floating-ui')) {
+              return 'ui-vendor';
+            }
+            if (id.includes('snarkjs') || id.includes('ffjavascript')) {
+              return 'crypto-vendor';
+            }
+            if (id.includes('chart.js') || id.includes('d3')) {
+              return 'chart-vendor';
+            }
+            // Group remaining node_modules into a shared vendor chunk
+            return 'vendor';
+          }
+          // Split components into feature-based chunks
+          if (id.includes('/components/')) {
+            if (id.includes('/ui/')) {
+              return 'ui-components';
+            }
+            if (id.includes('Chat') || id.includes('Message')) {
+              return 'chat-components';
+            }
+            if (id.includes('Analytics') || id.includes('Trends') || id.includes('Patterns')) {
+              return 'analytics-components';
+            }
+          }
+          // Split services into their own chunk
+          if (id.includes('/services/')) {
+            return 'services';
           }
         }
       }

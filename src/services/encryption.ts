@@ -1,15 +1,12 @@
-import { createHash, randomBytes, createCipheriv, createDecipheriv } from 'crypto';
-
 /**
  * Service for handling end-to-end encryption of sensitive therapy session data
  */
 export class EncryptionService {
   private static instance: EncryptionService;
-  private sessionKeys: Map<string, string> = new Map();
-  private readonly ALGORITHM = 'aes-256-gcm';
-  private readonly KEY_LENGTH = 32;
-  private readonly IV_LENGTH = 16;
-  private readonly AUTH_TAG_LENGTH = 16;
+  private sessionKeys: Map<string, CryptoKey> = new Map();
+  private readonly ALGORITHM = 'AES-GCM';
+  private readonly KEY_LENGTH = 256; // bits
+  private readonly IV_LENGTH = 12; // bytes for AES-GCM
 
   private constructor() {}
 
@@ -23,80 +20,98 @@ export class EncryptionService {
   /**
    * Generate a new encryption key for a session
    * @param sessionId Unique session identifier
-   * @returns The generated session key
+   * @returns The generated session key as base64
    */
-  public generateSessionKey(sessionId: string): string {
-    const key = randomBytes(this.KEY_LENGTH).toString('hex');
+  public async generateSessionKey(sessionId: string): Promise<string> {
+    const key = await window.crypto.subtle.generateKey(
+      {
+        name: this.ALGORITHM,
+        length: this.KEY_LENGTH
+      },
+      true,
+      ['encrypt', 'decrypt']
+    );
+    
     this.sessionKeys.set(sessionId, key);
-    return key;
+    const exportedKey = await window.crypto.subtle.exportKey('raw', key);
+    return btoa(String.fromCharCode(...new Uint8Array(exportedKey)));
   }
 
   /**
    * Encrypt session data using the session-specific key
    * @param sessionId Session identifier
    * @param data Data to encrypt
-   * @returns Encrypted data with IV and auth tag
+   * @returns Encrypted data with IV as base64
    */
-  public encryptSessionData(sessionId: string, data: any): string {
+  public async encryptSessionData(sessionId: string, data: any): Promise<string> {
     const key = this.sessionKeys.get(sessionId);
     if (!key) {
       throw new Error('No encryption key found for session');
     }
 
-    const iv = randomBytes(this.IV_LENGTH);
-    const cipher = createCipheriv(
-      this.ALGORITHM,
-      Buffer.from(key, 'hex'),
-      iv
+    const iv = window.crypto.getRandomValues(new Uint8Array(this.IV_LENGTH));
+    const encodedData = new TextEncoder().encode(JSON.stringify(data));
+
+    const encryptedData = await window.crypto.subtle.encrypt(
+      {
+        name: this.ALGORITHM,
+        iv
+      },
+      key,
+      encodedData
     );
 
-    const encrypted = Buffer.concat([
-      cipher.update(JSON.stringify(data), 'utf8'),
-      cipher.final()
-    ]);
+    // Combine IV and encrypted data
+    const result = new Uint8Array(iv.length + encryptedData.byteLength);
+    result.set(iv);
+    result.set(new Uint8Array(encryptedData), iv.length);
 
-    const authTag = cipher.getAuthTag();
-
-    // Combine IV, encrypted data, and auth tag
-    const result = Buffer.concat([iv, encrypted, authTag]);
-    return result.toString('base64');
+    return btoa(String.fromCharCode(...result));
   }
 
   /**
    * Decrypt session data using the session-specific key
    * @param sessionId Session identifier
-   * @param encryptedData Encrypted data (base64 string)
+   * @param encryptedData Encrypted data with IV
    * @returns Decrypted data
    */
-  public decryptSessionData(sessionId: string, encryptedData: string): any {
+  public async decryptSessionData(sessionId: string, encryptedData: string): Promise<any> {
     const key = this.sessionKeys.get(sessionId);
     if (!key) {
       throw new Error('No encryption key found for session');
     }
 
-    const data = Buffer.from(encryptedData, 'base64');
-    
-    // Extract IV, encrypted data, and auth tag
-    const iv = data.subarray(0, this.IV_LENGTH);
-    const encrypted = data.subarray(
-      this.IV_LENGTH,
-      data.length - this.AUTH_TAG_LENGTH
-    );
-    const authTag = data.subarray(data.length - this.AUTH_TAG_LENGTH);
+    const data = Uint8Array.from(atob(encryptedData), c => c.charCodeAt(0));
+    const iv = data.slice(0, this.IV_LENGTH);
+    const ciphertext = data.slice(this.IV_LENGTH);
 
-    const decipher = createDecipheriv(
+    const decryptedData = await window.crypto.subtle.decrypt(
+      {
+        name: this.ALGORITHM,
+        iv
+      },
+      key,
+      ciphertext
+    );
+
+    return JSON.parse(new TextDecoder().decode(decryptedData));
+  }
+
+  /**
+   * Import an existing session key
+   * @param sessionId Session identifier
+   * @param keyBase64 Base64 encoded key
+   */
+  public async importSessionKey(sessionId: string, keyBase64: string): Promise<void> {
+    const keyData = Uint8Array.from(atob(keyBase64), c => c.charCodeAt(0));
+    const key = await window.crypto.subtle.importKey(
+      'raw',
+      keyData,
       this.ALGORITHM,
-      Buffer.from(key, 'hex'),
-      iv
+      true,
+      ['encrypt', 'decrypt']
     );
-    decipher.setAuthTag(authTag);
-
-    const decrypted = Buffer.concat([
-      decipher.update(encrypted),
-      decipher.final()
-    ]);
-
-    return JSON.parse(decrypted.toString('utf8'));
+    this.sessionKeys.set(sessionId, key);
   }
 
   /**
@@ -112,8 +127,13 @@ export class EncryptionService {
    * @param data Data to hash
    * @returns Hashed data
    */
-  public hashData(data: string): string {
-    return createHash('sha256').update(data).digest('hex');
+  public async hashData(data: string): Promise<string> {
+    const encoder = new TextEncoder();
+    const dataBuffer = encoder.encode(data);
+    const hashBuffer = await window.crypto.subtle.digest('SHA-256', dataBuffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    return hashHex;
   }
 }
 

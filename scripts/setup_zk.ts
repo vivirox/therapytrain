@@ -38,35 +38,63 @@ async function main() {
         const circuitPath = path.join(CIRCUIT_DIR, CIRCUIT_NAME + '.circom');
         const command = `"${circomPath}" "${circuitPath}" --r1cs --wasm --sym --c -o "${BUILD_DIR}"`;
         
-        execSync(command, { 
-            stdio: 'inherit',
-            shell: true
-        });
+        execSync(command, { stdio: 'inherit' });
 
-        // Generate zKey
-        console.log('Generating proving key...');
+        // Generate initial zKey
+        console.log('Generating initial proving key...');
         await snarkjs.zKey.newZKey(
             path.join(BUILD_DIR, CIRCUIT_NAME + '.r1cs'),
             path.join(BUILD_DIR, PHASE1_PATH),
             path.join(BUILD_DIR, CIRCUIT_NAME + '_0.zkey')
         );
 
-        // Contribute to phase 2 ceremony (optional in development)
+        // Contribute to phase 2 ceremony (first contribution)
+        console.log('First contribution to ceremony...');
+        const randomBytes = new Uint8Array(32);
+        crypto.getRandomValues(randomBytes);
         await snarkjs.zKey.contribute(
             path.join(BUILD_DIR, CIRCUIT_NAME + '_0.zkey'),
             path.join(BUILD_DIR, CIRCUIT_NAME + '_1.zkey'),
-            'Contributor 1',
-            'random'
+            'First contribution',
+            randomBytes
         );
+
+        // Second contribution (optional but recommended)
+        console.log('Second contribution to ceremony...');
+        await snarkjs.zKey.contribute(
+            path.join(BUILD_DIR, CIRCUIT_NAME + '_1.zkey'),
+            path.join(BUILD_DIR, CIRCUIT_NAME + '_2.zkey'),
+            'Second contribution',
+            randomBytes
+        );
+
+        // Verify final zKey
+        console.log('Verifying final proving key...');
+        const verifyOk = await snarkjs.zKey.verifyFromR1cs(
+            path.join(BUILD_DIR, CIRCUIT_NAME + '.r1cs'),
+            path.join(BUILD_DIR, PHASE1_PATH),
+            path.join(BUILD_DIR, CIRCUIT_NAME + '_2.zkey')
+        );
+
+        if (!verifyOk) {
+            throw new Error('Invalid proving key');
+        }
 
         // Export verification key
         console.log('Exporting verification key...');
         const vKey = await snarkjs.zKey.exportVerificationKey(
-            path.join(BUILD_DIR, CIRCUIT_NAME + '_1.zkey')
+            path.join(BUILD_DIR, CIRCUIT_NAME + '_2.zkey')
         );
         fs.writeFileSync(
             path.join(BUILD_DIR, CIRCUIT_NAME + '_verification_key.json'),
             JSON.stringify(vKey, null, 2)
+        );
+
+        // Generate Solidity verifier (optional, for blockchain verification)
+        console.log('Generating Solidity verifier...');
+        await snarkjs.zKey.exportSolidityVerifier(
+            path.join(BUILD_DIR, CIRCUIT_NAME + '_2.zkey'),
+            path.join(BUILD_DIR, CIRCUIT_NAME + '_verifier.sol')
         );
 
         // Copy necessary files to public directory
@@ -76,7 +104,7 @@ async function main() {
             path.join(PUBLIC_DIR, CIRCUIT_NAME + '.wasm')
         );
         fs.copyFileSync(
-            path.join(BUILD_DIR, CIRCUIT_NAME + '_1.zkey'),
+            path.join(BUILD_DIR, CIRCUIT_NAME + '_2.zkey'),
             path.join(PUBLIC_DIR, CIRCUIT_NAME + '.zkey')
         );
         fs.copyFileSync(
@@ -85,6 +113,41 @@ async function main() {
         );
 
         console.log('ZK setup completed successfully!');
+        
+        // Generate and verify a test proof
+        console.log('Generating test proof...');
+        const input = {
+            sessionId: "123",
+            timestamp: Date.now(),
+            durationMinutes: 60,
+            publicMetricsHash: "0x123",
+            clientDataHash: "0x456",
+            metricsHash: "0x789",
+            therapistId: "0xabc",
+            interventionCount: 5,
+            riskLevel: 3,
+            engagementScore: 85
+        };
+
+        const { proof, publicSignals } = await snarkjs.groth16.fullProve(
+            input,
+            path.join(PUBLIC_DIR, CIRCUIT_NAME + '.wasm'),
+            path.join(PUBLIC_DIR, CIRCUIT_NAME + '.zkey')
+        );
+
+        console.log('Verifying test proof...');
+        const isValid = await snarkjs.groth16.verify(
+            vKey,
+            publicSignals,
+            proof
+        );
+
+        if (!isValid) {
+            throw new Error('Test proof verification failed');
+        }
+
+        console.log('Test proof verified successfully!');
+        
     } catch (error) {
         console.error('Error during ZK setup:', error);
         process.exit(1);
