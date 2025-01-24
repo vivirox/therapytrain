@@ -16,7 +16,16 @@
     "strict": true,
     "noUnusedLocals": false,
     "noUnusedParameters": false,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+
+    /* Type Definitions */
+    "types": [
+      "node",
+      "jest",
+      "express",
+      "cors",
+      "body-parser"
+    ]
   },
   "include": ["vite.config.ts"]
 }

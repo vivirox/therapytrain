@@ -4,10 +4,17 @@ import { supabase } from "@/integrations/supabase/client";
 import MessageList from "@/components/MessageList";
 import ChatInput from "@/components/ChatInput";
 import ChatSidebar from "@/components/ChatSidebar";
+import SentimentTrends from "@/components/SentimentTrends";
+import BehavioralPatterns from "@/components/BehavioralPatterns";
+import SessionControls from "@/components/SessionControls";
+import VideoChat from "@/components/VideoChat";
+import SessionComparison from "@/components/SessionComparison";
+import InterventionEffectiveness from "@/components/InterventionEffectiveness";
+import RiskAssessment from "@/components/RiskAssessment";
 import { useToast } from "@/components/ui/use-toast";
 import { SentimentIndicator } from "@/components/SentimentIndicator";
-import SentimentTrends from "@/components/SentimentTrends";
 import { analyzeMessageHistory, analyzeSentiment, getSentimentTrends, type SentimentTrend } from "@/services/sentimentAnalysis";
+import type { SessionMode } from "@/services/sessionManager";
 
 type Client = {
   id: number;
@@ -30,6 +37,8 @@ const ChatPage = () => {
   const [currentSentiment, setCurrentSentiment] = useState(0);
   const [overallSentiment, setOverallSentiment] = useState(0);
   const [sentimentTrends, setSentimentTrends] = useState<SentimentTrend[]>([]);
+  const [sessionMode, setSessionMode] = useState<SessionMode>('text');
+  const [sessionId, setSessionId] = useState<string | null>(null);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -47,7 +56,7 @@ const ChatPage = () => {
       const { data, error } = await supabase
         .from('client_profiles')
         .select('*')
-        .eq('id', clientId)
+        .eq('id', parseInt(clientId!))
         .single();
 
       if (error || !data) {
@@ -135,28 +144,39 @@ const ChatPage = () => {
     <div className="flex h-screen">
       <ChatSidebar client={client} />
       <div className="flex-1 flex flex-col">
-        <div className="p-4 border-b flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">{client?.name}</h1>
-            <div className="flex items-center gap-2">
-              <span>Current Sentiment:</span>
-              <SentimentIndicator score={currentSentiment} />
-              <span className="ml-4">Overall Sentiment:</span>
-              <SentimentIndicator score={overallSentiment} />
+        <div className="p-4 border-b">
+          <SessionControls 
+            clientId={clientId!} 
+            onModeChange={setSessionMode}
+          />
+        </div>
+        <div className="flex-1 flex">
+          <div className="flex-1 flex flex-col">
+            <div className="flex-1 overflow-auto p-4">
+              <MessageList messages={messages} />
+            </div>
+            <div className="p-4 border-t">
+              <ChatInput onSend={handleSendMessage} isLoading={isLoading} />
             </div>
           </div>
-        </div>
-        
-        <div className="flex-1 overflow-auto p-4">
-          <MessageList messages={messages} />
-        </div>
-        
-        <div className="p-4 border-t">
-          <SentimentTrends 
-            trends={sentimentTrends} 
-            className="mb-4"
-          />
-          <ChatInput onSend={handleSendMessage} isLoading={isLoading} />
+          <div className="w-80 border-l border-gray-200 p-4 space-y-4">
+            {sessionMode !== 'text' && (
+              <VideoChat className="mb-4" />
+            )}
+            <RiskAssessment
+              sessionId={sessionId}
+              clientId={clientId!}
+            />
+            <SentimentTrends trends={sentimentTrends} />
+            <BehavioralPatterns clientId={clientId!} />
+            <SessionComparison 
+              clientId={clientId!}
+              sessionId={sessionId}
+            />
+            <InterventionEffectiveness
+              sessionId={sessionId}
+            />
+          </div>
         </div>
       </div>
     </div>
