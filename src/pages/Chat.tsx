@@ -10,6 +10,10 @@ import VideoChat from "@/components/VideoChat";
 import { SentimentIndicator } from "@/components/SentimentIndicator";
 import { supabase } from "@/integrations/supabase/client";
 import { sessionManager, type SessionMode } from '@/services/sessionManager';
+import { ContextualLearningSystem } from '../services/contextualLearning';
+import ContextualHints from '../components/ContextualHints';
+import { InterventionOptimizationSystem } from '../services/interventionOptimization';
+import InterventionRecommendations from '../components/InterventionRecommendations';
 
 type Client = {
   id: number;
@@ -40,6 +44,8 @@ const ChatPage = () => {
   const [overallSentiment, setOverallSentiment] = useState(0);
   const [sessionMode, setSessionMode] = useState<SessionMode>('text');
   const [sessionId, setSessionId] = useState<string | null>(null);
+  const [contextualHints, setContextualHints] = useState<string[]>([]);
+  const [interventionRecommendations, setInterventionRecommendations] = useState<any[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -74,66 +80,139 @@ const ChatPage = () => {
   }, [navigate, clientId]);
 
   const handleSendMessage = async (message: string) => {
+    if (!message.trim() || !sessionId || !client) return;
+
     try {
       setIsLoading(true);
       
-      // Add user message with timestamp
-      const newMessage = { 
-        role: 'user' as const, 
-        content: message,
-        timestamp: Date.now()
-      };
-      const newMessages = [...messages, newMessage];
-      setMessages(newMessages);
-      
-      // Analyze sentiment
-      const sentimentAnalysis = analyzeSentiment(message);
-      setCurrentSentiment(sentimentAnalysis.score);
-      
-      // Check for sentiment alerts
-      if (sentimentAnalysis.alert) {
-        toast({
-          title: "Sentiment Alert",
-          description: "This message contains concerning content that may require immediate attention.",
-          variant: "destructive"
-        });
-      }
-      
-      // Update overall sentiment
-      const overallScore = analyzeMessageHistory(newMessages);
-      setOverallSentiment(overallScore);
+      // Get contextual information before sending message
+      const contextualLearning = ContextualLearningSystem.getInstance();
+      const context = await contextualLearning.getContextualResponse(
+        client.id.toString(),
+        message
+      );
+      setContextualHints(context.contextualHints);
 
-      // Get AI response
+      // Update session with new message
+      const userMessage: Message = { role: 'user', content: message };
+      const updatedMessages = [...messages, userMessage];
+      setMessages(updatedMessages);
+      setNewMessage("");
+
+      // Get AI response with context
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           message,
-          clientId,
-          history: messages
-        })
+          sessionId,
+          clientId: client.id.toString(),
+          context: {
+            hints: context.contextualHints,
+            approaches: context.suggestedApproaches,
+            history: context.relevantHistory,
+          },
+        }),
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to get response');
+      if (!response.ok) throw new Error('Failed to send message');
+      
+      const data = await response.json();
+      const assistantMessage: Message = { role: 'assistant', content: data.response };
+      const newMessages = [...updatedMessages, assistantMessage];
+      setMessages(newMessages);
+
+      // Update context with new interaction
+      const currentSession = sessionManager.getCurrentSession();
+      if (currentSession) {
+        await contextualLearning.updateContext(
+          client.id.toString(),
+          currentSession,
+          newMessages,
+          client
+        );
       }
 
-      const data = await response.json();
-      const newAssistantMessage = { 
-        role: 'assistant' as const, 
-        content: data.message,
-        timestamp: Date.now()
-      };
-      setMessages([...newMessages, newAssistantMessage]);
+      // Update sentiment analysis
+      const newSentiment = analyzeMessageHistory(newMessages.slice(-5));
+      setCurrentSentiment(newSentiment);
+      
     } catch (error) {
       console.error('Error sending message:', error);
       toast({
         title: "Error",
         description: "Failed to send message. Please try again.",
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Update recommendations when context changes
+  useEffect(() => {
+    const updateRecommendations = async () => {
+      if (!client) return;
+
+      const interventionOptimization = InterventionOptimizationSystem.getInstance();
+      const recommendations = await interventionOptimization.recommendIntervention(
+        client.id.toString(),
+        {
+          emotionalState: currentSentiment,
+          engagementLevel: messages.length > 0 ? 0.7 : 0, // Simple engagement metric
+          recentTopics: contextualHints.map(hint => hint.toLowerCase()),
+        }
+      );
+
+      setInterventionRecommendations(recommendations);
+    };
+
+    updateRecommendations();
+  }, [client, currentSentiment, contextualHints, messages]);
+
+  const handleInterventionSelect = async (interventionType: string) => {
+    if (!client || !sessionId) return;
+
+    try {
+      // Create new intervention
+      const intervention = {
+        id: crypto.randomUUID(),
+        type: interventionType,
+        timestamp: Date.now(),
+        sessionId,
+        clientId: client.id.toString(),
+      };
+
+      // Track the intervention
+      const interventionOptimization = InterventionOptimizationSystem.getInstance();
+      const currentSession = sessionManager.getCurrentSession();
+
+      if (currentSession) {
+        await interventionOptimization.trackIntervention(
+          client.id.toString(),
+          intervention,
+          currentSession
+        );
+      }
+
+      // Add intervention message to chat
+      const message = {
+        role: 'assistant' as const,
+        content: `[Intervention: ${interventionType}] Let's try a different approach...`,
+      };
+      setMessages(prev => [...prev, message]);
+
+      toast({
+        title: 'Intervention Applied',
+        description: `${interventionType} intervention has been initiated.`,
+      });
+    } catch (error) {
+      console.error('Error applying intervention:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to apply intervention. Please try again.',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -153,18 +232,41 @@ const ChatPage = () => {
         </div>
         <div className="flex-1 flex">
           <div className="flex-1 flex flex-col">
-            <div className="flex-1 overflow-auto p-4">
-              <MessageList messages={messages} />
+            <div className="flex-1 overflow-hidden flex">
+              <div className="flex-1 flex flex-col">
+                {/* Chat messages */}
+                <div className="flex-1 overflow-y-auto p-4">
+                  <MessageList messages={messages} />
+                  <div ref={messagesEndRef} />
+                </div>
+
+                {/* Contextual hints and recommendations */}
+                <div className="px-4 space-y-4 mb-4">
+                  {contextualHints.length > 0 && (
+                    <ContextualHints
+                      hints={contextualHints}
+                    />
+                  )}
+                  {interventionRecommendations.length > 0 && (
+                    <InterventionRecommendations
+                      recommendations={interventionRecommendations}
+                      onSelect={handleInterventionSelect}
+                    />
+                  )}
+                </div>
+
+                {/* Message input */}
+                <div className="p-4 border-t border-gray-800">
+                  <ChatInput onSend={handleSendMessage} isLoading={isLoading} />
+                </div>
+              </div>
             </div>
-            <div className="p-4 border-t">
-              <ChatInput onSend={handleSendMessage} isLoading={isLoading} />
+            <div className="w-80 border-l border-gray-200 p-4 space-y-4">
+              {sessionMode !== 'text' && (
+                <VideoChat className="mb-4" />
+              )}
+              <SentimentIndicator score={overallSentiment} />
             </div>
-          </div>
-          <div className="w-80 border-l border-gray-200 p-4 space-y-4">
-            {sessionMode !== 'text' && (
-              <VideoChat className="mb-4" />
-            )}
-            <SentimentIndicator score={overallSentiment} />
           </div>
         </div>
       </div>
