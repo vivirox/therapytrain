@@ -57,9 +57,10 @@
     "cmdk": "^1.0.0",
     "date-fns": "^3.6.0",
     "embla-carousel-react": "^8.3.0",
+    "git": "^0.1.5",
     "input-otp": "^1.2.4",
     "lovable-tagger": "^1.0.19",
-    "lucide-react": "^0.451.0",
+    "lucide-react": "^0.474.0",
     "next-themes": "^0.3.0",
     "react": "^18.2.0",
     "react-day-picker": "^8.10.1",
@@ -98,8 +99,8 @@
     "@types/node": "^22.10.10",
     "@types/qs": "^6.9.18",
     "@types/range-parser": "^1.2.7",
-    "@types/react": "^18.3.1",
-    "@types/react-dom": "^18.3.1",
+    "@types/react": "^19.0.8",
+    "@types/react-dom": "^19.0.3",
     "@types/send": "^0.17.4",
     "@types/sentiment": "^5.0.4",
     "@types/serve-static": "^1.15.7",
@@ -126,5 +127,6 @@
     "@swc/core",
     "esbuild",
     "supabase"
-  ]
+  ],
+  "packageManager": "yarn@4.6.0"
 }
