@@ -51,7 +51,9 @@ export const SkillProgressionTracker: React.FC<SkillProgressionTrackerProps> = (
 
   const calculateOverallProgress = () => {
     const skills = Object.values(progression.skills);
-    if (skills.length === 0) return 0;
+    if (skills.length === 0) {
+      return 0;
+    }
 
     const totalLevels = skills.reduce((acc, skill) => acc + skill.level, 0);
     const maxPossibleLevel = skills.length * 10; // Assuming max level is 10

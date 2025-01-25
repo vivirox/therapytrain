@@ -12,13 +12,13 @@ import {
 interface InterventionRecommendation {
   interventionType: string;
   confidence: number;
-  reasoning: string[];
-  expectedOutcomes: string[];
-  potentialRisks: string[];
+  reasoning: Array<string>;
+  expectedOutcomes: Array<string>;
+  potentialRisks: Array<string>;
 }
 
 interface InterventionRecommendationsProps {
-  recommendations: InterventionRecommendation[];
+  recommendations: Array<InterventionRecommendation>;
   onSelect?: (interventionType: string) => void;
   className?: string;
 }
@@ -28,7 +28,9 @@ const InterventionRecommendations: React.FC<InterventionRecommendationsProps> = 
   onSelect,
   className = '',
 }) => {
-  if (recommendations.length === 0) return null;
+  if (recommendations.length === 0) {
+    return null;
+  }
 
   return (
     <Card className={`p-4 bg-blue-500/5 border-blue-500/20 ${className}`}>
@@ -135,8 +137,12 @@ const InterventionRecommendations: React.FC<InterventionRecommendationsProps> = 
 };
 
 const getConfidenceBadgeVariant = (confidence: number) => {
-  if (confidence >= 0.8) return 'default';
-  if (confidence >= 0.6) return 'secondary';
+  if (confidence >= 0.8) {
+    return 'default';
+  }
+  if (confidence >= 0.6) {
+    return 'secondary';
+  }
   return 'destructive';
 };
 

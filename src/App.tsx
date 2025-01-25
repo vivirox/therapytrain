@@ -1,6 +1,6 @@
 import React, { lazy, Suspense } from "react";
-import { Toaster } from "./components/ui/toaster";
-import { Toaster as Sonner } from "./components/ui/sonner";
+import { Toast } from "./components/ui/toast";
+import { Toast as Sonner } from "./components/ui/sonner";
 import { TooltipProvider } from "./components/ui/tooltip";
 import { Loading } from "./components/ui/loading";
 import { AuthProvider, ProtectedRoute } from "./components/auth/AuthProvider";
@@ -28,7 +28,7 @@ const App: React.FC = () => {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <TooltipProvider>
-          <Toaster />
+          <Toast />
           <Sonner />
           <BrowserRouter>
             <Suspense fallback={<Loading fullScreen message="Loading TherapyTrain..." />}>
