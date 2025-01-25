@@ -1,5 +1,5 @@
 import React, { lazy, Suspense } from "react";
-import { ToastProvider } from "./components/ui/toast"; // Importing ToastProvider
+import { ToastProvider } from "./components/ui/toast"; 
 import { TooltipProvider } from "./components/ui/tooltip";
 import { Loading } from "./components/ui/loading";
 import { AuthProvider, ProtectedRoute } from "./components/auth/AuthProvider";
@@ -11,6 +11,10 @@ const Auth = lazy(() => import("./pages/Auth"));
 const Chat = lazy(() => import("./pages/Chat"));
 const Education = lazy(() => import("./pages/Education"));
 const ClientSelection = lazy(() => import("./pages/ClientSelection"));
+const Features = lazy(() => import("./pages/Features"));
+const Benefits = lazy(() => import("./pages/Benefits"));
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
+const TermsOfService = lazy(() => import("./pages/TermsOfService"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -34,30 +38,13 @@ const App: React.FC = () => {
                   <Routes>
                     <Route path="/" element={<Index />} />
                     <Route path="/auth" element={<Auth />} />
-                    <Route
-                      path="/chat"
-                      element={
-                        <ProtectedRoute>
-                          <Chat />
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/education"
-                      element={
-                        <ProtectedRoute>
-                          <Education />
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/clients"
-                      element={
-                        <ProtectedRoute>
-                          <ClientSelection />
-                        </ProtectedRoute>
-                      }
-                    />
+                    <Route path="/chat" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
+                    <Route path="/education" element={<ProtectedRoute><Education /></ProtectedRoute>} />
+                    <Route path="/clients" element={<ProtectedRoute><ClientSelection /></ProtectedRoute>} />
+                    <Route path="/features" element={<Features />} />
+                    <Route path="/benefits" element={<Benefits />} />
+                    <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                    <Route path="/terms-of-service" element={<TermsOfService />} />
                     <Route path="*" element={<Navigate to="/" replace />} />
                   </Routes>
                 </Suspense>
