@@ -3,8 +3,13 @@ import { Toaster as Sonner } from "sonner";
 
 type ToasterProps = React.ComponentProps<typeof Sonner>;
 
-const Toaster = ({ ...props }: ToasterProps) => {
-  // Your toaster implementation
+const Toast = () => {
+  return (
+    <div>
+      {/* Your toast implementation */}
+      This is a toast message!
+    </div>
+  );
 };
 
-export { Toaster };
+export { Toast };

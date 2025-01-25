@@ -1,3 +1,4 @@
+import React from 'react'; // Importing React
 import { Button } from "../components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { Shield, Lock, Zap, Users, Award, Brain, Sparkles } from "lucide-react";
