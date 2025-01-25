@@ -1,4 +1,4 @@
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '../integrations/supabase/client';
 
 export interface AuditEvent {
   eventType: AuditEventType;
@@ -27,7 +27,7 @@ export enum AuditEventType {
 
 export class AuditLogger {
   private static instance: AuditLogger;
-  private eventBuffer: AuditEvent[] = [];
+  private eventBuffer: Array<AuditEvent> = [];
   private readonly BUFFER_SIZE = 50;
   private readonly FLUSH_INTERVAL = 5000; // 5 seconds
 
@@ -153,7 +153,9 @@ export class AuditLogger {
    * Flush the event buffer to the database
    */
   private async flushBuffer(): Promise<void> {
-    if (this.eventBuffer.length === 0) return;
+    if (this.eventBuffer.length === 0) {
+      return;
+    }
 
     const events = [...this.eventBuffer];
     this.eventBuffer = [];
@@ -204,7 +206,7 @@ export class AuditLogger {
   /**
    * Get audit logs for a specific session
    */
-  public async getSessionAuditLogs(sessionId: string): Promise<AuditEvent[]> {
+  public async getSessionAuditLogs(sessionId: string): Promise<Array<AuditEvent>> {
     const { data, error } = await supabase
       .from('audit_logs')
       .select('*')
@@ -228,7 +230,7 @@ export class AuditLogger {
   public async getSecurityAuditLogs(
     startDate: Date,
     endDate: Date
-  ): Promise<AuditEvent[]> {
+  ): Promise<Array<AuditEvent>> {
     const { data, error } = await supabase
       .from('audit_logs')
       .select('*')

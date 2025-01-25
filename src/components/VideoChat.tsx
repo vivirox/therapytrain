@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Card } from '../components/ui/card';
+import { Button } from '../components/ui/button';
 import { Video, Mic, MicOff, VideoOff, Phone } from 'lucide-react';
 
 interface Props {
@@ -21,7 +21,7 @@ const VideoChat = ({ onEnd, className = '' }: Props) => {
           video: true,
           audio: true
         });
-        
+
         if (localVideoRef.current) {
           localVideoRef.current.srcObject = mediaStream;
         }
@@ -82,7 +82,7 @@ const VideoChat = ({ onEnd, className = '' }: Props) => {
           variant="outline"
           size="icon"
           onClick={toggleVideo}
-          className={!isVideoEnabled ? 'bg-red-500 text-white' : ''}
+          className={isVideoEnabled ? '' : 'bg-red-500 text-white'}
         >
           {isVideoEnabled ? <Video className="h-4 w-4" /> : <VideoOff className="h-4 w-4" />}
         </Button>
@@ -90,7 +90,7 @@ const VideoChat = ({ onEnd, className = '' }: Props) => {
           variant="outline"
           size="icon"
           onClick={toggleAudio}
-          className={!isAudioEnabled ? 'bg-red-500 text-white' : ''}
+          className={isAudioEnabled ? '' : 'bg-red-500 text-white'}
         >
           {isAudioEnabled ? <Mic className="h-4 w-4" /> : <MicOff className="h-4 w-4" />}
         </Button>

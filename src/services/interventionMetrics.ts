@@ -1,4 +1,4 @@
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '../integrations/supabase/client';
 
 export interface InterventionMetric {
   id: string;
@@ -26,7 +26,7 @@ export interface EffectivenessScore {
     byType: Record<string, number>;
     byContext: Record<string, number>;
   };
-  recommendations: string[];
+  recommendations: Array<string>;
 }
 
 class InterventionMetrics {
@@ -46,7 +46,9 @@ class InterventionMetrics {
       .select()
       .single();
 
-    if (error) throw new Error(`Failed to track intervention: ${error.message}`);
+    if (error) {
+      throw new Error(`Failed to track intervention: ${error.message}`);
+    }
     return data.id;
   }
 
@@ -59,7 +61,9 @@ class InterventionMetrics {
       .update(metrics)
       .eq('id', interventionId);
 
-    if (error) throw new Error(`Failed to update effectiveness: ${error.message}`);
+    if (error) {
+      throw new Error(`Failed to update effectiveness: ${error.message}`);
+    }
   }
 
   static async calculateEffectiveness(
@@ -78,13 +82,15 @@ class InterventionMetrics {
           metrics
         )
       `)
-      .eq(timeframe === 'session' ? 'session_id' : 'sessions.client_id', 
-          timeframe === 'session' ? sessionId : 
+      .eq(timeframe === 'session' ? 'session_id' : 'sessions.client_id',
+        timeframe === 'session' ? sessionId :
           (await this.getClientId(sessionId)))
       .gte('timestamp', this.getTimeframeStart(timeframe))
       .order('timestamp', { ascending: false });
 
-    if (error) throw new Error(`Failed to fetch interventions: ${error.message}`);
+    if (error) {
+      throw new Error(`Failed to fetch interventions: ${error.message}`);
+    }
 
     // Calculate component scores
     const immediateImpact = this.calculateImmediateImpact(interventions);
@@ -137,7 +143,9 @@ class InterventionMetrics {
       .eq('id', sessionId)
       .single();
 
-    if (error) throw new Error(`Failed to get client ID: ${error.message}`);
+    if (error) {
+      throw new Error(`Failed to get client ID: ${error.message}`);
+    }
     return data.client_id;
   }
 
@@ -155,14 +163,14 @@ class InterventionMetrics {
     }
   }
 
-  private static calculateImmediateImpact(interventions: any[]): number {
+  private static calculateImmediateImpact(interventions: Array<any>): number {
     const weights = {
       immediateResponse: 0.6,
       contextualRelevance: 0.4
     };
 
     return interventions.reduce((sum, intervention) => {
-      const immediateScore = 
+      const immediateScore =
         (intervention.immediate_response + 1) / 2; // Convert -1:1 to 0:1
       const contextScore = intervention.contextual_relevance;
 
@@ -173,7 +181,7 @@ class InterventionMetrics {
     }, 0) / (interventions.length || 1);
   }
 
-  private static async calculateSustainedEffect(interventions: any[]): Promise<number> {
+  private static async calculateSustainedEffect(interventions: Array<any>): Promise<number> {
     const followUpScores = await Promise.all(
       interventions.map(async (intervention) => {
         // Get subsequent session metrics
@@ -186,7 +194,9 @@ class InterventionMetrics {
           .limit(1)
           .single();
 
-        if (!nextSession) return 0;
+        if (!nextSession) {
+          return 0;
+        }
 
         // Compare metrics before and after intervention
         const prevMetrics = intervention.sessions.metrics;
@@ -196,16 +206,16 @@ class InterventionMetrics {
       })
     );
 
-    return followUpScores.reduce((sum, score) => sum + score, 0) / 
-           (followUpScores.length || 1);
+    return followUpScores.reduce((sum, score) => sum + score, 0) /
+      (followUpScores.length || 1);
   }
 
-  private static calculateClientReceptiveness(interventions: any[]): number {
-    return interventions.reduce((sum, intervention) => 
+  private static calculateClientReceptiveness(interventions: Array<any>): number {
+    return interventions.reduce((sum, intervention) =>
       sum + intervention.client_engagement, 0) / (interventions.length || 1);
   }
 
-  private static calculateImplementationSuccess(interventions: any[]): number {
+  private static calculateImplementationSuccess(interventions: Array<any>): number {
     const weights = {
       followThrough: 0.7,
       adaptation: 0.3
@@ -236,7 +246,7 @@ class InterventionMetrics {
     );
   }
 
-  private static analyzeTimeOfDayEffectiveness(interventions: any[]): Record<string, number> {
+  private static analyzeTimeOfDayEffectiveness(interventions: Array<any>): Record<string, number> {
     const hourlyScores: Record<string, { sum: number; count: number }> = {};
 
     interventions.forEach(intervention => {
@@ -259,11 +269,11 @@ class InterventionMetrics {
     );
   }
 
-  private static analyzeTypeEffectiveness(interventions: any[]): Record<string, number> {
+  private static analyzeTypeEffectiveness(interventions: Array<any>): Record<string, number> {
     const typeScores: Record<string, { sum: number; count: number }> = {};
 
     interventions.forEach(intervention => {
-      const type = intervention.type;
+      const {type} = intervention;
       const score = intervention.immediate_response;
 
       if (!typeScores[type]) {
@@ -282,7 +292,7 @@ class InterventionMetrics {
     );
   }
 
-  private static analyzeContextEffectiveness(interventions: any[]): Record<string, number> {
+  private static analyzeContextEffectiveness(interventions: Array<any>): Record<string, number> {
     const contextScores: Record<string, { sum: number; count: number }> = {};
 
     interventions.forEach(intervention => {
@@ -310,7 +320,7 @@ class InterventionMetrics {
     nextMetrics: any
   ): number {
     const metrics = ['sentiment', 'engagement', 'progress'];
-    const improvements = metrics.map(metric => 
+    const improvements = metrics.map(metric =>
       (nextMetrics[metric] - prevMetrics[metric]) / Math.abs(prevMetrics[metric] || 1)
     );
 
@@ -322,8 +332,8 @@ class InterventionMetrics {
     timeOfDayTrends: Record<string, number>;
     typeTrends: Record<string, number>;
     contextTrends: Record<string, number>;
-  }): string[] {
-    const recommendations: string[] = [];
+  }): Array<string> {
+    const recommendations: Array<string> = [];
 
     // Overall effectiveness recommendations
     if (data.overall < 0.4) {
@@ -345,7 +355,7 @@ class InterventionMetrics {
     // Type-based recommendations
     const [bestType] = Object.entries(data.typeTrends)
       .sort(([, a], [, b]) => b - a);
-    
+
     if (bestType) {
       recommendations.push(
         `"${bestType[0]}" interventions show highest effectiveness`

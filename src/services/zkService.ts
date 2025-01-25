@@ -22,6 +22,7 @@ interface SessionInput {
  * Service for generating and verifying zero-knowledge proofs for session integrity
  */
 export class ZKService {
+  [x: string]: any;
   private static instance: ZKService;
   private zkProof: ZKProofService;
   private encryptionService: EncryptionService;
@@ -48,8 +49,7 @@ export class ZKService {
       // Validate inputs
       this.validateInputs(sessionData);
 
-      // Generate proof
-      const proof = await this.zkProof.generateProof({
+      return await this.zkProof.generateProof({
         sessionId: sessionData.sessionId,
         timestamp: sessionData.timestamp,
         durationMinutes: sessionData.durationMinutes,
@@ -60,7 +60,6 @@ export class ZKService {
         clientDataHash: sessionData.clientDataHash,
         metricsHash: sessionData.metricsHash,
       });
-      return proof;
     } catch (error) {
       await this.auditLogger.logProofEvent(
         sessionData.sessionId,

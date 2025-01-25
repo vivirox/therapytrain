@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { supabase } from "../integrations/supabase/client";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
 import { UserRound, AlertCircle, Brain, Activity } from "lucide-react";
 
 type Client = {
@@ -15,7 +15,7 @@ type Client = {
 
 const ClientSelection = () => {
   const navigate = useNavigate();
-  const [clients, setClients] = useState<Client[]>([]);
+  const [clients, setClients] = useState<Array<Client>>([]);
 
   useEffect(() => {
     const checkAuth = async () => {

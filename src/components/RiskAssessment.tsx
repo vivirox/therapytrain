@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { Alert, AlertDescription, AlertTitle } from '../components/ui/alert';
+import { Badge } from '../components/ui/badge';
+import { Button } from '../components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -10,7 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
+} from "../components/ui/dialog";
 import {
   Table,
   TableBody,
@@ -18,12 +18,12 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from "../components/ui/table";
 import { AlertTriangle, AlertCircle, Info } from 'lucide-react';
 import CrisisPrediction, {
   type RiskAssessment as RiskAssessmentType,
   type RiskFactor
-} from '@/services/crisisPrediction';
+} from '../services/crisisPrediction';
 
 interface Props {
   sessionId: string;
@@ -41,7 +41,7 @@ const RiskAssessment = ({ sessionId, clientId, className = '' }: Props) => {
       try {
         const data = await CrisisPrediction.assessRisk(sessionId, clientId);
         setAssessment(data);
-        
+
         // Trigger alert if risk is high
         if (data.urgency === 'high' || data.urgency === 'critical') {
           await CrisisPrediction.triggerAlert(clientId, data);
@@ -92,7 +92,9 @@ const RiskAssessment = ({ sessionId, clientId, className = '' }: Props) => {
     );
   }
 
-  if (!assessment) return null;
+  if (!assessment) {
+    return null;
+  }
 
   return (
     <Card className={className}>

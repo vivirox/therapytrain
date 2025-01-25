@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Switch } from '@/components/ui/switch';
+import { Button } from '../components/ui/button';
+import { Card } from '../components/ui/card';
+import { Switch } from '../components/ui/switch';
 import { Video, MessageSquare, ArrowRight } from 'lucide-react';
-import { sessionManager, type SessionMode, type SessionState } from '@/services/sessionManager';
-import { Badge } from '@/components/ui/badge';
+import { sessionManager, type SessionMode, type SessionState } from '../services/sessionManager';
+import { Badge } from '../components/ui/badge';
 
 interface Props {
   clientId: string;
@@ -39,13 +39,15 @@ const SessionControls = ({ clientId, onModeChange }: Props) => {
     }
   };
 
-  if (!session) return null;
+  if (!session) {
+    return null;
+  }
 
   return (
     <Card className="p-4 space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="font-medium">Session Controls</h3>
-        <Badge variant={session.status === 'active' ? 'success' : 'secondary'}>
+        <Badge variant={session.status === 'active' ? 'default' : 'secondary'}>
           {session.status.toUpperCase()}
         </Badge>
       </div>

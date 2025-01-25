@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { ChevronDown, ChevronUp, Clock, FileText, User, Brain, AlertCircle, Activity } from 'lucide-react';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "../components/ui/collapsible";
+import { Textarea } from "../components/ui/textarea";
+import { Button } from "../components/ui/button";
 
 interface ChatSidebarProps {
   client: {
@@ -11,7 +11,7 @@ interface ChatSidebarProps {
     primary_issue: string;
     complexity: string;
     description: string;
-    key_traits?: string[];
+    key_traits?: Array<string>;
     background?: string;
   };
 }
@@ -62,11 +62,10 @@ const ChatSidebar = ({ client }: ChatSidebarProps) => {
             </div>
             <div className="flex items-center gap-2">
               <Activity className="h-4 w-4 text-blue-500" />
-              <span className={`px-2 py-1 rounded-full text-xs ${
-                client.complexity === 'High' ? 'bg-red-500/20 text-red-300' :
-                client.complexity === 'Medium' ? 'bg-yellow-500/20 text-yellow-300' :
-                'bg-green-500/20 text-green-300'
-              }`}>
+              <span className={`px-2 py-1 rounded-full text-xs ${client.complexity === 'High' ? 'bg-red-500/20 text-red-300' :
+                  client.complexity === 'Medium' ? 'bg-yellow-500/20 text-yellow-300' :
+                    'bg-green-500/20 text-green-300'
+                }`}>
                 {client.complexity} Complexity
               </span>
             </div>
@@ -83,7 +82,7 @@ const ChatSidebar = ({ client }: ChatSidebarProps) => {
             <h3 className="text-sm font-medium text-gray-400">Key Traits</h3>
             <div className="flex flex-wrap gap-2">
               {client.key_traits.map((trait, index) => (
-                <span 
+                <span
                   key={index}
                   className="px-2 py-1 rounded-full text-xs bg-blue-500/10 text-blue-300"
                 >
@@ -114,8 +113,8 @@ const ChatSidebar = ({ client }: ChatSidebarProps) => {
       </div>
 
       {/* Notes Section */}
-      <Collapsible 
-        open={isNotesOpen} 
+      <Collapsible
+        open={isNotesOpen}
         onOpenChange={setIsNotesOpen}
         className="border-t border-gray-800"
       >
@@ -137,7 +136,7 @@ const ChatSidebar = ({ client }: ChatSidebarProps) => {
             placeholder="Take notes during your session..."
             className="min-h-[150px] bg-[#222225] border-gray-700 text-white"
           />
-          <Button 
+          <Button
             className="w-full bg-blue-500 hover:bg-blue-600"
             onClick={() => console.log('Save notes:', notes)}
           >

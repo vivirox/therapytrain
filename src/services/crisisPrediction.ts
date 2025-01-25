@@ -1,4 +1,4 @@
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '../integrations/supabase/client';
 
 export interface RiskFactor {
   id: string;
@@ -7,22 +7,22 @@ export interface RiskFactor {
   confidence: number; // 0-1
   description: string;
   timestamp: Date;
-  indicators: string[];
+  indicators: Array<string>;
 }
 
 export interface RiskAssessment {
   overallRisk: number; // 0-1
   urgency: 'low' | 'medium' | 'high' | 'critical';
-  factors: RiskFactor[];
-  recommendations: string[];
-  nextSteps: string[];
+  factors: Array<RiskFactor>;
+  recommendations: Array<string>;
+  nextSteps: Array<string>;
   escalationProtocol?: string;
 }
 
 export interface AlertConfig {
   threshold: number;
-  recipients: string[];
-  channels: ('email' | 'sms' | 'in-app')[];
+  recipients: Array<string>;
+  channels: Array<('email' | 'sms' | 'in-app')>;
   customMessage?: string;
 }
 
@@ -140,7 +140,9 @@ class CrisisPrediction {
         custom_message: config.customMessage
       });
 
-    if (error) throw new Error(`Failed to configure alerts: ${error.message}`);
+    if (error) {
+      throw new Error(`Failed to configure alerts: ${error.message}`);
+    }
   }
 
   static async triggerAlert(
@@ -154,13 +156,15 @@ class CrisisPrediction {
       .eq('client_id', clientId)
       .single();
 
-    if (error) throw new Error(`Failed to fetch alert config: ${error.message}`);
+    if (error) {
+      throw new Error(`Failed to fetch alert config: ${error.message}`);
+    }
 
     // Check if risk exceeds threshold
     if (assessment.overallRisk >= config.threshold) {
       // Trigger alerts through configured channels
       await Promise.all([
-        ...config.channels.map(channel => 
+        ...config.channels.map(channel =>
           this.sendAlert(channel, config, assessment)
         )
       ]);
@@ -177,7 +181,9 @@ class CrisisPrediction {
       .eq('id', sessionId)
       .single();
 
-    if (error) throw new Error(`Failed to fetch session data: ${error.message}`);
+    if (error) {
+      throw new Error(`Failed to fetch session data: ${error.message}`);
+    }
     return data;
   }
 
@@ -188,7 +194,9 @@ class CrisisPrediction {
       .eq('client_id', clientId)
       .single();
 
-    if (error) throw new Error(`Failed to fetch client history: ${error.message}`);
+    if (error) {
+      throw new Error(`Failed to fetch client history: ${error.message}`);
+    }
     return data;
   }
 
@@ -200,7 +208,9 @@ class CrisisPrediction {
       .order('timestamp', { ascending: false })
       .limit(100);
 
-    if (error) throw new Error(`Failed to fetch messages: ${error.message}`);
+    if (error) {
+      throw new Error(`Failed to fetch messages: ${error.message}`);
+    }
     return data;
   }
 
@@ -210,19 +220,21 @@ class CrisisPrediction {
       .select('*')
       .eq('client_id', clientId);
 
-    if (error) throw new Error(`Failed to fetch patterns: ${error.message}`);
+    if (error) {
+      throw new Error(`Failed to fetch patterns: ${error.message}`);
+    }
     return data;
   }
 
   private static async analyzeBehavioralRisk(
-    messages: any[],
-    patterns: any[]
-  ): Promise<RiskFactor[]> {
-    const factors: RiskFactor[] = [];
+    messages: Array<any>,
+    patterns: Array<any>
+  ): Promise<Array<RiskFactor>> {
+    const factors: Array<RiskFactor> = [];
 
     // Analyze message content for behavioral indicators
     for (const indicator of this.riskIndicators.behavioral) {
-      const matches = messages.filter(m => 
+      const matches = messages.filter(m =>
         m.content.toLowerCase().includes(indicator)
       );
 
@@ -258,14 +270,14 @@ class CrisisPrediction {
   }
 
   private static async analyzeEmotionalRisk(
-    messages: any[],
+    messages: Array<any>,
     sessionData: any
-  ): Promise<RiskFactor[]> {
-    const factors: RiskFactor[] = [];
+  ): Promise<Array<RiskFactor>> {
+    const factors: Array<RiskFactor> = [];
 
     // Analyze emotional indicators in messages
     for (const indicator of this.riskIndicators.emotional) {
-      const matches = messages.filter(m => 
+      const matches = messages.filter(m =>
         m.content.toLowerCase().includes(indicator)
       );
 
@@ -285,8 +297,8 @@ class CrisisPrediction {
     // Analyze sentiment trends
     if (sessionData.sentiment_trends) {
       const recentSentiments = sessionData.sentiment_trends.slice(-5);
-      const avgSentiment = recentSentiments.reduce((a, b) => a + b, 0) / 
-                          recentSentiments.length;
+      const avgSentiment = recentSentiments.reduce((a, b) => a + b, 0) /
+        recentSentiments.length;
 
       if (avgSentiment < -0.5) {
         factors.push({
@@ -307,8 +319,8 @@ class CrisisPrediction {
   private static async analyzeContextualRisk(
     clientHistory: any,
     sessionData: any
-  ): Promise<RiskFactor[]> {
-    const factors: RiskFactor[] = [];
+  ): Promise<Array<RiskFactor>> {
+    const factors: Array<RiskFactor> = [];
 
     // Analyze contextual risk factors
     for (const indicator of this.riskIndicators.contextual) {
@@ -333,8 +345,8 @@ class CrisisPrediction {
 
   private static async analyzeHistoricalRisk(
     clientHistory: any
-  ): Promise<RiskFactor[]> {
-    const factors: RiskFactor[] = [];
+  ): Promise<Array<RiskFactor>> {
+    const factors: Array<RiskFactor> = [];
 
     // Analyze historical risk factors
     for (const indicator of this.riskIndicators.historical) {
@@ -354,8 +366,10 @@ class CrisisPrediction {
     return factors;
   }
 
-  private static calculateOverallRisk(factors: RiskFactor[]): number {
-    if (factors.length === 0) return 0;
+  private static calculateOverallRisk(factors: Array<RiskFactor>): number {
+    if (factors.length === 0) {
+      return 0;
+    }
 
     const weights = {
       behavioral: 0.3,
@@ -366,7 +380,9 @@ class CrisisPrediction {
 
     const typeScores = Object.entries(weights).map(([type, weight]) => {
       const typeFactors = factors.filter(f => f.type === type);
-      if (typeFactors.length === 0) return 0;
+      if (typeFactors.length === 0) {
+        return 0;
+      }
 
       const weightedScores = typeFactors.map(f => f.severity * f.confidence);
       return Math.max(...weightedScores) * weight;
@@ -376,17 +392,23 @@ class CrisisPrediction {
   }
 
   private static determineUrgency(risk: number): RiskAssessment['urgency'] {
-    if (risk >= this.riskThresholds.critical) return 'critical';
-    if (risk >= this.riskThresholds.high) return 'high';
-    if (risk >= this.riskThresholds.medium) return 'medium';
+    if (risk >= this.riskThresholds.critical) {
+      return 'critical';
+    }
+    if (risk >= this.riskThresholds.high) {
+      return 'high';
+    }
+    if (risk >= this.riskThresholds.medium) {
+      return 'medium';
+    }
     return 'low';
   }
 
   private static generateRecommendations(
-    factors: RiskFactor[],
+    factors: Array<RiskFactor>,
     urgency: RiskAssessment['urgency']
-  ): string[] {
-    const recommendations: string[] = [];
+  ): Array<string> {
+    const recommendations: Array<string> = [];
 
     // Add urgency-based recommendations
     switch (urgency) {
@@ -434,9 +456,9 @@ class CrisisPrediction {
 
   private static determineNextSteps(
     urgency: RiskAssessment['urgency'],
-    factors: RiskFactor[]
-  ): string[] {
-    const steps: string[] = [];
+    factors: Array<RiskFactor>
+  ): Array<string> {
+    const steps: Array<string> = [];
 
     // Add urgency-based steps
     switch (urgency) {
@@ -482,17 +504,17 @@ class CrisisPrediction {
   ): string {
     return urgency === 'critical'
       ? 'IMMEDIATE ACTION REQUIRED:\n' +
-        '1. Ensure immediate safety\n' +
-        '2. Contact emergency services if needed\n' +
-        '3. Notify clinical supervisor\n' +
-        '4. Contact designated emergency contacts\n' +
-        '5. Document all actions taken'
+      '1. Ensure immediate safety\n' +
+      '2. Contact emergency services if needed\n' +
+      '3. Notify clinical supervisor\n' +
+      '4. Contact designated emergency contacts\n' +
+      '5. Document all actions taken'
       : 'URGENT ACTION REQUIRED:\n' +
-        '1. Assess immediate safety needs\n' +
-        '2. Contact clinical supervisor\n' +
-        '3. Schedule immediate follow-up\n' +
-        '4. Review and update safety plan\n' +
-        '5. Document assessment and actions';
+      '1. Assess immediate safety needs\n' +
+      '2. Contact clinical supervisor\n' +
+      '3. Schedule immediate follow-up\n' +
+      '4. Review and update safety plan\n' +
+      '5. Document assessment and actions';
   }
 
   private static async sendAlert(
@@ -500,7 +522,7 @@ class CrisisPrediction {
     config: any,
     assessment: RiskAssessment
   ): Promise<void> {
-    const message = config.custom_message || 
+    const message = config.custom_message ||
       `Risk Alert: ${assessment.urgency.toUpperCase()} risk level detected. ` +
       `Overall risk: ${(assessment.overallRisk * 100).toFixed(1)}%. ` +
       `Immediate attention required.`;
@@ -519,24 +541,20 @@ class CrisisPrediction {
   }
 
   private static async sendEmailAlert(
-    recipients: string[],
+    recipients: Array<string>,
     message: string,
     assessment: RiskAssessment
   ): Promise<void> {
-    // Implementation would depend on email service integration
-    console.log('Sending email alert:', { recipients, message, assessment });
   }
 
   private static async sendSMSAlert(
-    recipients: string[],
+    recipients: Array<string>,
     message: string
   ): Promise<void> {
-    // Implementation would depend on SMS service integration
-    console.log('Sending SMS alert:', { recipients, message });
   }
 
   private static async sendInAppAlert(
-    recipients: string[],
+    recipients: Array<string>,
     message: string,
     assessment: RiskAssessment
   ): Promise<void> {
@@ -550,7 +568,9 @@ class CrisisPrediction {
         assessment_data: assessment
       });
 
-    if (error) throw new Error(`Failed to send in-app alert: ${error.message}`);
+    if (error) {
+      throw new Error(`Failed to send in-app alert: ${error.message}`);
+    }
   }
 
   private static async logAlert(
@@ -572,7 +592,9 @@ class CrisisPrediction {
         timestamp: new Date().toISOString()
       });
 
-    if (error) throw new Error(`Failed to log alert: ${error.message}`);
+    if (error) {
+      throw new Error(`Failed to log alert: ${error.message}`);
+    }
   }
 }
 

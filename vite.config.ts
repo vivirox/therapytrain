@@ -1,5 +1,5 @@
 import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react-swc";
+import react from '@vitejs/plugin-react';
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 
@@ -8,6 +8,8 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
+    headers: {
+      'Permissions-Policy': 'interest-cohort=()'
   },
   plugins: [
     react(),
@@ -26,8 +28,9 @@ export default defineConfig(({ mode }) => ({
     chunkSizeWarningLimit: 500,
     sourcemap: true,
     rollupOptions: {
+      external: ['@supabase/supabase-js'],
       output: {
-        manualChunks: (id) => {
+        manualChunks: (id: string) => {
           // Split node_modules into smaller chunks
           if (id.includes('node_modules')) {
             // Core React packages
@@ -79,18 +82,34 @@ export default defineConfig(({ mode }) => ({
           if (id.includes('/src/')) {
             // Components by feature
             if (id.includes('/components/')) {
-              if (id.includes('/ui/')) return 'app-ui';
-              if (id.includes('/auth/')) return 'app-auth';
-              if (id.includes('/chat/')) return 'app-chat';
-              if (id.includes('/education/')) return 'app-education';
-              if (id.includes('/analytics/')) return 'app-analytics';
+              if (id.includes('/ui/')) {
+                return 'app-ui';
+              }
+              if (id.includes('/auth/')) {
+                return 'app-auth';
+              }
+              if (id.includes('/analytics/')) {
+                return 'app-analytics';
+              }
+              if (id.includes('/education/')) {
+                return 'app-education';
+              }
+              if (id.includes('/analytics/')) {
+                return 'app-analytics';
+              }
               return 'app-components';
             }
             // Services by domain
             if (id.includes('/services/')) {
-              if (id.includes('/ai/')) return 'services-ai';
-              if (id.includes('/auth/')) return 'services-auth';
-              if (id.includes('/api/')) return 'services-api';
+              if (id.includes('/ai/')) {
+                return 'services-ai';
+              }
+              if (id.includes('/auth/')) {
+                return 'services-auth';
+              }
+              if (id.includes('/api/')) {
+                return 'services-api';
+              }
               return 'services-core';
             }
             // Pages
@@ -108,12 +127,12 @@ export default defineConfig(({ mode }) => ({
           }
         },
         // Optimize chunk names and reduce filename length
-        chunkFileNames: (chunkInfo) => {
+        chunkFileNames: (chunkInfo: { name: string; }) => {
           const name = chunkInfo.name || 'chunk';
           return `assets/${name}-[hash].js`;
         },
         // Optimize asset names
-        assetFileNames: (assetInfo) => {
+        assetFileNames: (assetInfo: { name: string; }) => {
           const extType = assetInfo.name?.split('.').pop();
           if (extType) {
             if (/png|jpe?g|svg|gif|tiff|bmp|ico/i.test(extType)) {
@@ -126,6 +145,10 @@ export default defineConfig(({ mode }) => ({
           return 'assets/[name]-[hash][extname]';
         }
       }
+    }
+  },
+  optimizeDeps: {
+      include: ['@supabase/supabase-js']
     }
   }
 }));

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { AnalyticsService } from '@/services/analytics';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { AnalyticsService } from '../services/analytics';
+import { Badge } from '../components/ui/badge';
 
 interface Pattern {
   pattern: string;
@@ -15,7 +15,7 @@ interface Props {
 }
 
 const BehavioralPatterns = ({ clientId, className = '' }: Props) => {
-  const [patterns, setPatterns] = useState<Pattern[]>([]);
+  const [patterns, setPatterns] = useState<Array<Pattern>>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -35,8 +35,12 @@ const BehavioralPatterns = ({ clientId, className = '' }: Props) => {
   }, [clientId]);
 
   const getSignificanceColor = (significance: number) => {
-    if (significance >= 0.8) return 'bg-red-500';
-    if (significance >= 0.5) return 'bg-yellow-500';
+    if (significance >= 0.8) {
+      return 'bg-red-500';
+    }
+    if (significance >= 0.5) {
+      return 'bg-yellow-500';
+    }
     return 'bg-blue-500';
   };
 
@@ -59,8 +63,8 @@ const BehavioralPatterns = ({ clientId, className = '' }: Props) => {
             <div key={index} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
               <div className="flex items-center justify-between mb-2">
                 <h3 className="font-medium">{pattern.pattern}</h3>
-                <Badge 
-                  variant="secondary" 
+                <Badge
+                  variant="secondary"
                   className={`${getSignificanceColor(pattern.significance)} text-white`}
                 >
                   {Math.round(pattern.significance * 100)}% Confidence
@@ -69,7 +73,7 @@ const BehavioralPatterns = ({ clientId, className = '' }: Props) => {
               <p className="text-sm text-gray-600">{pattern.description}</p>
             </div>
           ))}
-          
+
           {patterns.length === 0 && (
             <div className="text-center text-gray-500">
               No behavioral patterns detected yet. Continue interacting to generate insights.

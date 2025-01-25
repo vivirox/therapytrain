@@ -1,15 +1,15 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { analyzeMessageHistory, analyzeSentiment } from "@/services/sentimentAnalysis";
-import { useToast } from "@/components/ui/use-toast";
-import MessageList from "@/components/MessageList";
-import ChatInput from "@/components/ChatInput";
-import ChatSidebar from "@/components/ChatSidebar";
-import SessionControls from "@/components/SessionControls";
-import VideoChat from "@/components/VideoChat";
-import { SentimentIndicator } from "@/components/SentimentIndicator";
-import { supabase } from "@/integrations/supabase/client";
-import { sessionManager, type SessionMode } from '@/services/sessionManager';
+import { analyzeMessageHistory, analyzeSentiment } from "../services/sentimentAnalysis";
+import { useToast } from "../components/ui/use-toast";
+import MessageList from "../components/MessageList";
+import ChatInput from "../components/ChatInput";
+import ChatSidebar from "../components/ChatSidebar";
+import SessionControls from "../components/SessionControls";
+import VideoChat from "../components/VideoChat";
+import { SentimentIndicator } from "../components/SentimentIndicator";
+import { supabase } from "../integrations/supabase/client";
+import { sessionManager, type SessionMode } from '../services/sessionManager';
 import { ContextualLearningSystem } from '../services/contextualLearning';
 import ContextualHints from '../components/ContextualHints';
 import { InterventionOptimizationSystem } from '../services/interventionOptimization';
@@ -22,7 +22,7 @@ type Client = {
   primary_issue: string;
   complexity: string;
   description: string;
-  key_traits: string[];
+  key_traits: Array<string>;
   background: string;
 };
 
@@ -36,16 +36,16 @@ const ChatPage = () => {
   const navigate = useNavigate();
   const { clientId } = useParams();
   const { toast } = useToast();
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [newMessage, setNewMessage] = useState("");
+  const [messages, setMessages] = useState<Array<Message>>([]);
+  const [, setNewMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [client, setClient] = useState<Client | null>(null);
   const [currentSentiment, setCurrentSentiment] = useState(0);
-  const [overallSentiment, setOverallSentiment] = useState(0);
+  const [overallSentiment,] = useState(0);
   const [sessionMode, setSessionMode] = useState<SessionMode>('text');
-  const [sessionId, setSessionId] = useState<string | null>(null);
-  const [contextualHints, setContextualHints] = useState<string[]>([]);
-  const [interventionRecommendations, setInterventionRecommendations] = useState<any[]>([]);
+  const [sessionId,] = useState<string | null>(null);
+  const [contextualHints, setContextualHints] = useState<Array<string>>([]);
+  const [interventionRecommendations, setInterventionRecommendations] = useState<Array<any>>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -80,7 +80,9 @@ const ChatPage = () => {
   }, [navigate, clientId]);
 
   const handleSendMessage = async (message: string) => {
-    if (!message.trim() || !sessionId || !client) return;
+    if (!message.trim() || !sessionId || !client) {
+      return;
+    }
 
     try {
       setIsLoading(true);
@@ -115,7 +117,9 @@ const ChatPage = () => {
         }),
       });
 
-      if (!response.ok) throw new Error('Failed to send message');
+      if (!response.ok) {
+        throw new Error('Failed to send message');
+      }
       
       const data = await response.json();
       const assistantMessage: Message = { role: 'assistant', content: data.response };
@@ -152,7 +156,9 @@ const ChatPage = () => {
   // Update recommendations when context changes
   useEffect(() => {
     const updateRecommendations = async () => {
-      if (!client) return;
+      if (!client) {
+        return;
+      }
 
       const interventionOptimization = InterventionOptimizationSystem.getInstance();
       const recommendations = await interventionOptimization.recommendIntervention(
@@ -171,7 +177,9 @@ const ChatPage = () => {
   }, [client, currentSentiment, contextualHints, messages]);
 
   const handleInterventionSelect = async (interventionType: string) => {
-    if (!client || !sessionId) return;
+    if (!client || !sessionId) {
+      return;
+    }
 
     try {
       // Create new intervention
