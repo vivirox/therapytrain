@@ -9,7 +9,8 @@
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview",
-    "setup:zk": "bun run scripts/setup_zk.ts"
+    "setup:zk": "bun run scripts/setup_zk.ts",
+    "tsc": "tsc --noEmit"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",

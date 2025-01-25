@@ -15,16 +15,7 @@ import ContextualHints from '../components/ContextualHints';
 import { InterventionOptimizationSystem } from '../services/interventionOptimization';
 import InterventionRecommendations from '../components/InterventionRecommendations';
 
-type Client = {
-  id: number;
-  name: string;
-  age: number;
-  primary_issue: string;
-  complexity: string;
-  description: string;
-  key_traits: Array<string>;
-  background: string;
-};
+import { Client } from '../types/Client'; // Ensure this
 
 type Message = {
   role: 'user' | 'assistant';

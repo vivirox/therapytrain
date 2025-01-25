@@ -1,7 +1,9 @@
+import { Message } from 'react-hook-form';
 import { supabase } from '../integrations/supabase/client';
 import type { SessionState } from './sessionManager';
 
 export interface SessionMetrics {
+  effectiveness: number;
   duration: number;
   averageSentiment: number;
   engagementScore: number;
@@ -11,8 +13,12 @@ export interface SessionMetrics {
   keyInsights: Array<string>;
 }
 
-class SessionAnalytics {
-  static async getSessionMetrics(sessionId: string): Promise<SessionMetrics> {
+export class SessionAnalytics {
+  static STOP_WORDS: any;
+  static RELATIONSHIP_KEYWORDS: any;
+  static DEPRESSION_KEYWORDS: any;
+  static ANXIETY_KEYWORDS: any;
+  public static async getSessionMetrics(sessionId: string): Promise<SessionMetrics> {
     const { data: session, error } = await supabase
       .from('therapy_sessions')
       .select(`
@@ -36,8 +42,10 @@ class SessionAnalytics {
     const responseRate = this.calculateResponseRate(messages);
     const topicsCovered = this.extractTopics(messages);
     const keyInsights = this.generateInsights(messages, interventions);
+    const effectiveness = this.calculateEffectiveness(interventions);
 
     return {
+      effectiveness,
       duration,
       averageSentiment,
       engagementScore,
@@ -47,7 +55,16 @@ class SessionAnalytics {
       keyInsights
     };
   }
-
+  static calculateEffectiveness(interventions: Array<any>): number {
+// sourcery skip: use-braces
+    if (!interventions.length) return 0;
+    
+    // Calculate average effectiveness across all interventions
+    const totalEffectiveness = interventions.reduce((sum, intervention) => 
+        sum + (intervention.effectiveness || 0), 0);
+        
+    return totalEffectiveness / interventions.length;
+  }
   private static calculateDuration(startTime: string, endTime: string): number {
     return Math.round(
       (new Date(endTime).getTime() - new Date(startTime).getTime()) / 60_000
@@ -79,25 +96,51 @@ class SessionAnalytics {
     return userMessages / (messages.length || 1);
   }
 
-  private static extractTopics(messages: Array<any>): Array<string> {
-    // Simple keyword extraction (could be enhanced with NLP)
-    const text = messages.map(m => m.content).join(' ');
-    const words = text.toLowerCase().split(/\W+/);
-    const stopWords = new Set(['the', 'and', 'or', 'but', 'in', 'on', 'at']);
+  public static extractTopics(messages: Array<Message>): Array<string> {
+    const topics = new Set<string>();
+  
+    // Process each message to extract topics
+    messages.forEach(message => {
+      // Extract keywords using NLP techniques
+      const keywords = this.extractKeywords(typeof message === 'string' ? message : (message as { content: string }).content);
+    
+      // Categorize keywords into therapy-relevant topics
+      const messageTopic = this.categorizeTopics(keywords);
+    
+      // Add unique topics to set
+      messageTopic.forEach(topic => topics.add(topic));
+    });
 
-    const wordFreq = words
-      .filter(w => w.length > 3 && !stopWords.has(w))
-      .reduce((acc: Record<string, number>, word) => {
-        acc[word] = (acc[word] || 0) + 1;
-        return acc;
-      }, {});
-
-    return Object.entries(wordFreq)
-      .sort(([, a], [, b]) => b - a)
-      .slice(0, 5)
-      .map(([word]) => word);
+    // Convert Set back to Array before returning
+    return Array.from(topics);
   }
 
+  private static extractKeywords(text: string): Array<string> {
+    // Remove punctuation and convert to lowercase
+    const cleanText = text.toLowerCase().replace(/[^\w\s]/g, '');
+    
+    return cleanText.split(' ')
+    .filter(word => !SessionAnalytics.STOP_WORDS.includes(word));
+  }
+
+  private static categorizeTopics(keywords: Array<string>): Array<string> {
+    const topics: Array<string> = [];
+  
+    // Map keywords to therapy domains
+    keywords.forEach(keyword => {
+      if (SessionAnalytics.ANXIETY_KEYWORDS.includes(keyword)) {
+        topics.push('anxiety');
+      }
+      if (SessionAnalytics.DEPRESSION_KEYWORDS.includes(keyword)) {
+        topics.push('depression');
+      }
+      if (SessionAnalytics.RELATIONSHIP_KEYWORDS.includes(keyword)) {
+        topics.push('relationships');
+      }
+      // Add more topic categories as needed
+    });  
+    return [...new Set(topics)]; // Remove duplicates
+  }
   private static generateInsights(messages: Array<any>, interventions: Array<any>): Array<string> {
     const insights = [];
 

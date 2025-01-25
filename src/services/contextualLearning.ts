@@ -1,35 +1,34 @@
-import { Message } from '../types/chat';
-import { SessionState } from '../types/session';
-import { Client } from '../types/client';
+import { Message } from '../types/chat.ts';
+import { SessionState } from '../types/session.ts';
+import { Client } from '../types/Client.ts'; // Ensure this import is correct
 import { analyzeMessageHistory } from './sentimentAnalysis';
 import { SessionAnalytics } from './sessionAnalytics';
 
 interface ContextMemory {
   shortTerm: {
-    recentTopics: string[];
+    recentTopics: Array<string>;
     emotionalState: number;
     engagementLevel: number;
-    lastResponses: string[];
+    lastResponses: Array<string>;
   };
   longTerm: {
     clientHistory: {
-      commonTopics: string[];
-      preferredApproaches: string[];
-      triggerPatterns: string[];
-      successfulInterventions: string[];
+      commonTopics: Array<string>;
+      preferredApproaches: Array<string>;
+      triggerPatterns: Array<string>;
+      successfulInterventions: Array<string>;
     };
     therapeuticProgress: {
-      goalsAchieved: string[];
-      currentChallenges: string[];
-      adaptationHistory: {
+      goalsAchieved: Array<string>;
+      currentChallenges: Array<string>;
+      adaptationHistory: Array<{
         approach: string;
         effectiveness: number;
         timestamp: number;
-      }[];
+      }>;
     };
   };
 }
-
 export class ContextualLearningSystem {
   private static instance: ContextualLearningSystem;
   private sessionAnalytics: SessionAnalytics;
@@ -49,7 +48,7 @@ export class ContextualLearningSystem {
   async updateContext(
     clientId: string,
     session: SessionState,
-    messages: Message[],
+    messages: Array<Message>,
     client: Client
   ): Promise<void> {
     let memory = this.contextMemory.get(clientId);
@@ -61,34 +60,29 @@ export class ContextualLearningSystem {
     // Update short-term memory
     const recentMessages = messages.slice(-5);
     memory.shortTerm = {
-      recentTopics: await this.sessionAnalytics.extractTopics(recentMessages),
+      recentTopics: SessionAnalytics.extractTopics(recentMessages.map(m => m.content)),
       emotionalState: analyzeMessageHistory(recentMessages),
-      engagementLevel: await this.sessionAnalytics.calculateEngagement(recentMessages),
+      engagementLevel: memory.shortTerm.engagementLevel,
       lastResponses: recentMessages
         .filter(m => m.role === 'assistant')
         .map(m => m.content),
     };
 
-    // Update long-term memory
-    const insights = await this.sessionAnalytics.generateInsights(messages, session.interventions || []);
     memory.longTerm.clientHistory.commonTopics = this.updateTopics(
       memory.longTerm.clientHistory.commonTopics,
-      await this.sessionAnalytics.extractTopics(messages)
+      SessionAnalytics.extractTopics(messages.map(m => m.content))
     );
-    
+
     // Update therapeutic progress
-    const sessionMetrics = await this.sessionAnalytics.getSessionMetrics(session.id);
+    const sessionMetrics = await SessionAnalytics.getSessionMetrics(session.id);
     memory.longTerm.therapeuticProgress.adaptationHistory.push({
       approach: session.mode,
       effectiveness: sessionMetrics.effectiveness || 0,
       timestamp: Date.now(),
     });
-  }
-
-  private initializeMemory(): ContextMemory {
+  }  private initializeMemory(): ContextMemory {
     return {
-      shortTerm: {
-        recentTopics: [],
+      shortTerm: {        recentTopics: [],
         emotionalState: 0,
         engagementLevel: 0,
         lastResponses: [],
@@ -109,7 +103,7 @@ export class ContextualLearningSystem {
     };
   }
 
-  private updateTopics(existing: string[], new_topics: string[]): string[] {
+  private updateTopics(existing: Array<string>, new_topics: Array<string>): Array<string> {
     const topicFrequency = new Map<string, number>();
     
     // Count existing topics
@@ -133,9 +127,9 @@ export class ContextualLearningSystem {
     clientId: string,
     currentMessage: string
   ): Promise<{
-    contextualHints: string[];
-    suggestedApproaches: string[];
-    relevantHistory: string[];
+    contextualHints: Array<string>;
+    suggestedApproaches: Array<string>;
+    relevantHistory: Array<string>;
   }> {
     const memory = this.contextMemory.get(clientId);
     if (!memory) {
@@ -158,8 +152,8 @@ export class ContextualLearningSystem {
     };
   }
 
-  private generateContextualHints(memory: ContextMemory, currentMessage: string): string[] {
-    const hints: string[] = [];
+  private generateContextualHints(memory: ContextMemory, currentMessage: string): Array<string> {
+    const hints: Array<string> = [];
     
     // Add emotional state context
     if (memory.shortTerm.emotionalState < -0.3) {
@@ -184,7 +178,7 @@ export class ContextualLearningSystem {
     return hints;
   }
 
-  private suggestApproaches(memory: ContextMemory): string[] {
+  private suggestApproaches(memory: ContextMemory): Array<string> {
     // Analyze adaptation history to find most effective approaches
     const approachEffectiveness = new Map<string, number>();
     let totalEntries = 0;
@@ -208,7 +202,7 @@ export class ContextualLearningSystem {
       .map(entry => entry.approach);
   }
 
-  private findRelevantHistory(memory: ContextMemory, currentMessage: string): string[] {
+  findRelevantHistory(memory: ContextMemory, currentMessage: string): Array<string> {
     // Simple keyword-based relevance for now
     // TODO: Implement more sophisticated semantic matching
     const keywords = currentMessage.toLowerCase().split(' ');
