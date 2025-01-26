@@ -27,13 +27,21 @@ export const UserProfile = () => {
       // Get user permissions
       const fetchPermissions = async () => {
         const perms = await getPermissions();
-        setPermissions(perms.permissions.map(p => p.id));
+        setPermissions(perms.permissions.map(p => 
+          typeof p === 'string' ? p : (p as { id: string }).id
+        ));
       };
 
       // Get user organizations
       const fetchOrganizations = async () => {
         const orgs = await getUserOrganizations();
-        setOrganizations(orgs.organizations);
+        if (orgs && Array.isArray(orgs)) {
+          setOrganizations(orgs);
+        } else if (orgs && 'organizations' in orgs) {
+          setOrganizations((orgs as { organizations: Organization[] }).organizations);
+        } else {
+          setOrganizations([]);
+        }
       };
 
       fetchPermissions();

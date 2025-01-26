@@ -86,7 +86,23 @@ const AuthStateProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
       // Fetch permissions
       const fetchPermissions = async () => {
         const perms = await getPermissions();
-        setPermissions(perms as Permission[]);
+        if (Array.isArray(perms)) {
+          const transformedPerms: Permission[] = perms.map(perm => {
+            if (typeof perm === 'string') {
+              return { id: perm, name: perm };
+            } else if (typeof perm === 'object' && perm !== null && 'id' in perm) {
+              return { 
+                id: perm.id, 
+                name: (perm.name as string) ?? perm.id 
+              };
+            }
+            // fallback case
+            return { id: String(perm), name: String(perm) };
+          });
+          setPermissions(transformedPerms);
+        } else {
+          setPermissions([]);
+        }
       };
 
       // Fetch organizations
