@@ -1,10 +1,9 @@
 import React from 'react';
 import { Card } from '../../ui/card';
-import { Button } from '../../ui/button';
 import { RadioGroup, RadioGroupItem } from '../../ui/radio-group';
 import { Label } from '../../ui/label';
 import { Textarea } from '../../ui/textarea';
-import { Brain, Activity } from 'lucide-react';
+import { Brain } from 'lucide-react';
 
 interface DecisionTreeNode {
   id: string;
@@ -60,7 +59,6 @@ const DecisionTreeElement: React.FC<{
   return (
     <Card className="p-6 space-y-4">
       <div className="flex items-center gap-2 mb-4">
-        <Activity className="w-5 h-5" />
         <h3 className="text-lg font-semibold">Decision Point</h3>
       </div>
 

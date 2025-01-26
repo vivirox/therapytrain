@@ -13,10 +13,10 @@
     "tsc": "tsc --noEmit"
   },
   "dependencies": {
-    "@auth0/auth0-react": "^2.3.0",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
     "@hookform/resolvers": "^3.9.0",
+    "@kinde-oss/kinde-auth-react": "^4.0.4",
     "@mui/material": "^6.4.1",
     "@noble/hashes": "^1.7.1",
     "@noble/secp256k1": "^2.2.3",
