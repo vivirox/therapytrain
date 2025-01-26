@@ -1,5 +1,5 @@
 import { Message } from 'react-hook-form';
-import { supabase } from '../integrations/supabase/client';
+import { dataService } from './dataService';
 import type { SessionState } from './sessionManager';
 
 export interface SessionMetrics {
@@ -19,15 +19,8 @@ export class SessionAnalytics {
   static DEPRESSION_KEYWORDS: any;
   static ANXIETY_KEYWORDS: any;
   public static async getSessionMetrics(sessionId: string): Promise<SessionMetrics> {
-    const { data: session, error } = await supabase
-      .from('therapy_sessions')
-      .select(`
-        *,
-        messages:session_messages(content, timestamp, role),
-        interventions:session_interventions(type, timestamp, effectiveness)
-      `)
-      .eq('id', sessionId)
-      .single();
+    const { data: session, error } = await dataService
+      .getSession(sessionId);
 
     if (error) {
       throw new Error(`Failed to fetch session metrics: ${error.message}`);

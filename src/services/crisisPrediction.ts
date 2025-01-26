@@ -1,4 +1,4 @@
-import { supabase } from '../integrations/supabase/client';
+import { dataService } from './dataService';
 
 export interface RiskFactor {
   id: string;
@@ -130,9 +130,8 @@ class CrisisPrediction {
     clientId: string,
     config: AlertConfig
   ): Promise<void> {
-    const { error } = await supabase
-      .from('alert_configs')
-      .upsert({
+    const { error } = await dataService
+      .upsertAlertConfig({
         client_id: clientId,
         threshold: config.threshold,
         recipients: config.recipients,
@@ -150,11 +149,8 @@ class CrisisPrediction {
     assessment: RiskAssessment
   ): Promise<void> {
     // Get alert configuration
-    const { data: config, error } = await supabase
-      .from('alert_configs')
-      .select('*')
-      .eq('client_id', clientId)
-      .single();
+    const { data: config, error } = await dataService
+      .getAlertConfig(clientId);
 
     if (error) {
       throw new Error(`Failed to fetch alert config: ${error.message}`);
@@ -175,11 +171,8 @@ class CrisisPrediction {
   }
 
   private static async getSessionData(sessionId: string) {
-    const { data, error } = await supabase
-      .from('therapy_sessions')
-      .select('*')
-      .eq('id', sessionId)
-      .single();
+    const { data, error } = await dataService
+      .getSessionData(sessionId);
 
     if (error) {
       throw new Error(`Failed to fetch session data: ${error.message}`);
@@ -188,11 +181,8 @@ class CrisisPrediction {
   }
 
   private static async getClientHistory(clientId: string) {
-    const { data, error } = await supabase
-      .from('client_history')
-      .select('*')
-      .eq('client_id', clientId)
-      .single();
+    const { data, error } = await dataService
+      .getClientHistory(clientId);
 
     if (error) {
       throw new Error(`Failed to fetch client history: ${error.message}`);
@@ -201,12 +191,8 @@ class CrisisPrediction {
   }
 
   private static async getRecentMessages(clientId: string) {
-    const { data, error } = await supabase
-      .from('session_messages')
-      .select('*')
-      .eq('client_id', clientId)
-      .order('timestamp', { ascending: false })
-      .limit(100);
+    const { data, error } = await dataService
+      .getRecentMessages(clientId);
 
     if (error) {
       throw new Error(`Failed to fetch messages: ${error.message}`);
@@ -215,10 +201,8 @@ class CrisisPrediction {
   }
 
   private static async getBehavioralPatterns(clientId: string) {
-    const { data, error } = await supabase
-      .from('behavioral_patterns')
-      .select('*')
-      .eq('client_id', clientId);
+    const { data, error } = await dataService
+      .getBehavioralPatterns(clientId);
 
     if (error) {
       throw new Error(`Failed to fetch patterns: ${error.message}`);
@@ -558,9 +542,8 @@ class CrisisPrediction {
     message: string,
     assessment: RiskAssessment
   ): Promise<void> {
-    const { error } = await supabase
-      .from('alerts')
-      .insert({
+    const { error } = await dataService
+      .sendInAppAlert({
         recipients,
         message,
         risk_level: assessment.urgency,
@@ -578,9 +561,8 @@ class CrisisPrediction {
     assessment: RiskAssessment,
     config: any
   ): Promise<void> {
-    const { error } = await supabase
-      .from('alert_logs')
-      .insert({
+    const { error } = await dataService
+      .logAlert({
         client_id: clientId,
         risk_level: assessment.urgency,
         risk_score: assessment.overallRisk,

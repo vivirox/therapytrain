@@ -1,45 +1,36 @@
-import { Auth } from "@supabase/auth-ui-react";
-import { ThemeSupa } from "@supabase/auth-ui-shared";
-import { supabase } from "../integrations/supabase/client";
+import { useKindeAuth } from "@kinde-oss/kinde-auth-react";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Brain } from "lucide-react";
 
 const AuthPage = () => {
   const navigate = useNavigate();
+  const { login, isAuthenticated } = useKindeAuth();
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session) {
-        navigate("/chat");
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, [navigate]);
+    if (isAuthenticated) {
+      navigate("/chat");
+    }
+  }, [isAuthenticated, navigate]);
 
   return (
-    <div className="min-h-screen bg-[#0A0A0B] flex flex-col items-center justify-center p-4">
-      <div className="mb-8 flex items-center gap-2">
-        <Brain className="h-8 w-8 text-blue-500" />
-        <span className="text-xl font-bold text-white">TherapyTrain AI</span>
-      </div>
-      <div className="w-full max-w-md p-8 bg-[#1A1A1D] rounded-lg">
-        <Auth
-          supabaseClient={supabase}
-          appearance={{
-            theme: ThemeSupa,
-            variables: {
-              default: {
-                colors: {
-                  brand: '#3B82F6',
-                  brandAccent: '#2563EB',
-                }
-              }
-            }
-          }}
-          providers={[]}
-        />
+    <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-gray-50 to-gray-100 px-4 py-8">
+      <div className="w-full max-w-md space-y-8">
+        <div className="flex flex-col items-center justify-center space-y-4">
+          <Brain className="h-12 w-12 text-primary" />
+          <h1 className="text-center text-3xl font-bold tracking-tight text-gray-900">
+            Welcome to TherapyTrain
+          </h1>
+          <p className="text-center text-gray-600">
+            Sign in to start your session
+          </p>
+        </div>
+        <button
+          onClick={() => login()}
+          className="flex w-full justify-center rounded-md bg-primary px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+        >
+          Sign in with Kinde
+        </button>
       </div>
     </div>
   );
