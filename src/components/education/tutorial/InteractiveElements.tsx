@@ -4,7 +4,7 @@ import { Button } from '../../ui/button';
 import { RadioGroup, RadioGroupItem } from '../../ui/radio-group';
 import { Label } from '../../ui/label';
 import { Textarea } from '../../ui/textarea';
-import { Brain, MessageSquare, Git } from 'lucide-react';
+import { Brain, MessageSquare, GitBranch } from 'lucide-react';
 
 interface DecisionTreeNode {
   id: string;
@@ -60,7 +60,7 @@ const DecisionTreeElement: React.FC<{
   return (
     <Card className="p-6 space-y-4">
       <div className="flex items-center gap-2 mb-4">
-        <Git className="w-5 h-5" />
+        <GitBranch className="w-5 h-5" />
         <h3 className="text-lg font-semibold">Decision Point</h3>
       </div>
       
@@ -71,7 +71,7 @@ const DecisionTreeElement: React.FC<{
         onValueChange={handleChoice}
         className="space-y-2"
       >
-        {currentNode.choices.map(choice => (
+        {currentNode.choices.map((choice: { id: any; text: any; }) => (
           <div key={choice.id} className="flex items-center space-x-2">
             <RadioGroupItem value={choice.id} id={choice.id} />
             <Label htmlFor={choice.id}>{choice.text}</Label>
