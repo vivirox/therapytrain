@@ -29,30 +29,28 @@ const queryClient = new QueryClient({
 const App: React.FC = () => {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <ToastProvider>
-          <Suspense fallback={<div>Loading...</div>}>
-            <TooltipProvider>
-              <BrowserRouter>
-                <Suspense fallback={<Loading fullScreen message="Loading TherapyTrain..." />}>
-                  <Routes>
-                    <Route path="/" element={<Index />} />
-                    <Route path="/auth" element={<Auth />} />
-                    <Route path="/chat" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
-                    <Route path="/education" element={<ProtectedRoute><Education /></ProtectedRoute>} />
-                    <Route path="/clients" element={<ProtectedRoute><ClientSelection /></ProtectedRoute>} />
-                    <Route path="/features" element={<Features />} />
-                    <Route path="/benefits" element={<Benefits />} />
-                    <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-                    <Route path="/terms-of-service" element={<TermsOfService />} />
-                    <Route path="*" element={<Navigate to="/" replace />} />
-                  </Routes>
-                </Suspense>
-              </BrowserRouter>
-            </TooltipProvider>
-          </Suspense>
-        </ToastProvider>
-      </AuthProvider>
+      <ToastProvider>
+        <Suspense fallback={<div>Loading...</div>}>
+          <TooltipProvider>
+            <BrowserRouter>
+              <Suspense fallback={<Loading fullScreen message="Loading TherapyTrain..." />}>
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/auth" element={<Auth />} />
+                  <Route path="/chat" element={<AuthProvider><ProtectedRoute><Chat /></ProtectedRoute></AuthProvider>} />
+                  <Route path="/education" element={<AuthProvider><ProtectedRoute><Education /></ProtectedRoute></AuthProvider>} />
+                  <Route path="/clients" element={<AuthProvider><ProtectedRoute><ClientSelection /></ProtectedRoute></AuthProvider>} />
+                  <Route path="/features" element={<Features />} />
+                  <Route path="/benefits" element={<Benefits />} />
+                  <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                  <Route path="/terms-of-service" element={<TermsOfService />} />
+                  <Route path="*" element={<Navigate to="/" replace />} />
+                </Routes>
+              </Suspense>
+            </BrowserRouter>
+          </TooltipProvider>
+        </Suspense>
+      </ToastProvider>
     </QueryClientProvider>
   );
 };
