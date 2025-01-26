@@ -58,6 +58,7 @@
     "date-fns": "^3.6.0",
     "embla-carousel-react": "^8.3.0",
     "git": "^0.1.5",
+    "global": "^4.4.0",
     "input-otp": "^1.2.4",
     "lovable-tagger": "^1.0.19",
     "lucide-react": "^0.474.0",
@@ -119,7 +120,7 @@
     "ts-node": "^10.9.2",
     "typescript": "^5.5.3",
     "typescript-eslint": "^8.0.1",
-    "vite": "^5.4.1"
+    "vite": "^6.0.11"
   },
   "trustedDependencies": [
     "@swc/core",

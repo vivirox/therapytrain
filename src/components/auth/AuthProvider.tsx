@@ -42,6 +42,12 @@ const AuthContext = createContext<AuthContextType | null>(null);
 // Wrapper component that provides Kinde context
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const location = useLocation();
+  console.log("Kinde Config:", {
+    clientId: import.meta.env.VITE_KINDE_CLIENT_ID,
+    domain: import.meta.env.VITE_KINDE_DOMAIN,
+    redirectUri: import.meta.env.VITE_KINDE_REDIRECT_URL,
+    logoutUri: import.meta.env.VITE_KINDE_LOGOUT_URL
+  });
   
   return (
     <KindeProvider
@@ -50,7 +56,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       redirectUri={import.meta.env.VITE_KINDE_REDIRECT_URL}
       logoutUri={import.meta.env.VITE_KINDE_LOGOUT_URL}
       onRedirectCallback={(user, appState) => {
-        // Handle redirect after authentication
+        console.log("Kinde redirect callback:", { user, appState });
         if (appState?.returnTo && typeof appState.returnTo === 'string') {
           window.location.href = appState.returnTo;
         }

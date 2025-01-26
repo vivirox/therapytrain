@@ -10,9 +10,28 @@ const AuthPage = () => {
 
   useEffect(() => {
     if (isAuthenticated) {
+      console.log("User is authenticated, redirecting to /chat");
       navigate("/chat");
     }
   }, [isAuthenticated, navigate]);
+
+  const handleLogin = () => {
+    console.log("Attempting to login...");
+    login({
+      authUrlParams: {
+        redirect_uri: import.meta.env.VITE_KINDE_REDIRECT_URL,
+      }
+    });
+  };
+
+  const handleRegister = () => {
+    console.log("Attempting to register...");
+    register({
+      authUrlParams: {
+        redirect_uri: import.meta.env.VITE_KINDE_REDIRECT_URL,
+      }
+    });
+  };
 
   return (
     <div className="min-h-screen bg-[#0A0A0B] flex flex-col items-center justify-center px-4 py-8">
@@ -29,14 +48,14 @@ const AuthPage = () => {
         
         <div className="space-y-4 mt-8">
           <Button
-            onClick={() => login()}
+            onClick={handleLogin}
             className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3"
           >
             Sign in with Kinde
           </Button>
           
           <Button
-            onClick={() => register()}
+            onClick={handleRegister}
             variant="outline"
             className="w-full border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white py-3"
           >

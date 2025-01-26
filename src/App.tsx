@@ -35,15 +35,48 @@ const App: React.FC = () => {
             <BrowserRouter>
               <Suspense fallback={<Loading fullScreen message="Loading TherapyTrain..." />}>
                 <Routes>
+                  {/* Public Routes */}
                   <Route path="/" element={<Index />} />
-                  <Route path="/auth" element={<Auth />} />
-                  <Route path="/chat" element={<AuthProvider><ProtectedRoute><Chat /></ProtectedRoute></AuthProvider>} />
-                  <Route path="/education" element={<AuthProvider><ProtectedRoute><Education /></ProtectedRoute></AuthProvider>} />
-                  <Route path="/clients" element={<AuthProvider><ProtectedRoute><ClientSelection /></ProtectedRoute></AuthProvider>} />
                   <Route path="/features" element={<Features />} />
                   <Route path="/benefits" element={<Benefits />} />
                   <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                   <Route path="/terms-of-service" element={<TermsOfService />} />
+                  
+                  {/* Auth Routes - Wrap with AuthProvider */}
+                  <Route path="/auth/*" element={
+                    <AuthProvider>
+                      <Auth />
+                    </AuthProvider>
+                  } />
+                  <Route path="/callback" element={
+                    <AuthProvider>
+                      <Auth />
+                    </AuthProvider>
+                  } />
+                  
+                  {/* Protected Routes */}
+                  <Route path="/chat" element={
+                    <AuthProvider>
+                      <ProtectedRoute>
+                        <Chat />
+                      </ProtectedRoute>
+                    </AuthProvider>
+                  } />
+                  <Route path="/education" element={
+                    <AuthProvider>
+                      <ProtectedRoute>
+                        <Education />
+                      </ProtectedRoute>
+                    </AuthProvider>
+                  } />
+                  <Route path="/clients" element={
+                    <AuthProvider>
+                      <ProtectedRoute>
+                        <ClientSelection />
+                      </ProtectedRoute>
+                    </AuthProvider>
+                  } />
+                  
                   <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
               </Suspense>
