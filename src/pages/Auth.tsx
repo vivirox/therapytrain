@@ -2,10 +2,11 @@ import { useKindeAuth } from "@kinde-oss/kinde-auth-react";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Brain } from "lucide-react";
+import { Button } from "../components/ui/button";
 
 const AuthPage = () => {
   const navigate = useNavigate();
-  const { login, isAuthenticated } = useKindeAuth();
+  const { login, register, isAuthenticated } = useKindeAuth();
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -14,23 +15,45 @@ const AuthPage = () => {
   }, [isAuthenticated, navigate]);
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-gray-50 to-gray-100 px-4 py-8">
-      <div className="w-full max-w-md space-y-8">
+    <div className="min-h-screen bg-[#0A0A0B] flex flex-col items-center justify-center px-4 py-8">
+      <div className="w-full max-w-md space-y-8 bg-[#1A1A1D] p-8 rounded-lg shadow-xl">
         <div className="flex flex-col items-center justify-center space-y-4">
-          <Brain className="h-12 w-12 text-primary" />
-          <h1 className="text-center text-3xl font-bold tracking-tight text-gray-900">
+          <Brain className="h-16 w-16 text-blue-500" />
+          <h1 className="text-center text-3xl font-bold tracking-tight text-white">
             Welcome to TherapyTrain
           </h1>
-          <p className="text-center text-gray-600">
-            Sign in to start your session
+          <p className="text-center text-gray-400">
+            Sign in or create an account to start your journey
           </p>
         </div>
-        <button
-          onClick={() => login()}
-          className="flex w-full justify-center rounded-md bg-primary px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-        >
-          Sign in with Kinde
-        </button>
+        
+        <div className="space-y-4 mt-8">
+          <Button
+            onClick={() => login()}
+            className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3"
+          >
+            Sign in with Kinde
+          </Button>
+          
+          <Button
+            onClick={() => register()}
+            variant="outline"
+            className="w-full border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white py-3"
+          >
+            Create an Account
+          </Button>
+        </div>
+
+        <p className="mt-4 text-center text-sm text-gray-400">
+          By continuing, you agree to our{" "}
+          <a href="/terms-of-service" className="text-blue-500 hover:text-blue-400">
+            Terms of Service
+          </a>{" "}
+          and{" "}
+          <a href="/privacy-policy" className="text-blue-500 hover:text-blue-400">
+            Privacy Policy
+          </a>
+        </p>
       </div>
     </div>
   );
