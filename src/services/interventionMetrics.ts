@@ -1,4 +1,4 @@
-import { supabase } from '../integrations/supabase/client';
+import fetch from 'node-fetch';
 
 export interface InterventionMetric {
   id: string;
@@ -35,34 +35,48 @@ class InterventionMetrics {
     type: string,
     context: Record<string, any>
   ): Promise<string> {
-    const { data, error } = await supabase
-      .from('interventions')
-      .insert({
-        session_id: sessionId,
-        type,
-        context,
-        timestamp: new Date().toISOString()
-      })
-      .select()
-      .single();
-
-    if (error) {
-      throw new Error(`Failed to track intervention: ${error.message}`);
+    try {
+      const response = await fetch('/api/interventions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          session_id: sessionId,
+          type,
+          context,
+          timestamp: new Date().toISOString()
+        })
+      });
+      if (!response.ok) {
+        throw new Error('Failed to track intervention');
+      }
+      const data = await response.json();
+      return data.id;
+    } catch (error) {
+      console.error('Error tracking intervention:', error);
+      throw error;
     }
-    return data.id;
   }
 
   static async updateEffectiveness(
     interventionId: string,
     metrics: Partial<InterventionMetric>
   ): Promise<void> {
-    const { error } = await supabase
-      .from('interventions')
-      .update(metrics)
-      .eq('id', interventionId);
-
-    if (error) {
-      throw new Error(`Failed to update effectiveness: ${error.message}`);
+    try {
+      const response = await fetch(`/api/interventions/${interventionId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(metrics)
+      });
+      if (!response.ok) {
+        throw new Error('Failed to update effectiveness');
+      }
+    } catch (error) {
+      console.error('Error updating effectiveness:', error);
+      throw error;
     }
   }
 
@@ -71,26 +85,7 @@ class InterventionMetrics {
     timeframe: 'session' | 'day' | 'week' | 'month' = 'session'
   ): Promise<EffectivenessScore> {
     // Fetch interventions for the specified timeframe
-    const { data: interventions, error } = await supabase
-      .from('interventions')
-      .select(`
-        *,
-        sessions:therapy_sessions(
-          client_id,
-          start_time,
-          end_time,
-          metrics
-        )
-      `)
-      .eq(timeframe === 'session' ? 'session_id' : 'sessions.client_id',
-        timeframe === 'session' ? sessionId :
-          (await this.getClientId(sessionId)))
-      .gte('timestamp', this.getTimeframeStart(timeframe))
-      .order('timestamp', { ascending: false });
-
-    if (error) {
-      throw new Error(`Failed to fetch interventions: ${error.message}`);
-    }
+    const interventions = await getInterventions(sessionId);
 
     // Calculate component scores
     const immediateImpact = this.calculateImmediateImpact(interventions);
@@ -137,15 +132,11 @@ class InterventionMetrics {
   }
 
   private static async getClientId(sessionId: string): Promise<string> {
-    const { data, error } = await supabase
-      .from('therapy_sessions')
-      .select('client_id')
-      .eq('id', sessionId)
-      .single();
-
-    if (error) {
-      throw new Error(`Failed to get client ID: ${error.message}`);
+    const response = await fetch(`/api/sessions/${sessionId}`);
+    if (!response.ok) {
+      throw new Error('Failed to get client ID');
     }
+    const data = await response.json();
     return data.client_id;
   }
 
@@ -185,14 +176,7 @@ class InterventionMetrics {
     const followUpScores = await Promise.all(
       interventions.map(async (intervention) => {
         // Get subsequent session metrics
-        const { data: nextSession } = await supabase
-          .from('therapy_sessions')
-          .select('metrics')
-          .gt('start_time', intervention.timestamp)
-          .eq('client_id', intervention.sessions.client_id)
-          .order('start_time', { ascending: true })
-          .limit(1)
-          .single();
+        const nextSession = await getNextSession(intervention.sessions.client_id);
 
         if (!nextSession) {
           return 0;
@@ -363,6 +347,66 @@ class InterventionMetrics {
     }
 
     return recommendations;
+  }
+}
+
+async function getInterventionMetrics(clientId: string) {
+  try {
+    const response = await fetch(`/api/interventions/${clientId}/metrics`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch intervention metrics');
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error fetching intervention metrics:', error);
+    throw error;
+  }
+}
+
+async function updateInterventionMetrics(clientId: string, metrics: any) {
+  try {
+    const response = await fetch(`/api/interventions/${clientId}/metrics`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(metrics)
+    });
+    if (!response.ok) {
+      throw new Error('Failed to update intervention metrics');
+    }
+  } catch (error) {
+    console.error('Error updating intervention metrics:', error);
+    throw error;
+  }
+}
+
+async function getInterventions(clientId: string) {
+  try {
+    const response = await fetch(`/api/interventions/${clientId}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch interventions');
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error fetching interventions:', error);
+    throw error;
+  }
+}
+
+async function getNextSession(clientId: string) {
+  try {
+    const response = await fetch(`/api/sessions/${clientId}/next`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch next session');
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error fetching next session:', error);
+    throw error;
   }
 }
 

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "../integrations/supabase/client";
+import { useKindeAuth } from "@kinde-oss/kinde-auth-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
 import { UserRound, AlertCircle, Brain, Activity } from "lucide-react";
 
@@ -16,31 +16,31 @@ type Client = {
 const ClientSelection = () => {
   const navigate = useNavigate();
   const [clients, setClients] = useState<Array<Client>>([]);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        navigate("/auth");
+    const fetchClients = async () => {
+      try {
+        const { isAuthenticated, user } = await useKindeAuth();
+        if (!isAuthenticated || !user) {
+          navigate('/login');
+          return;
+        }
+
+        const response = await fetch('/api/clients');
+        if (!response.ok) {
+          throw new Error('Failed to fetch clients');
+        }
+        const data = await response.json();
+        setClients(data);
+      } catch (error) {
+        console.error('Error fetching clients:', error);
+        setError('Failed to load clients. Please try again later.');
       }
     };
-    
-    checkAuth();
+
     fetchClients();
   }, [navigate]);
-
-  const fetchClients = async () => {
-    const { data, error } = await supabase
-      .from('client_profiles')
-      .select('*');
-    
-    if (error) {
-      console.error('Error fetching clients:', error);
-      return;
-    }
-    
-    setClients(data || []);
-  };
 
   return (
     <div className="min-h-screen bg-[#0A0A0B] p-8">

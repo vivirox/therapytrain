@@ -28,7 +28,7 @@ export default defineConfig(({ mode }) => ({
     chunkSizeWarningLimit: 500,
     sourcemap: true,
     rollupOptions: {
-      external: ['@supabase/supabase-js'],
+      external: [],
       output: {
         manualChunks: (id: string) => {
           // Split node_modules into smaller chunks
@@ -148,7 +148,7 @@ export default defineConfig(({ mode }) => ({
     }
   },
   optimizeDeps: {
-      include: ['@supabase/supabase-js']
+      include: []
     }
   }
 }));

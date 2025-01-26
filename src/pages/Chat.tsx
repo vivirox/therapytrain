@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useKindeAuth } from "@kinde-oss/kinde-auth-react";
 import { analyzeMessageHistory, analyzeSentiment } from "../services/sentimentAnalysis";
 import { useToast } from "../components/ui/use-toast";
 import MessageList from "../components/MessageList";
@@ -8,7 +9,6 @@ import ChatSidebar from "../components/ChatSidebar";
 import SessionControls from "../components/SessionControls";
 import VideoChat from "../components/VideoChat";
 import { SentimentIndicator } from "../components/SentimentIndicator";
-import { supabase } from "../integrations/supabase/client";
 import { sessionManager, type SessionMode } from '../services/sessionManager';
 import { ContextualLearningSystem } from '../services/contextualLearning';
 import ContextualHints from '../components/ContextualHints';
@@ -40,34 +40,32 @@ const ChatPage = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        navigate("/auth");
-        return;
-      }
-      
-      if (!clientId) {
-        navigate("/clients");
-        return;
-      }
+    const fetchClient = async () => {
+      try {
+        const { isAuthenticated, user } = await useKindeAuth();
+        if (!isAuthenticated || !user) {
+          navigate("/auth");
+          return;
+        }
+        
+        if (!clientId) {
+          navigate("/clients");
+          return;
+        }
 
-      const { data, error } = await supabase
-        .from('client_profiles')
-        .select('*')
-        .eq('id', parseInt(clientId!))
-        .single();
-
-      if (error || !data) {
+        const response = await fetch(`/api/clients/${clientId}`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch client');
+        }
+        const data = await response.json();
+        setClient(data);
+      } catch (error) {
         console.error('Error fetching client:', error);
         navigate("/clients");
-        return;
       }
-
-      setClient(data);
     };
     
-    checkAuth();
+    fetchClient();
   }, [navigate, clientId]);
 
   const handleSendMessage = async (message: string) => {

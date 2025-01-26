@@ -1,4 +1,4 @@
-import { supabase } from '../integrations/supabase/client';
+import { AuditEventType } from './auditEventType.enum';
 
 export interface AuditEvent {
   eventType: AuditEventType;
@@ -161,23 +161,31 @@ export class AuditLogger {
     this.eventBuffer = [];
 
     try {
-      const { error } = await supabase
-        .from('audit_logs')
-        .insert(events.map(event => ({
-          ...event,
-          details: JSON.stringify(event.details),
-          metadata: JSON.stringify(event.metadata)
-        })));
-
-      if (error) {
-        console.error('Failed to flush audit logs:', error);
-        // Put events back in buffer
-        this.eventBuffer = [...events, ...this.eventBuffer];
+      for (const event of events) {
+        await this.logEventToMongo(event);
       }
     } catch (error) {
       console.error('Error flushing audit logs:', error);
       // Put events back in buffer
       this.eventBuffer = [...events, ...this.eventBuffer];
+    }
+  }
+
+  private async logEventToMongo(event: AuditEvent): Promise<void> {
+    try {
+      const response = await fetch('/api/audit-logs', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(event)
+      });
+      if (!response.ok) {
+        throw new Error('Failed to log audit event');
+      }
+    } catch (error) {
+      console.error('Error logging audit event:', error);
+      throw error;
     }
   }
 
@@ -207,21 +215,18 @@ export class AuditLogger {
    * Get audit logs for a specific session
    */
   public async getSessionAuditLogs(sessionId: string): Promise<Array<AuditEvent>> {
-    const { data, error } = await supabase
-      .from('audit_logs')
-      .select('*')
-      .eq('sessionId', sessionId)
-      .order('metadata->timestamp', { ascending: false });
-
-    if (error) {
-      throw new Error(`Failed to get audit logs: ${error.message}`);
+    try {
+      const queryParams = new URLSearchParams({ sessionId });
+      const response = await fetch(`/api/audit-logs?${queryParams}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch audit logs');
+      }
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error fetching audit logs:', error);
+      throw error;
     }
-
-    return data.map(log => ({
-      ...log,
-      details: JSON.parse(log.details),
-      metadata: JSON.parse(log.metadata)
-    }));
   }
 
   /**
@@ -231,23 +236,22 @@ export class AuditLogger {
     startDate: Date,
     endDate: Date
   ): Promise<Array<AuditEvent>> {
-    const { data, error } = await supabase
-      .from('audit_logs')
-      .select('*')
-      .eq('eventType', AuditEventType.SECURITY)
-      .gte('metadata->timestamp', startDate.toISOString())
-      .lte('metadata->timestamp', endDate.toISOString())
-      .order('metadata->timestamp', { ascending: false });
-
-    if (error) {
-      throw new Error(`Failed to get security logs: ${error.message}`);
+    try {
+      const queryParams = new URLSearchParams({
+        eventType: AuditEventType.SECURITY,
+        startDate: startDate.toISOString(),
+        endDate: endDate.toISOString()
+      });
+      const response = await fetch(`/api/audit-logs?${queryParams}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch security logs');
+      }
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error fetching security logs:', error);
+      throw error;
     }
-
-    return data.map(log => ({
-      ...log,
-      details: JSON.parse(log.details),
-      metadata: JSON.parse(log.metadata)
-    }));
   }
 }
 
