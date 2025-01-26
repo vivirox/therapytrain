@@ -4,7 +4,7 @@ import { Button } from '../../ui/button';
 import { RadioGroup, RadioGroupItem } from '../../ui/radio-group';
 import { Label } from '../../ui/label';
 import { Textarea } from '../../ui/textarea';
-import { Brain, MessageSquare, GitBranch } from 'lucide-react';
+import { Brain, Activity } from 'lucide-react';
 
 interface DecisionTreeNode {
   id: string;
@@ -60,10 +60,10 @@ const DecisionTreeElement: React.FC<{
   return (
     <Card className="p-6 space-y-4">
       <div className="flex items-center gap-2 mb-4">
-        <GitBranch className="w-5 h-5" />
+        <Activity className="w-5 h-5" />
         <h3 className="text-lg font-semibold">Decision Point</h3>
       </div>
-      
+
       <p className="text-gray-300 mb-4">{currentNode.content}</p>
 
       <RadioGroup

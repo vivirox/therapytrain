@@ -1,43 +1,50 @@
 import React, { createContext, useContext, ReactNode } from 'react';
-import { useAuth as useAuthStore } from '../../hooks/useAuth';
+import { Auth0Provider, useAuth0 } from '@auth0/auth0-react';
 import { Navigate, useLocation } from 'react-router-dom';
 
 interface AuthContextType {
   isAuthenticated: boolean;
   user: any;
-  login: (email: string, password: string) => Promise<void>;
+  login: () => void;
   logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
+// Wrapper component that provides Auth0 context
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const { user, isAuthenticated, setUser, setToken, logout: storeLogout } = useAuthStore();
+  return (
+    <Auth0Provider
+      domain={import.meta.env.VITE_AUTH0_DOMAIN}
+      clientId={import.meta.env.VITE_AUTH0_CLIENT_ID}
+      authorizationParams={{
+        redirect_uri: window.location.origin === 'http://localhost:5173' 
+          ? 'http://localhost:5173'
+          : 'https://train.gemcity.xyz'
+      }}
+    >
+      <AuthStateProvider>{children}</AuthStateProvider>
+    </Auth0Provider>
+  );
+};
 
-  const login = async (email: string, password: string) => {
-    try {
-      // This would be replaced with your actual API call
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
+// Component that provides the authentication state
+const AuthStateProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const {
+    isAuthenticated,
+    user,
+    loginWithRedirect,
+    logout: auth0Logout,
+  } = useAuth0();
 
-      if (!response.ok) {
-        throw new Error('Login failed');
-      }
-
-      const data = await response.json();
-      setUser(data.user);
-      setToken(data.token);
-    } catch (error) {
-      console.error('Login error:', error);
-      throw error;
-    }
-  };
+  const login = () => loginWithRedirect();
 
   const logout = () => {
-    storeLogout();
+    auth0Logout({
+      logoutParams: {
+        returnTo: window.location.origin
+      }
+    });
   };
 
   const value = {
@@ -63,7 +70,7 @@ export const ProtectedRoute: React.FC<{ children: ReactNode }> = ({ children }) 
   const location = useLocation();
 
   if (!isAuthenticated) {
-    return <Navigate to="/auth" state={{ from: location }} replace />;
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
   return <>{children}</>;
