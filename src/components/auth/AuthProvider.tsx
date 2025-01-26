@@ -51,7 +51,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       logoutUri={import.meta.env.VITE_KINDE_LOGOUT_URL}
       onRedirectCallback={(user, appState) => {
         // Handle redirect after authentication
-        if (appState?.returnTo) {
+        if (appState?.returnTo && typeof appState.returnTo === 'string') {
           window.location.href = appState.returnTo;
         }
       }}
@@ -85,36 +85,87 @@ const AuthStateProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     if (isAuthenticated) {
       // Fetch permissions
       const fetchPermissions = async () => {
-        const perms = await getPermissions();
-        if (Array.isArray(perms)) {
-          const transformedPerms: Permission[] = perms.map(perm => {
-            if (typeof perm === 'string') {
-              return { id: perm, name: perm };
-            } else if (typeof perm === 'object' && perm !== null && 'id' in perm) {
-              return { 
-                id: perm.id, 
-                name: (perm.name as string) ?? perm.id 
-              };
-            }
-            // fallback case
-            return { id: String(perm), name: String(perm) };
-          });
-          setPermissions(transformedPerms);
-        } else {
+        try {
+          const perms = await getPermissions();
+          if (!perms) {
+            setPermissions([]);
+            return;
+          }
+          
+          if (Array.isArray(perms)) {
+            const transformedPerms: Permission[] = perms.map(perm => {
+              if (typeof perm === 'string') {
+                return { id: perm, name: perm };
+              } else if (typeof perm === 'object' && perm !== null && 'id' in perm) {
+                const permId = perm.id;
+                if (typeof permId !== 'string') {
+                  return { id: String(permId), name: String(permId) };
+                }
+                return { 
+                  id: permId,
+                  name: typeof perm.name === 'string' ? perm.name : permId 
+                };
+              }
+              // fallback case
+              return { id: String(perm), name: String(perm) };
+            });
+            setPermissions(transformedPerms);
+          } else {
+            setPermissions([]);
+          }
+        } catch (error) {
+          console.error('Error fetching permissions:', error);
           setPermissions([]);
         }
       };
 
       // Fetch organizations
       const fetchOrganizations = async () => {
-        const orgs = await getUserOrganizations();
-        setOrganizations(orgs || []);
+        try {
+          const orgs = await getUserOrganizations();
+          if (orgs && Array.isArray(orgs)) {
+            setOrganizations(orgs.map(org => ({
+              id: org.id,
+              name: org.name,
+              role: org.role || 'member'
+            })));
+          } else if (orgs && 'organizations' in orgs) {
+            setOrganizations(
+              (orgs as { organizations: any[] }).organizations.map(org => ({
+                id: org.id,
+                name: org.name,
+                role: org.role || 'member'
+              }))
+            );
+          } else {
+            setOrganizations([]);
+          }
+        } catch (error) {
+          console.error('Error fetching organizations:', error);
+          setOrganizations([]);
+        }
       };
 
       // Fetch feature flags
       const fetchFeatureFlags = async () => {
-        const flags = await getClaim('feature_flags');
-        setFeatureFlags(flags || {});
+        try {
+          const flags = await getClaim('feature_flags');
+          if (flags && typeof flags === 'object') {
+            const transformedFlags: Record<string, FeatureFlag> = {};
+            Object.entries(flags).forEach(([key, value]) => {
+              transformedFlags[key] = {
+                key,
+                value: value as boolean | string | number
+              };
+            });
+            setFeatureFlags(transformedFlags);
+          } else {
+            setFeatureFlags({});
+          }
+        } catch (error) {
+          console.error('Error fetching feature flags:', error);
+          setFeatureFlags({});
+        }
       };
 
       fetchPermissions();
@@ -150,7 +201,7 @@ const AuthStateProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
 
   const createOrg = async (orgName: string) => {
     await kindeCreateOrg({
-      name: orgName,
+      org_name: orgName,
       // You can add additional org creation options here
     });
   };
