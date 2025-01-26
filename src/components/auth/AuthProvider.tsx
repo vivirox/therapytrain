@@ -13,16 +13,24 @@ interface Organization {
   role: string;
 }
 
+interface FeatureFlag {
+  key: string;
+  value: boolean | string | number;
+}
+
 interface AuthContextType {
   isAuthenticated: boolean;
   user: any;
-  login: () => void;
+  login: (options?: { org_code?: string; login_hint?: string }) => void;
   logout: () => void;
-  register: () => void;
+  register: (options?: { org_code?: string; }) => void;
+  createOrg: (orgName: string) => Promise<void>;
   permissions: Permission[];
   organizations: Organization[];
   hasPermission: (permissionId: string) => boolean;
   isOrgAdmin: (orgId?: string) => boolean;
+  getFeatureFlag: (key: string) => FeatureFlag | null;
+  switchOrganization: (orgId: string) => Promise<void>;
 }
 
 interface KindePermissionResponse {
@@ -33,12 +41,20 @@ const AuthContext = createContext<AuthContextType | null>(null);
 
 // Wrapper component that provides Kinde context
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const location = useLocation();
+  
   return (
     <KindeProvider
       clientId={import.meta.env.VITE_KINDE_CLIENT_ID}
       domain={import.meta.env.VITE_KINDE_DOMAIN}
       redirectUri={import.meta.env.VITE_KINDE_REDIRECT_URL}
       logoutUri={import.meta.env.VITE_KINDE_LOGOUT_URL}
+      onRedirectCallback={(user, appState) => {
+        // Handle redirect after authentication
+        if (appState?.returnTo) {
+          window.location.href = appState.returnTo;
+        }
+      }}
     >
       <AuthStateProvider>{children}</AuthStateProvider>
     </KindeProvider>
@@ -50,75 +66,120 @@ const AuthStateProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const {
     isAuthenticated,
     user,
-    login,
-    logout,
-    register,
+    login: kindeLogin,
+    logout: kindeLogout,
+    register: kindeRegister,
     getPermissions,
-    getUserOrganizations
+    getOrganization,
+    getUserOrganizations,
+    createOrg: kindeCreateOrg,
+    getToken,
+    getClaim
   } = useKindeAuth();
 
   const [permissions, setPermissions] = useState<Permission[]>([]);
   const [organizations, setOrganizations] = useState<Organization[]>([]);
-
+  const [featureFlags, setFeatureFlags] = useState<Record<string, FeatureFlag>>({});
+  
   useEffect(() => {
     if (isAuthenticated) {
-      // Fetch permissions and organizations when authenticated
-      const fetchUserData = async () => {
-        try {
-          const [permsResponse, orgsResponse] = await Promise.all([
-            getPermissions(),
-            getUserOrganizations()
-          ]) as [KindePermissionResponse, { orgCodes: string[] }];
-
-          // Transform the permissions data to match the Permission type
-          const transformedPermissions = permsResponse.permissions.map(perm => ({
-            id: typeof perm === 'string' ? perm : perm.id,
-            name: typeof perm === 'string' ? perm : (perm.name || perm.id)
-          }));
-
-          setPermissions(transformedPermissions);
-          const orgResponse = orgsResponse.orgCodes.map(code => ({
-            id: code,
-            name: code,
-            role: 'member' // Default role, adjust as needed
-          }));
-          setOrganizations(orgResponse);
-        } catch (error) {
-          console.error('Error fetching user data:', error);
-        }
+      // Fetch permissions
+      const fetchPermissions = async () => {
+        const perms = await getPermissions();
+        setPermissions(perms as Permission[]);
       };
 
-      fetchUserData();
-    } else {
-      // Reset state when not authenticated
-      setPermissions([]);
-      setOrganizations([]);
-    }
-  }, [isAuthenticated, getPermissions, getUserOrganizations]);
+      // Fetch organizations
+      const fetchOrganizations = async () => {
+        const orgs = await getUserOrganizations();
+        setOrganizations(orgs || []);
+      };
 
-  const hasPermission = (permissionId: string): boolean => {
+      // Fetch feature flags
+      const fetchFeatureFlags = async () => {
+        const flags = await getClaim('feature_flags');
+        setFeatureFlags(flags || {});
+      };
+
+      fetchPermissions();
+      fetchOrganizations();
+      fetchFeatureFlags();
+    }
+  }, [isAuthenticated, getPermissions, getUserOrganizations, getClaim]);
+
+  const login = (options?: { org_code?: string; login_hint?: string }) => {
+    const { org_code, login_hint } = options || {};
+    kindeLogin({
+      authUrlParams: {
+        ...(org_code && { org_code }),
+        ...(login_hint && { login_hint }),
+      },
+      app_state: {
+        returnTo: window.location.pathname
+      }
+    });
+  };
+
+  const register = (options?: { org_code?: string }) => {
+    const { org_code } = options || {};
+    kindeRegister({
+      authUrlParams: {
+        ...(org_code && { org_code }),
+      },
+      app_state: {
+        returnTo: window.location.pathname
+      }
+    });
+  };
+
+  const createOrg = async (orgName: string) => {
+    await kindeCreateOrg({
+      name: orgName,
+      // You can add additional org creation options here
+    });
+  };
+
+  const switchOrganization = async (orgId: string) => {
+    // Implementation depends on your backend setup
+    const token = await getToken();
+    await fetch(`${import.meta.env.VITE_API_URL}/api/switch-organization`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ organizationId: orgId }),
+    });
+    // Refresh the page to update the context
+    window.location.reload();
+  };
+
+  const hasPermission = (permissionId: string) => {
     return permissions.some(p => p.id === permissionId);
   };
 
-  const isOrgAdmin = (orgId?: string): boolean => {
-    if (!orgId) {
-      // Check if user is admin in any organization
-      return organizations.some(org => org.role === 'admin');
-    }
-    // Check if user is admin in specific organization
-    return organizations.some(org => org.id === orgId && org.role === 'admin');
+  const isOrgAdmin = (orgId?: string) => {
+    const org = organizations.find(o => !orgId || o.id === orgId);
+    return org?.role === 'admin';
+  };
+
+  const getFeatureFlag = (key: string): FeatureFlag | null => {
+    return featureFlags[key] || null;
   };
 
   const value = {
     isAuthenticated,
     user,
     login,
-    logout,
+    logout: kindeLogout,
     register,
+    createOrg,
     permissions,
     organizations,
     hasPermission,
-    isOrgAdmin
+    isOrgAdmin,
+    getFeatureFlag,
+    switchOrganization,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
@@ -140,23 +201,23 @@ interface ProtectedRouteProps {
   requireOrgAdmin?: boolean;
 }
 
-export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
-  children, 
+export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
+  children,
   requiredPermission,
   requireOrgAdmin
 }) => {
-  const { isAuthenticated, hasPermission, isOrgAdmin: checkOrgAdmin } = useAuth();
   const location = useLocation();
+  const { isAuthenticated, hasPermission, isOrgAdmin: checkIsOrgAdmin } = useAuth();
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
   if (requiredPermission && !hasPermission(requiredPermission)) {
     return <Navigate to="/unauthorized" replace />;
   }
 
-  if (requireOrgAdmin && !checkOrgAdmin()) {
+  if (requireOrgAdmin && !checkIsOrgAdmin()) {
     return <Navigate to="/unauthorized" replace />;
   }
 
