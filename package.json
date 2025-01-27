@@ -60,6 +60,7 @@
     "git": "^0.1.5",
     "global": "^4.4.0",
     "input-otp": "^1.2.4",
+    "lovable-tagger": "^1.0.19",
     "mongoose": "^8.9.5",
     "next-themes": "^0.3.0",
     "react": "18.3.1",

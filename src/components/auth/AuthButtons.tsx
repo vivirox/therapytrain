@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from './AuthProvider';
-import { Button } from '@/components/ui/button';
+import { Button } from '../ui/button';
 
 export const LoginButton = () => {
   const { login } = useAuth();

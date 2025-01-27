@@ -6,16 +6,16 @@ import { Progress } from '../../ui/progress';
 import { Alert, AlertDescription, AlertTitle } from '../../ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../ui/tabs';
 import {
-  AlertTriangle,
-  Clock,
-  Heart,
-  Shield,
-  Activity,
-  CheckCircle,
-  XCircle,
-  AlertCircle,
-  Timer
-} from 'lucide-react';
+  MdWarning as AlertTriangle,
+  MdAccessTime as Clock,
+  MdFavorite as Heart,
+  MdSecurity as Shield,
+  MdMonitor as Activity,
+  MdCheckCircle as CheckCircle,
+  MdCancel as XCircle,
+  MdError as AlertCircle,
+  MdTimer as Timer
+} from 'react-icons/md';
 import { AnalyticsService } from '../../../services/analytics';
 
 interface RiskFactor {

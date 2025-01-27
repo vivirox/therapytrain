@@ -16,6 +16,7 @@ export interface SessionState {
   id: string;
   clientId: string;
   mode: SessionMode;
+  status: 'active' | 'completed';
   currentBranch: string | null;
   startTime: Date;
   endTime?: Date;
@@ -52,6 +53,7 @@ class SessionManager {
       id: sessionId,
       clientId,
       mode,
+      status: 'active',
       currentBranch: null,
       startTime: new Date(),
       metrics: {
@@ -132,6 +134,7 @@ class SessionManager {
   public async endSession(): Promise<void> {
     if (this.currentSession) {
       this.currentSession.endTime = new Date();
+      this.currentSession.status = 'completed';
       // TODO: Implement session storage in your preferred solution
       this.currentSession = null;
     }

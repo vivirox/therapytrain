@@ -1,7 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { Card } from '../components/ui/card';
 import { Button } from '../components/ui/button';
-import { Video, Mic, MicOff, VideoOff, Phone } from 'lucide-react';
+import { 
+  MdVideocam as Video,
+  MdMic as Mic,
+  MdMicOff as MicOff,
+  MdVideocamOff as VideoOff,
+  MdPhone as Phone
+} from 'react-icons/md';
 
 interface Props {
   onEnd?: () => void;

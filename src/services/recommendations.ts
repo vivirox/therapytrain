@@ -281,4 +281,26 @@ export class RecommendationEngine {
       throw error;
     }
   }
+
+  static async getRecommendedTutorials(userId: string): Promise<Tutorial[]> {
+    try {
+      const response = await fetch(`/api/recommendations/tutorials/${userId}`);
+      if (!response.ok) throw new Error('Failed to fetch recommended tutorials');
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching recommended tutorials:', error);
+      return [];
+    }
+  }
+
+  static async getRecommendedCaseStudies(userId: string): Promise<CaseStudy[]> {
+    try {
+      const response = await fetch(`/api/recommendations/case-studies/${userId}`);
+      if (!response.ok) throw new Error('Failed to fetch recommended case studies');
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching recommended case studies:', error);
+      return [];
+    }
+  }
 }

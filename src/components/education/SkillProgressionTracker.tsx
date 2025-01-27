@@ -4,16 +4,16 @@ import { Card } from '../ui/card';
 import { Progress } from '../ui/progress';
 import { Badge } from '../ui/badge';
 import {
-  Trophy,
-  Target,
-  TrendingUp,
-  Clock,
-  Award,
-  BookOpen,
-  Users,
-  Brain,
-  Star
-} from 'lucide-react';
+  MdEmojiEvents as Trophy,
+  MdTrackChanges as Target,
+  MdTrendingUp as TrendingUp,
+  MdAccessTime as Clock,
+  MdMilitaryTech as Award,
+  MdMenuBook as BookOpen,
+  MdGroups as Users,
+  MdPsychology as Brain,
+  MdStar as Star
+} from 'react-icons/md';
 
 interface SkillProgressionTrackerProps {
   userId: string;

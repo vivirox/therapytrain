@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card } from './ui/card';
-import { Brain } from 'lucide-react';
+import { MdPsychology as Brain } from 'react-icons/md';
 
 interface ContextualHintsProps {
   hints: string[];

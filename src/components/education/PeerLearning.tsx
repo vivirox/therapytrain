@@ -7,15 +7,15 @@ import { Badge } from '../ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '../ui/avatar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
 import {
-  Users,
-  MessageSquare,
-  Share2,
-  ThumbsUp,
-  BookOpen,
-  Plus,
-  Calendar,
-  Search
-} from 'lucide-react';
+  MdGroups as Users,
+  MdMessage as MessageSquare,
+  MdShare as Share2,
+  MdThumbUp as ThumbsUp,
+  MdMenuBook as BookOpen,
+  MdAdd as Plus,
+  MdCalendarMonth as Calendar,
+  MdSearch as Search
+} from 'react-icons/md';
 
 interface PeerDiscussion {
   id: string;

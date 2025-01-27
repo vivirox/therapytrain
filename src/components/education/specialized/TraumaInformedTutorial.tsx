@@ -5,15 +5,15 @@ import { Progress } from '../../ui/progress';
 import { Badge } from '../../ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../ui/tabs';
 import {
-  AlertTriangle,
-  Shield,
-  Heart,
-  Brain,
-  Lightbulb,
-  UserCheck,
-  HandHeart,
-  Clock
-} from 'lucide-react';
+  MdWarning as AlertTriangle,
+  MdSecurity as Shield,
+  MdFavorite as Heart,
+  MdPsychology as Brain,
+  MdLightbulb as Lightbulb,
+  MdVerified as UserCheck,
+  MdVolunteerActivism as HandHeart,
+  MdAccessTime as Clock
+} from 'react-icons/md';
 import { AnalyticsService } from '../../../services/analytics';
 import { AIAnalyticsService } from '../../../services/aiAnalytics';
 

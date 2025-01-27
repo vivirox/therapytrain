@@ -1,4 +1,4 @@
-import { Menu, Globe, ChevronDown, Key } from "lucide-react";
+import { Menu, Globe, ChevronDown, Key } from "../components/ui/icons";
 import { cn } from "../../lib/utils";
 import { Input } from "../components/ui/input";
 import { useState } from "react";

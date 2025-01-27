@@ -3,7 +3,7 @@ import { Card } from '../../ui/card';
 import { RadioGroup, RadioGroupItem } from '../../ui/radio-group';
 import { Label } from '../../ui/label';
 import { Textarea } from '../../ui/textarea';
-import { Brain } from 'lucide-react';
+import { MdPsychology as Brain } from 'react-icons/md';
 
 interface DecisionTreeNode {
   id: string;

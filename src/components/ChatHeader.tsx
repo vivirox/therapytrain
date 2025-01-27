@@ -1,4 +1,4 @@
-import { ChevronDown } from "lucide-react";
+import { ChevronDown } from "./ui/icons";
 
 interface ChatHeaderProps {
   isSidebarOpen?: boolean;

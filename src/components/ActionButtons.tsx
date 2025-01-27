@@ -1,4 +1,10 @@
-import { ImagePlus, FileText, BarChart2, Code, HelpCircle } from "lucide-react";
+import {
+  MdAddPhotoAlternate as ImagePlus,
+  MdDescription as FileText,
+  MdBarChart as BarChart2,
+  MdCode as Code,
+  MdHelpOutline as HelpCircle
+} from "react-icons/md";
 
 const ActionButtons = () => {
   const actions = [

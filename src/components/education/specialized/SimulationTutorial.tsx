@@ -3,14 +3,14 @@ import { Card } from '../../ui/card';
 import { Button } from '../../ui/button';
 import { Slider } from '../../ui/slider';
 import {
-  Play,
-  Pause,
-  RotateCcw,
-  FastForward,
-  Rewind,
-  Volume2,
-  VolumeX
-} from 'lucide-react';
+  MdPlayArrow as Play,
+  MdPause as Pause,
+  MdRefresh as RotateCcw,
+  MdFastForward as FastForward,
+  MdFastRewind as Rewind,
+  MdVolumeUp as Volume2,
+  MdVolumeOff as VolumeX
+} from 'react-icons/md';
 import { AnalyticsService } from '../../../services/analytics';
 
 interface EmotionalResponse {

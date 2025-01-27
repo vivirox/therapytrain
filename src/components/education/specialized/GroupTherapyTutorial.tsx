@@ -6,15 +6,15 @@ import { Progress } from '../../ui/progress';
 import { Textarea } from '../../ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../ui/tabs';
 import {
-  Users,
-  MessageSquare,
-  AlertCircle,
-  CheckCircle,
-  HelpCircle,
-  UserPlus,
-  UserMinus,
-  Sparkles
-} from 'lucide-react';
+  MdGroups as Users,
+  MdMessage as MessageSquare,
+  MdError as AlertCircle,
+  MdCheckCircle as CheckCircle,
+  MdHelpOutline as HelpCircle,
+  MdPersonAdd as UserPlus,
+  MdPersonRemove as UserMinus,
+  MdAutoAwesome as Sparkles
+} from 'react-icons/md';
 import { AnalyticsService } from '../../../services/analytics';
 
 interface GroupMember {

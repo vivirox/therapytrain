@@ -5,18 +5,18 @@ import { Progress } from '../../ui/progress';
 import { Slider } from '../../ui/slider';
 import { Badge } from '../../ui/badge';
 import {
-  Play,
-  Pause,
-  Volume2,
-  VolumeX,
-  Wind,
-  Moon,
-  Sun,
-  Heart,
-  Activity,
-  Clock,
-  Sparkles
-} from 'lucide-react';
+  MdPlayArrow as Play,
+  MdPause as Pause,
+  MdVolumeUp as Volume2,
+  MdVolumeOff as VolumeX,
+  MdAir as Wind,
+  MdNightlight as Moon,
+  MdWbSunny as Sun,
+  MdFavorite as Heart,
+  MdMonitor as Activity,
+  MdAccessTime as Clock,
+  MdAutoAwesome as Sparkles
+} from 'react-icons/md';
 import { AnalyticsService } from '../../../services/analytics';
 
 interface Visualization {

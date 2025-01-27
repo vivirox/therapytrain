@@ -123,27 +123,31 @@ const Education = () => {
           </TabsList>
 
           <TabsContent value="learning-path" className="space-y-4">
-            <LearningPathView userId={user?.id} />
+            <LearningPathView 
+              userId={user?.id || ''} 
+              specialization="general"
+              initialSkillLevels={userSkills}
+            />
           </TabsContent>
 
           <TabsContent value="tutorials" className="space-y-4">
             <TutorialSystem
-              recommendedTutorials={recommendations.recommendedTutorials}
-              userId={user?.id}
+              tutorials={recommendations.recommendedTutorials}
+              userId={user?.id || ''}
             />
           </TabsContent>
 
           <TabsContent value="case-studies" className="space-y-4">
             <CaseStudyLibrary
-              recommendedCaseStudies={recommendations.recommendedCaseStudies}
-              userId={user?.id}
+              caseStudies={recommendations.recommendedCaseStudies}
+              userId={user?.id || ''}
             />
           </TabsContent>
 
           <TabsContent value="skills" className="space-y-4">
             <SkillProgressionTracker
-              skills={userSkills}
-              userId={user?.id}
+              skillLevels={userSkills}
+              userId={user?.id || ''}
             />
           </TabsContent>
 

@@ -5,14 +5,14 @@ import { Card } from '../ui/card';
 import { Input } from '../ui/input';
 import { Badge } from '../ui/badge';
 import { 
-  Search,
-  BookOpen,
-  Users,
-  Brain,
-  MessageSquare,
-  Lightbulb,
-  Tag
-} from 'lucide-react';
+  MdSearch as Search,
+  MdMenuBook as BookOpen,
+  MdGroups as Users,
+  MdPsychology as Brain,
+  MdMessage as MessageSquare,
+  MdLightbulb as Lightbulb,
+  MdLabel as Tag
+} from 'react-icons/md';
 
 interface CaseStudyLibraryProps {
   userId: string;

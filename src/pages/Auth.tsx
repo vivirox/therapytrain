@@ -1,7 +1,7 @@
 import { useKindeAuth } from "@kinde-oss/kinde-auth-react";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Brain } from "lucide-react";
+import { MdPsychology as Brain } from "react-icons/md";
 import { Button } from "../components/ui/button";
 
 const AuthPage = () => {

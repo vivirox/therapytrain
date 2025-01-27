@@ -5,14 +5,14 @@ import { Button } from '../ui/button';
 import { Progress } from '../ui/progress';
 import { Card } from '../ui/card';
 import { 
-  BookOpen, 
-  Video, 
-  Brain,
-  CheckCircle, 
-  ArrowRight,
-  Star,
-  Clock
-} from 'lucide-react';
+  MdMenuBook as BookOpen,
+  MdOndemandVideo as Video,
+  MdPsychology as Brain,
+  MdCheckCircle as CheckCircle,
+  MdArrowForward as ArrowRight,
+  MdStar as Star,
+  MdAccessTime as Clock
+} from 'react-icons/md';
 import { InteractiveElement } from './tutorial/InteractiveElements';
 
 interface TutorialSystemProps {

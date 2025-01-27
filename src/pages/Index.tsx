@@ -1,7 +1,15 @@
 import React from 'react'; // Importing React
 import { Button } from "../components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { Shield, Lock, Zap, Users, Award, Brain, Sparkles } from "lucide-react";
+import {
+  MdSecurity as Shield,
+  MdLock as Lock,
+  MdBolt as Zap,
+  MdGroups as Users,
+  MdMilitaryTech as Award,
+  MdPsychology as Brain,
+  MdAutoAwesome as Sparkles
+} from "react-icons/md";
 
 const Index = () => {
   const navigate = useNavigate();

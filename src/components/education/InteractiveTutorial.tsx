@@ -7,14 +7,14 @@ import { Textarea } from '../ui/textarea';
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
 import { Label } from '../ui/label';
 import {
-  Play,
-  Pause,
-  RotateCcw,
-  CheckCircle,
-  XCircle,
-  HelpCircle,
-  MessageSquare
-} from 'lucide-react';
+  MdPlayArrow as Play,
+  MdPause as Pause,
+  MdRefresh as RotateCcw,
+  MdCheckCircle as CheckCircle,
+  MdCancel as XCircle,
+  MdHelpOutline as HelpCircle,
+  MdMessage as MessageSquare
+} from 'react-icons/md';
 
 interface Choice {
   id: string;
