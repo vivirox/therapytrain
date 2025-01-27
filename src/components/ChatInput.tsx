@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowUp, Loader2 } from "lucide-react";
+import { MdSend, MdSync } from "react-icons/md";
 
 interface ChatInputProps {
   onSend: (message: string) => void;
@@ -42,9 +42,9 @@ const ChatInput = ({ onSend, isLoading = false }: ChatInputProps) => {
           className="absolute right-3 top-[50%] -translate-y-[50%] p-1.5 bg-white rounded-full hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isLoading ? (
-            <Loader2 className="h-4 w-4 text-black animate-spin" />
+            <MdSync className="h-4 w-4 text-black animate-spin" />
           ) : (
-            <ArrowUp className="h-4 w-4 text-black" />
+            <MdSend className="h-4 w-4 text-black" />
           )}
         </button>
       </div>

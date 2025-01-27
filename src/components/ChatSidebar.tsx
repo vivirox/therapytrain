@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ChevronDown, ChevronUp, Clock, FileText, User, Brain, AlertCircle, Activity } from 'lucide-react';
+import { MdExpandMore, MdExpandLess, MdAccessTime, MdDescription, MdPerson, MdPsychology, MdWarning, MdShowChart } from 'react-icons/md';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "../components/ui/collapsible";
 import { Textarea } from "../components/ui/textarea";
 import { Button } from "../components/ui/button";
@@ -40,7 +40,7 @@ const ChatSidebar = ({ client }: ChatSidebarProps) => {
       <div className="p-4 border-b border-gray-800 bg-[#222225]">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Clock className="h-5 w-5 text-blue-500" />
+            <MdAccessTime className="h-5 w-5 text-blue-500" />
             <span className="text-lg font-semibold text-white">Session Timer</span>
           </div>
           <span className="text-xl font-mono text-blue-500">{formatTime(timeLeft)}</span>
@@ -51,17 +51,17 @@ const ChatSidebar = ({ client }: ChatSidebarProps) => {
       <div className="flex-1 overflow-y-auto p-4 space-y-6">
         <div className="space-y-4">
           <div className="flex items-center gap-3">
-            <User className="h-6 w-6 text-blue-500" />
+            <MdPerson className="h-6 w-6 text-blue-500" />
             <h2 className="text-xl font-semibold text-white">{client.name}</h2>
           </div>
           <div className="space-y-2 text-sm text-gray-300">
             <p><span className="text-gray-400">Age:</span> {client.age}</p>
             <div className="flex items-center gap-2">
-              <AlertCircle className="h-4 w-4 text-blue-500" />
+              <MdWarning className="h-4 w-4 text-blue-500" />
               <p>{client.primary_issue}</p>
             </div>
             <div className="flex items-center gap-2">
-              <Activity className="h-4 w-4 text-blue-500" />
+              <MdShowChart className="h-4 w-4 text-blue-500" />
               <span className={`px-2 py-1 rounded-full text-xs ${client.complexity === 'High' ? 'bg-red-500/20 text-red-300' :
                   client.complexity === 'Medium' ? 'bg-yellow-500/20 text-yellow-300' :
                     'bg-green-500/20 text-green-300'
@@ -97,15 +97,15 @@ const ChatSidebar = ({ client }: ChatSidebarProps) => {
           <h3 className="text-sm font-medium text-gray-400">Training Objectives</h3>
           <ul className="text-sm text-gray-300 space-y-2">
             <li className="flex items-center gap-2">
-              <Brain className="h-4 w-4 text-blue-500" />
+              <MdPsychology className="h-4 w-4 text-blue-500" />
               Practice active listening and empathy
             </li>
             <li className="flex items-center gap-2">
-              <Brain className="h-4 w-4 text-blue-500" />
+              <MdPsychology className="h-4 w-4 text-blue-500" />
               Identify underlying emotional patterns
             </li>
             <li className="flex items-center gap-2">
-              <Brain className="h-4 w-4 text-blue-500" />
+              <MdPsychology className="h-4 w-4 text-blue-500" />
               Apply appropriate therapeutic techniques
             </li>
           </ul>
@@ -120,13 +120,13 @@ const ChatSidebar = ({ client }: ChatSidebarProps) => {
       >
         <CollapsibleTrigger className="flex items-center justify-between w-full p-4 hover:bg-[#222225]">
           <div className="flex items-center gap-2">
-            <FileText className="h-5 w-5 text-blue-500" />
+            <MdDescription className="h-5 w-5 text-blue-500" />
             <span className="font-medium text-white">Session Notes</span>
           </div>
           {isNotesOpen ? (
-            <ChevronDown className="h-5 w-5 text-gray-400" />
+            <MdExpandLess className="h-5 w-5 text-gray-400" />
           ) : (
-            <ChevronUp className="h-5 w-5 text-gray-400" />
+            <MdExpandMore className="h-5 w-5 text-gray-400" />
           )}
         </CollapsibleTrigger>
         <CollapsibleContent className="p-4 space-y-4">

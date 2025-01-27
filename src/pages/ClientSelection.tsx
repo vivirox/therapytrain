@@ -1,94 +1,107 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useKindeAuth } from "@kinde-oss/kinde-auth-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
-import { UserRound, AlertCircle, Brain, Activity } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Users, UserPlus, ArrowLeft } from "lucide-react";
 
-type Client = {
-  id: number;
+interface Client {
+  id: string;
   name: string;
-  age: number;
-  primary_issue: string;
-  complexity: string;
-  description: string;
-};
+  lastSession?: string;
+}
 
 const ClientSelection = () => {
   const navigate = useNavigate();
-  const [clients, setClients] = useState<Array<Client>>([]);
-  const [error, setError] = useState<string | null>(null);
+  const { isAuthenticated, user } = useKindeAuth();
+  const [clients, setClients] = useState<Client[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
-    const fetchClients = async () => {
-      try {
-        const { isAuthenticated, user } = await useKindeAuth();
-        if (!isAuthenticated || !user) {
-          navigate('/login');
-          return;
-        }
+    if (!isAuthenticated) {
+      navigate("/auth");
+      return;
+    }
 
-        const response = await fetch('/api/clients');
-        if (!response.ok) {
-          throw new Error('Failed to fetch clients');
-        }
-        const data = await response.json();
-        setClients(data);
-      } catch (error) {
-        console.error('Error fetching clients:', error);
-        setError('Failed to load clients. Please try again later.');
-      }
-    };
+    // TODO: Fetch clients from MongoDB
+    // For now, using mock data
+    setClients([
+      { id: "1", name: "John Doe", lastSession: "2024-01-20" },
+      { id: "2", name: "Jane Smith", lastSession: "2024-01-25" },
+    ]);
+  }, [isAuthenticated, navigate]);
 
-    fetchClients();
-  }, [navigate]);
+  const filteredClients = clients.filter(client =>
+    client.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
-    <div className="min-h-screen bg-[#0A0A0B] p-8">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex items-center gap-4 mb-8">
-          <Brain className="h-8 w-8 text-blue-500" />
-          <h1 className="text-3xl font-bold text-white">Select Your Client</h1>
+    <div className="min-h-screen bg-[#0A0A0B] text-white p-8">
+      <div className="max-w-4xl mx-auto space-y-8">
+        <div className="flex items-center justify-between">
+          <Button
+            variant="ghost"
+            className="text-gray-400 hover:text-white"
+            onClick={() => navigate("/dashboard")}
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Dashboard
+          </Button>
+          <Button
+            onClick={() => {/* TODO: Implement add client */}}
+            className="bg-blue-600 hover:bg-blue-700"
+          >
+            <UserPlus className="h-4 w-4 mr-2" />
+            Add New Client
+          </Button>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {clients.map((client) => (
-            <Card 
+
+        <div>
+          <h1 className="text-3xl font-bold flex items-center">
+            <Users className="h-8 w-8 mr-4 text-blue-500" />
+            Client Management
+          </h1>
+          <p className="text-gray-400 mt-2">Select a client to start a session or manage their profile</p>
+        </div>
+
+        <Input
+          type="search"
+          placeholder="Search clients..."
+          className="bg-[#1A1A1D] border-gray-800"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {filteredClients.map(client => (
+            <Card
               key={client.id}
-              className="bg-[#1A1A1D] border-gray-800 hover:border-blue-500/50 hover:bg-[#222225] transition-all duration-300 cursor-pointer transform hover:-translate-y-1"
-              onClick={() => navigate(`/chat/${client.id}`)}
+              className="bg-[#1A1A1D] border-gray-800 hover:border-blue-500 transition-colors cursor-pointer"
+              onClick={() => navigate("/chat", { state: { clientId: client.id } })}
             >
-              <CardHeader className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="bg-blue-500/10 p-2 rounded-lg">
-                    <UserRound className="h-5 w-5 text-blue-500" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-lg text-white">{client.name}</CardTitle>
-                    <CardDescription className="text-gray-400 text-sm">Age: {client.age}</CardDescription>
-                  </div>
-                </div>
+              <CardHeader>
+                <CardTitle>{client.name}</CardTitle>
+                {client.lastSession && (
+                  <CardDescription className="text-gray-400">
+                    Last session: {new Date(client.lastSession).toLocaleDateString()}
+                  </CardDescription>
+                )}
               </CardHeader>
-              <CardContent className="p-4 pt-0">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-sm">
-                    <AlertCircle className="h-4 w-4 text-blue-500" />
-                    <span className="text-gray-300">{client.primary_issue}</span>
-                  </div>
-                  <p className="text-sm text-gray-400 line-clamp-2">{client.description}</p>
-                  <div className="flex items-center gap-2 mt-3">
-                    <Activity className="h-4 w-4 text-blue-500" />
-                    <span className={`px-2 py-1 rounded-full text-xs ${
-                      client.complexity === 'High' ? 'bg-red-500/20 text-red-300' :
-                      client.complexity === 'Medium' ? 'bg-yellow-500/20 text-yellow-300' :
-                      'bg-green-500/20 text-green-300'
-                    }`}>
-                      {client.complexity} Complexity
-                    </span>
-                  </div>
-                </div>
+              <CardContent>
+                <Button variant="outline" className="w-full">
+                  Start Session
+                </Button>
               </CardContent>
             </Card>
           ))}
         </div>
+
+        {filteredClients.length === 0 && (
+          <div className="text-center text-gray-400 py-8">
+            No clients found. Add a new client to get started.
+          </div>
+        )}
       </div>
     </div>
   );

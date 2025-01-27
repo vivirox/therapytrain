@@ -8,6 +8,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 const Index = lazy(() => import("./pages/Index"));
 const Auth = lazy(() => import("./pages/Auth"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Chat = lazy(() => import("./pages/Chat"));
 const Education = lazy(() => import("./pages/Education"));
 const ClientSelection = lazy(() => import("./pages/ClientSelection"));
@@ -33,53 +34,45 @@ const App: React.FC = () => {
         <Suspense fallback={<div>Loading...</div>}>
           <TooltipProvider>
             <BrowserRouter>
-              <Suspense fallback={<Loading fullScreen message="Loading TherapyTrain..." />}>
-                <Routes>
-                  {/* Public Routes */}
-                  <Route path="/" element={<Index />} />
-                  <Route path="/features" element={<Features />} />
-                  <Route path="/benefits" element={<Benefits />} />
-                  <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-                  <Route path="/terms-of-service" element={<TermsOfService />} />
-                  
-                  {/* Auth Routes - Wrap with AuthProvider */}
-                  <Route path="/auth/*" element={
-                    <AuthProvider>
-                      <Auth />
-                    </AuthProvider>
-                  } />
-                  <Route path="/callback" element={
-                    <AuthProvider>
-                      <Auth />
-                    </AuthProvider>
-                  } />
-                  
-                  {/* Protected Routes */}
-                  <Route path="/chat" element={
-                    <AuthProvider>
+              <AuthProvider>
+                <Suspense fallback={<Loading fullScreen message="Loading TherapyTrain..." />}>
+                  <Routes>
+                    {/* Public Routes */}
+                    <Route path="/" element={<Index />} />
+                    <Route path="/features" element={<Features />} />
+                    <Route path="/benefits" element={<Benefits />} />
+                    <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                    <Route path="/terms-of-service" element={<TermsOfService />} />
+                    <Route path="/auth" element={<Auth />} />
+                    <Route path="/callback" element={<Auth />} />
+
+                    {/* Protected Routes */}
+                    <Route path="/dashboard" element={
+                      <ProtectedRoute>
+                        <Dashboard />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/chat" element={
                       <ProtectedRoute>
                         <Chat />
                       </ProtectedRoute>
-                    </AuthProvider>
-                  } />
-                  <Route path="/education" element={
-                    <AuthProvider>
+                    } />
+                    <Route path="/education" element={
                       <ProtectedRoute>
                         <Education />
                       </ProtectedRoute>
-                    </AuthProvider>
-                  } />
-                  <Route path="/clients" element={
-                    <AuthProvider>
+                    } />
+                    <Route path="/client-selection" element={
                       <ProtectedRoute>
                         <ClientSelection />
                       </ProtectedRoute>
-                    </AuthProvider>
-                  } />
-                  
-                  <Route path="*" element={<Navigate to="/" replace />} />
-                </Routes>
-              </Suspense>
+                    } />
+
+                    {/* Catch-all redirect */}
+                    <Route path="*" element={<Navigate to="/" replace />} />
+                  </Routes>
+                </Suspense>
+              </AuthProvider>
             </BrowserRouter>
           </TooltipProvider>
         </Suspense>

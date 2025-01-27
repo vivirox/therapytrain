@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
 import { Switch } from '../components/ui/switch';
-import { Video, MessageSquare, ArrowRight } from 'lucide-react';
+import { MdVideoCall as Video, MdMessage as MessageSquare, MdArrowForward as ArrowRight } from 'react-icons/md';
 import { sessionManager, type SessionMode, type SessionState } from '../services/sessionManager';
 import { Badge } from '../components/ui/badge';
 

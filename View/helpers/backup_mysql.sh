@@ -1,1 +1,0 @@
-mysqldump -u root -ppassword -d view --no-data=False -r mysqlbackup.sql

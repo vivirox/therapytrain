@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card } from './ui/card';
 import { Badge } from './ui/badge';
-import { Lightbulb, TrendingUp, AlertTriangle } from 'lucide-react';
+import { MdLightbulb as Lightbulb, MdTrendingUp as TrendingUp, MdWarning as AlertTriangle } from 'react-icons/md';
 import {
   Accordion,
   AccordionContent,

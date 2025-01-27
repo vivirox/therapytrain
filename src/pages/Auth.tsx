@@ -10,8 +10,8 @@ const AuthPage = () => {
 
   useEffect(() => {
     if (isAuthenticated) {
-      console.log("User is authenticated, redirecting to /chat");
-      navigate("/chat");
+      console.log("User is authenticated, redirecting to dashboard");
+      navigate("/dashboard");
     }
   }, [isAuthenticated, navigate]);
 

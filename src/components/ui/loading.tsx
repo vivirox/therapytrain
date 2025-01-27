@@ -1,5 +1,5 @@
 import React from 'react';
-import { Brain } from 'lucide-react';
+import { MdPsychology as Brain } from 'react-icons/md';
 
 interface LoadingProps {
   fullScreen?: boolean;

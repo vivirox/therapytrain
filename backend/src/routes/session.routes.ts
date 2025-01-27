@@ -1,11 +1,11 @@
 import { Router } from 'express';
 import { SessionController } from '../controllers/session.controller';
-import { KindeAuth } from '@kinde-oss/kinde-node-express';
+import * as KindeAuth from '@kinde-oss/kinde-node-express';
 
 const router = Router();
 const sessionController = new SessionController();
 
-export const setupSessionRoutes = (kindeAuth: KindeAuth) => {
+export const setupSessionRoutes = (kindeAuth: ReturnType<typeof KindeAuth.default>) => {
   // Create a new session
   router.post('/', kindeAuth.protect(), sessionController.startSession);
 

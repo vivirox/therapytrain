@@ -1,11 +1,14 @@
 // This service acts as a data layer abstraction
-// Currently using localStorage for development, but can be replaced with any backend service
+// Currently using MongoDB through API for development
+
+import { Types } from 'mongoose';
+import { api } from './api';
 
 export interface StorageItem<T> {
-  id: string;
+  _id: Types.ObjectId;
   data: T;
-  createdAt: string;
-  updatedAt: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 class DataService {
@@ -20,72 +23,33 @@ class DataService {
     return DataService.instance;
   }
 
-  private getStorageKey(collection: string, id?: string): string {
-    return id ? `therapytrain_${collection}_${id}` : `therapytrain_${collection}`;
-  }
-
   public async create<T>(collection: string, data: T): Promise<StorageItem<T>> {
-    const id = crypto.randomUUID();
-    const item: StorageItem<T> = {
-      id,
-      data,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-
-    localStorage.setItem(this.getStorageKey(collection, id), JSON.stringify(item));
-    
-    // Update collection index
-    const collectionIds = this.getCollectionIds(collection);
-    collectionIds.push(id);
-    localStorage.setItem(this.getStorageKey(collection), JSON.stringify(collectionIds));
-
-    return item;
+    const response = await api.data.create(collection, data);
+    return response;
   }
 
   public async get<T>(collection: string, id: string): Promise<StorageItem<T> | null> {
-    const item = localStorage.getItem(this.getStorageKey(collection, id));
-    return item ? JSON.parse(item) : null;
+    const response = await api.data.get(collection, id);
+    return response;
   }
 
   public async update<T>(collection: string, id: string, data: Partial<T>): Promise<StorageItem<T> | null> {
-    const item = await this.get<T>(collection, id);
-    if (!item) return null;
-
-    const updatedItem: StorageItem<T> = {
-      ...item,
-      data: { ...item.data, ...data },
-      updatedAt: new Date().toISOString(),
-    };
-
-    localStorage.setItem(this.getStorageKey(collection, id), JSON.stringify(updatedItem));
-    return updatedItem;
+    const response = await api.data.update(collection, id, data);
+    return response;
   }
 
   public async delete(collection: string, id: string): Promise<void> {
-    localStorage.removeItem(this.getStorageKey(collection, id));
-    
-    // Update collection index
-    const collectionIds = this.getCollectionIds(collection);
-    const updatedIds = collectionIds.filter(itemId => itemId !== id);
-    localStorage.setItem(this.getStorageKey(collection), JSON.stringify(updatedIds));
+    await api.data.delete(collection, id);
   }
 
-  public async list<T>(collection: string): Promise<StorageItem<T>[]> {
-    const ids = this.getCollectionIds(collection);
-    const items: StorageItem<T>[] = [];
-
-    for (const id of ids) {
-      const item = await this.get<T>(collection, id);
-      if (item) items.push(item);
-    }
-
-    return items;
+  public async list<T>(collection: string, query: Record<string, any> = {}): Promise<StorageItem<T>[]> {
+    const response = await api.data.list(collection, query);
+    return response;
   }
 
-  private getCollectionIds(collection: string): string[] {
-    const idsString = localStorage.getItem(this.getStorageKey(collection));
-    return idsString ? JSON.parse(idsString) : [];
+  public async findOne<T>(collection: string, query: Record<string, any>): Promise<StorageItem<T> | null> {
+    const response = await api.data.findOne(collection, query);
+    return response;
   }
 
   public async query<T>(

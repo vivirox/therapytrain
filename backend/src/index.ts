@@ -7,6 +7,7 @@ import { errorHandler } from './middleware/errorHandler';
 import { setupRoutes } from './routes';
 import { setupKindeAuth } from './middleware/kindeAuth';
 import { logger } from './utils/logger';
+import { connectDatabase } from './database';
 
 const app = express();
 
@@ -37,7 +38,17 @@ setupRoutes(app);
 // Error handling
 app.use(errorHandler);
 
-// Start server
-app.listen(config.port, () => {
-  logger.info(`Server running on port ${config.port}`);
-});
+// Start server and connect to database
+const startServer = async () => {
+  try {
+    await connectDatabase();
+    app.listen(config.port, () => {
+      logger.info(`Server running on port ${config.port}`);
+    });
+  } catch (error) {
+    logger.error('Failed to start server:', error);
+    process.exit(1);
+  }
+};
+
+startServer();

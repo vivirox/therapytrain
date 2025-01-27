@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useKindeAuth } from "@kinde-oss/kinde-auth-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { Card } from '../components/ui/card';
+import { Button } from '../components/ui/button';
 import TutorialSystem from '../components/education/TutorialSystem';
 import CaseStudyLibrary from '../components/education/CaseStudyLibrary';
 import SkillProgressionTracker from '../components/education/SkillProgressionTracker';
@@ -8,25 +11,33 @@ import PeerLearning from '../components/education/PeerLearning';
 import { LearningPathView } from '../components/education/LearningPathView';
 import { RecommendationEngine } from '../services/recommendations';
 import { LearningPathService } from '../services/learningPath';
-import { useAuth } from '../components/auth/AuthProvider';
 import { 
-  BookOpen, 
-  Users, 
-  TrendingUp,
-  Lightbulb,
-  MessageSquare,
-  Sparkles,
-  Map
-} from 'lucide-react';
+  MdMenuBook as BookOpen, 
+  MdGroups as Users, 
+  MdTrendingUp as TrendingUp,
+  MdLightbulb as Lightbulb,
+  MdMessage as MessageSquare,
+  MdAutoAwesome as Sparkles,
+  MdMap as Map,
+  MdArrowBack as ArrowLeft
+} from 'react-icons/md';
 
 const Education = () => {
-  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { isAuthenticated, user } = useKindeAuth();
   const [activeTab, setActiveTab] = useState('learning-path');
   const [recommendations, setRecommendations] = useState<{
     recommendedTutorials: any[];
     recommendedCaseStudies: any[];
   }>({ recommendedTutorials: [], recommendedCaseStudies: [] });
   const [userSkills, setUserSkills] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/auth');
+      return;
+    }
+  }, [isAuthenticated, navigate]);
 
   useEffect(() => {
     const fetchRecommendations = async () => {
@@ -45,12 +56,13 @@ const Education = () => {
     const fetchUserSkills = async () => {
       if (!user) return;
       try {
-        // This would come from your skills tracking system
+        // TODO: Implement MongoDB-based skills tracking
         const skills = {
           'clinical-skills': 0.4,
           'crisis-management': 0.3,
-          'therapeutic-techniques': 0.5,
-          'client-engagement': 0.6
+          'therapeutic-techniques': 0.6,
+          'patient-communication': 0.7,
+          'assessment': 0.5
         };
         setUserSkills(skills);
       } catch (error) {
@@ -63,96 +75,83 @@ const Education = () => {
   }, [user]);
 
   return (
-    <div className="container mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-6">Professional Development</h1>
-      
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid grid-cols-6 max-w-[800px] mb-6">
-          <TabsTrigger value="learning-path" className="flex items-center gap-2">
-            <Map className="w-4 h-4" />
-            Learning Path
-          </TabsTrigger>
-          <TabsTrigger value="tutorials" className="flex items-center gap-2">
-            <BookOpen className="w-4 h-4" />
-            Tutorials
-          </TabsTrigger>
-          <TabsTrigger value="case-studies" className="flex items-center gap-2">
-            <Lightbulb className="w-4 h-4" />
-            Case Studies
-          </TabsTrigger>
-          <TabsTrigger value="skills" className="flex items-center gap-2">
-            <TrendingUp className="w-4 h-4" />
-            Skills
-          </TabsTrigger>
-          <TabsTrigger value="peer-learning" className="flex items-center gap-2">
-            <Users className="w-4 h-4" />
-            Peer Learning
-          </TabsTrigger>
-          <TabsTrigger value="ai-insights" className="flex items-center gap-2">
-            <Sparkles className="w-4 h-4" />
-            AI Insights
-          </TabsTrigger>
-        </TabsList>
+    <div className="min-h-screen bg-[#0A0A0B] text-white p-8">
+      <div className="max-w-7xl mx-auto space-y-8">
+        <div className="flex items-center justify-between">
+          <Button
+            variant="ghost"
+            className="text-gray-400 hover:text-white"
+            onClick={() => navigate("/dashboard")}
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Dashboard
+          </Button>
+        </div>
 
-        <TabsContent value="learning-path">
-          <Card>
-            <div className="p-6">
-              {user && (
-                <LearningPathView
-                  userId={user.id}
-                  specialization="therapeutic-techniques"
-                  initialSkillLevels={userSkills}
-                />
-              )}
-            </div>
-          </Card>
-        </TabsContent>
+        <div>
+          <h1 className="text-3xl font-bold flex items-center">
+            <BookOpen className="h-8 w-8 mr-4 text-blue-500" />
+            Learning Center
+          </h1>
+          <p className="text-gray-400 mt-2">
+            Enhance your therapeutic skills through our comprehensive learning resources
+          </p>
+        </div>
 
-        <TabsContent value="tutorials">
-          <Card>
-            <div className="p-6">
-              <TutorialSystem 
-                recommendedTutorials={recommendations.recommendedTutorials} 
-              />
-            </div>
-          </Card>
-        </TabsContent>
+        <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="space-y-8">
+          <TabsList className="bg-[#1A1A1D] border-gray-800">
+            <TabsTrigger value="learning-path" className="data-[state=active]:bg-blue-600">
+              <Map className="h-4 w-4 mr-2" />
+              Learning Path
+            </TabsTrigger>
+            <TabsTrigger value="tutorials" className="data-[state=active]:bg-blue-600">
+              <BookOpen className="h-4 w-4 mr-2" />
+              Tutorials
+            </TabsTrigger>
+            <TabsTrigger value="case-studies" className="data-[state=active]:bg-blue-600">
+              <Lightbulb className="h-4 w-4 mr-2" />
+              Case Studies
+            </TabsTrigger>
+            <TabsTrigger value="skills" className="data-[state=active]:bg-blue-600">
+              <TrendingUp className="h-4 w-4 mr-2" />
+              Skills Tracker
+            </TabsTrigger>
+            <TabsTrigger value="peer-learning" className="data-[state=active]:bg-blue-600">
+              <Users className="h-4 w-4 mr-2" />
+              Peer Learning
+            </TabsTrigger>
+          </TabsList>
 
-        <TabsContent value="case-studies">
-          <Card>
-            <div className="p-6">
-              <CaseStudyLibrary 
-                recommendedCaseStudies={recommendations.recommendedCaseStudies} 
-              />
-            </div>
-          </Card>
-        </TabsContent>
+          <TabsContent value="learning-path" className="space-y-4">
+            <LearningPathView userId={user?.id} />
+          </TabsContent>
 
-        <TabsContent value="skills">
-          <Card>
-            <div className="p-6">
-              <SkillProgressionTracker userId={user?.id} />
-            </div>
-          </Card>
-        </TabsContent>
+          <TabsContent value="tutorials" className="space-y-4">
+            <TutorialSystem
+              recommendedTutorials={recommendations.recommendedTutorials}
+              userId={user?.id}
+            />
+          </TabsContent>
 
-        <TabsContent value="peer-learning">
-          <Card>
-            <div className="p-6">
-              <PeerLearning userId={user?.id} />
-            </div>
-          </Card>
-        </TabsContent>
+          <TabsContent value="case-studies" className="space-y-4">
+            <CaseStudyLibrary
+              recommendedCaseStudies={recommendations.recommendedCaseStudies}
+              userId={user?.id}
+            />
+          </TabsContent>
 
-        <TabsContent value="ai-insights">
-          <Card>
-            <div className="p-6">
-              <h2 className="text-2xl font-semibold mb-4">AI Learning Insights</h2>
-              {/* AI Insights component would go here */}
-            </div>
-          </Card>
-        </TabsContent>
-      </Tabs>
+          <TabsContent value="skills" className="space-y-4">
+            <SkillProgressionTracker
+              skills={userSkills}
+              userId={user?.id}
+            />
+          </TabsContent>
+
+          <TabsContent value="peer-learning" className="space-y-4">
+            <PeerLearning userId={user?.id} />
+          </TabsContent>
+        </Tabs>
+      </div>
     </div>
   );
 };

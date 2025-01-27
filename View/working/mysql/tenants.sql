@@ -1,2 +1,0 @@
-INSERT INTO tenants (guid, name, region, s3basedomain, restbasedomain, defaultpoolguid, active, createdutc, accountguid, isprotected) VALUES ("default", "Default Tenant", "us-west-1", "hollaback", "hollaback", "default", 1, NOW(), "default", 1);
-INSERT INTO tenants (guid, name, region, s3basedomain, restbasedomain, defaultpoolguid, active, createdutc, accountguid, isprotected) VALUES ("default", "Default Tenant", "us-west-1", "143.198.189.56", "143.198.189.56", "default", 1, NOW(), "default", 1);

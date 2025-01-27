@@ -1,5 +1,5 @@
 import Message from './Message';
-import { MessageCircle } from 'lucide-react';
+import { MdChat as MessageCircle } from 'react-icons/md';
 
 type Message = {
   role: 'user' | 'assistant';

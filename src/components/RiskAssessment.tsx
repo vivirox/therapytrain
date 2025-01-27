@@ -19,7 +19,7 @@ import {
   TableHeader,
   TableRow,
 } from "../components/ui/table";
-import { AlertTriangle, AlertCircle, Info } from 'lucide-react';
+import { MdWarning as AlertTriangle, MdError as AlertCircle, MdInfo as Info } from 'react-icons/md';
 import CrisisPrediction, {
   type RiskAssessment as RiskAssessmentType,
   type RiskFactor
