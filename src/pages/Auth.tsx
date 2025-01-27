@@ -6,14 +6,14 @@ import { Button } from "../components/ui/button";
 
 const AuthPage = () => {
   const navigate = useNavigate();
-  const { login, register, isAuthenticated } = useKindeAuth();
+  const { login, register, isAuthenticated, isLoading } = useKindeAuth();
 
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && !isLoading) {
       console.log("User is authenticated, redirecting to dashboard");
-      navigate("/dashboard");
+      navigate("/dashboard", { replace: true });
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, isLoading, navigate]);
 
   const handleLogin = () => {
     console.log("Attempting to login...");

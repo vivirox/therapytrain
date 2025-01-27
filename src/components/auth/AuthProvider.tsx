@@ -1,6 +1,6 @@
 import React, { createContext, useContext, ReactNode, useEffect, useState } from 'react';
 import { KindeProvider, useKindeAuth } from "@kinde-oss/kinde-auth-react";
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 
 interface Permission {
   id: string;
@@ -42,6 +42,8 @@ const AuthContext = createContext<AuthContextType | null>(null);
 // Wrapper component that provides Kinde context
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const location = useLocation();
+  const navigate = useNavigate();
+  
   console.log("Kinde Config:", {
     clientId: import.meta.env.VITE_KINDE_CLIENT_ID,
     domain: import.meta.env.VITE_KINDE_DOMAIN,
@@ -57,12 +59,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       logoutUri={import.meta.env.VITE_KINDE_LOGOUT_URL}
       onRedirectCallback={(user, appState) => {
         console.log("Kinde redirect callback:", { user, appState });
-        // If there's a specific return URL in appState, use that
+        // If there's a specific return URL in appState, navigate there
         if (appState?.returnTo && typeof appState.returnTo === 'string') {
-          window.location.href = appState.returnTo;
+          navigate(appState.returnTo);
         } else {
           // Otherwise, redirect to dashboard as default post-login destination
-          window.location.href = '/dashboard';
+          navigate('/dashboard', { replace: true });
         }
       }}
     >
