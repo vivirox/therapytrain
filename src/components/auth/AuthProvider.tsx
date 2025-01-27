@@ -57,8 +57,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       logoutUri={import.meta.env.VITE_KINDE_LOGOUT_URL}
       onRedirectCallback={(user, appState) => {
         console.log("Kinde redirect callback:", { user, appState });
+        // If there's a specific return URL in appState, use that
         if (appState?.returnTo && typeof appState.returnTo === 'string') {
           window.location.href = appState.returnTo;
+        } else {
+          // Otherwise, redirect to dashboard as default post-login destination
+          window.location.href = '/dashboard';
         }
       }}
     >
