@@ -1,5 +1,6 @@
-import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
-import { type ClientProfile } from '@/types/ClientProfile';
+import { useKindeAuth } from "@kinde-oss/kinde-auth-react";
+
+const { user, isAuthenticated, isLoading } = useKindeAuth();import { type ClientProfile } from '@/types/ClientProfile';
 
 export async function getClientProfiles() {
   const { getUser } = getKindeServerSession();
@@ -75,4 +76,8 @@ export async function deleteClientProfile(id: number) {
   if (!response.ok) {
     throw new Error('Failed to delete profile');
   }
+}
+
+function getKindeServerSession(): { getUser: any; } {
+  throw new Error("Function not implemented.");
 }

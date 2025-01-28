@@ -11330,7 +11330,6 @@ __metadata:
     ts-node: "npm:^10.9.2"
     typescript: "npm:^5.3.3"
     vite: "npm:^6.0.11"
-    vite_react_shadcn_ts: "workspace:^"
   languageName: unknown
   linkType: soft
 
@@ -11874,7 +11873,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vite_react_shadcn_ts@workspace:., vite_react_shadcn_ts@workspace:^":
+"vite_react_shadcn_ts@workspace:.":
   version: 0.0.0-use.local
   resolution: "vite_react_shadcn_ts@workspace:."
   dependencies:
@@ -11882,7 +11881,6 @@ __metadata:
     "@emotion/styled": "npm:^11.14.0"
     "@eslint/js": "npm:^9.9.0"
     "@hookform/resolvers": "npm:^3.9.0"
-    "@kinde-oss/kinde-auth-nextjs": "npm:^2.4.6"
     "@kinde-oss/kinde-auth-react": "npm:^4.0.4"
     "@kinde-oss/kinde-node-express": "npm:^1.6.0"
     "@mui/material": "npm:^6.4.1"

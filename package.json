@@ -19,7 +19,6 @@
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
     "@hookform/resolvers": "^3.9.0",
-    "@kinde-oss/kinde-auth-nextjs": "^2.4.6",
     "@kinde-oss/kinde-auth-react": "^4.0.4",
     "@kinde-oss/kinde-node-express": "^1.6.0",
     "@mui/material": "^6.4.1",
