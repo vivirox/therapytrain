@@ -8,12 +8,14 @@ const AuthPage = () => {
   const navigate = useNavigate();
   const { login, register, isAuthenticated, isLoading } = useKindeAuth();
 
-  useEffect(() => {
-    if (isAuthenticated && !isLoading) {
-      console.log("User is authenticated, redirecting to dashboard");
-      navigate("/dashboard", { replace: true });
-    }
-  }, [isAuthenticated, isLoading, navigate]);
+useEffect(() => {
+  if (isLoading) return;
+  
+  if (isAuthenticated) {
+    console.log("User authenticated, redirecting to dashboard");
+    navigate("/dashboard", { replace: true });
+  }
+}, [isAuthenticated, isLoading, navigate]);
 
   const handleLogin = () => {
     console.log("Attempting to login...");
