@@ -19,6 +19,6 @@
     "target": "es2020",
     "esModuleInterop": true,
     "moduleResolution": "node",
-    "types": ["mime"]
+    "types": ["node"]
   }
 }
