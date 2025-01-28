@@ -45,7 +45,6 @@ const App: React.FC = () => {
                     <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                     <Route path="/terms-of-service" element={<TermsOfService />} />
                     <Route path="/auth" element={<Auth />} />
-                    <Route path="/callback" element={<Auth />} />
 
                     {/* Protected Routes */}
                     <Route 
@@ -74,6 +73,15 @@ const App: React.FC = () => {
 
                     {/* Catch-all redirect */}
                     <Route path="*" element={<Navigate to="/" replace />} />
+                    <Route
+                      path="/callback"
+                      element={
+                        <Navigate
+                          to="/dashboard"
+                          replace={true}
+                        />
+                      }
+                    />
                   </Routes>
                 </Suspense>
               </AuthProvider>
@@ -83,5 +91,4 @@ const App: React.FC = () => {
       </ToastProvider>
     </QueryClientProvider>
   );
-};
-export default App;
+};export default App;

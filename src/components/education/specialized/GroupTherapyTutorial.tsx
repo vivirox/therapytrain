@@ -21,7 +21,7 @@ interface GroupMember {
   id: string;
   name: string;
   background: string;
-  presentingIssues: string[];
+  presentingIssues: Array<string>;
   currentMood: string;
   engagement: number;
   interactions: Array<{
@@ -43,7 +43,7 @@ interface GroupEvent {
   id: string;
   type: 'conflict' | 'breakthrough' | 'resistance' | 'support';
   description: string;
-  involvedMembers: string[];
+  involvedMembers: Array<string>;
   options: Array<{
     text: string;
     impact: {
@@ -63,9 +63,9 @@ interface GroupTherapyScenario {
   id: string;
   title: string;
   description: string;
-  therapeuticGoals: string[];
-  members: GroupMember[];
-  events: GroupEvent[];
+  therapeuticGoals: Array<string>;
+  members: Array<GroupMember>;
+  events: Array<GroupEvent>;
   duration: number;
 }
 
@@ -89,7 +89,7 @@ export const GroupTherapyTutorial: React.FC<GroupTherapyTutorialProps> = ({
     support: 65
   });
   const [currentEvent, setCurrentEvent] = useState<GroupEvent | null>(null);
-  const [memberStates, setMemberStates] = useState<GroupMember[]>([]);
+  const [memberStates, setMemberStates] = useState<Array<GroupMember>>([]);
   const [facilitatorNotes, setFacilitatorNotes] = useState<string>('');
   const [interventions, setInterventions] = useState<Array<{
     timestamp: number;
@@ -116,14 +116,17 @@ export const GroupTherapyTutorial: React.FC<GroupTherapyTutorialProps> = ({
   }, [scenarioId]);
 
   useEffect(() => {
-    if (!scenario) return;
+    if (!scenario) {
+      return;
+    }
 
     const timer = setInterval(() => {
-      if (currentTime < scenario.duration) {
-        setCurrentTime(prev => prev + 1);
-        updateGroupDynamics();
-        checkForEvents();
+      if (currentTime >= scenario.duration) {
+        return;
       }
+      setCurrentTime(prev => prev + 1);
+      updateGroupDynamics();
+      checkForEvents();
     }, 1000);
 
     return () => clearInterval(timer);
@@ -147,7 +150,9 @@ export const GroupTherapyTutorial: React.FC<GroupTherapyTutorialProps> = ({
   };
 
   const checkForEvents = () => {
-    if (!scenario) return;
+    if (!scenario) {
+      return;
+    }
 
     const event = scenario.events.find(e => !interventions.some(i => i.timestamp === currentTime));
     if (event) {
@@ -157,7 +162,9 @@ export const GroupTherapyTutorial: React.FC<GroupTherapyTutorialProps> = ({
   };
 
   const handleIntervention = (option: any) => {
-    if (!currentEvent) return;
+    if (!currentEvent) {
+      return;
+    }
 
     // Update group dynamics
     setGroupDynamics(prev => ({
@@ -194,11 +201,11 @@ export const GroupTherapyTutorial: React.FC<GroupTherapyTutorialProps> = ({
     ]);
 
     // Track in analytics
-    AnalyticsService.trackResourceEngagement(userId, scenarioId, 'group_intervention', {
+    AnalyticsService.trackResourceEngagement(userId, scenarioId, 'group_intervention', JSON.stringify({
       eventType: currentEvent.type,
       intervention: option.text,
       score: option.score
-    });
+    }));
 
     setCurrentEvent(null);
     resumeScenario();
