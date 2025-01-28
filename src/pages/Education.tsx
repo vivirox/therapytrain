@@ -1,160 +1,142 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useKindeAuth } from "@kinde-oss/kinde-auth-react";
+import { useKindeAuth } from '@kinde-oss/kinde-auth-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { Card } from '../components/ui/card';
 import { Button } from '../components/ui/button';
-import TutorialSystem from '../components/education/TutorialSystem';
-import CaseStudyLibrary from '../components/education/CaseStudyLibrary';
-import SkillProgressionTracker from '../components/education/SkillProgressionTracker';
-import PeerLearning from '../components/education/PeerLearning';
+import { SkillProgressionTracker } from '../components/education/SkillProgressionTracker';
 import { LearningPathView } from '../components/education/LearningPathView';
+import { CaseStudyLibrary } from '../components/education/CaseStudyLibrary';
+import { PeerLearning } from '../components/education/PeerLearning';
+import { TutorialCard } from '../components/education/TutorialCard';
 import { RecommendationEngine } from '../services/recommendations';
 import { LearningPathService } from '../services/learningPath';
 import { 
-  MdMenuBook as BookOpen, 
-  MdGroups as Users, 
-  MdTrendingUp as TrendingUp,
-  MdLightbulb as Lightbulb,
-  MdMessage as MessageSquare,
-  MdAutoAwesome as Sparkles,
-  MdMap as Map,
-  MdArrowBack as ArrowLeft
+  MdMenuBook, 
+  MdGroups, 
+  MdSchool,
+  MdAssessment,
+  MdPeople
 } from 'react-icons/md';
+import type { Tutorial, CaseStudy, SkillProgression } from '../types/education';
 
 const Education = () => {
   const navigate = useNavigate();
   const { isAuthenticated, user } = useKindeAuth();
   const [activeTab, setActiveTab] = useState('learning-path');
+  const [userProgress, setUserProgress] = useState<SkillProgression | null>(null);
   const [recommendations, setRecommendations] = useState<{
-    recommendedTutorials: any[];
-    recommendedCaseStudies: any[];
+    recommendedTutorials: Tutorial[];
+    recommendedCaseStudies: CaseStudy[];
   }>({ recommendedTutorials: [], recommendedCaseStudies: [] });
-  const [userSkills, setUserSkills] = useState<Record<string, number>>({});
 
   useEffect(() => {
     if (!isAuthenticated) {
       navigate('/auth');
       return;
     }
-  }, [isAuthenticated, navigate]);
-
-  useEffect(() => {
-    const fetchRecommendations = async () => {
+    
+    const fetchUserData = async () => {
       if (!user) return;
       try {
-        const [tutorials, caseStudies] = await Promise.all([
-          RecommendationEngine.getRecommendedTutorials(user.id),
-          RecommendationEngine.getRecommendedCaseStudies(user.id)
+        const [progress, recs] = await Promise.all([
+          fetch(`/api/skill-progression/${user.id}`).then(res => res.json()),
+          RecommendationEngine.getRecommendedContent(user.id)
         ]);
-        setRecommendations({ recommendedTutorials: tutorials, recommendedCaseStudies: caseStudies });
+        setUserProgress(progress);
+        setRecommendations(recs);
       } catch (error) {
-        console.error('Failed to fetch recommendations:', error);
+        console.error('Error fetching user data:', error);
       }
     };
+    
+    fetchUserData();
+  }, [isAuthenticated, navigate, user]);
 
-    const fetchUserSkills = async () => {
-      if (!user) return;
-      try {
-        // TODO: Implement MongoDB-based skills tracking
-        const skills = {
-          'clinical-skills': 0.4,
-          'crisis-management': 0.3,
-          'therapeutic-techniques': 0.6,
-          'patient-communication': 0.7,
-          'assessment': 0.5
-        };
-        setUserSkills(skills);
-      } catch (error) {
-        console.error('Failed to fetch user skills:', error);
-      }
-    };
-
-    fetchRecommendations();
-    fetchUserSkills();
-  }, [user]);
-
-  return (
-    <div className="min-h-screen bg-[#0A0A0B] text-white p-8">
-      <div className="max-w-7xl mx-auto space-y-8">
-        <div className="flex items-center justify-between">
-          <Button
-            variant="ghost"
-            className="text-gray-400 hover:text-white"
-            onClick={() => navigate("/dashboard")}
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Dashboard
-          </Button>
-        </div>
-
-        <div>
-          <h1 className="text-3xl font-bold flex items-center">
-            <BookOpen className="h-8 w-8 mr-4 text-blue-500" />
-            Learning Center
-          </h1>
-          <p className="text-gray-400 mt-2">
-            Enhance your therapeutic skills through our comprehensive learning resources
-          </p>
-        </div>
-
-        <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="space-y-8">
-          <TabsList className="bg-[#1A1A1D] border-gray-800">
-            <TabsTrigger value="learning-path" className="data-[state=active]:bg-blue-600">
-              <Map className="h-4 w-4 mr-2" />
-              Learning Path
-            </TabsTrigger>
-            <TabsTrigger value="tutorials" className="data-[state=active]:bg-blue-600">
-              <BookOpen className="h-4 w-4 mr-2" />
-              Tutorials
-            </TabsTrigger>
-            <TabsTrigger value="case-studies" className="data-[state=active]:bg-blue-600">
-              <Lightbulb className="h-4 w-4 mr-2" />
-              Case Studies
-            </TabsTrigger>
-            <TabsTrigger value="skills" className="data-[state=active]:bg-blue-600">
-              <TrendingUp className="h-4 w-4 mr-2" />
-              Skills Tracker
-            </TabsTrigger>
-            <TabsTrigger value="peer-learning" className="data-[state=active]:bg-blue-600">
-              <Users className="h-4 w-4 mr-2" />
-              Peer Learning
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="learning-path" className="space-y-4">
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'learning-path':
+        return (
+          <div className="space-y-6">
+            <SkillProgressionTracker userId={user?.id || ''} />
             <LearningPathView 
               userId={user?.id || ''} 
-              specialization="general"
-              initialSkillLevels={userSkills}
+              specialization={userProgress?.learningPath?.customizedFocus?.[0] || 'general'}
+              initialSkillLevels={Object.fromEntries(
+                Object.entries(userProgress?.skills || {}).map(([key, value]) => [key, value.level])
+              )}
             />
-          </TabsContent>
+          </div>
+        );
+      case 'tutorials':
+        return (
+          <div className="space-y-6">
+            <h2 className="text-2xl font-semibold mb-4">Recommended Tutorials</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {recommendations.recommendedTutorials.map(tutorial => (
+                <TutorialCard 
+                  key={tutorial.id}
+                  tutorial={tutorial}
+                  progress={userProgress?.skills?.[tutorial.category]?.completedTutorials?.includes(tutorial.id)}
+                  onClick={() => navigate(`/education/tutorial/${tutorial.id}`)}
+                />
+              ))}
+            </div>
+          </div>
+        );
+      case 'case-studies':
+        return (
+          <CaseStudyLibrary 
+            userId={user?.id || ''} 
+            recommendedCases={recommendations.recommendedCaseStudies}
+          />
+        );
+      case 'peer-learning':
+        return <PeerLearning userId={user?.id || ''} />;
+      default:
+        return null;
+    }
+  };
 
-          <TabsContent value="tutorials" className="space-y-4">
-            <TutorialSystem
-              tutorials={recommendations.recommendedTutorials}
-              userId={user?.id || ''}
-            />
-          </TabsContent>
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <div className="flex flex-col space-y-6">
+        <header className="flex justify-between items-center">
+          <h1 className="text-3xl font-bold">Professional Development</h1>
+          <div className="flex items-center space-x-4">
+            <button 
+              className="btn btn-primary"
+              onClick={() => navigate('/education/assessment')}
+            >
+              Take Skills Assessment
+            </button>
+          </div>
+        </header>
 
-          <TabsContent value="case-studies" className="space-y-4">
-            <CaseStudyLibrary
-              caseStudies={recommendations.recommendedCaseStudies}
-              userId={user?.id || ''}
-            />
-          </TabsContent>
+        <nav className="flex space-x-1 border-b">
+          {[
+            { id: 'learning-path', label: 'Learning Path' },
+            { id: 'tutorials', label: 'Tutorials' },
+            { id: 'case-studies', label: 'Case Studies' },
+            { id: 'peer-learning', label: 'Peer Learning' },
+          ].map(tab => (
+            <button
+              key={tab.id}
+              className={`px-4 py-2 border-b-2 transition-colors ${
+                activeTab === tab.id
+                  ? 'border-primary-500 text-primary-600'
+                  : 'border-transparent hover:border-gray-300'
+              }`}
+              onClick={() => setActiveTab(tab.id)}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </nav>
 
-          <TabsContent value="skills" className="space-y-4">
-            <SkillProgressionTracker
-              skillLevels={userSkills}
-              userId={user?.id || ''}
-            />
-          </TabsContent>
-
-          <TabsContent value="peer-learning" className="space-y-4">
-            <PeerLearning userId={user?.id} />
-          </TabsContent>
-        </Tabs>
+        <main className="min-h-[600px]">
+          {renderContent()}
+        </main>
       </div>
     </div>
   );

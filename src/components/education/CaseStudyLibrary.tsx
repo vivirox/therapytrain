@@ -16,9 +16,13 @@ import {
 
 interface CaseStudyLibraryProps {
   userId: string;
+  recommendedCases?: CaseStudy[];
 }
 
-export const CaseStudyLibrary: React.FC<CaseStudyLibraryProps> = ({ userId }) => {
+export const CaseStudyLibrary: React.FC<CaseStudyLibraryProps> = ({ 
+  userId,
+  recommendedCases = []
+}) => {
   const [caseStudies, setCaseStudies] = useState<CaseStudy[]>([]);
   const [selectedCase, setSelectedCase] = useState<CaseStudy | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -37,7 +41,7 @@ export const CaseStudyLibrary: React.FC<CaseStudyLibraryProps> = ({ userId }) =>
         const response = await fetch('/api/case-studies');
         if (response.ok) {
           const data = await response.json();
-          setCaseStudies(data);
+          setCaseStudies([...recommendedCases, ...data]);
         }
       } catch (error) {
         console.error('Error fetching case studies:', error);
@@ -47,7 +51,7 @@ export const CaseStudyLibrary: React.FC<CaseStudyLibraryProps> = ({ userId }) =>
     };
 
     fetchCaseStudies();
-  }, []);
+  }, [userId, recommendedCases]);
 
   const filteredCaseStudies = caseStudies.filter(study => {
     const matchesSearch = searchTerm === '' ||

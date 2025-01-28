@@ -282,6 +282,26 @@ export class RecommendationEngine {
     }
   }
 
+  static async getRecommendedContent(userId: string) {
+    try {
+      const [tutorials, caseStudies] = await Promise.all([
+        this.getRecommendedTutorials(userId),
+        this.getRecommendedCaseStudies(userId)
+      ]);
+
+      return {
+        recommendedTutorials: tutorials,
+        recommendedCaseStudies: caseStudies
+      };
+    } catch (error) {
+      console.error('Error getting recommended content:', error);
+      return {
+        recommendedTutorials: [],
+        recommendedCaseStudies: []
+      };
+    }
+  }
+
   static async getRecommendedTutorials(userId: string): Promise<Tutorial[]> {
     try {
       const response = await fetch(`/api/recommendations/tutorials/${userId}`);
