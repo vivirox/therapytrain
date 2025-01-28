@@ -42,6 +42,7 @@ const App: React.FC = () => {
                     <Route path="/benefits" element={<Benefits />} />
                     <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                     <Route path="/terms-of-service" element={<TermsOfService />} />
+                    <Route path="/login" element={<Auth />} />
                     <Route path="/auth" element={<Auth />} />
                     <Route
                       path="/callback"
