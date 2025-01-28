@@ -19,8 +19,8 @@ interface Organization {
 export const UserProfile = () => {
   const { user, isAuthenticated } = useAuth();
   const { getPermissions, getUserOrganizations } = useKindeAuth();
-  const [permissions, setPermissions] = useState<string[]>([]);
-  const [organizations, setOrganizations] = useState<Organization[]>([]);
+  const [permissions, setPermissions] = useState<Array<string>>([]);
+  const [organizations, setOrganizations] = useState<Array<Organization>>([]);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -38,7 +38,7 @@ export const UserProfile = () => {
         if (orgs && Array.isArray(orgs)) {
           setOrganizations(orgs);
         } else if (orgs && 'organizations' in orgs) {
-          setOrganizations((orgs as { organizations: Organization[] }).organizations);
+          setOrganizations((orgs as { organizations: Array<Organization> }).organizations);
         } else {
           setOrganizations([]);
         }

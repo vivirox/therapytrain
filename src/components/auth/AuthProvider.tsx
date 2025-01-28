@@ -25,8 +25,8 @@ interface AuthContextType {
   logout: () => void;
   register: (options?: { org_code?: string; }) => void;
   createOrg: (orgName: string) => Promise<void>;
-  permissions: Permission[];
-  organizations: Organization[];
+  permissions: Array<Permission>;
+  organizations: Array<Organization>;
   hasPermission: (permissionId: string) => boolean;
   isOrgAdmin: (orgId?: string) => boolean;
   getFeatureFlag: (key: string) => FeatureFlag | null;
@@ -50,24 +50,24 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     redirectUri: import.meta.env.VITE_KINDE_REDIRECT_URL,
     logoutUri: import.meta.env.VITE_KINDE_LOGOUT_URL
   });
-  
-  return (
-    <KindeProvider
-      clientId={import.meta.env.VITE_KINDE_CLIENT_ID}
-      domain={import.meta.env.VITE_KINDE_DOMAIN}
-      redirectUri={import.meta.env.VITE_KINDE_REDIRECT_URL}
-      logoutUri={import.meta.env.VITE_KINDE_LOGOUT_URL}
-      onRedirectCallback={(user, appState) => {
-        console.log("Kinde redirect callback:", { user, appState });
-        // If there's a specific return URL in appState, navigate there
-        if (appState?.returnTo && typeof appState.returnTo === 'string') {
-          navigate(appState.returnTo);
-        } else {
-          // Otherwise, redirect to dashboard as default post-login destination
-          navigate('/dashboard', { replace: true });
-        }
-      }}
-    >
+      return (
+        <KindeProvider
+          clientId={import.meta.env.VITE_KINDE_CLIENT_ID}
+          domain={import.meta.env.VITE_KINDE_DOMAIN}
+          redirectUri={import.meta.env.VITE_KINDE_REDIRECT_URL}
+          logoutUri={import.meta.env.VITE_KINDE_LOGOUT_URL}
+          onRedirectCallback={(user, appState) => {
+            // Add logging to track the flow
+            console.log("Redirect callback triggered", { user, appState });
+        
+            if (appState?.returnTo && typeof appState.returnTo === 'string') {
+              navigate(appState.returnTo);
+            } else {
+              // Use the callback route instead of dashboard directly
+              navigate('/callback', { replace: true });
+            }
+          }}
+        >
       <AuthStateProvider>{children}</AuthStateProvider>
     </KindeProvider>
   );
@@ -82,108 +82,108 @@ const AuthStateProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     logout: kindeLogout,
     register: kindeRegister,
     getPermissions,
-    getOrganization,
     getUserOrganizations,
     createOrg: kindeCreateOrg,
     getToken,
     getClaim
   } = useKindeAuth();
 
-  const [permissions, setPermissions] = useState<Permission[]>([]);
-  const [organizations, setOrganizations] = useState<Organization[]>([]);
+  const [permissions, setPermissions] = useState<Array<Permission>>([]);
+  const [organizations, setOrganizations] = useState<Array<Organization>>([]);
   const [featureFlags, setFeatureFlags] = useState<Record<string, FeatureFlag>>({});
   
   useEffect(() => {
-    if (isAuthenticated) {
-      // Fetch permissions
-      const fetchPermissions = async () => {
-        try {
-          const perms = await getPermissions();
-          if (!perms) {
-            setPermissions([]);
-            return;
-          }
+    if (!isAuthenticated) {
+      return;
+    }
+    // Fetch permissions
+    const fetchPermissions = async () => {
+      try {
+        const perms = await getPermissions();
+        if (!perms) {
+          setPermissions([]);
+          return;
+        }
           
-          if (Array.isArray(perms)) {
-            const transformedPerms: Permission[] = perms.map(perm => {
-              if (typeof perm === 'string') {
-                return { id: perm, name: perm };
-              } else if (typeof perm === 'object' && perm !== null && 'id' in perm) {
-                const permId = perm.id;
-                if (typeof permId !== 'string') {
-                  return { id: String(permId), name: String(permId) };
-                }
-                return { 
-                  id: permId,
-                  name: typeof perm.name === 'string' ? perm.name : permId 
-                };
+        if (Array.isArray(perms)) {
+          const transformedPerms: Array<Permission> = perms.map(perm => {
+            if (typeof perm === 'string') {
+              return { id: perm, name: perm };
+            } else if (typeof perm === 'object' && perm !== null && 'id' in perm) {
+              const permId = perm.id;
+              if (typeof permId !== 'string') {
+                return { id: String(permId), name: String(permId) };
               }
-              // fallback case
-              return { id: String(perm), name: String(perm) };
-            });
-            setPermissions(transformedPerms);
-          } else {
-            setPermissions([]);
-          }
-        } catch (error) {
-          console.error('Error fetching permissions:', error);
+              return { 
+                id: permId,
+                name: typeof perm.name === 'string' ? perm.name : permId 
+              };
+            }
+            // fallback case
+            return { id: String(perm), name: String(perm) };
+          });
+          setPermissions(transformedPerms);
+        } else {
           setPermissions([]);
         }
-      };
+      } catch (error) {
+        console.error('Error fetching permissions:', error);
+        setPermissions([]);
+      }
+    };
 
-      // Fetch organizations
-      const fetchOrganizations = async () => {
-        try {
-          const orgs = await getUserOrganizations();
-          if (orgs && Array.isArray(orgs)) {
-            setOrganizations(orgs.map(org => ({
+    // Fetch organizations
+    const fetchOrganizations = async () => {
+      try {
+        const orgs = await getUserOrganizations();
+        if (orgs && Array.isArray(orgs)) {
+          setOrganizations(orgs.map(org => ({
+            id: org.id,
+            name: org.name,
+            role: org.role || 'member'
+          })));
+        } else if (orgs && 'organizations' in orgs) {
+          setOrganizations(
+            (orgs as { organizations: Array<any> }).organizations.map(org => ({
               id: org.id,
               name: org.name,
               role: org.role || 'member'
-            })));
-          } else if (orgs && 'organizations' in orgs) {
-            setOrganizations(
-              (orgs as { organizations: any[] }).organizations.map(org => ({
-                id: org.id,
-                name: org.name,
-                role: org.role || 'member'
-              }))
-            );
-          } else {
-            setOrganizations([]);
-          }
-        } catch (error) {
-          console.error('Error fetching organizations:', error);
+            }))
+          );
+        } else {
           setOrganizations([]);
         }
-      };
+      } catch (error) {
+        console.error('Error fetching organizations:', error);
+        setOrganizations([]);
+      }
+    };
 
-      // Fetch feature flags
-      const fetchFeatureFlags = async () => {
-        try {
-          const flags = await getClaim('feature_flags');
-          if (flags && typeof flags === 'object') {
-            const transformedFlags: Record<string, FeatureFlag> = {};
-            Object.entries(flags).forEach(([key, value]) => {
-              transformedFlags[key] = {
-                key,
-                value: value as boolean | string | number
-              };
-            });
-            setFeatureFlags(transformedFlags);
-          } else {
-            setFeatureFlags({});
-          }
-        } catch (error) {
-          console.error('Error fetching feature flags:', error);
+    // Fetch feature flags
+    const fetchFeatureFlags = async () => {
+      try {
+        const flags = await getClaim('feature_flags');
+        if (flags && typeof flags === 'object') {
+          const transformedFlags: Record<string, FeatureFlag> = {};
+          Object.entries(flags).forEach(([key, value]) => {
+            transformedFlags[key] = {
+              key,
+              value: value as boolean | string | number
+            };
+          });
+          setFeatureFlags(transformedFlags);
+        } else {
           setFeatureFlags({});
         }
-      };
+      } catch (error) {
+        console.error('Error fetching feature flags:', error);
+        setFeatureFlags({});
+      }
+    };
 
-      fetchPermissions();
-      fetchOrganizations();
-      fetchFeatureFlags();
-    }
+    fetchPermissions();
+    fetchOrganizations();
+    fetchFeatureFlags();
   }, [isAuthenticated, getPermissions, getUserOrganizations, getClaim]);
 
   const login = (options?: { org_code?: string; login_hint?: string }) => {
