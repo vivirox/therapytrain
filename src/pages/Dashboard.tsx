@@ -12,8 +12,17 @@ import { useState } from "react";
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { user, isAuthenticated } = useKindeAuth();
+  const { user, isAuthenticated, isLoading } = useKindeAuth();
   const [activeTab, setActiveTab] = useState("overview");
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (!isAuthenticated) {
+    navigate("/auth");
+    return null;
+  }
 
   useEffect(() => {
     if (!isAuthenticated) {
