@@ -57,14 +57,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           redirectUri={import.meta.env.VITE_KINDE_REDIRECT_URL}
           logoutUri={import.meta.env.VITE_KINDE_LOGOUT_URL}
           onRedirectCallback={(user, appState) => {
-            // Add logging to track the flow
-            console.log("Redirect callback triggered", { user, appState });
-        
-            if (appState?.returnTo && typeof appState.returnTo === 'string') {
-              navigate(appState.returnTo);
-            } else {
-              // Use the callback route instead of dashboard directly
-              navigate('/callback', { replace: true });
+            // Only redirect to dashboard after successful authentication
+            if (user && isAuthenticated) {
+              navigate('/dashboard', { replace: true });
             }
           }}
         >

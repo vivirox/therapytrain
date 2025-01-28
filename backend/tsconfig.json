@@ -15,7 +15,8 @@
     "paths": {
       "@/*": ["src/*"]
     },
-    "types": ["node", "mime"]
+    "types": ["node", "mime"],
+    "extends": "@tsconfig/vite-react/tsconfig.json"
   },
   "include": ["src/**/*", "../src/types/**/*"],
   "exclude": ["node_modules", "dist"]
