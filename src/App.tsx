@@ -17,78 +17,68 @@ const Features = lazy(() => import("./pages/Features"));
 const Benefits = lazy(() => import("./pages/Benefits"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const TermsOfService = lazy(() => import("./pages/TermsOfService"));
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 1,
-      refetchOnWindowFocus: false,
-      staleTime: 5 * 60 * 1000, // 5 minutes
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: 1,
+        refetchOnWindowFocus: false,
+        staleTime: 5 * 60 * 1000, // 5 minutes
+      },
     },
-  },
-});
+  });
+    const App: React.FC = () => {
+    return (
+      <QueryClientProvider client={queryClient}>
+        <ToastProvider>
+          <Suspense fallback={<div>Loading...</div>}>
+            <TooltipProvider>
+              <BrowserRouter>
+                <AuthProvider>
+                  <Suspense fallback={<Loading fullScreen message="Loading TherapyTrain..." />}>
+                    <Routes>
+                      {/* Public Routes */}
+                      <Route path="/" element={<Index />} />
+                      <Route path="/features" element={<Features />} />
+                      <Route path="/benefits" element={<Benefits />} />
+                      <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                      <Route path="/terms-of-service" element={<TermsOfService />} />
+                      <Route path="/auth" element={<Auth />} />
 
-const App: React.FC = () => {
-  return (
-    <QueryClientProvider client={queryClient}>
-      <ToastProvider>
-        <Suspense fallback={<div>Loading...</div>}>
-          <TooltipProvider>
-            <BrowserRouter>
-              <AuthProvider>
-                <Suspense fallback={<Loading fullScreen message="Loading TherapyTrain..." />}>
-                  <Routes>
-                    {/* Public Routes */}
-                    <Route path="/" element={<Index />} />
-                    <Route path="/features" element={<Features />} />
-                    <Route path="/benefits" element={<Benefits />} />
-                    <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-                    <Route path="/terms-of-service" element={<TermsOfService />} />
-                    <Route path="/auth" element={<Auth />} />
-
-                    {/* Protected Routes */}
-                    <Route 
-                      path="/dashboard" 
-                      element={
+                      {/* Protected Routes */}
+                      <Route 
+                        path="/dashboard" 
+                        element={
+                          <AuthGuard>
+                            <Dashboard />
+                          </AuthGuard>
+                        } 
+                      />
+                      <Route path="/chat" element={
                         <AuthGuard>
-                          <Dashboard />
+                          <Chat />
                         </AuthGuard>
-                      } 
-                    />
-                    <Route path="/chat" element={
-                      <AuthGuard>
-                        <Chat />
-                      </AuthGuard>
-                    } />
-                    <Route path="/education" element={
-                      <AuthGuard>
-                        <Education />
-                      </AuthGuard>
-                    } />
-                    <Route path="/client-selection" element={
-                      <AuthGuard>
-                        <ClientSelection />
-                      </AuthGuard>
-                    } />
+                      } />
+                      <Route path="/education" element={
+                        <AuthGuard>
+                          <Education />
+                        </AuthGuard>
+                      } />
+                      <Route path="/client-selection" element={
+                        <AuthGuard>
+                          <ClientSelection />
+                        </AuthGuard>
+                      } />
 
-                    {/* Catch-all redirect */}
-                    <Route path="*" element={<Navigate to="/" replace />} />
-                    <Route
-                      path="/callback"
-                      element={
-                        <Navigate
-                          to="/dashboard"
-                          replace={true}
-                        />
-                      }
-                    />
-                  </Routes>
-                </Suspense>
-              </AuthProvider>
-            </BrowserRouter>
-          </TooltipProvider>
-        </Suspense>
-      </ToastProvider>
-    </QueryClientProvider>
-  );
-};export default App;
+                      {/* Catch-all redirect */}
+                      <Route path="*" element={<Navigate to="/" replace />} />
+                    </Routes>
+                  </Suspense>
+                </AuthProvider>
+              </BrowserRouter>
+            </TooltipProvider>
+          </Suspense>
+        </ToastProvider>
+      </QueryClientProvider>
+    )
+  }
+export default App;
