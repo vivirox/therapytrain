@@ -1,33 +1,36 @@
 {
-  "compilerOptions": {
-    "composite": true,
-    "target": "ES2020",
-    "useDefineForClassFields": true,
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
-    "module": "ESNext",
-    "skipLibCheck": true,
+    "compilerOptions": {
+      "composite": true,
+      "target": "ES2020",
+      "useDefineForClassFields": true,
+      "lib": ["ES2020", "DOM", "DOM.Iterable"],
+      "module": "ESNext",
+      "skipLibCheck": true,
 
-    /* Bundler mode */
-    "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "emitDeclarationOnly": true,
-    "jsx": "react-jsx",
+      /* Bundler mode */
+      "moduleResolution": "bundler",
+      "allowImportingTsExtensions": true,
+      "resolveJsonModule": true,
+      "isolatedModules": true,
+      "emitDeclarationOnly": true,
+      "jsx": "react-jsx",
 
-    /* Linting */
-    "strict": false,
-    "noUnusedLocals": false,
-    "noUnusedParameters": false,
-    "noImplicitAny": false,
-    "noFallthroughCasesInSwitch": true,
+      /* Linting */
+      "strict": false,
+      "noUnusedLocals": false,
+      "noUnusedParameters": false,
+      "noImplicitAny": false,
+      "noFallthroughCasesInSwitch": true,
 
-    /* Path Aliases */
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["./src/*"]
-    }
-  },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist"]
+      /* Path Aliases */
+      "baseUrl": ".",
+      "paths": {
+        "@/*": ["./src/*"]
+      },
+
+      /* Types */
+      "types": ["mime"]
+    },
+    "include": ["src/**/*"],
+    "exclude": ["node_modules", "dist"]
 }

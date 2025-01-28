@@ -18,6 +18,7 @@
     "module": "commonjs",
     "target": "es2020",
     "esModuleInterop": true,
-    "moduleResolution": "node"
+    "moduleResolution": "node",
+    "types": ["mime"]
   }
 }

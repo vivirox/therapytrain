@@ -2,9 +2,10 @@ import React, { lazy, Suspense } from "react";
 import { ToastProvider } from "./components/ui/toast"; 
 import { TooltipProvider } from "./components/ui/tooltip";
 import { Loading } from "./components/ui/loading";
-import { AuthProvider, ProtectedRoute } from "./components/auth/AuthProvider";
+import { AuthProvider } from "./components/auth/AuthProvider";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthGuard } from "./components/AuthGuard";
 
 const Index = lazy(() => import("./pages/Index"));
 const Auth = lazy(() => import("./pages/Auth"));
@@ -47,25 +48,28 @@ const App: React.FC = () => {
                     <Route path="/callback" element={<Auth />} />
 
                     {/* Protected Routes */}
-                    <Route path="/dashboard" element={
-                      <ProtectedRoute>
-                        <Dashboard />
-                      </ProtectedRoute>
-                    } />
+                    <Route 
+                      path="/dashboard" 
+                      element={
+                        <AuthGuard>
+                          <Dashboard />
+                        </AuthGuard>
+                      } 
+                    />
                     <Route path="/chat" element={
-                      <ProtectedRoute>
+                      <AuthGuard>
                         <Chat />
-                      </ProtectedRoute>
+                      </AuthGuard>
                     } />
                     <Route path="/education" element={
-                      <ProtectedRoute>
+                      <AuthGuard>
                         <Education />
-                      </ProtectedRoute>
+                      </AuthGuard>
                     } />
                     <Route path="/client-selection" element={
-                      <ProtectedRoute>
+                      <AuthGuard>
                         <ClientSelection />
-                      </ProtectedRoute>
+                      </AuthGuard>
                     } />
 
                     {/* Catch-all redirect */}
@@ -80,5 +84,4 @@ const App: React.FC = () => {
     </QueryClientProvider>
   );
 };
-
 export default App;
