@@ -30,6 +30,12 @@ interface ContextMemory {
   };
 }
 export class ContextualLearningSystem {
+  getHints(content: string) {
+    throw new Error("Method not implemented.");
+  }
+  initialize(id: any): any {
+    throw new Error("Method not implemented.");
+  }
   private static instance: ContextualLearningSystem;
   private sessionAnalytics: SessionAnalytics;
   private contextMemory: Map<string, ContextMemory> = new Map();

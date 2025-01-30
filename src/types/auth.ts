@@ -1,4 +1,8 @@
-import { Session, User } from '@supabase/supabase-js';
+import { Session, User as SupabaseUser } from '@supabase/supabase-js';
+
+export interface User extends SupabaseUser {
+  given_name?: string; // Add given_name property
+}
 
 export interface AuthState {
   session: Session | null;
@@ -8,6 +12,7 @@ export interface AuthState {
 }
 
 export interface AuthContextType extends AuthState {
+  isAuthenticated: boolean; // Add isAuthenticated property
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;

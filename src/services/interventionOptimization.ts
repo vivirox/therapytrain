@@ -19,6 +19,12 @@ interface InterventionRecommendation {
 }
 
 export class InterventionOptimizationSystem {
+  getRecommendations(content: string) {
+    throw new Error("Method not implemented.");
+  }
+  initialize(id: any): any {
+    throw new Error("Method not implemented.");
+  }
   private static instance: InterventionOptimizationSystem;
   private sessionAnalytics: SessionAnalytics;
   private contextualLearning: ContextualLearningSystem;

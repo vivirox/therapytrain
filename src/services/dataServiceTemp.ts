@@ -22,7 +22,6 @@ class DataService {
   public async create<T>(table: string, data: T): Promise<StorageItem<T>> {
     const { data: createdData, error } = await supabase.from(table).insert(data);
     if (error) throw new Error(error.message);
-    if (!createdData || createdData.length === 0) throw new Error("No data returned");
     return createdData[0]; // Return the first created item
   }
 
@@ -35,7 +34,6 @@ class DataService {
   public async update<T>(table: string, id: string, data: Partial<T>): Promise<StorageItem<T> | null> {
     const { data: updatedData, error } = await supabase.from(table).update(data).eq('id', id);
     if (error) throw new Error(error.message);
-    if (!updatedData || updatedData.length === 0) throw new Error("No data returned");
     return updatedData[0]; // Return the first updated item
   }
 

@@ -1,34 +1,34 @@
 import { Router } from 'express';
 import { SessionController } from '../controllers/session.controller';
-import * as KindeAuth from '@kinde-oss/kinde-node-express';
+import { supabaseAuth } from '../middleware/supabaseAuth';
 
 const router = Router();
 const sessionController = new SessionController();
 
-export const setupSessionRoutes = (kindeAuth: ReturnType<typeof KindeAuth.default>) => {
+export const setupSessionRoutes = () => {
   // Create a new session
-  router.post('/', kindeAuth.protect(), sessionController.startSession);
+  router.post('/', supabaseAuth, sessionController.startSession);
 
   // Get session by ID
-  router.get('/:sessionId', kindeAuth.protect(), sessionController.getSession);
+  router.get('/:sessionId', supabaseAuth, sessionController.getSession);
 
   // Load session branches
-  router.get('/:sessionId/branches', kindeAuth.protect(), sessionController.loadBranches);
+  router.get('/:sessionId/branches', supabaseAuth, sessionController.loadBranches);
 
   // Evaluate branches
-  router.post('/:sessionId/evaluate', kindeAuth.protect(), sessionController.evaluateBranches);
+  router.post('/:sessionId/evaluate', supabaseAuth, sessionController.evaluateBranches);
 
   // Trigger a branch
-  router.post('/branches/:branchId/trigger', kindeAuth.protect(), sessionController.triggerBranch);
+  router.post('/branches/:branchId/trigger', supabaseAuth, sessionController.triggerBranch);
 
   // Switch session mode
-  router.patch('/:sessionId/mode', kindeAuth.protect(), sessionController.switchMode);
+  router.patch('/:sessionId/mode', supabaseAuth, sessionController.switchMode);
 
   // Update session metrics
-  router.patch('/:sessionId/metrics', kindeAuth.protect(), sessionController.updateMetrics);
+  router.patch('/:sessionId/metrics', supabaseAuth, sessionController.updateMetrics);
 
   // End session
-  router.post('/:sessionId/end', kindeAuth.protect(), sessionController.endSession);
+  router.post('/:sessionId/end', supabaseAuth, sessionController.endSession);
 
   return router;
 };

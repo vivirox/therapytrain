@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useKindeAuth } from '@kinde-oss/kinde-auth-react';
+import { useAuth } from '../context/AuthContext'; // Updated import
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { Card } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -22,7 +22,7 @@ import type { Tutorial, CaseStudy, SkillProgression } from '../types/education';
 
 const Education = () => {
   const navigate = useNavigate();
-  const { isAuthenticated, user } = useKindeAuth();
+  const { user, loading } = useAuth(); // Updated to use useAuth
   const [activeTab, setActiveTab] = useState('learning-path');
   const [userProgress, setUserProgress] = useState<SkillProgression | null>(null);
   const [recommendations, setRecommendations] = useState<{
@@ -31,13 +31,14 @@ const Education = () => {
   }>({ recommendedTutorials: [], recommendedCaseStudies: [] });
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (loading) return; // Wait for loading to finish
+
+    if (!user) {
       navigate('/auth');
       return;
     }
     
     const fetchUserData = async () => {
-      if (!user) return;
       try {
         const [progress, recs] = await Promise.all([
           fetch(`/api/skill-progression/${user.id}`).then(res => res.json()),
@@ -51,7 +52,7 @@ const Education = () => {
     };
     
     fetchUserData();
-  }, [isAuthenticated, navigate, user]);
+  }, [loading, navigate, user]);
 
   const renderContent = () => {
     switch (activeTab) {

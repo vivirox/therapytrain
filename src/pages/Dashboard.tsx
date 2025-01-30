@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useKindeAuth } from "@kinde-oss/kinde-auth-react";
+import { useAuth } from "../context/AuthContext"; // Updated import
 import { MdChat, MdPsychology, MdSchool, MdGroup, MdMenuBook, MdDashboard, MdSettings, MdPeople } from "react-icons/md";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import MetricCard from '../components/MetricCard';
@@ -12,10 +12,10 @@ import { useState } from "react";
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { user, isAuthenticated, isLoading } = useKindeAuth();
+  const { user, isAuthenticated, loading } = useAuth(); // Updated to use useAuth
   const [activeTab, setActiveTab] = useState("overview");
 
-  if (isLoading) {
+  if (loading) {
     return <div>Loading...</div>;
   }
 

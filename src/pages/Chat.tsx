@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useKindeAuth } from "@kinde-oss/kinde-auth-react";
+import { useAuth } from "../context/AuthContext";
 import { analyzeMessageHistory, analyzeSentiment } from "../services/sentimentAnalysis";
 import { useToast } from "../components/ui/use-toast";
 import MessageList from "../components/MessageList";
@@ -37,7 +37,8 @@ const ChatPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [client, setClient] = useState<Client | null>(null);
   const [currentSentiment, setCurrentSentiment] = useState(0);
-  const [overallSentiment,] = useState(0);
+
+  const [overallSentiment] = useState(0);
   const [sessionMode, setSessionMode] = useState<SessionMode>('text');
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [contextualHints, setContextualHints] = useState<Array<string>>([]);
@@ -49,12 +50,13 @@ const ChatPage = () => {
   useEffect(() => {
     const initializeSession = async () => {
       try {
-        const { isAuthenticated, user } = useKindeAuth();
+
+        const { user, isAuthenticated } = useAuth();
         if (!isAuthenticated || !user) {
           navigate("/auth");
           return;
         }
-        
+
         if (!clientId) {
           toast({
             title: "Error",
@@ -65,17 +67,17 @@ const ChatPage = () => {
           return;
         }
 
-        // Start a new session
+
         const session = await api.sessions.start(clientId, sessionMode);
         setSessionId(session.id);
 
-        // Initialize systems
+
         await Promise.all([
-          ContextualLearningSystem.initialize(session.id),
-          InterventionOptimizationSystem.initialize(session.id)
+          ContextualLearningSystem.getInstance().initialize(session.id),
+          InterventionOptimizationSystem.getInstance().initialize(session.id)
         ]);
 
-        // Add initial greeting
+
         setMessages([{
           role: 'assistant',
           content: 'Hello! How can I assist you today?',
@@ -97,35 +99,25 @@ const ChatPage = () => {
   }, [clientId, navigate, sessionMode, toast]);
 
   const handleSendMessage = async (content: string) => {
-    if (!content.trim() || !sessionId) return;
-
     try {
       setIsLoading(true);
-      setMessages(prev => [...prev, { role: 'user', content, timestamp: Date.now() }]);
+      const newMessage = {
+        role: 'user',
+        content,
+        timestamp: Date.now()
+      };
+      setMessages((prevMessages) => [...prevMessages, newMessage as Message]);
 
-      // Analyze sentiment
       const sentiment = await analyzeSentiment(content);
-      setCurrentSentiment(sentiment);
+      setCurrentSentiment(sentiment.score);
+      const response = await (api as any).messages.send(sessionId, content); const assistantMessage = {
+        role: 'assistant' as const,
+        content: response.message,
+        timestamp: Date.now()
+      };
+      setMessages((prevMessages) => [...prevMessages, assistantMessage]);
 
-      // Update session metrics
-      await api.sessions.updateMetrics(sessionId, {
-        sentiment: sentiment,
-        engagement: 0.8 // TODO: Implement proper engagement tracking
-      });
-
-      // Get contextual hints
-      const hints = await ContextualLearningSystem.getHints(content);
-      setContextualHints(hints);
-
-      // Get intervention recommendations
-      const recommendations = await InterventionOptimizationSystem.getRecommendations(content);
-      setInterventionRecommendations(recommendations);
-
-      // TODO: Implement AI response generation
-      const aiResponse = "I understand. Could you tell me more about that?";
-      
-      setMessages(prev => [...prev, { role: 'assistant', content: aiResponse, timestamp: Date.now() }]);
-      
+      setIsLoading(false);
     } catch (error) {
       console.error('Error sending message:', error);
       toast({
@@ -133,11 +125,9 @@ const ChatPage = () => {
         description: "Failed to send message. Please try again.",
         variant: "destructive",
       });
-    } finally {
       setIsLoading(false);
     }
   };
-
   const handleEndSession = async () => {
     if (!sessionId) return;
 
@@ -178,51 +168,33 @@ const ChatPage = () => {
     }
   };
 
+
+
+
   return (
     <div className="flex h-screen bg-[#0A0A0B]">
       <ChatSidebar
-        sessionMode={sessionMode}
+        mode={sessionMode}
         onModeChange={handleModeChange}
         onEndSession={handleEndSession}
       />
-      
       <div className="flex-1 flex flex-col">
         <div className="flex-1 overflow-hidden relative">
           <MessageList
             messages={messages}
-            isLoading={isLoading}
             messagesEndRef={messagesEndRef}
           />
-          
-          <div className="absolute top-4 right-4">
-            <SentimentIndicator
-              currentSentiment={currentSentiment}
-              overallSentiment={overallSentiment}
-            />
-          </div>
+          {sessionMode === 'video' && (
+            <VideoChat sessionId={sessionId || ''} />
+          )}
+          <ChatInput sendMessage={handleSendMessage} isLoading={isLoading} />
+          {sessionMode === 'text' && (
+            <div className="flex justify-between">
+              <ContextualHints hints={contextualHints} />
+              <InterventionRecommendations recommendations={interventionRecommendations} />
+            </div>
+          )}
         </div>
-
-        <div className="p-4 border-t border-gray-800">
-          <ChatInput
-            onSendMessage={handleSendMessage}
-            isLoading={isLoading}
-          />
-        </div>
-      </div>
-
-      <div className="w-80 border-l border-gray-800 p-4 overflow-y-auto">
-        <SessionControls
-          sessionMode={sessionMode}
-          onModeChange={handleModeChange}
-          onEndSession={handleEndSession}
-        />
-        
-        {sessionMode === 'video' && (
-          <VideoChat />
-        )}
-        
-        <ContextualHints hints={contextualHints} />
-        <InterventionRecommendations recommendations={interventionRecommendations} />
       </div>
     </div>
   );

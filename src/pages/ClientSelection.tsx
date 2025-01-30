@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useKindeAuth } from "@kinde-oss/kinde-auth-react";
+import { useAuth } from "../context/AuthContext"; // Updated import
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
@@ -18,13 +18,13 @@ interface Client {
 
 const ClientSelection = () => {
   const navigate = useNavigate();
-  const { isAuthenticated, user } = useKindeAuth();
-  const [clients, setClients] = useState<Client[]>([]);
+  const { isAuthenticated } = useAuth(); // Updated to use useAuth
+  const [clients, setClients] = useState<Array<Client>>([]);
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      navigate("/auth");
+    if (!isAuthenticated) { 
+      navigate("/auth"); 
       return;
     }
 

@@ -1,8 +1,8 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Session } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
-import { AuthContextType, AuthState } from '@/types/auth';
-import { useToast } from '@/hooks/use-toast';
+import { supabase } from '../integrations/supabase/client'; // Corrected import path
+import { AuthContextType, AuthState } from '../types/auth'; // Corrected import path
+import { useToast } from '../hooks/use-toast'; // Corrected import path
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -16,7 +16,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const { toast } = useToast();
 
   useEffect(() => {
-    // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setState(prev => ({
         ...prev,
@@ -26,7 +25,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }));
     });
 
-    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       setState(prev => ({
         ...prev,
@@ -34,7 +32,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         user: session?.user ?? null,
       }));
 
-      // Handle session expiration
       if (event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
         setState(prev => ({ ...prev, loading: false }));
       }
@@ -50,6 +47,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
+        options: {
+          redirectTo: `${window.location.origin}/dashboard`, // Add redirect URI
+        },
       });
       if (error) throw error;
     } catch (error) {
@@ -68,7 +68,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/select-client`,
+          emailRedirectTo: `${window.location.origin}/select-client`, // Add redirect URI
         },
       });
       if (error) throw error;

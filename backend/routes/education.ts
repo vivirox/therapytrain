@@ -4,7 +4,7 @@ import { Tutorial, UserProgress, Skill } from '../models/education';
 const router = express.Router();
 
 // Get all tutorials
-router.get('/tutorials', async (req, res) => {
+router.get('/tutorials', async (_req, res) => {
   try {
     const tutorials = await Tutorial.find();
     res.json(tutorials);
