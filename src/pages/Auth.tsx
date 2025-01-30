@@ -10,25 +10,34 @@ const AuthPage = () => {
   const [password, setPassword] = useState("");
 
   useEffect(() => {
-    const session = supabase.auth.session();
-    if (session) {
-      console.log("User authenticated, redirecting to dashboard");
-      navigate("/dashboard", { replace: true });
-    }
+    const checkSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (data.session) {
+        console.log("User authenticated, redirecting to dashboard");
+        navigate("/dashboard", { replace: true });
+      }
+    };
+    checkSession();
   }, [navigate]);
 
   const handleLogin = async () => {
     console.log("Attempting to login...");
-    const { user, error } = await supabase.auth.signIn({ email, password });
-    if (error) console.error("Login error:", error.message);
-    else if (user) navigate("/dashboard", { replace: true });
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) {
+      console.error("Login error:", error.message);
+    } else if (data.user) {
+      navigate("/dashboard", { replace: true });
+    }
   };
 
   const handleRegister = async () => {
     console.log("Attempting to register...");
-    const { user, error } = await supabase.auth.signUp({ email, password });
-    if (error) console.error("Registration error:", error.message);
-    else if (user) navigate("/dashboard", { replace: true });
+    const { data, error } = await supabase.auth.signUp({ email, password });
+    if (error) {
+      console.error("Registration error:", error.message);
+    } else if (data.user) {
+             navigate("/dashboard", { replace: true });
+           }
   };
 
   return (

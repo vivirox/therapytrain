@@ -148,7 +148,7 @@ export default defineConfig(({ mode }) => ({
     }
   },
   optimizeDeps: {
-      include: []
+      include: ['react-native-web']
     }
   }
 }));

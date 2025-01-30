@@ -1,4 +1,4 @@
-import React, { lazy, Suspense } from "react";
+import React, { useState, useEffect, Suspense } from 'react';
 import { ToastProvider } from "./components/ui/toast";
 import { TooltipProvider } from "./components/ui/tooltip";
 import { Loading } from "./components/ui/loading";
@@ -6,6 +6,8 @@ import { AuthProvider } from "./components/auth/AuthProvider";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthGuard } from "./components/AuthGuard";
+import { Text } from 'react-native-web';
+import { supabase } from './utils/supabase';
 
 const Index = lazy(() => import("./pages/Index"));
 const Auth = lazy(() => import("./pages/Auth"));
@@ -26,6 +28,58 @@ const queryClient = new QueryClient({
     },
   },
 });
+
+function TodoApp() {
+  const [todos, setTodos] = useState([]);
+
+  useEffect(() => {
+    const fetchTodos = async () => {
+      try {
+        const { data, error } = await supabase.from('todos').select();
+        if (error) {
+          throw error;
+        }
+        setTodos(data || []);
+      } catch (error) {
+        console.error('Error fetching todos:', error.message);
+      }
+    };
+
+    fetchTodos();
+  }, []);
+
+  return (
+    <div style={styles.container}>
+      <h1 style={styles.header}>Todo List</h1>
+      <ul>
+        {todos.map((item) => (
+          <li key={item.id.toString()} style={styles.todoItem}>
+            {item.title}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+const styles = {
+  container: {
+    flex: 1,
+    justifyContent: 'center' as 'center',
+    alignItems: 'center' as 'center',
+  },
+  header: {
+    fontSize: 24,
+    marginBottom: 20,
+  },
+  todoItem: {
+    fontSize: 18,
+    padding: 10,
+  },
+};
+
+
+
 const App: React.FC = () => {
   return (
     <QueryClientProvider client={queryClient}>
@@ -83,4 +137,9 @@ const App: React.FC = () => {
     </QueryClientProvider>
   )
 }
-export default App;
+export { App as default };
+import { lazy as reactLazy } from 'react';
+
+function lazy(factory: () => Promise<{ default: React.ComponentType<any> }>) {
+  return reactLazy(factory);
+}
