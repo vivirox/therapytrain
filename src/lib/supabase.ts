@@ -1,25 +1,35 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
-export const supabase = createClient(supabaseUrl, supabaseKey);
+if (!import.meta.env.VITE_SUPABASE_URL) {
+  throw new Error('Missing environment variable: VITE_SUPABASE_URL')
+}
 
-// Example function to fetch data
-export const fetchData = async (tableName) => {
-  const { data, error } = await supabase.from(tableName).select('*');
+if (!import.meta.env.VITE_SUPABASE_ANON_KEY) {
+  throw new Error('Missing environment variable: VITE_SUPABASE_ANON_KEY')
+}
+
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+
+export const fetchData = async (tableName: string) => {
+  const { data, error } = await supabase.from(tableName).select('*')
   if (error) {
-    console.error('Error fetching data:', error);
-    return null;
+    console.error('Error fetching data:', error)
+    return null
   }
-  return data;
+  return data
+}
+
+// Test connection
+const testConnection = async () => {
+  const { data, error } = await supabase.from('your_actual_table_name').select('*'); // Replace with a valid table name
+  if (error) {
+    console.error('Connection test error:', error.message);
+  } else {
+    console.log('Connection test successful:', data);
+  }
 };
 
-// Example function to insert data
-export const insertData = async (tableName, newData) => {
-  const { data, error } = await supabase.from(tableName).insert(newData);
-  if (error) {
-    console.error('Error inserting data:', error);
-    return null;
-  }
-  return data;
-};
+testConnection();

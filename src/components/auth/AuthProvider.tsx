@@ -68,7 +68,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, [navigate]);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      return;
+    }
 
     // Fetch user permissions
     const fetchPermissions = async () => {
@@ -139,12 +141,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       email,
       password,
     });
-    if (error) throw error;
+    if (error) {
+      throw error;
+    }
   };
 
   const logout = async () => {
     const { error } = await supabase.auth.signOut();
-    if (error) throw error;
+    if (error) {
+      throw error;
+    }
     navigate('/auth');
   };
 
@@ -153,14 +159,18 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       email,
       password,
     });
-    if (error) throw error;
+    if (error) {
+      throw error;
+    }
   };
 
   const createOrg = async (orgName: string) => {
     const { error } = await supabase
       .from('organizations')
       .insert([{ name: orgName, created_by: user?.id }]);
-    if (error) throw error;
+    if (error) {
+      throw error;
+    }
   };
 
   const switchOrganization = async (orgId: string) => {
@@ -170,7 +180,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       .eq('user_id', user?.id)
       .eq('organization_id', orgId);
 
-    if (error) throw error;
+    if (error) {
+      throw error;
+    }
     window.location.reload();
   };
 
@@ -200,18 +212,39 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     isOrgAdmin,
     getFeatureFlag,
     switchOrganization,
+    supabase,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
-
 // Auth context hook
+interface AuthContextType {
+  user: User | null;
+  supabase: SupabaseClient;
+}
+
+function isAuthContext(context: unknown): context is AuthContextType {
+  return (
+    typeof context === 'object' &&
+    context !== null &&
+    'user' in context &&
+    'supabase' in context
+  );
+}
+
 export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+  const context = useMemo(() => useContext(AuthContext), []);
+
+  try {
+    if (!context || !isAuthContext(context)) {
+      throw new Error('useAuth must be used within an AuthProvider');
+    }
+    return context;
+  } catch (error) {
+
+    console.error(error);
+    return null;
   }
-  return context;
 };
 
 // Protected route component with optional permission check
@@ -243,3 +276,5 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   return <>{children}</>;
 };
+import { useMemo } from 'react';import { ErrorBoundary } from 'next/dist/client/components/error-boundary';
+

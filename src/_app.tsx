@@ -1,27 +1,44 @@
 import { useState, useEffect } from 'react'
 import { supabase } from './utils/supabase'
 
+interface Todo {
+    id: number;
+    title: string;
+    completed: boolean;
+}
+
 function Page() {
-    const [todos, setTodos] = useState([])
+    const [todos, setTodos] = useState<Array<Todo>>([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        async function getTodos() {
-            const { data: todos } = await supabase.from('todos').select()
-
-            if (todos.length > 1) {
-                setTodos(todos)
+        const getTodos = async () => {
+            try {
+                const { data: todos, error } = await supabase.from('todos').select();
+                if (error) {
+                  throw error;
+                }
+                setTodos(todos || []);
+            } catch (error) {
+                console.error('Error fetching todos:', error);
+            } finally {
+                setLoading(false);
             }
-        }
+        };
 
-        getTodos()
-    }, [])
+        getTodos();
+    }, []);
 
     return (
-        <div>
-            {todos.map((todo) => (
-                <li key={todo}>{todo}</li>
-            ))}
-        </div>
-    )
+        <ul>
+            {loading ? (
+                <p>Loading...</p>
+            ) : (
+                todos.map((todo) => (
+                    <li key={todo.id}>{todo.title}</li>
+                ))
+            )}
+        </ul>
+    );
 }
 export default Page

@@ -1,31 +1,37 @@
-import mongoose from 'mongoose';
+import { supabase } from '../../src/lib/supabase';
 
-const tutorialSchema = new mongoose.Schema({
-  title: { type: String, required: true },
-  description: { type: String, required: true },
-  content: { type: String, required: true },
-  category: { type: String, required: true },
-  difficulty: { type: String, enum: ['beginner', 'intermediate', 'advanced'], required: true },
-  duration: { type: Number, required: true }, // in minutes
-  createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now }
-});
+export interface Tutorial {
+  id: string;
+  title: string;
+  description: string;
+  content: string;
+  category: string;
+  difficulty: 'beginner' | 'intermediate' | 'advanced';
+  duration: number; // in minutes
+  createdAt: Date;
+  updatedAt: Date;
+}
 
-const userProgressSchema = new mongoose.Schema({
-  userId: { type: String, required: true },
-  tutorialId: { type: mongoose.Schema.Types.ObjectId, ref: 'Tutorial', required: true },
-  completed: { type: Boolean, default: false },
-  progress: { type: Number, default: 0 }, // percentage
-  lastAccessed: { type: Date, default: Date.now }
-});
+// Function to create a new tutorial
+export const createTutorial = async (tutorial: Tutorial) => {
+  const { data, error } = await supabase
+    .from('tutorials')
+    .insert([tutorial]);
 
-const skillSchema = new mongoose.Schema({
-  userId: { type: String, required: true },
-  skillName: { type: String, required: true },
-  proficiency: { type: Number, required: true }, // 0 to 1
-  lastUpdated: { type: Date, default: Date.now }
-});
+  if (error) {
+    throw new Error(error.message);
+  }
+  return data;
+};
 
-export const Tutorial = mongoose.model('Tutorial', tutorialSchema);
-export const UserProgress = mongoose.model('UserProgress', userProgressSchema);
-export const Skill = mongoose.model('Skill', skillSchema);
+// Function to get all tutorials
+export const getAllTutorials = async () => {
+  const { data, error } = await supabase
+    .from('tutorials')
+    .select('*');
+
+  if (error) {
+    throw new Error(error.message);
+  }
+  return data;
+};

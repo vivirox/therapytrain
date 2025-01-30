@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response } from 'express';
 import { logger } from '../utils/logger';
 import { ZodError } from 'zod';
 import { MongoError } from 'mongodb';
@@ -17,10 +17,7 @@ export class AppError extends Error {
 export const errorHandler = (
   err: Error,
   req: Request,
-  res: Response,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  next: NextFunction
-) => {
+  res: Response) => {
   logger.error('Error:', {
     message: err.message,
     stack: err.stack,
@@ -43,13 +40,11 @@ export const errorHandler = (
     });
   }
 
-  if (err instanceof MongoError) {
-    if (err.code === 11000) {
-      return res.status(409).json({
-        status: 'error',
-        message: 'Duplicate key error',
-      });
-    }
+  if (err instanceof MongoError && err.code === 11_000) {
+        return res.status(409).json({
+          status: 'error',
+          message: 'Duplicate key error',
+        });
   }
 
   // Default error

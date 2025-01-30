@@ -4532,7 +4532,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@supabase/functions-js@npm:2.4.4":
+"@supabase/functions-js@npm:2.4.4, @supabase/functions-js@npm:^2.4.4":
   version: 2.4.4
   resolution: "@supabase/functions-js@npm:2.4.4"
   dependencies:
@@ -16214,6 +16214,7 @@ __metadata:
     "@radix-ui/react-tooltip": "npm:^1.1.2"
     "@supabase/auth-helpers-nextjs": "npm:^0.10.0"
     "@supabase/auth-helpers-react": "npm:^0.5.0"
+    "@supabase/functions-js": "npm:^2.4.4"
     "@supabase/supabase-js": "npm:^2.48.1"
     "@tailwindcss/typography": "npm:^0.5.15"
     "@tanstack/react-query": "npm:^5.56.2"
@@ -16289,6 +16290,10 @@ __metadata:
     vite: "npm:^5.0.0"
     zod: "npm:^3.23.8"
     zustand: "npm:^5.0.3"
+  peerDependencies:
+    "@types/swc__core": "*"
+    "@types/uglify-js": "*"
+    "@types/webpack": "*"
   languageName: unknown
   linkType: soft
 
