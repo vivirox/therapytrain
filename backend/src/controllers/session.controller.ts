@@ -1,6 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import { SessionService } from '../services/session.service';
 import { z } from 'zod';
+import { supabase } from '../../../src/lib/supabase';
+import { SessionMetrics } from '../types/sessionMetrics'; // Import the new type
 
 const sessionService = new SessionService();
 
@@ -52,14 +54,16 @@ export class SessionController {
       const metrics = updateMetricsSchema.parse(req.body).metrics;
       const branch = await sessionService.evaluateBranches(
         req.params.sessionId,
-        metrics
+        {
+          sentiment: metrics.sentiment ?? 0,
+          engagement: metrics.engagement ?? 0
+        }
       );
       res.json(branch);
     } catch (error) {
       next(error);
     }
   }
-
   async triggerBranch(req: Request, res: Response, next: NextFunction) {
     try {
       const branch = await sessionService.triggerBranch(req.params.branchId);
@@ -84,7 +88,7 @@ export class SessionController {
       const { metrics } = updateMetricsSchema.parse(req.body);
       const session = await sessionService.updateMetrics(
         req.params.sessionId,
-        metrics
+        metrics as SessionMetrics // Use the imported type
       );
       res.json(session);
     } catch (error) {
@@ -96,6 +100,28 @@ export class SessionController {
     try {
       const session = await sessionService.endSession(req.params.sessionId);
       res.json(session);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async signIn(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { email, password } = req.body;
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      res.status(200).json({ user: data.user });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async signUp(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { email, password } = req.body;
+      const { data, error } = await supabase.auth.signUp({ email, password });
+      if (error) throw error;
+      res.status(201).json({ user: data.user });
     } catch (error) {
       next(error);
     }

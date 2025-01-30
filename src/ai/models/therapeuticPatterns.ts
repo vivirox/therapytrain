@@ -2,8 +2,8 @@ import { ClientProfile } from '@/types/ClientProfile';
 
 export interface TherapeuticPattern {
   type: string;
-  triggers: string[];
-  responses: string[];
+  triggers: Array<string>;
+  responses: Array<string>;
   emotionalState: string;
   intensity: number; // 1-10
 }
@@ -11,20 +11,20 @@ export interface TherapeuticPattern {
 export interface DefenseMechanism {
   name: string;
   description: string;
-  triggers: string[];
-  behaviors: string[];
+  triggers: Array<string>;
+  behaviors: Array<string>;
   intensity: number; // 1-10
 }
 
 export interface EmotionalResponse {
   emotion: string;
   intensity: number; // 1-10
-  triggers: string[];
-  manifestation: string[];
+  triggers: Array<string>;
+  manifestation: Array<string>;
 }
 
 // Core therapeutic dialogue patterns
-export const therapeuticPatterns: TherapeuticPattern[] = [
+export const therapeuticPatterns: Array<TherapeuticPattern> = [
   {
     type: 'resistance',
     triggers: ['why', 'how do you know', 'you don\'t understand'],
@@ -62,7 +62,7 @@ export const therapeuticPatterns: TherapeuticPattern[] = [
 ];
 
 // Common defense mechanisms
-export const defenseMechanisms: DefenseMechanism[] = [
+export const defenseMechanisms: Array<DefenseMechanism> = [
   {
     name: 'denial',
     description: 'Refusing to accept reality or facts',
@@ -99,7 +99,7 @@ export const defenseMechanisms: DefenseMechanism[] = [
 ];
 
 // Emotional response patterns
-export const emotionalResponses: EmotionalResponse[] = [
+export const emotionalResponses: Array<EmotionalResponse> = [
   {
     emotion: 'anger',
     intensity: 8,
@@ -134,14 +134,14 @@ export const emotionalResponses: EmotionalResponse[] = [
 
 // Function to analyze client message for patterns
 export function analyzeMessage(message: string, clientProfile: ClientProfile): {
-  patterns: TherapeuticPattern[];
-  defenses: DefenseMechanism[];
-  emotions: EmotionalResponse[];
+  patterns: Array<TherapeuticPattern>;
+  defenses: Array<DefenseMechanism>;
+  emotions: Array<EmotionalResponse>;
 } {
   const result = {
-    patterns: [] as TherapeuticPattern[],
-    defenses: [] as DefenseMechanism[],
-    emotions: [] as EmotionalResponse[]
+    patterns: [] as Array<TherapeuticPattern>,
+    defenses: [] as Array<DefenseMechanism>,
+    emotions: [] as Array<EmotionalResponse>
   };
 
   // Check for therapeutic patterns

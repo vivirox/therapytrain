@@ -1,29 +1,8 @@
-import mongoose from 'mongoose';
+import { Database } from '../../../types/supabase';
+export type User = Database['public']['Tables']['users']['Row'];
 
-export interface IUser extends mongoose.Document {
-  kindeId: string;
-  email: string;
-  name?: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
+// Type for creating a new user
+export type UserInsert = Database['public']['Tables']['users']['Insert'];
 
-const userSchema = new mongoose.Schema({
-  kindeId: {
-    type: String,
-    required: true,
-    unique: true,
-  },
-  email: {
-    type: String,
-    required: true,
-    unique: true,
-  },
-  name: String,
-}, {
-  timestamps: true,
-});
-
-export const User = mongoose.models.User || mongoose.model<IUser>('User', userSchema);
-
-export default User;
+// Type for updating an existing user
+export type UserUpdate = Database['public']['Tables']['users']['Update'];

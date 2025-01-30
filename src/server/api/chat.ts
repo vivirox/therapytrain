@@ -1,14 +1,17 @@
-import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { cookies } from 'next/headers';
 import { type Message } from '../../ollama/process';
 import { TherapeuticAIProcessor } from '@/ai/processor';
 import type { ClientProfile } from '@/types/ClientProfile';
+import type { Database } from '@/types/supabase';
 
 export async function POST(req: Request) {
   try {
-    const { getUser } = getKindeServerSession();
-    const user = await getUser();
-    
-    if (!user) {
+    const supabase = createRouteHandlerClient<Database>({ cookies });
+
+    const { data: { session }, error: authError } = await supabase.auth.getSession();
+
+    if (authError || !session) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,
         headers: { 'Content-Type': 'application/json' },
@@ -24,21 +27,21 @@ export async function POST(req: Request) {
     const processor = new TherapeuticAIProcessor(client_profile as ClientProfile);
     const response = await processor.processMessage(messages as Array<Message>);
 
-    // Store interaction using Kinde Management API
-    await fetch(`${process.env.KINDE_ISSUER_URL}/api/v1/interactions`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${process.env.KINDE_CLIENT_SECRET}`,
-      },
-      body: JSON.stringify({
+    // Store interaction in Supabase
+    const { error: insertError } = await supabase
+      .from('interactions')
+      .insert({
         client_id: client_profile.id,
+        user_id: session.user.id,
         message: messages[messages.length - 1].content,
         response: response.content,
         analysis: response.analysis,
-        timestamp: new Date().toISOString()
-      }),
-    });
+        created_at: new Date().toISOString()
+      });
+
+    if (insertError) {
+      console.error('Failed to store interaction:', insertError);
+    }
 
     return new Response(JSON.stringify({
       message: response.content,

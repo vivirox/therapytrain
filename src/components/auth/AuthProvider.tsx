@@ -1,5 +1,5 @@
 import React, { createContext, useContext, ReactNode, useEffect, useState } from 'react';
-import { KindeProvider, useKindeAuth } from "@kinde-oss/kinde-auth-react";
+import { createClient, SupabaseClient, User } from '@supabase/supabase-js';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 
 interface Permission {
@@ -20,10 +20,10 @@ interface FeatureFlag {
 
 interface AuthContextType {
   isAuthenticated: boolean;
-  user: any;
-  login: (options?: { org_code?: string; login_hint?: string }) => void;
-  logout: () => void;
-  register: (options?: { org_code?: string; }) => void;
+  user: User | null;
+  login: (email: string, password: string) => Promise<void>;
+  logout: () => Promise<void>;
+  register: (email: string, password: string) => Promise<void>;
   createOrg: (orgName: string) => Promise<void>;
   permissions: Array<Permission>;
   organizations: Array<Organization>;
@@ -33,198 +33,144 @@ interface AuthContextType {
   switchOrganization: (orgId: string) => Promise<void>;
 }
 
-interface KindePermissionResponse {
-  permissions: Array<{ id: string; name?: string } | string>;
-}
+const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL,
+  import.meta.env.VITE_SUPABASE_ANON_KEY
+);
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
-// Wrapper component that provides Kinde context
+// Main Auth Provider component
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const location = useLocation();
-  const navigate = useNavigate();
-  
-  console.log("Kinde Config:", {
-    clientId: import.meta.env.VITE_KINDE_CLIENT_ID,
-    domain: import.meta.env.VITE_KINDE_DOMAIN,
-    redirectUri: import.meta.env.VITE_KINDE_REDIRECT_URL,
-    logoutUri: import.meta.env.VITE_KINDE_LOGOUT_URL
-  });
-      return (
-        <KindeProvider
-          clientId={import.meta.env.VITE_KINDE_CLIENT_ID}
-          domain={import.meta.env.VITE_KINDE_DOMAIN}
-          redirectUri={import.meta.env.VITE_KINDE_REDIRECT_URL}
-          logoutUri={import.meta.env.VITE_KINDE_LOGOUT_URL}
-          onRedirectCallback={(user, appState) => {
-            // Only redirect to dashboard after successful authentication
-            if (user && isAuthenticated) {
-              navigate('/dashboard', { replace: true });
-            }
-          }}
-        >
-      <AuthStateProvider>{children}</AuthStateProvider>
-    </KindeProvider>
-  );
-};
-
-// Component that provides the authentication state
-const AuthStateProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const {
-    isAuthenticated,
-    user,
-    login: kindeLogin,
-    logout: kindeLogout,
-    register: kindeRegister,
-    getPermissions,
-    getUserOrganizations,
-    createOrg: kindeCreateOrg,
-    getToken,
-    getClaim
-  } = useKindeAuth();
-
+  const [user, setUser] = useState<User | null>(null);
   const [permissions, setPermissions] = useState<Array<Permission>>([]);
   const [organizations, setOrganizations] = useState<Array<Organization>>([]);
   const [featureFlags, setFeatureFlags] = useState<Record<string, FeatureFlag>>({});
-  
+  const navigate = useNavigate();
+
   useEffect(() => {
-    if (!isAuthenticated) {
-      return;
-    }
-    // Fetch permissions
-    const fetchPermissions = async () => {
-      try {
-        const perms = await getPermissions();
-        if (!perms) {
-          setPermissions([]);
-          return;
-        }
-          
-        if (Array.isArray(perms)) {
-          const transformedPerms: Array<Permission> = perms.map(perm => {
-            if (typeof perm === 'string') {
-              return { id: perm, name: perm };
-            } else if (typeof perm === 'object' && perm !== null && 'id' in perm) {
-              const permId = perm.id;
-              if (typeof permId !== 'string') {
-                return { id: String(permId), name: String(permId) };
-              }
-              return { 
-                id: permId,
-                name: typeof perm.name === 'string' ? perm.name : permId 
-              };
-            }
-            // fallback case
-            return { id: String(perm), name: String(perm) };
-          });
-          setPermissions(transformedPerms);
-        } else {
-          setPermissions([]);
-        }
-      } catch (error) {
-        console.error('Error fetching permissions:', error);
-        setPermissions([]);
+    // Set up Supabase auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user ?? null);
+      if (event === 'SIGNED_IN') {
+        navigate('/dashboard');
       }
+    });
+
+    // Initial session check
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [navigate]);
+
+  useEffect(() => {
+    if (!user) return;
+
+    // Fetch user permissions
+    const fetchPermissions = async () => {
+      const { data, error } = await supabase
+        .from('user_permissions')
+        .select('*')
+        .eq('user_id', user.id);
+
+      if (error) {
+        console.error('Error fetching permissions:', error);
+        return;
+      }
+
+      setPermissions(data.map(p => ({
+        id: p.permission_id,
+        name: p.permission_name
+      })));
     };
 
-    // Fetch organizations
+    // Fetch user organizations
     const fetchOrganizations = async () => {
-      try {
-        const orgs = await getUserOrganizations();
-        if (orgs && Array.isArray(orgs)) {
-          setOrganizations(orgs.map(org => ({
-            id: org.id,
-            name: org.name,
-            role: org.role || 'member'
-          })));
-        } else if (orgs && 'organizations' in orgs) {
-          setOrganizations(
-            (orgs as { organizations: Array<any> }).organizations.map(org => ({
-              id: org.id,
-              name: org.name,
-              role: org.role || 'member'
-            }))
-          );
-        } else {
-          setOrganizations([]);
-        }
-      } catch (error) {
+      const { data, error } = await supabase
+        .from('user_organizations')
+        .select('organization_id, organizations(id, name), role')
+        .eq('user_id', user.id);
+
+      if (error) {
         console.error('Error fetching organizations:', error);
-        setOrganizations([]);
+        return;
       }
+
+      setOrganizations(data.map(o => ({
+        id: o.organizations[0]?.id,
+        name: o.organizations[0]?.name,
+        role: o.role
+      })));
     };
 
     // Fetch feature flags
     const fetchFeatureFlags = async () => {
-      try {
-        const flags = await getClaim('feature_flags');
-        if (flags && typeof flags === 'object') {
-          const transformedFlags: Record<string, FeatureFlag> = {};
-          Object.entries(flags).forEach(([key, value]) => {
-            transformedFlags[key] = {
-              key,
-              value: value as boolean | string | number
-            };
-          });
-          setFeatureFlags(transformedFlags);
-        } else {
-          setFeatureFlags({});
-        }
-      } catch (error) {
+      const { data, error } = await supabase
+        .from('feature_flags')
+        .select('*')
+        .eq('user_id', user.id);
+
+      if (error) {
         console.error('Error fetching feature flags:', error);
-        setFeatureFlags({});
+        return;
       }
+
+      const flagsRecord: Record<string, FeatureFlag> = {};
+      data.forEach(flag => {
+        flagsRecord[flag.key] = {
+          key: flag.key,
+          value: flag.value
+        };
+      });
+      setFeatureFlags(flagsRecord);
     };
 
     fetchPermissions();
     fetchOrganizations();
     fetchFeatureFlags();
-  }, [isAuthenticated, getPermissions, getUserOrganizations, getClaim]);
+  }, [user]);
 
-  const login = (options?: { org_code?: string; login_hint?: string }) => {
-    const { org_code, login_hint } = options || {};
-    kindeLogin({
-      authUrlParams: {
-        ...(org_code && { org_code }),
-        ...(login_hint && { login_hint }),
-      },
-      app_state: {
-        returnTo: window.location.pathname
-      }
+  const login = async (email: string, password: string) => {
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
     });
+    if (error) throw error;
   };
 
-  const register = (options?: { org_code?: string }) => {
-    const { org_code } = options || {};
-    kindeRegister({
-      authUrlParams: {
-        ...(org_code && { org_code }),
-      },
-      app_state: {
-        returnTo: window.location.pathname
-      }
+  const logout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
+    navigate('/auth');
+  };
+
+  const register = async (email: string, password: string) => {
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
     });
+    if (error) throw error;
   };
 
   const createOrg = async (orgName: string) => {
-    await kindeCreateOrg({
-      org_name: orgName,
-      // You can add additional org creation options here
-    });
+    const { error } = await supabase
+      .from('organizations')
+      .insert([{ name: orgName, created_by: user?.id }]);
+    if (error) throw error;
   };
 
   const switchOrganization = async (orgId: string) => {
-    // Implementation depends on your backend setup
-    const token = await getToken();
-    await fetch(`${import.meta.env.VITE_API_URL}/api/switch-organization`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ organizationId: orgId }),
-    });
-    // Refresh the page to update the context
+    const { error } = await supabase
+      .from('user_organizations')
+      .update({ is_active: true })
+      .eq('user_id', user?.id)
+      .eq('organization_id', orgId);
+
+    if (error) throw error;
     window.location.reload();
   };
 
@@ -242,10 +188,10 @@ const AuthStateProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   };
 
   const value = {
-    isAuthenticated,
+    isAuthenticated: !!user,
     user,
     login,
-    logout: kindeLogout,
+    logout,
     register,
     createOrg,
     permissions,

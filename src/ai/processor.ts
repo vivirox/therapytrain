@@ -11,9 +11,9 @@ interface ProcessorOptions {
 export interface ProcessedResponse {
   content: string;
   analysis: {
-    patterns: string[];
-    defenses: string[];
-    emotions: string[];
+    patterns: Array<string>;
+    defenses: Array<string>;
+    emotions: Array<string>;
     intensity: number;
   };
 }
@@ -23,7 +23,7 @@ export class TherapeuticAIProcessor {
   private emotionalState: {
     primary: string;
     intensity: number;
-    triggers: string[];
+    triggers: Array<string>;
   };
 
   constructor(clientProfile: ClientProfile) {
@@ -50,7 +50,7 @@ export class TherapeuticAIProcessor {
     // Apply emotional coloring
     if (analysis.emotions.length > 0) {
       const emotion = analysis.emotions[0];
-      adjustedResponse = this.applyEmotionalTone(adjustedResponse, emotion);
+      return this.applyEmotionalTone(adjustedResponse, emotion);
     }
 
     return adjustedResponse;
@@ -58,7 +58,7 @@ export class TherapeuticAIProcessor {
 
   private applyDefenseMechanism(
     response: string,
-    defense: { name: string; behaviors: string[] }
+    defense: { name: string; behaviors: Array<string> }
   ): string {
     switch (defense.name) {
       case 'denial':
@@ -72,7 +72,7 @@ export class TherapeuticAIProcessor {
           'You are'
         );
       case 'rationalization':
-        return response + ' But that\'s just logical, right?';
+        return `${response} But that's just logical, right?`;
       default:
         return response;
     }
@@ -109,7 +109,7 @@ export class TherapeuticAIProcessor {
   }
 
   async processMessage(
-    messages: Message[],
+    messages: Array<Message>,
     options: ProcessorOptions = {}
   ): Promise<ProcessedResponse> {
     const lastMessage = messages[messages.length - 1];

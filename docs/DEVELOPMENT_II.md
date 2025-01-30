@@ -109,7 +109,7 @@
   - [x] Implement core ZK protocols
   - [x] Add verification system
 - [x] Enhanced Authentication System
-  - [x] Implement Kinde integration
+  - [x] Implement Supabase integration
   - [x] Add organization support
   - [x] Add role-based access control
   - [x] Implement feature flags

@@ -1,6 +1,10 @@
-import { useKindeAuth } from '@kinde-oss/kinde-auth-react';
+import { createClient } from '@supabase/supabase-js';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL!,
+  import.meta.env.VITE_SUPABASE_ANON_KEY!
+);
 
 interface ApiOptions {
   method?: string;
@@ -16,14 +20,17 @@ export class ApiError extends Error {
 }
 
 async function fetchWithAuth(endpoint: string, options: ApiOptions = {}) {
-  const { getToken } = useKindeAuth();
-  const token = await getToken();
+  const { data: { session }, error } = await supabase.auth.getSession();
+  
+  if (error || !session) {
+    throw new ApiError(401, 'Unauthorized');
+  }
 
   const response = await fetch(`${API_URL}${endpoint}`, {
     method: options.method || 'GET',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
+      Authorization: `Bearer ${session.access_token}`,
       ...options.headers,
     },
     body: options.body ? JSON.stringify(options.body) : undefined,

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from './AuthProvider';
-import { useKindeAuth } from '@kinde-oss/kinde-auth-react';
+import { useSupabaseClient } from '@supabase/auth-helpers-react';
 import {
   Card,
   CardContent,
@@ -16,38 +16,58 @@ interface Organization {
   role: string;
 }
 
+interface UserPermission {
+  permission: string;
+}
+
 export const UserProfile = () => {
   const { user, isAuthenticated } = useAuth();
-  const { getPermissions, getUserOrganizations } = useKindeAuth();
+  const supabase = useSupabaseClient();
   const [permissions, setPermissions] = useState<Array<string>>([]);
   const [organizations, setOrganizations] = useState<Array<Organization>>([]);
 
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && user) {
       // Get user permissions
       const fetchPermissions = async () => {
-        const perms = await getPermissions();
-        setPermissions(perms.permissions.map(p => 
-          typeof p === 'string' ? p : (p as { id: string }).id
-        ));
+        const { data: userPermissions, error } = await supabase
+          .from('user_permissions')
+          .select('permission')
+          .eq('user_id', user.id);
+
+        if (!error && userPermissions) {
+          setPermissions(userPermissions.map((p: UserPermission) => p.permission));
+        }
       };
 
       // Get user organizations
       const fetchOrganizations = async () => {
-        const orgs = await getUserOrganizations();
-        if (orgs && Array.isArray(orgs)) {
-          setOrganizations(orgs);
-        } else if (orgs && 'organizations' in orgs) {
-          setOrganizations((orgs as { organizations: Array<Organization> }).organizations);
-        } else {
-          setOrganizations([]);
+        const { data: userOrgs, error } = await supabase
+          .from('user_organizations')
+          .select(`
+            organization_id,
+            organizations (
+              id,
+              name
+            ),
+            role
+          `)
+          .eq('user_id', user.id);
+
+        if (!error && userOrgs) {
+          const formattedOrgs = userOrgs.map(org => ({
+            id: org.organization_id,
+            name: org.organizations[0].name,
+            role: org.role
+          }));
+          setOrganizations(formattedOrgs);
         }
       };
 
       fetchPermissions();
       fetchOrganizations();
     }
-  }, [isAuthenticated, getPermissions, getUserOrganizations]);
+  }, [isAuthenticated, user, supabase]);
 
   if (!isAuthenticated || !user) {
     return null;
@@ -56,7 +76,9 @@ export const UserProfile = () => {
   return (
     <Card className="w-full max-w-2xl mx-auto">
       <CardHeader>
-        <CardTitle>{user.given_name} {user.family_name}</CardTitle>
+        <CardTitle>
+          {user.user_metadata.given_name} {user.user_metadata.family_name}
+        </CardTitle>
         <CardDescription>{user.email}</CardDescription>
       </CardHeader>
       <CardContent>
@@ -78,8 +100,8 @@ export const UserProfile = () => {
             <h3 className="text-lg font-semibold mb-2">Organizations</h3>
             <div className="space-y-2">
               {organizations.map((org) => (
-                <div 
-                  key={org.id} 
+                <div
+                  key={org.id}
                   className="p-3 border rounded-lg flex justify-between items-center"
                 >
                   <span className="font-medium">{org.name}</span>

@@ -5,7 +5,7 @@ import rateLimit from 'express-rate-limit';
 import { config } from './config';
 import { errorHandler } from './middleware/errorHandler';
 import { setupRoutes } from './routes';
-import { setupKindeAuth } from './middleware/kindeAuth';
+import { supabase } from './middleware/supabaseAuth';
 import { logger } from './utils/logger';
 import { connectDatabase } from './database';
 
@@ -30,7 +30,11 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Authentication
-setupKindeAuth(app);
+app.use(async (req, _res, next) => {
+  const { data: { user } } = await supabase.auth.getUser();
+  req.user = user || undefined;
+  next();
+});
 
 // Routes
 setupRoutes(app);
@@ -38,7 +42,7 @@ setupRoutes(app);
 // Error handling
 app.use(errorHandler);
 
-// Start server and connect to database
+// Start server
 const startServer = async () => {
   try {
     await connectDatabase();
@@ -47,7 +51,6 @@ const startServer = async () => {
     });
   } catch (error) {
     logger.error('Failed to start server:', error);
-    process.exit(1);
   }
 };
 

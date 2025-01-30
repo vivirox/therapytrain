@@ -1,83 +1,76 @@
-import { useKindeAuth } from "@kinde-oss/kinde-auth-react";
+import { createClient } from '@supabase/supabase-js';
+import { type ClientProfile } from '@/types/ClientProfile';
 
-const { user, isAuthenticated, isLoading } = useKindeAuth();import { type ClientProfile } from '@/types/ClientProfile';
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
 export async function getClientProfiles() {
-  const { getUser } = getKindeServerSession();
-  const user = await getUser();
-  
-  // Use Kinde Management API to fetch profiles
-  const response = await fetch(`${process.env.KINDE_ISSUER_URL}/api/v1/users`, {
-    headers: {
-      Authorization: `Bearer ${process.env.KINDE_CLIENT_SECRET}`,
-    },
-  });
-  
-  const data = await response.json();
-  return data.users;
+  const { data: profiles, error } = await supabase
+    .from('client_profiles')
+    .select('*');
+
+  if (error) {
+    throw new Error(`Failed to fetch profiles: ${error.message}`);
+  }
+
+  return profiles;
 }
 
 export async function getClientProfile(id: number) {
-  const { getUser } = getKindeServerSession();
-  const user = await getUser();
+  const { data: profile, error } = await supabase
+    .from('client_profiles')
+    .select('*')
+    .eq('id', id)
+    .single();
 
-  const response = await fetch(`${process.env.KINDE_ISSUER_URL}/api/v1/user/${id}`, {
-    headers: {
-      Authorization: `Bearer ${process.env.KINDE_CLIENT_SECRET}`,
-    },
-  });
+  if (error) {
+    throw new Error(`Failed to fetch profile: ${error.message}`);
+  }
 
-  return await response.json();
+  return profile;
 }
 
 export async function createClientProfile(profile: Omit<ClientProfile, 'id' | 'created_at' | 'updated_at'>) {
-  const { getUser } = getKindeServerSession();
-  const user = await getUser();
+  const { data, error } = await supabase
+    .from('client_profiles')
+    .insert([profile])
+    .select()
+    .single();
 
-  const response = await fetch(`${process.env.KINDE_ISSUER_URL}/api/v1/user`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${process.env.KINDE_CLIENT_SECRET}`,
-    },
-    body: JSON.stringify(profile),
-  });
+  if (error) {
+    throw new Error(`Failed to create profile: ${error.message}`);
+  }
 
-  return await response.json();
+  return data;
 }
 
-export async function updateClientProfile(id: number, profile: Partial<Omit<ClientProfile, 'id' | 'created_at' | 'updated_at'>>) {
-  const { getUser } = getKindeServerSession();
-  const user = await getUser();
+export async function updateClientProfile(
+  id: number, 
+  profile: Partial<Omit<ClientProfile, 'id' | 'created_at' | 'updated_at'>>
+) {
+  const { data, error } = await supabase
+    .from('client_profiles')
+    .update(profile)
+    .eq('id', id)
+    .select()
+    .single();
 
-  const response = await fetch(`${process.env.KINDE_ISSUER_URL}/api/v1/user/${id}`, {
-    method: 'PATCH',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${process.env.KINDE_CLIENT_SECRET}`,
-    },
-    body: JSON.stringify(profile),
-  });
+  if (error) {
+    throw new Error(`Failed to update profile: ${error.message}`);
+  }
 
-  return await response.json();
+  return data;
 }
 
 export async function deleteClientProfile(id: number) {
-  const { getUser } = getKindeServerSession();
-  const user = await getUser();
+  const { error } = await supabase
+    .from('client_profiles')
+    .delete()
+    .eq('id', id);
 
-  const response = await fetch(`${process.env.KINDE_ISSUER_URL}/api/v1/user/${id}`, {
-    method: 'DELETE',
-    headers: {
-      Authorization: `Bearer ${process.env.KINDE_CLIENT_SECRET}`,
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error('Failed to delete profile');
+  if (error) {
+    throw new Error(`Failed to delete profile: ${error.message}`);
   }
-}
-
-function getKindeServerSession(): { getUser: any; } {
-  throw new Error("Function not implemented.");
 }

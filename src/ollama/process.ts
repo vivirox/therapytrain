@@ -5,7 +5,7 @@ interface Message {
 
 const OLLAMA_BASE_URL = 'https://api.gemcity.xyz';
 
-async function processWithOllama(messages: Message[]) {
+async function processWithOllama(messages: Array<Message>) {
   try {
     const response = await fetch(`${OLLAMA_BASE_URL}/api/chat`, {
       method: 'POST',
@@ -14,7 +14,7 @@ async function processWithOllama(messages: Message[]) {
       },
       body: JSON.stringify({
         model: 'mistral',  // or your preferred model
-        messages: messages,
+        messages,
         stream: false,
         options: {
           temperature: 0.9,

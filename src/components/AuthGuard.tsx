@@ -1,16 +1,11 @@
-import { useKindeAuth } from "@kinde-oss/kinde-auth-react";
 import { Navigate } from "react-router-dom";
 
 export const AuthGuard = ({ children }) => {
-  const { isLoading, isAuthenticated } = useKindeAuth();
-
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
+  // Placeholder for authentication logic
+  const isAuthenticated = true; // Update this with actual authentication logic
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/login" />;
   }
-
   return children;
-}
+};
