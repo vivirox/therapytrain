@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Session } from '@supabase/supabase-js';
-import { supabase } from '../integrations/supabase/client'; // Corrected import path
+import { supabase } from '../lib/supabase'; // Adjusted import path
 import { AuthContextType, AuthState } from '../types/auth'; // Corrected import path
 import { useToast } from '../hooks/use-toast'; // Corrected import path
 
@@ -47,11 +47,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
-        options: {
-          redirectTo: `${window.location.origin}/dashboard`, // Add redirect URI
-        },
       });
       if (error) throw error;
+      // Redirect after successful sign-in
+      window.location.href = `${window.location.origin}/dashboard`;
     } catch (error) {
       toast({
         title: "Error signing in",
@@ -124,11 +123,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signUp,
     signOut,
     resetPassword,
+    isAuthenticated: !!state.session,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
-
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {

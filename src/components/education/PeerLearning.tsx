@@ -24,7 +24,7 @@ interface PeerDiscussion {
   authorId: string;
   authorName: string;
   authorAvatar?: string;
-  tags: string[];
+  tags: Array<string>;
   createdAt: Date;
   likes: number;
   replies: Array<{
@@ -52,11 +52,11 @@ interface StudyGroup {
     time: string;
     frequency: 'weekly' | 'biweekly' | 'monthly';
   };
-  topics: string[];
+  topics: Array<string>;
   upcomingSession?: {
     date: Date;
     topic: string;
-    materials: string[];
+    materials: Array<string>;
   };
 }
 
@@ -65,8 +65,8 @@ interface PeerLearningProps {
 }
 
 export const PeerLearning: React.FC<PeerLearningProps> = ({ userId }) => {
-  const [discussions, setDiscussions] = useState<PeerDiscussion[]>([]);
-  const [studyGroups, setStudyGroups] = useState<StudyGroup[]>([]);
+  const [discussions, setDiscussions] = useState<Array<PeerDiscussion>>([]);
+  const [studyGroups, setStudyGroups] = useState<Array<StudyGroup>>([]);
   const [newDiscussion, setNewDiscussion] = useState({ title: '', content: '', tags: [] });
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
@@ -133,40 +133,13 @@ export const PeerLearning: React.FC<PeerLearningProps> = ({ userId }) => {
           group.id === groupId
             ? {
                 ...group,
-                members: [...group.members, { id: userId, role: 'member' }]
+                members: [...group.members, { id: userId, name: '', role: 'member' }]
               }
             : group
         )
       );
     } catch (error) {
       console.error('Error joining study group:', error);
-    }
-  };
-
-  const addReply = async (discussionId: string, content: string) => {
-    try {
-      const response = await fetch(`/api/peer-discussions/${discussionId}/replies`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          content,
-          authorId: userId,
-          createdAt: new Date().toISOString()
-        })
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setDiscussions(prev =>
-          prev.map(discussion =>
-            discussion.id === discussionId
-              ? { ...discussion, replies: [...discussion.replies, data] }
-              : discussion
-          )
-        );
-      }
-    } catch (error) {
-      console.error('Error adding reply:', error);
     }
   };
 

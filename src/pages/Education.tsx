@@ -26,8 +26,8 @@ const Education = () => {
   const [activeTab, setActiveTab] = useState('learning-path');
   const [userProgress, setUserProgress] = useState<SkillProgression | null>(null);
   const [recommendations, setRecommendations] = useState<{
-    recommendedTutorials: Tutorial[];
-    recommendedCaseStudies: CaseStudy[];
+    recommendedTutorials: Array<Tutorial>;
+    recommendedCaseStudies: Array<CaseStudy>;
   }>({ recommendedTutorials: [], recommendedCaseStudies: [] });
 
   useEffect(() => {

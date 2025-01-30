@@ -16,19 +16,19 @@ import {
 
 interface CaseStudyLibraryProps {
   userId: string;
-  recommendedCases?: CaseStudy[];
+  recommendedCases?: Array<CaseStudy>;
 }
 
 export const CaseStudyLibrary: React.FC<CaseStudyLibraryProps> = ({ 
   userId,
   recommendedCases = []
 }) => {
-  const [caseStudies, setCaseStudies] = useState<CaseStudy[]>([]);
+  const [caseStudies, setCaseStudies] = useState<Array<CaseStudy>>([]);
   const [selectedCase, setSelectedCase] = useState<CaseStudy | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filters, setFilters] = useState<{
-    issues: string[];
-    approaches: string[];
+  const [filters,] = useState<{
+    issues: Array<string>;
+    approaches: Array<string>;
   }>({
     issues: [],
     approaches: []

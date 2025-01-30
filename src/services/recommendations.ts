@@ -1,10 +1,10 @@
 import { Tutorial, CaseStudy, SkillProgression } from '../types/education';
 
 interface UserBehavior {
-  completedTutorials: string[];
-  viewedCaseStudies: string[];
-  interests: string[];
-  strugglingAreas: string[];
+  completedTutorials: Array<string>;
+  viewedCaseStudies: Array<string>;
+  interests: Array<string>;
+  strugglingAreas: Array<string>;
   learningStyle: 'visual' | 'interactive' | 'reading';
   skillLevels: Record<string, number>;
 }
@@ -12,7 +12,7 @@ interface UserBehavior {
 interface RecommendationScore {
   itemId: string;
   score: number;
-  reasons: string[];
+  reasons: Array<string>;
 }
 
 export class RecommendationEngine {
@@ -48,7 +48,7 @@ export class RecommendationEngine {
     userBehavior: UserBehavior,
     popularityMetrics: Record<string, number>
   ): RecommendationScore {
-    const reasons: string[] = [];
+    const reasons: Array<string> = [];
     let score = 0;
 
     // Skill level appropriateness
@@ -91,7 +91,7 @@ export class RecommendationEngine {
     userBehavior: UserBehavior,
     popularityMetrics: Record<string, number>
   ): RecommendationScore {
-    const reasons: string[] = [];
+    const reasons: Array<string> = [];
     let score = 0;
 
     // Relevance to struggling areas
@@ -234,11 +234,11 @@ export class RecommendationEngine {
 
   static async getRecommendations(
     userId: string,
-    tutorials: Tutorial[],
-    caseStudies: CaseStudy[]
+    tutorials: Array<Tutorial>,
+    caseStudies: Array<CaseStudy>
   ): Promise<{
-    recommendedTutorials: Array<Tutorial & { reasons: string[] }>;
-    recommendedCaseStudies: Array<CaseStudy & { reasons: string[] }>;
+    recommendedTutorials: Array<Tutorial & { reasons: Array<string> }>;
+    recommendedCaseStudies: Array<CaseStudy & { reasons: Array<string> }>;
   }> {
     try {
       const [userBehavior, popularityMetrics] = await Promise.all([
@@ -302,7 +302,7 @@ export class RecommendationEngine {
     }
   }
 
-  static async getRecommendedTutorials(userId: string): Promise<Tutorial[]> {
+  static async getRecommendedTutorials(userId: string): Promise<Array<Tutorial>> {
     try {
       const response = await fetch(`/api/recommendations/tutorials/${userId}`);
       if (!response.ok) throw new Error('Failed to fetch recommended tutorials');
@@ -313,7 +313,7 @@ export class RecommendationEngine {
     }
   }
 
-  static async getRecommendedCaseStudies(userId: string): Promise<CaseStudy[]> {
+  static async getRecommendedCaseStudies(userId: string): Promise<Array<CaseStudy>> {
     try {
       const response = await fetch(`/api/recommendations/case-studies/${userId}`);
       if (!response.ok) throw new Error('Failed to fetch recommended case studies');
