@@ -1,6 +1,7 @@
-import React, { createContext, useContext, ReactNode, useEffect, useState } from 'react';
-import { createClient, SupabaseClient, User } from '@supabase/supabase-js';
+import React, { createContext, useContext, ReactNode, useEffect, useState, useMemo } from 'react';
+import { User } from '@supabase/supabase-js';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { supabase } from '../../lib/supabase';
 
 interface Permission {
   id: string;
@@ -32,11 +33,6 @@ interface AuthContextType {
   getFeatureFlag: (key: string) => FeatureFlag | null;
   switchOrganization: (orgId: string) => Promise<void>;
 }
-
-const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL,
-  import.meta.env.VITE_SUPABASE_ANON_KEY
-);
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
@@ -211,40 +207,21 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     hasPermission,
     isOrgAdmin,
     getFeatureFlag,
-    switchOrganization,
-    supabase,
+    switchOrganization
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
+
 // Auth context hook
-interface AuthContextType {
-  user: User | null;
-  supabase: SupabaseClient;
-}
-
-function isAuthContext(context: unknown): context is AuthContextType {
-  return (
-    typeof context === 'object' &&
-    context !== null &&
-    'user' in context &&
-    'supabase' in context
-  );
-}
-
 export const useAuth = () => {
   const context = useMemo(() => useContext(AuthContext), []);
 
-  try {
-    if (!context || !isAuthContext(context)) {
-      throw new Error('useAuth must be used within an AuthProvider');
-    }
-    return context;
-  } catch (error) {
-
-    console.error(error);
-    return null;
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
   }
+
+  return context;
 };
 
 // Protected route component with optional permission check
@@ -276,5 +253,3 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   return <>{children}</>;
 };
-import { useMemo } from 'react';import { ErrorBoundary } from 'next/dist/client/components/error-boundary';
-

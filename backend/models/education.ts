@@ -1,4 +1,4 @@
-import { supabase } from '../../src/lib/supabase';
+import { supabase } from '../config/database';
 
 export interface Tutorial {
   id: string;
@@ -13,10 +13,16 @@ export interface Tutorial {
 }
 
 // Function to create a new tutorial
-export const createTutorial = async (tutorial: Tutorial) => {
+export const createTutorial = async (tutorial: Omit<Tutorial, 'id' | 'createdAt' | 'updatedAt'>) => {
   const { data, error } = await supabase
     .from('tutorials')
-    .insert([tutorial]);
+    .insert([{
+      ...tutorial,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    }])
+    .select()
+    .single();
 
   if (error) {
     throw new Error(error.message);
@@ -28,10 +34,56 @@ export const createTutorial = async (tutorial: Tutorial) => {
 export const getAllTutorials = async () => {
   const { data, error } = await supabase
     .from('tutorials')
-    .select('*');
+    .select('*')
+    .order('createdAt', { ascending: false });
 
   if (error) {
     throw new Error(error.message);
   }
   return data;
+};
+
+// Function to get a tutorial by ID
+export const getTutorialById = async (id: string) => {
+  const { data, error } = await supabase
+    .from('tutorials')
+    .select('*')
+    .eq('id', id)
+    .single();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+  return data;
+};
+
+// Function to update a tutorial
+export const updateTutorial = async (id: string, tutorial: Partial<Omit<Tutorial, 'id' | 'createdAt'>>) => {
+  const { data, error } = await supabase
+    .from('tutorials')
+    .update({
+      ...tutorial,
+      updatedAt: new Date()
+    })
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+  return data;
+};
+
+// Function to delete a tutorial
+export const deleteTutorial = async (id: string) => {
+  const { error } = await supabase
+    .from('tutorials')
+    .delete()
+    .eq('id', id);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+  return true;
 };
