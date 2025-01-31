@@ -1,82 +1,124 @@
-import { SupabaseClient, createClient } from '@supabase/supabase-js';
-class SupabaseSingleton {
-  private static instance: SupabaseSingleton;
-  public client;
-
-  private constructor() {
-    this.client = createClient('your-supabase-url', 'your-anon-key');
-  }
-
-  public static getInstance(): SupabaseSingleton {
-    if (!SupabaseSingleton.instance) {
-      SupabaseSingleton.instance = new SupabaseSingleton();
-    }
-    return SupabaseSingleton.instance;
-  }
-}
-
-class SupabaseService {
-  private client;
-
-  constructor() {
-    this.client = SupabaseSingleton.getInstance().client;
-  }
-
-  async fetchData() {
-    return await this.client.from('table').select('*');
-  }
-}
-
-const supabase = SupabaseSingleton.getInstance().client;
-const supabaseClient: SupabaseClient = supabase;
-export const supabaseService = new SupabaseService();
-
-async function initializeSupabase() {
-  try {
-    const { error } = await supabase.auth.getSession();
-    if (error) {
-      throw error;
-    }
-    console.log('Supabase initialized successfully');
-  } catch (error) {
-    console.error('Error initializing Supabase:', error.message);
-  }
-}
-
-initializeSupabase();
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '../lib/supabaseClient';
 
 interface AuthProps {
-  redirectTo: string;
+  redirectTo?: string;
 }
 
-const Auth: React.FC<AuthProps> = ({ redirectTo }) => {
-  const handleLogin = async (email: string, password: string) => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+const Auth: React.FC<AuthProps> = ({ redirectTo = '/dashboard' }) => {
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-    if (error) {
-      console.error('Login error:', error.message);
-    } else {
-      console.log('User logged in:', data.user);
-      // Redirect or perform other actions after successful login
+  const handleLogin = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    const formData = new FormData(event.currentTarget);
+    const email = formData.get('email') as string;
+    const password = formData.get('password') as string;
+
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      if (data.user) {
+        navigate(redirectTo);
+      }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSignUp = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const email = (event.target as any).email.value;
-    const password = (event.target as any).password.value;
-    handleLogin(email, password);
+    setLoading(true);
+    setError(null);
+
+    const formData = new FormData(event.currentTarget);
+    const email = formData.get('email') as string;
+    const password = formData.get('password') as string;
+
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      if (data.user) {
+        // Show confirmation message or redirect
+        alert('Please check your email for confirmation link');
+      }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <input type="email" name="email" placeholder="Email" required />
-      <input type="password" name="password" placeholder="Password" required />
-      <button type="submit">Log In</button>
-    </form>
+    <div className="auth-container">
+      <div className="auth-form-container">
+        <h2>Welcome</h2>
+        {error && <div className="error-message">{error}</div>}
+        
+        <form onSubmit={handleLogin} className="auth-form">
+          <h3>Sign In</h3>
+          <input
+            type="email"
+            name="email"
+            placeholder="Email"
+            required
+            disabled={loading}
+          />
+          <input
+            type="password"
+            name="password"
+            placeholder="Password"
+            required
+            disabled={loading}
+          />
+          <button type="submit" disabled={loading}>
+            {loading ? 'Loading...' : 'Sign In'}
+          </button>
+        </form>
+
+        <form onSubmit={handleSignUp} className="auth-form">
+          <h3>Sign Up</h3>
+          <input
+            type="email"
+            name="email"
+            placeholder="Email"
+            required
+            disabled={loading}
+          />
+          <input
+            type="password"
+            name="password"
+            placeholder="Password"
+            required
+            disabled={loading}
+          />
+          <button type="submit" disabled={loading}>
+            {loading ? 'Loading...' : 'Sign Up'}
+          </button>
+        </form>
+      </div>
+    </div>
   );
 };
 

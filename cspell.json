@@ -1,19 +1,17 @@
 {
     "version": "0.2",
     "ignorePaths": [],
-    "dictionaryDefinitions": [
-        {
-            "name": "custom-dictionary",
-            "path": "./.cspell/custom-dictionary.txt",
-            "addWords": true
-        }
-    ],
-    "dictionaries": [
-        "custom-dictionary"
-    ],
+    "dictionaryDefinitions": [],
+    "dictionaries": [],
     "words": [
+        "cmdk",
+        "embla",
         "shadcn",
-        "therapytrain"
+        "snarkjs",
+        "sonner",
+        "supabase",
+        "therapytrain",
+        "vaul"
     ],
     "ignoreWords": [],
     "import": []
