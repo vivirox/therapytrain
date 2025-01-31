@@ -28,3 +28,4 @@ dist-ssr
 .env
 .env.*
 .vercel
+src/utils/supabase.
