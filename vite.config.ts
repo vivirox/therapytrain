@@ -1,19 +1,19 @@
 import { defineConfig } from "vite";
 import react from '@vitejs/plugin-react';
 import path from "path";
-import { componentTagger } from "lovable-tagger";
 
 // https://vitejs.dev/config/
-export default defineConfig(({ mode }) => ({
+export default defineConfig(({ }) => ({
   server: {
     host: "::",
     port: 8080,
     headers: {
       'Permissions-Policy': 'interest-cohort=()'
+    },
   },
   plugins: [
     react(),
-    mode === 'development' && componentTagger(),
+    // Removed componentTagger as it was not defined
   ].filter(Boolean),
   resolve: {
     alias: {
@@ -50,16 +50,12 @@ export default defineConfig(({ mode }) => ({
               return 'form-handling';
             }
             // Data visualization
-            if (id.includes('chart.js') || id.includes('react-chartjs-2') || id.includes('recharts')) {
+            if (id.includes('chart.js') || id.includes('react-charts-2') || id.includes('recharts')) {
               return 'data-viz';
             }
             // Utilities
             if (id.includes('date-fns') || id.includes('clsx') || id.includes('tailwind-merge')) {
               return 'utils';
-            }
-            // AI/ML related
-            if (id.includes('sentiment') || id.includes('lovable-tagger')) {
-              return 'ai-ml';
             }
             // Crypto/Security
             if (id.includes('noble') || id.includes('secp256k1') || id.includes('sha256')) {
@@ -70,7 +66,7 @@ export default defineConfig(({ mode }) => ({
               return 'animations';
             }
             // State management
-            if (id.includes('zustand') || id.includes('jotai') || id.includes('valtio')) {
+            if (id.includes('zustand') || id.includes('jotai') || id.includes('valid')) {
               return 'state-management';
             }
             // Remaining node_modules split by first letter to avoid large chunks
@@ -132,8 +128,8 @@ export default defineConfig(({ mode }) => ({
           return `assets/${name}-[hash].js`;
         },
         // Optimize asset names
-        assetFileNames: (assetInfo: { name: string; }) => {
-          const extType = assetInfo.name?.split('.').pop();
+        assetFileNames: (chunkInfo: import('rollup').PreRenderedAsset) => {
+          const extType = chunkInfo.name?.split('.').pop();
           if (extType) {
             if (/png|jpe?g|svg|gif|tiff|bmp|ico/i.test(extType)) {
               return 'assets/images/[name]-[hash][extname]';
@@ -148,7 +144,6 @@ export default defineConfig(({ mode }) => ({
     }
   },
   optimizeDeps: {
-      include: ['react-native-web']
-    }
+    include: ['react-native-web']
   }
-}));
+}))

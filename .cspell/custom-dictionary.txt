@@ -1,0 +1,7 @@
+# Custom Dictionary Words
+cmdk
+embla
+snarkjs
+sonner
+supabase
+vaul
