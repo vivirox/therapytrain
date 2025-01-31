@@ -1,10 +1,11 @@
+
+import styled from 'styled-components';
 import React, { useState, useEffect, Suspense } from 'react';
 import { ToastProvider } from "./components/ui/toast";
 import { TooltipProvider } from "./components/ui/tooltip";
 import { Loading } from "./components/ui/loading";
 import { AuthProvider } from "./components/auth/AuthProvider";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthGuard } from "./components/AuthGuard";
 import { Text } from 'react-native-web';
 import { supabase } from './utils/supabase';
@@ -19,126 +20,81 @@ const Features = lazy(() => import("./pages/Features"));
 const Benefits = lazy(() => import("./pages/Benefits"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const TermsOfService = lazy(() => import("./pages/TermsOfService"));
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 1,
-      refetchOnWindowFocus: false,
-      staleTime: 5 * 60 * 1000, // 5 minutes
+
+const Container = styled.div`
+  flex: 1;
+  justify-content: center;
+  align-items: center;
+`;
+
+const Header = styled.h1`
+  font-size: 24px;
+  margin-bottom: 20px;
+`;
+
+const TodoItem = styled.li`
+  font-size: 18px;
+  padding: 10px;
+`;
+
+function QueryProvider({ children }: { children: React.ReactNode }) {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: 1,
+        refetchOnWindowFocus: false,
+        staleTime: 5 * 60 * 1000, // 5 minutes
+      },
     },
-  },
-});
-
-function TodoApp() {
-  const [todos, setTodos] = useState([]);
-
-  useEffect(() => {
-    const fetchTodos = async () => {
-      try {
-        const { data, error } = await supabase.from('todos').select();
-        if (error) {
-          throw error;
-        }
-        setTodos(data || []);
-      } catch (error) {
-        console.error('Error fetching todos:', error.message);
-      }
-    };
-
-    fetchTodos();
-  }, []);
+  });
 
   return (
-    <div style={styles.container}>
-      <h1 style={styles.header}>Todo List</h1>
-      <ul>
-        {todos.map((item) => (
-          <li key={item.id.toString()} style={styles.todoItem}>
-            {item.title}
-          </li>
-        ))}
-      </ul>
-    </div>
+    <QueryClientProvider client={queryClient}>
+      {children}
+    </QueryClientProvider>
   );
 }
 
-const styles = {
-  container: {
-    flex: 1,
-    justifyContent: 'center' as 'center',
-    alignItems: 'center' as 'center',
-  },
-  header: {
-    fontSize: 24,
-    marginBottom: 20,
-  },
-  todoItem: {
-    fontSize: 18,
-    padding: 10,
-  },
+const AppRoutes = () => {
+  const routes = [
+    { path: "/", element: <Index /> },
+    { path: "/features", element: <Features /> },
+    { path: "/benefits", element: <Benefits /> },
+    { path: "/privacy-policy", element: <PrivacyPolicy /> },
+    { path: "/terms-of-service", element: <TermsOfService /> },
+    { path: "/auth", element: <Auth /> },
+    { path: "/login", element: <Auth /> },
+    { path: "/callback", element: <Navigate to="/dashboard" replace /> },
+    { path: "/dashboard", element: <AuthGuard><Dashboard /></AuthGuard> },
+    { path: "/chat", element: <AuthGuard><Chat /></AuthGuard> },
+    { path: "/education", element: <AuthGuard><Education /></AuthGuard> },
+    { path: "/client-selection", element: <AuthGuard><ClientSelection /></AuthGuard> },
+  ];
+  return useRoutes(routes);
 };
-
-
 
 const App: React.FC = () => {
   return (
-    <QueryClientProvider client={queryClient}>
+    <QueryProvider>
       <ToastProvider>
-        <Suspense fallback={<div>Loading...</div>}>
-          <TooltipProvider>
-            <BrowserRouter>
-              <AuthProvider>
-                <Suspense fallback={<Loading fullScreen message="Loading TherapyTrain..." />}>
-                  <Routes>
-                    {/* Public Routes */}
-                    <Route path="/" element={<Index />} />
-                    <Route path="/features" element={<Features />} />
-                    <Route path="/benefits" element={<Benefits />} />
-                    <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-                    <Route path="/terms-of-service" element={<TermsOfService />} />
-                    <Route path="/auth" element={<Auth />} />
-                    <Route path="/login" element={<Auth />} />
-                    <Route path="/callback" element={<Navigate to="/dashboard" replace />} />
-
-                    {/* Protected Routes */}
-                    <Route
-                      path="/dashboard"
-                      element={
-                        <AuthGuard>
-                          <Dashboard />
-                        </AuthGuard>
-                      }
-                    />
-                    <Route path="/chat" element={
-                      <AuthGuard>
-                        <Chat />
-                      </AuthGuard>
-                    } />
-                    <Route path="/education" element={
-                      <AuthGuard>
-                        <Education />
-                      </AuthGuard>
-                    } />
-                    <Route path="/client-selection" element={
-                      <AuthGuard>
-                        <ClientSelection />
-                      </AuthGuard>
-                    } />
-
-                    {/* Catch-all redirect */}
-
-                  </Routes>
-                </Suspense>
-              </AuthProvider>
-            </BrowserRouter>
-          </TooltipProvider>
-        </Suspense>
+        <TooltipProvider>
+          <BrowserRouter>
+            <AuthProvider>
+              <Suspense fallback={<Loading fullScreen message="Loading TherapyTrain..." />}>
+                <AppRoutes />
+              </Suspense>
+            </AuthProvider>
+          </BrowserRouter>
+        </TooltipProvider>
       </ToastProvider>
-    </QueryClientProvider>
+    </QueryProvider>
   )
 }
+
 export { App as default };
+
 import { lazy as reactLazy } from 'react';
+import { BrowserRouter, Navigate, useRoutes } from 'react-router-dom';
 
 function lazy(factory: () => Promise<{ default: React.ComponentType<any> }>) {
   return reactLazy(factory);
