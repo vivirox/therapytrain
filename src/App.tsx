@@ -1,6 +1,7 @@
 
 import styled from 'styled-components';
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { Suspense, lazy } from 'react';
+import { BrowserRouter, Navigate, useRoutes } from 'react-router-dom';
 import { ToastProvider } from "./components/ui/toast";
 import { TooltipProvider } from "./components/ui/tooltip";
 import { Loading } from "./components/ui/loading";
@@ -8,7 +9,9 @@ import { AuthProvider } from "./components/auth/AuthProvider";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthGuard } from "./components/AuthGuard";
 import { Text } from 'react-native-web';
-import { supabase } from './utils/supabase';
+import { supabase } from './lib/supabase';
+
+
 
 const Index = lazy(() => import("./pages/Index"));
 const Auth = lazy(() => import("./pages/Auth"));
@@ -92,10 +95,3 @@ const App: React.FC = () => {
 }
 
 export { App as default };
-
-import { lazy as reactLazy } from 'react';
-import { BrowserRouter, Navigate, useRoutes } from 'react-router-dom';
-
-function lazy(factory: () => Promise<{ default: React.ComponentType<any> }>) {
-  return reactLazy(factory);
-}
