@@ -1,6 +1,7 @@
 // src/components/TodoApp.tsx
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../utils/supabase';
+import { supabase } from '../lib/supabase';
+
 
 interface Todo {
     id: number;

@@ -6,12 +6,15 @@
     "words": [
         "cmdk",
         "embla",
+        "njsproj",
+        "ntvs",
         "shadcn",
         "snarkjs",
         "sonner",
         "supabase",
         "therapytrain",
-        "vaul"
+        "vaul",
+        "vercel"
     ],
     "ignoreWords": [],
     "import": []
