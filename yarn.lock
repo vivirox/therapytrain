@@ -5012,11 +5012,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-<<<<<<< HEAD
-"@tailwindcss/postcss@npm:^4.0.1":
-=======
 "@tailwindcss/postcss@npm:^4.0.2":
->>>>>>> bb01998c0ed878349853f7e6550f5c1c175c1ec0
   version: 4.0.2
   resolution: "@tailwindcss/postcss@npm:4.0.2"
   dependencies:
@@ -5030,11 +5026,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-<<<<<<< HEAD
-"@tailwindcss/typography@npm:^0.5.16":
-=======
 "@tailwindcss/typography@npm:^0.5.15":
->>>>>>> bb01998c0ed878349853f7e6550f5c1c175c1ec0
   version: 0.5.16
   resolution: "@tailwindcss/typography@npm:0.5.16"
   dependencies:
@@ -5055,11 +5047,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-<<<<<<< HEAD
-"@tanstack/react-query@npm:^5.65.1":
-=======
 "@tanstack/react-query@npm:^5.56.2":
->>>>>>> bb01998c0ed878349853f7e6550f5c1c175c1ec0
   version: 5.66.0
   resolution: "@tanstack/react-query@npm:5.66.0"
   dependencies:
@@ -5575,8 +5563,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-<<<<<<< HEAD
-=======
 "@types/node@npm:^22.12.0":
   version: 22.12.0
   resolution: "@types/node@npm:22.12.0"
@@ -5586,7 +5572,6 @@ __metadata:
   languageName: node
   linkType: hard
 
->>>>>>> bb01998c0ed878349853f7e6550f5c1c175c1ec0
 "@types/parse-json@npm:^4.0.0":
   version: 4.0.2
   resolution: "@types/parse-json@npm:4.0.2"
@@ -5622,21 +5607,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-<<<<<<< HEAD
-"@types/react-dom@npm:^19.0.3":
-  version: 19.0.3
-  resolution: "@types/react-dom@npm:19.0.3"
-  peerDependencies:
-    "@types/react": ^19.0.0
-  checksum: 10c0/3867427b333cbe8cbba496d7cc20ec9676d32c25ae44f4d1263a4129d42e57cf4adf0039ad263432f1215b88075c27d326e7eb4ed646128235d01a76e661d48f
-=======
 "@types/react-dom@npm:^18.2.0":
   version: 18.3.5
   resolution: "@types/react-dom@npm:18.3.5"
   peerDependencies:
     "@types/react": ^18.0.0
   checksum: 10c0/b163d35a6b32a79f5782574a7aeb12a31a647e248792bf437e6d596e2676961c394c5e3c6e91d1ce44ae90441dbaf93158efb4f051c0d61e2612f1cb04ce4faa
->>>>>>> bb01998c0ed878349853f7e6550f5c1c175c1ec0
   languageName: node
   linkType: hard
 
@@ -5659,11 +5635,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-<<<<<<< HEAD
-"@types/react@npm:*, @types/react@npm:^19.0.7":
-=======
 "@types/react@npm:*":
->>>>>>> bb01998c0ed878349853f7e6550f5c1c175c1ec0
   version: 19.0.8
   resolution: "@types/react@npm:19.0.8"
   dependencies:
@@ -7330,11 +7302,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-<<<<<<< HEAD
-"chokidar@npm:^3.5.1":
-=======
 "chokidar@npm:^3.5.1, chokidar@npm:^3.6.0":
->>>>>>> bb01998c0ed878349853f7e6550f5c1c175c1ec0
   version: 3.6.0
   resolution: "chokidar@npm:3.6.0"
   dependencies:
@@ -7525,11 +7493,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-<<<<<<< HEAD
-"cmdk@npm:^1.0.4":
-=======
 "cmdk@npm:^1.0.0":
->>>>>>> bb01998c0ed878349853f7e6550f5c1c175c1ec0
   version: 1.0.4
   resolution: "cmdk@npm:1.0.4"
   dependencies:
@@ -7617,8 +7581,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-<<<<<<< HEAD
-=======
 "commander@npm:^4.0.0":
   version: 4.1.1
   resolution: "commander@npm:4.1.1"
@@ -7626,7 +7588,6 @@ __metadata:
   languageName: node
   linkType: hard
 
->>>>>>> bb01998c0ed878349853f7e6550f5c1c175c1ec0
 "commondir@npm:^1.0.1":
   version: 1.0.1
   resolution: "commondir@npm:1.0.1"
@@ -7932,24 +7893,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-<<<<<<< HEAD
-"date-fns-jalali@npm:^4.1.0-0":
-  version: 4.1.0-0
-  resolution: "date-fns-jalali@npm:4.1.0-0"
-  checksum: 10c0/f9ad98d9f7e8e5abe0d070dc806b0c8baded2b1208626c42e92cbd2605b5171f5714d6b79b20cc2666267d821699244c9d0b5e93274106cf57d6232da77596ed
-  languageName: node
-  linkType: hard
-
-"date-fns@npm:^4.1.0":
-  version: 4.1.0
-  resolution: "date-fns@npm:4.1.0"
-  checksum: 10c0/b79ff32830e6b7faa009590af6ae0fb8c3fd9ffad46d930548fbb5acf473773b4712ae887e156ba91a7b3dc30591ce0f517d69fd83bd9c38650fdc03b4e0bac8
-=======
 "date-fns@npm:^3.6.0":
   version: 3.6.0
   resolution: "date-fns@npm:3.6.0"
   checksum: 10c0/0b5fb981590ef2f8e5a3ba6cd6d77faece0ea7f7158948f2eaae7bbb7c80a8f63ae30b01236c2923cf89bb3719c33aeb150c715ea4fe4e86e37dcf06bed42fb6
->>>>>>> bb01998c0ed878349853f7e6550f5c1c175c1ec0
   languageName: node
   linkType: hard
 
@@ -11314,11 +11261,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-<<<<<<< HEAD
-"lilconfig@npm:^3.0.0":
-=======
 "lilconfig@npm:^3.0.0, lilconfig@npm:^3.1.3":
->>>>>>> bb01998c0ed878349853f7e6550f5c1c175c1ec0
   version: 3.1.3
   resolution: "lilconfig@npm:3.1.3"
   checksum: 10c0/f5604e7240c5c275743561442fbc5abf2a84ad94da0f5adc71d25e31fa8483048de3dcedcb7a44112a942fed305fd75841cdf6c9681c7f640c63f1049e9a5dcc
@@ -12676,8 +12619,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-<<<<<<< HEAD
-=======
 "mz@npm:^2.7.0":
   version: 2.7.0
   resolution: "mz@npm:2.7.0"
@@ -12689,7 +12630,6 @@ __metadata:
   languageName: node
   linkType: hard
 
->>>>>>> bb01998c0ed878349853f7e6550f5c1c175c1ec0
 "nanoassert@npm:^2.0.0":
   version: 2.0.0
   resolution: "nanoassert@npm:2.0.0"
@@ -12824,11 +12764,7 @@ __metadata:
   resolution: "node-abi@npm:3.74.0"
   dependencies:
     semver: "npm:^7.3.5"
-<<<<<<< HEAD
-  checksum: 10c0/4cd237f2507f80048310f381198a07387b11cbaab7dfac61ccc40cdc83f2296c647df02b5ddfead9f40b845c696f0ce75fdaa01973d3f3f0686151e4f96d2c8c
-=======
   checksum: 10c0/a6c83c448d5e8b591f749a0157c9ec02f653021cdf3415c1a44fcb5fc8afc124acad186bc1ec76cb4db2485cc2dcdda187aacd382c54b6e3093ffc0389603643
->>>>>>> bb01998c0ed878349853f7e6550f5c1c175c1ec0
   languageName: node
   linkType: hard
 
@@ -13001,11 +12937,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-<<<<<<< HEAD
-"object-assign@npm:^4.1.0, object-assign@npm:^4.1.1":
-=======
 "object-assign@npm:^4.0.1, object-assign@npm:^4.1.0, object-assign@npm:^4.1.1":
->>>>>>> bb01998c0ed878349853f7e6550f5c1c175c1ec0
   version: 4.1.1
   resolution: "object-assign@npm:4.1.1"
   checksum: 10c0/1f4df9945120325d041ccf7b86f31e8bcc14e73d29171e37a7903050e96b81323784ec59f93f102ec635bcf6fa8034ba3ea0a8c7e69fa202b87ae3b6cec5a414
@@ -13608,9 +13540,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-<<<<<<< HEAD
-"postcss@npm:^8.4.19, postcss@npm:^8.4.41, postcss@npm:^8.4.43, postcss@npm:^8.4.49, postcss@npm:^8.5.1":
-=======
 "postcss@npm:8.4.38":
   version: 8.4.38
   resolution: "postcss@npm:8.4.38"
@@ -13623,7 +13552,6 @@ __metadata:
   linkType: hard
 
 "postcss@npm:^8.4.19, postcss@npm:^8.4.35, postcss@npm:^8.4.41, postcss@npm:^8.4.43, postcss@npm:^8.4.47":
->>>>>>> bb01998c0ed878349853f7e6550f5c1c175c1ec0
   version: 8.5.1
   resolution: "postcss@npm:8.5.1"
   dependencies:
@@ -13960,20 +13888,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-<<<<<<< HEAD
-"react-dom@npm:^19.0.0":
-  version: 19.0.0
-  resolution: "react-dom@npm:19.0.0"
-  dependencies:
-    scheduler: "npm:^0.25.0"
-  peerDependencies:
-    react: ^19.0.0
-  checksum: 10c0/a36ce7ab507b237ae2759c984cdaad4af4096d8199fb65b3815c16825e5cfeb7293da790a3fc2184b52bfba7ba3ff31c058c01947aff6fd1a3701632aabaa6a9
-  languageName: node
-  linkType: hard
-
-"react-hook-form@npm:^7.54.2":
-=======
 "react-dom@npm:^18.3.1":
   version: 18.3.1
   resolution: "react-dom@npm:18.3.1"
@@ -13987,7 +13901,6 @@ __metadata:
   linkType: hard
 
 "react-hook-form@npm:^7.53.0":
->>>>>>> bb01998c0ed878349853f7e6550f5c1c175c1ec0
   version: 7.54.2
   resolution: "react-hook-form@npm:7.54.2"
   peerDependencies:
@@ -14225,12 +14138,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-<<<<<<< HEAD
-"react@npm:^19.0.0":
-  version: 19.0.0
-  resolution: "react@npm:19.0.0"
-  checksum: 10c0/9cad8f103e8e3a16d15cb18a0d8115d8bd9f9e1ce3420310aea381eb42aa0a4f812cf047bb5441349257a05fba8a291515691e3cb51267279b2d2c3253f38471
-=======
 "react@npm:^18.3.1":
   version: 18.3.1
   resolution: "react@npm:18.3.1"
@@ -14246,7 +14153,6 @@ __metadata:
   dependencies:
     pify: "npm:^2.3.0"
   checksum: 10c0/90cb2750213c7dd7c80cb420654344a311fdec12944e81eb912cd82f1bc92aea21885fa6ce442e3336d9fccd663b8a7a19c46d9698e6ca55620848ab932da814
->>>>>>> bb01998c0ed878349853f7e6550f5c1c175c1ec0
   languageName: node
   linkType: hard
 
@@ -14770,19 +14676,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-<<<<<<< HEAD
-"scheduler@npm:^0.25.0":
-  version: 0.25.0
-  resolution: "scheduler@npm:0.25.0"
-  checksum: 10c0/a4bb1da406b613ce72c1299db43759526058fdcc413999c3c3e0db8956df7633acf395cb20eb2303b6a65d658d66b6585d344460abaee8080b4aa931f10eaafe
-=======
 "scheduler@npm:^0.23.2":
   version: 0.23.2
   resolution: "scheduler@npm:0.23.2"
   dependencies:
     loose-envify: "npm:^1.1.0"
   checksum: 10c0/26383305e249651d4c58e6705d5f8425f153211aef95f15161c151f7b8de885f24751b377e4a0b3dd42cce09aad3f87a61dab7636859c0d89b7daf1a1e2a5c78
->>>>>>> bb01998c0ed878349853f7e6550f5c1c175c1ec0
   languageName: node
   linkType: hard
 
@@ -15534,8 +15433,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-<<<<<<< HEAD
-=======
 "stylis@npm:4.3.2":
   version: 4.3.2
   resolution: "stylis@npm:4.3.2"
@@ -15561,7 +15458,6 @@ __metadata:
   languageName: node
   linkType: hard
 
->>>>>>> bb01998c0ed878349853f7e6550f5c1c175c1ec0
 "supports-color@npm:^7.1.0":
   version: 7.2.0
   resolution: "supports-color@npm:7.2.0"
@@ -15603,12 +15499,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-<<<<<<< HEAD
-"tailwindcss@npm:4.0.2, tailwindcss@npm:^4.0.1":
-  version: 4.0.2
-  resolution: "tailwindcss@npm:4.0.2"
-  checksum: 10c0/772a849adb363d208c5d4525e28958583d6c6aae0e04bf0318f31cc040f63a59adc15ec92541956a4cdfd5b9dd33d2dd216eba1010d3e4f6aff6deeb1a9e87cd
-=======
 "tailwindcss@npm:4.0.2":
   version: 4.0.2
   resolution: "tailwindcss@npm:4.0.2"
@@ -15646,7 +15536,6 @@ __metadata:
     tailwind: lib/cli.js
     tailwindcss: lib/cli.js
   checksum: 10c0/cc42c6e7fdf88a5507a0d7fea37f1b4122bec158977f8c017b2ae6828741f9e6f8cb90282c6bf2bd5951fd1220a53e0a50ca58f5c1c00eb7f5d9f8b80dc4523c
->>>>>>> bb01998c0ed878349853f7e6550f5c1c175c1ec0
   languageName: node
   linkType: hard
 
@@ -15764,8 +15653,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-<<<<<<< HEAD
-=======
 "thenify-all@npm:^1.0.0":
   version: 1.6.0
   resolution: "thenify-all@npm:1.6.0"
@@ -15784,7 +15671,6 @@ __metadata:
   languageName: node
   linkType: hard
 
->>>>>>> bb01998c0ed878349853f7e6550f5c1c175c1ec0
 "throat@npm:^5.0.0":
   version: 5.0.0
   resolution: "throat@npm:5.0.0"
@@ -16622,15 +16508,9 @@ __metadata:
     "@supabase/auth-helpers-react": "npm:^0.5.0"
     "@supabase/functions-js": "npm:^2.4.4"
     "@supabase/supabase-js": "npm:^2.48.1"
-<<<<<<< HEAD
-    "@tailwindcss/postcss": "npm:^4.0.1"
-    "@tailwindcss/typography": "npm:^0.5.16"
-    "@tanstack/react-query": "npm:^5.65.1"
-=======
     "@tailwindcss/postcss": "npm:^4.0.2"
     "@tailwindcss/typography": "npm:^0.5.15"
     "@tanstack/react-query": "npm:^5.56.2"
->>>>>>> bb01998c0ed878349853f7e6550f5c1c175c1ec0
     "@types/aria-query": "npm:^5.0.4"
     "@types/bcrypt": "npm:^5.0.2"
     "@types/body-parser": "npm:^1.19.5"
@@ -16650,23 +16530,14 @@ __metadata:
     "@types/node": "npm:^22.12.0"
     "@types/qs": "npm:^6.9.18"
     "@types/range-parser": "npm:^1.2.7"
-<<<<<<< HEAD
-    "@types/react": "npm:^19.0.7"
-    "@types/react-dom": "npm:^19.0.3"
-=======
     "@types/react": "npm:^18.2.0"
     "@types/react-dom": "npm:^18.2.0"
->>>>>>> bb01998c0ed878349853f7e6550f5c1c175c1ec0
     "@types/react-native-web": "npm:^0.19.0"
     "@types/send": "npm:^0.17.4"
     "@types/sentiment": "npm:^5.0.4"
     "@types/serve-static": "npm:^1.15.7"
     "@types/snarkjs": "npm:^0.7.9"
-<<<<<<< HEAD
-    "@types/source-list-map": "npm:^0.1.6"
-=======
     "@types/source-list-map": "npm:^0.1.5"
->>>>>>> bb01998c0ed878349853f7e6550f5c1c175c1ec0
     "@types/tapable": "npm:^2.2.7"
     "@types/uglify-js": "npm:^3.17.5"
     "@types/webpack": "npm:^5.28.5"
@@ -16687,15 +16558,6 @@ __metadata:
     global: "npm:^4.4.0"
     input-otp: "npm:^1.4.2"
     isolated-vm: "npm:^5.0.3"
-<<<<<<< HEAD
-    next-themes: "npm:^0.4.4"
-    postcss: "npm:^8.5.1"
-    react: "npm:^19.0.0"
-    react-day-picker: "npm:^9.5.1"
-    react-dom: "npm:^19.0.0"
-    react-hook-form: "npm:^7.54.2"
-    react-icons: "npm:^5.4.0"
-=======
     next-themes: "npm:^0.3.0"
     postcss: "npm:^8.4.35"
     react: "npm:^18.3.1"
@@ -16703,7 +16565,6 @@ __metadata:
     react-dom: "npm:^18.3.1"
     react-hook-form: "npm:^7.53.0"
     react-icons: "npm:^5.0.0"
->>>>>>> bb01998c0ed878349853f7e6550f5c1c175c1ec0
     react-native-web: "npm:^0.19.13"
     react-resizable-panels: "npm:^2.1.7"
     react-router-dom: "npm:^7.1.3"
@@ -17133,11 +16994,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-<<<<<<< HEAD
-"zod@npm:^3.24.1":
-=======
 "zod@npm:^3.23.8":
->>>>>>> bb01998c0ed878349853f7e6550f5c1c175c1ec0
   version: 3.24.1
   resolution: "zod@npm:3.24.1"
   checksum: 10c0/0223d21dbaa15d8928fe0da3b54696391d8e3e1e2d0283a1a070b5980a1dbba945ce631c2d1eccc088fdbad0f2dfa40155590bf83732d3ac4fcca2cc9237591b
