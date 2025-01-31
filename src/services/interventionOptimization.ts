@@ -1,7 +1,8 @@
 import { SessionAnalytics } from './sessionAnalytics';
 import { ContextualLearningSystem } from './contextualLearning';
-import type { Intervention, InterventionMetrics } from '../types/intervention';
-import type { SessionState } from '../types/session';
+import type { Intervention } from '../types/session';
+import type { SessionState } from './sessionManager';
+import { InterventionMetrics } from '@/types/metrics';
 
 interface OptimizationMetrics {
   effectiveness: number;
@@ -13,22 +14,16 @@ interface OptimizationMetrics {
 interface InterventionRecommendation {
   interventionType: string;
   confidence: number;
-  reasoning: string[];
-  expectedOutcomes: string[];
-  potentialRisks: string[];
+  reasoning: Array<string>;
+  expectedOutcomes: Array<string>;
+  potentialRisks: Array<string>;
 }
 
 export class InterventionOptimizationSystem {
-  getRecommendations(content: string) {
-    throw new Error("Method not implemented.");
-  }
-  initialize(id: any): any {
-    throw new Error("Method not implemented.");
-  }
   private static instance: InterventionOptimizationSystem;
   private sessionAnalytics: SessionAnalytics;
   private contextualLearning: ContextualLearningSystem;
-  private interventionHistory: Map<string, InterventionMetrics[]> = new Map();
+  private interventionHistory: Map<string, Array<InterventionMetrics>> = new Map();
   
   private readonly ENGAGEMENT_WEIGHT = 0.3;
   private readonly EMOTIONAL_IMPACT_WEIGHT = 0.3;
@@ -46,6 +41,23 @@ export class InterventionOptimizationSystem {
     return InterventionOptimizationSystem.instance;
   }
 
+  initialize(id: string): void {
+    this.interventionHistory.set(id, []);
+  }
+
+  getRecommendations(content: string): Array<InterventionRecommendation> {
+    const recommendations: Array<InterventionRecommendation> = [];
+    // Example logic (to be replaced with actual logic)
+    recommendations.push({
+      interventionType: 'mindfulness',
+      confidence: 0.8,
+      reasoning: ['Client is experiencing high stress levels.'],
+      expectedOutcomes: ['Improved emotional state', 'Increased engagement'],
+      potentialRisks: ['Client may feel overwhelmed initially.'],
+    });
+    return recommendations;
+  }
+
   async trackIntervention(
     clientId: string,
     intervention: Intervention,
@@ -53,7 +65,7 @@ export class InterventionOptimizationSystem {
   ): Promise<void> {
     const metrics = await this.calculateInterventionMetrics(intervention, session);
     
-    let clientHistory = this.interventionHistory.get(clientId) || [];
+    const clientHistory = this.interventionHistory.get(clientId) || [];
     clientHistory.push({
       interventionId: intervention.id,
       type: intervention.type,
@@ -69,26 +81,12 @@ export class InterventionOptimizationSystem {
     intervention: Intervention,
     session: SessionState
   ): Promise<OptimizationMetrics> {
-    const sessionMetrics = await this.sessionAnalytics.getSessionMetrics(session.id);
+    const sessionMetrics = await SessionAnalytics.getSessionMetrics(session.id);
     
-    // Calculate metrics relative to intervention timing
-    const preInterventionMessages = session.messages?.filter(
-      m => m.timestamp < intervention.timestamp
-    ) || [];
-    const postInterventionMessages = session.messages?.filter(
-      m => m.timestamp >= intervention.timestamp
-    ) || [];
-
-    const preEngagement = await this.sessionAnalytics.calculateEngagement(preInterventionMessages);
-    const postEngagement = await this.sessionAnalytics.calculateEngagement(postInterventionMessages);
-    
-    const preEmotional = await this.sessionAnalytics.calculateAverageSentiment(preInterventionMessages);
-    const postEmotional = await this.sessionAnalytics.calculateAverageSentiment(postInterventionMessages);
-
     return {
       effectiveness: sessionMetrics.effectiveness || 0,
-      clientEngagement: postEngagement - preEngagement,
-      emotionalImpact: postEmotional - preEmotional,
+      clientEngagement: sessionMetrics.engagementScore || 0,
+      emotionalImpact: sessionMetrics.averageSentiment || 0,
       longTermProgress: sessionMetrics.progressTowardsGoals || 0,
     };
   }
@@ -100,7 +98,9 @@ export class InterventionOptimizationSystem {
     const history = this.interventionHistory.get(clientId) || [];
     const relevantInterventions = history.filter(h => h.type === interventionType);
     
-    if (relevantInterventions.length === 0) return 0;
+    if (relevantInterventions.length === 0) {
+      return 0;
+    }
 
     const totalScore = relevantInterventions.reduce((sum, intervention) => {
       const weightedScore = 
@@ -120,12 +120,12 @@ export class InterventionOptimizationSystem {
     currentContext: {
       emotionalState: number;
       engagementLevel: number;
-      recentTopics: string[];
+      recentTopics: Array<string>;
     }
-  ): Promise<InterventionRecommendation[]> {
+  ): Promise<Array<InterventionRecommendation>> {
     const history = this.interventionHistory.get(clientId) || [];
     const interventionTypes = new Set(history.map(h => h.type));
-    const recommendations: InterventionRecommendation[] = [];
+    const recommendations: Array<InterventionRecommendation> = [];
 
     for (const type of interventionTypes) {
       const effectiveness = await this.getInterventionEffectiveness(clientId, type);
@@ -151,14 +151,13 @@ export class InterventionOptimizationSystem {
     context: {
       emotionalState: number;
       engagementLevel: number;
-      recentTopics: string[];
+      recentTopics: Array<string>;
     }
   ): Promise<number> {
-    // Define intervention characteristics
     const interventionCharacteristics: Record<string, {
       idealEmotionalState: number;
       minEngagement: number;
-      suitableTopics: string[];
+      suitableTopics: Array<string>;
     }> = {
       'cognitive-restructuring': {
         idealEmotionalState: 0,
@@ -175,13 +174,13 @@ export class InterventionOptimizationSystem {
         minEngagement: 0.3,
         suitableTopics: ['depression', 'motivation', 'routine'],
       },
-      // Add more intervention types as needed
     };
 
     const characteristics = interventionCharacteristics[interventionType];
-    if (!characteristics) return 0;
+    if (!characteristics) {
+      return 0;
+    }
 
-    // Calculate fit scores
     const emotionalFit = 1 - Math.abs(context.emotionalState - characteristics.idealEmotionalState);
     const engagementFit = context.engagementLevel >= characteristics.minEngagement ? 1 : 0;
     const topicFit = context.recentTopics.some(topic => 
@@ -197,10 +196,10 @@ export class InterventionOptimizationSystem {
     context: {
       emotionalState: number;
       engagementLevel: number;
-      recentTopics: string[];
+      recentTopics: Array<string>;
     }
-  ): Promise<string[]> {
-    const reasons: string[] = [];
+  ): Promise<Array<string>> {
+    const reasons: Array<string> = [];
 
     if (effectiveness > 0.7) {
       reasons.push(`High historical effectiveness (${Math.round(effectiveness * 100)}% success rate)`);
@@ -223,12 +222,11 @@ export class InterventionOptimizationSystem {
 
   private async predictOutcomes(
     interventionType: string,
-    history: InterventionMetrics[]
-  ): Promise<string[]> {
+    history: Array<InterventionMetrics>
+  ): Promise<Array<string>> {
     const typeHistory = history.filter(h => h.type === interventionType);
-    const outcomes: string[] = [];
+    const outcomes: Array<string> = [];
 
-    // Analyze engagement patterns
     const avgEngagement = typeHistory.reduce(
       (sum, h) => sum + h.metrics.clientEngagement, 
       0
@@ -238,7 +236,6 @@ export class InterventionOptimizationSystem {
       outcomes.push('Likely to maintain high client engagement');
     }
 
-    // Analyze emotional impact
     const avgEmotional = typeHistory.reduce(
       (sum, h) => sum + h.metrics.emotionalImpact,
       0
@@ -248,7 +245,6 @@ export class InterventionOptimizationSystem {
       outcomes.push('Expected positive emotional impact');
     }
 
-    // Analyze progress patterns
     const avgProgress = typeHistory.reduce(
       (sum, h) => sum + h.metrics.longTermProgress,
       0
@@ -263,12 +259,11 @@ export class InterventionOptimizationSystem {
 
   private async assessRisks(
     interventionType: string,
-    history: InterventionMetrics[]
-  ): Promise<string[]> {
+    history: Array<InterventionMetrics>
+  ): Promise<Array<string>> {
     const typeHistory = history.filter(h => h.type === interventionType);
-    const risks: string[] = [];
+    const risks: Array<string> = [];
 
-    // Check for negative engagement patterns
     const negativeEngagements = typeHistory.filter(
       h => h.metrics.clientEngagement < -0.2
     ).length;
@@ -277,7 +272,6 @@ export class InterventionOptimizationSystem {
       risks.push('20% risk of reduced engagement');
     }
 
-    // Check for negative emotional impacts
     const negativeEmotional = typeHistory.filter(
       h => h.metrics.emotionalImpact < -0.3
     ).length;
@@ -286,7 +280,6 @@ export class InterventionOptimizationSystem {
       risks.push('Potential for temporary emotional discomfort');
     }
 
-    // Check for progress stagnation
     const lowProgress = typeHistory.filter(
       h => h.metrics.longTermProgress < 0.1
     ).length;
