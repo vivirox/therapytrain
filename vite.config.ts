@@ -1,5 +1,5 @@
 import { defineConfig } from "vite";
-import react from '@vitejs/plugin-react';
+import reactSwc from '@vitejs/plugin-react-swc';
 import path from "path";
 
 // https://vitejs.dev/config/
@@ -12,8 +12,7 @@ export default defineConfig(({ }) => ({
     },
   },
   plugins: [
-    react(),
-    // Removed componentTagger as it was not defined
+    reactSwc(),
   ].filter(Boolean),
   resolve: {
     alias: {
@@ -89,9 +88,6 @@ export default defineConfig(({ }) => ({
               }
               if (id.includes('/education/')) {
                 return 'app-education';
-              }
-              if (id.includes('/analytics/')) {
-                return 'app-analytics';
               }
               return 'app-components';
             }

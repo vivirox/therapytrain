@@ -29,7 +29,7 @@ const insights = [
 
 const CustomerRequests = () => {
   return (
-    <div className="dashboard-card h-[400px]">
+    <div className="h-[400px]">
       <h2 className="text-xl font-medium mb-6">Customer Requests</h2>
       <Card className="bg-white/5 border-white/10">
         <CardHeader>
