@@ -8,7 +8,7 @@ export default defineConfig(({ }) => ({
     host: "::",
     port: 8080,
     headers: {
-      'Permissions-Policy': 'interest-cohort=()'
+      'Permissions-Policy': 'attribution-reporting=(), run-ad-auction=(), private-state-token-redemption=(), private-state-token-issuance=(), join-ad-interest-group=(), browsing-topics=()'
     },
   },
   plugins: [
