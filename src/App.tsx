@@ -1,6 +1,5 @@
-
 import styled from 'styled-components';
-import React, { Suspense, lazy } from 'react';
+import { h, lazy, Suspense } from 'preact'; // Importing Preact and lazy
 import { BrowserRouter, Navigate, useRoutes } from 'react-router-dom';
 import { ToastProvider } from "./components/ui/toast";
 import { TooltipProvider } from "./components/ui/tooltip";
@@ -9,9 +8,6 @@ import { AuthProvider } from "./components/auth/AuthProvider";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthGuard } from "./components/AuthGuard";
 import { Text } from 'react-native-web';
-import { supabase } from './lib/supabase';
-
-
 
 const Index = lazy(() => import("./pages/Index"));
 const Auth = lazy(() => import("./pages/Auth"));
@@ -40,7 +36,7 @@ const TodoItem = styled.li`
   padding: 10px;
 `;
 
-function QueryProvider({ children }: { children: React.ReactNode }) {
+function QueryProvider({ children }: { children: JSX.Element }) {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
@@ -76,14 +72,14 @@ const AppRoutes = () => {
   return useRoutes(routes);
 };
 
-const App: React.FC = () => {
+const App = () => {
   return (
     <QueryProvider>
       <ToastProvider>
         <TooltipProvider>
           <BrowserRouter>
             <AuthProvider>
-              <Suspense fallback={<Loading fullScreen message="Loading TherapyTrain..." />}>
+              <Suspense fallback={<Loading fullScreen message="Loading TherapyTrain..." />} >
                 <AppRoutes />
               </Suspense>
             </AuthProvider>

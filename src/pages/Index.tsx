@@ -1,4 +1,4 @@
-import React from 'react'; // Importing React
+import { h } from 'preact';
 import { Button } from "../components/ui/button";
 import { useNavigate } from "react-router-dom";
 import {
@@ -168,7 +168,3 @@ const Index = () => {
         </div>
       </footer>
     </div>
-  );
-};
-
-export default Index;
