@@ -69,7 +69,7 @@ class SessionManager {
   public async loadSessionBranches(sessionId: string): Promise<void> {
     // TODO: Implement loading branches from your preferred storage solution
     // For now, using mock data
-    const mockBranches: SessionBranch[] = [
+    const mockBranches: Array<SessionBranch> = [
       {
         id: crypto.randomUUID(),
         sessionId,
