@@ -79,20 +79,20 @@ const AppRoutes = () => {
 const App: React.FC = () => {
   return (
     <Container>
-  return (
-    <QueryProvider>
-      <ToastProvider>
-        <TooltipProvider>
-          <BrowserRouter>
-            <AuthProvider>
-              <Suspense fallback={<Loading fullScreen message="Loading TherapyTrain..." />}>
-                <AppRoutes />
-              </Suspense>
-            </AuthProvider>
-          </BrowserRouter>
-        </TooltipProvider>
-      </ToastProvider>
-            </QueryProvider>
+      return (
+      <QueryProvider>
+        <ToastProvider>
+          <TooltipProvider>
+            <BrowserRouter>
+              <AuthProvider>
+                <Suspense fallback={<Loading fullScreen message="Loading TherapyTrain..." />}>
+                  <AppRoutes />
+                </Suspense>
+              </AuthProvider>
+            </BrowserRouter>
+          </TooltipProvider>
+        </ToastProvider>
+      </QueryProvider>
     </Container>
   )
 }
