@@ -1,17 +1,15 @@
+/** @jsxImportSource @emotion/react */
+import React from 'react';
 import styled from 'styled-components';
-import { h, JSX } from 'preact';
-import { Suspense } from 'react';
-import { lazy } from 'preact/compat';
+import { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
-import { route } from 'preact-router';
 import { ToastProvider } from "./components/ui/toast";
 import { TooltipProvider } from "./components/ui/tooltip";
 import { Loading } from "./components/ui/loading";
 import { AuthProvider } from "./components/auth/AuthProvider";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthGuard } from "./components/AuthGuard";
-
-const Index = lazy(() => import("./pages/Index"));
+import { useAuth } from "./components/auth/AuthProvider";
 const Auth = lazy(() => import("./pages/Auth"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Chat = lazy(() => import("./pages/Chat"));
@@ -28,7 +26,7 @@ function QueryProvider({ children }: { children: React.ReactNode }) {
       queries: {
         retry: 1,
         refetchOnWindowFocus: false,
-        staleTime: 5 * 60 * 1000, // 5 minutes
+        staleTime: 5 * 60 * 1000,
       },
     },
   });
@@ -91,7 +89,10 @@ const AppRoutes = () => {
       </Suspense>
     </Router>
   );
-};const App = () => {  return (
+};
+
+const App = () => {
+  return (
     <QueryProvider>
       <ToastProvider>
         <TooltipProvider>

@@ -356,8 +356,7 @@ async function getInterventionMetrics(clientId: string) {
     if (!response.ok) {
       throw new Error('Failed to fetch intervention metrics');
     }
-    const data = await response.json();
-    return data;
+    return await response.json();
   } catch (error) {
     console.error('Error fetching intervention metrics:', error);
     throw error;
@@ -388,8 +387,7 @@ async function getInterventions(clientId: string) {
     if (!response.ok) {
       throw new Error('Failed to fetch interventions');
     }
-    const data = await response.json();
-    return data;
+    return await response.json();
   } catch (error) {
     console.error('Error fetching interventions:', error);
     throw error;
@@ -402,8 +400,7 @@ async function getNextSession(clientId: string) {
     if (!response.ok) {
       throw new Error('Failed to fetch next session');
     }
-    const data = await response.json();
-    return data;
+    return await response.json();
   } catch (error) {
     console.error('Error fetching next session:', error);
     throw error;

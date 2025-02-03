@@ -1,6 +1,8 @@
 import { defineConfig } from "vite";
 import reactSwc from '@vitejs/plugin-react-swc';
-import path from "path";
+import tailwindcss from '@tailwindcss/vite';
+import * as path from "node:path";
+
 
 // https://vitejs.dev/config/
 export default defineConfig(({ }) => ({
@@ -13,6 +15,7 @@ export default defineConfig(({ }) => ({
   },
   plugins: [
     reactSwc(),
+    tailwindcss(),
   ].filter(Boolean),
   resolve: {
     alias: {

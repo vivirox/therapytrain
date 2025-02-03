@@ -12,7 +12,39 @@ export interface Tutorial {
   updatedAt: Date;
 }
 
-// Function to create a new tutorial
+export interface UserProgress {
+  userId: string;
+  tutorialId: string;
+  progress: number; // percentage of completion
+  updatedAt: Date;
+}
+
+// Function to get user's progress
+export const getUserProgress = async (userId: string) => {
+  const { data, error } = await supabase
+    .from('user_progress')
+    .select('*')
+    .eq('userId', userId);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+  return data;
+};
+
+// Function to get user's skills
+export const getUserSkills = async (userId: string) => {
+  const { data, error } = await supabase
+    .from('user_skills')
+    .select('*')
+    .eq('userId', userId);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+  return data;
+};
+
 export const createTutorial = async (tutorial: Omit<Tutorial, 'id' | 'createdAt' | 'updatedAt'>) => {
   const { data, error } = await supabase
     .from('tutorials')
@@ -86,4 +118,15 @@ export const deleteTutorial = async (id: string) => {
     throw new Error(error.message);
   }
   return true;
+};
+
+// Function to track real-time analytics
+export const trackRealTimeAnalytics = async (userId: string, eventType: string, metadata: Record<string, any>) => {
+  const { error } = await supabase
+    .from('real_time_analytics')
+    .insert([{ userId, eventType, metadata, createdAt: new Date() }]);
+
+  if (error) {
+    throw new Error(error.message);
+  }
 };

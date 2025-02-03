@@ -1,10 +1,11 @@
 import express from 'express';
-import { createTutorial, getAllTutorials } from '../models/education';
+import { getAllTutorials } from '../models/education';
+import { Request, Response, Router } from 'express';
 
-const router = express.Router();
+const router: Router = express.Router();
 
 // Get all tutorials
-router.get('/tutorials', async (_req, res) => {
+router.get('/tutorials', async (_req: Request, res: Response) => {
   try {
     const tutorials = await getAllTutorials();
     res.json(tutorials);
@@ -13,7 +14,6 @@ router.get('/tutorials', async (_req, res) => {
   }
 });
 
-// Get user's progress (to be implemented with Supabase)
-// Get user's skills (to be implemented with Supabase)
+// Removed user progress and user skills routes
 
 export default router;

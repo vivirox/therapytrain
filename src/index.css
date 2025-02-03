@@ -1,3 +1,16 @@
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+@import './tailwind-custom.css';
+
+:root {
+  --chatgpt-main: #343541;
+  --chatgpt-hover: #40414f;
+  --chatgpt-hover-rgb: 64, 65, 79;
+  --chatgpt-border: #565869;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
