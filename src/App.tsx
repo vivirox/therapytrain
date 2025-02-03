@@ -78,6 +78,8 @@ const AppRoutes = () => {
 
 const App: React.FC = () => {
   return (
+    <Container>
+  return (
     <QueryProvider>
       <ToastProvider>
         <TooltipProvider>
@@ -90,7 +92,8 @@ const App: React.FC = () => {
           </BrowserRouter>
         </TooltipProvider>
       </ToastProvider>
-    </QueryProvider>
+            </QueryProvider>
+    </Container>
   )
 }
 
