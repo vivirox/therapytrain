@@ -20,12 +20,11 @@ interface TutorialSystemProps {
 }
 
 export const TutorialSystem: React.FC<TutorialSystemProps> = ({ userId }) => {
-  const [tutorials, setTutorials] = useState<Tutorial[]>([]);
+  const [tutorials, setTutorials] = useState<Array<Tutorial>>([]);
   const [currentTutorial, setCurrentTutorial] = useState<Tutorial | null>(null);
   const [currentStep, setCurrentStep] = useState<TutorialStep | null>(null);
   const [skillProgression, setSkillProgression] = useState<SkillProgression | null>(null);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchTutorials = async () => {

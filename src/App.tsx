@@ -1,13 +1,15 @@
 import styled from 'styled-components';
-import { h, lazy, Suspense } from 'preact'; // Importing Preact and lazy
-import { BrowserRouter, Navigate, useRoutes } from 'react-router-dom';
+import { h, JSX } from 'preact';
+import { Suspense } from 'react';
+import { lazy } from 'preact/compat';
+import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
+import { route } from 'preact-router';
 import { ToastProvider } from "./components/ui/toast";
 import { TooltipProvider } from "./components/ui/tooltip";
 import { Loading } from "./components/ui/loading";
 import { AuthProvider } from "./components/auth/AuthProvider";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthGuard } from "./components/AuthGuard";
-import { Text } from 'react-native-web';
 
 const Index = lazy(() => import("./pages/Index"));
 const Auth = lazy(() => import("./pages/Auth"));
@@ -20,23 +22,7 @@ const Benefits = lazy(() => import("./pages/Benefits"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const TermsOfService = lazy(() => import("./pages/TermsOfService"));
 
-const Container = styled.div`
-  flex: 1;
-  justify-content: center;
-  align-items: center;
-`;
-
-const Header = styled.h1`
-  font-size: 24px;
-  margin-bottom: 20px;
-`;
-
-const TodoItem = styled.li`
-  font-size: 18px;
-  padding: 10px;
-`;
-
-function QueryProvider({ children }: { children: JSX.Element }) {
+function QueryProvider({ children }: { children: React.ReactNode }) {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
@@ -54,36 +40,66 @@ function QueryProvider({ children }: { children: JSX.Element }) {
   );
 }
 
-const AppRoutes = () => {
-  const routes = [
-    { path: "/", element: <Index /> },
-    { path: "/features", element: <Features /> },
-    { path: "/benefits", element: <Benefits /> },
-    { path: "/privacy-policy", element: <PrivacyPolicy /> },
-    { path: "/terms-of-service", element: <TermsOfService /> },
-    { path: "/auth", element: <Auth /> },
-    { path: "/login", element: <Auth /> },
-    { path: "/callback", element: <Navigate to="/dashboard" replace /> },
-    { path: "/dashboard", element: <AuthGuard><Dashboard /></AuthGuard> },
-    { path: "/chat", element: <AuthGuard><Chat /></AuthGuard> },
-    { path: "/education", element: <AuthGuard><Education /></AuthGuard> },
-    { path: "/client-selection", element: <AuthGuard><ClientSelection /></AuthGuard> },
-  ];
-  return useRoutes(routes);
-};
+const ROUTES = {
+  HOME: '/',
+  FEATURES: '/features',
+  BENEFITS: '/benefits',
+  PRIVACY_POLICY: '/privacy-policy',
+  TERMS_OF_SERVICE: '/terms-of-service',
+  AUTH: '/auth',
+  LOGIN: '/login',
+  DASHBOARD: '/dashboard',
+  CHAT: '/chat',
+  EDUCATION: '/education',
+  CLIENT_SELECTION: '/client-selection'
+} as const;
 
-const App = () => {
+const NotFound = () => <h1>404 - Page Not Found</h1>;
+
+const ProtectedRoute = ({ component: Component, ...rest }) => (
+  <Route {...rest} element={
+    <AuthGuard>
+      <Component />
+    </AuthGuard>
+  } />
+);
+
+const AppRoutes = () => {
+  const handleRoute = (e: { url: string }) => {
+    if (e.url === '/callback') {
+      route('/dashboard', true);
+    }
+  };
+
   return (
+    <Router>
+      <Suspense fallback={<Loading />}>
+        <Routes>
+          <Route path={ROUTES.HOME} element={<div>Home</div>} />
+          <Route path={ROUTES.FEATURES} element={<Features />} />
+          <Route path={ROUTES.BENEFITS} element={<Benefits />} />
+          <Route path={ROUTES.PRIVACY_POLICY} element={<PrivacyPolicy />} />
+          <Route path={ROUTES.TERMS_OF_SERVICE} element={<TermsOfService />} />
+          <Route path={ROUTES.AUTH} element={<Auth />} />
+          <Route path={ROUTES.LOGIN} element={<Auth />} />
+          <Route path={ROUTES.DASHBOARD} element={<ProtectedRoute component={Dashboard} />} />
+          <Route path={ROUTES.CHAT} element={<ProtectedRoute component={Chat} />} />
+          <Route path={ROUTES.EDUCATION} element={<ProtectedRoute component={Education} />} />
+          <Route path={ROUTES.CLIENT_SELECTION} element={<ProtectedRoute component={ClientSelection} />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Suspense>
+    </Router>
+  );
+};const App = () => {  return (
     <QueryProvider>
       <ToastProvider>
         <TooltipProvider>
-          <BrowserRouter>
-            <AuthProvider>
-              <Suspense fallback={<Loading fullScreen message="Loading TherapyTrain..." />} >
-                <AppRoutes />
-              </Suspense>
-            </AuthProvider>
-          </BrowserRouter>
+          <AuthProvider>
+            <Suspense fallback={<Loading fullScreen message="Loading TherapyTrain..." />} >
+              <AppRoutes />
+            </Suspense>
+          </AuthProvider>
         </TooltipProvider>
       </ToastProvider>
     </QueryProvider>

@@ -19,6 +19,9 @@
     "target": "es2020",
     "esModuleInterop": true,
     "moduleResolution": "node",
-    "jsx": "react-jsx" // Ensure JSX is set for Preact
+    "jsx": "react",
+    "jsxFactory": "h",
+    "jsxFragmentFactory": "Fragment",
+    "types": ["preact"]
   }
 }

@@ -8,22 +8,22 @@ import { MdPsychology as Brain } from 'react-icons/md';
 interface DecisionTreeNode {
   id: string;
   content: string;
-  choices: {
+  choices: Array<{
     id: string;
     text: string;
     nextNodeId: string;
     feedback: string;
-  }[];
+  }>;
 }
 
 interface SimulationConfig {
   type: 'roleplay' | 'decision-tree' | 'simulation';
   data: {
-    nodes?: DecisionTreeNode[];
+    nodes?: Array<DecisionTreeNode>;
     scenario?: {
       setup: string;
       variables: Record<string, any>;
-      successCriteria: string[];
+      successCriteria: Array<string>;
     };
   };
 }
@@ -35,11 +35,11 @@ interface InteractiveElementProps {
 }
 
 const DecisionTreeElement: React.FC<{
-  nodes: DecisionTreeNode[];
-  onComplete: (path: string[]) => void;
+  nodes: Array<DecisionTreeNode>;
+  onComplete: (path: Array<string>) => void;
 }> = ({ nodes, onComplete }) => {
   const [currentNode, setCurrentNode] = React.useState(nodes[0]);
-  const [path, setPath] = React.useState<string[]>([nodes[0].id]);
+  const [path, setPath] = React.useState<Array<string>>([nodes[0].id]);
   const [selectedChoice, setSelectedChoice] = React.useState<string>('');
 
   const handleChoice = (choiceId: string) => {
@@ -51,9 +51,9 @@ const DecisionTreeElement: React.FC<{
       setPath([...path, nextNode.id]);
       setCurrentNode(nextNode);
       setSelectedChoice('');
-    } else {
-      onComplete(path);
+      return;
     }
+    onComplete(path);
   };
 
   return (
@@ -85,8 +85,8 @@ const SimulationElement: React.FC<{
   onProgress: (progress: number) => void;
   onComplete: (results: any) => void;
 }> = ({ config, onProgress, onComplete }) => {
-  const [variables, setVariables] = React.useState(config?.variables || {});
-  const [steps, setSteps] = React.useState<string[]>([]);
+  const [variables,] = React.useState(config?.variables || {});
+  const [steps, setSteps] = React.useState<Array<string>>([]);
 
   const updateSimulation = (action: string) => {
     // Here we would implement the simulation logic
