@@ -1,15 +1,21 @@
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+@import './tailwind-custom.css';
+
+:root {
+  --chatgpt-main: #343541;
+  --chatgpt-hover: #40414f;
+  --chatgpt-hover-rgb: 64, 65, 79;
+  --chatgpt-border: #565869;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 body {
-  @apply bg-chatgpt-main text-white;
-}
-
-.sidebar-item {
-  @apply flex items-center gap-3 rounded-md px-3 py-3 text-sm transition-colors duration-200 hover:bg-chatgpt-hover cursor-pointer;
-}
-
-.action-button {
-  @apply flex items-center gap-2 rounded-md px-3 py-2 text-sm hover:bg-chatgpt-hover/50 border border-transparent hover:border-chatgpt-border transition-all duration-200;
+  background-color: var(--chatgpt-main);
+  color: white;
 }

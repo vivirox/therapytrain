@@ -30,3 +30,4 @@ dist-ssr
 .vercel
 src/utils/supabase.
 
+.env*.local
