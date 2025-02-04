@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import rateLimit from 'express-rate-limit';
+import { rateLimit } from 'express-rate-limit';
 
 export class RateLimiterService {
     private rateLimits: Map<string, { count: number; lastReset: number }> = new Map();
@@ -18,28 +18,40 @@ export class RateLimiterService {
      */
     createRateLimiter(maxRequests: number = this.DEFAULT_MAX_REQUESTS, windowMs: number = this.DEFAULT_WINDOW_MS) {
         return rateLimit({
-            windowMs,
-            max: maxRequests,
-            message: 'Too many requests from this IP, please try again later.',
-            standardHeaders: true,
-            legacyHeaders: false,
-            keyGenerator: (req) => req.ip || 'unknown',
-            skip: (req) => this.isWhitelisted(req.ip),
+            windowMs: this.DEFAULT_WINDOW_MS,
+            max: this.DEFAULT_MAX_REQUESTS,
+            keyGenerator: (req: Request) => req.ip || 'unknown',
+            skip: (req: Request) => req.ip ? this.isWhitelisted(req.ip) : false,
+            handler: this.handleRateLimit.bind(this)
         });
     }
 
     /**
      * Check if a given key has exceeded its rate limit
      * @param key - Unique identifier (e.g., IP address, user ID)
+     * @param type - Optional type of rate limit to check (e.g., 'message', 'connection')
      * @param maxRequests - Maximum number of requests allowed in the time window
      * @param windowMs - Time window in milliseconds
      * @returns boolean - true if rate limit is exceeded, false otherwise
      */
     isRateLimited(
         key: string,
+        type?: string,
         maxRequests: number = this.DEFAULT_MAX_REQUESTS,
         windowMs: number = this.DEFAULT_WINDOW_MS
     ): boolean {
+        const limitKey = type ? `${key}:${type}` : key;
+        return this.checkRateLimit(limitKey, maxRequests, windowMs);
+    }
+
+    /**
+     * Check if a rate limit has been exceeded
+     * @param key - The key to check
+     * @param maxRequests - Maximum number of requests allowed
+     * @param windowMs - Time window in milliseconds
+     * @returns boolean - true if rate limit is exceeded, false otherwise
+     */
+    checkRateLimit(key: string, maxRequests: number, windowMs: number): boolean {
         const now = Date.now();
         const limit = this.rateLimits.get(key);
 
@@ -81,7 +93,7 @@ export class RateLimiterService {
 
         if (this.suspiciousList.has(ip)) {
             const customLimit = this.customLimits.get(ip) || this.DEFAULT_MAX_REQUESTS / 2;
-            if (this.isRateLimited(ip, customLimit)) {
+            if (this.checkRateLimit(ip, customLimit, this.DEFAULT_WINDOW_MS)) {
                 this.temporaryBlocks.set(ip, { until: Date.now() + this.DEFAULT_WINDOW_MS });
                 return res.status(429).json({ error: 'Too many requests' });
             }
@@ -133,5 +145,9 @@ export class RateLimiterService {
         const currentLimit = this.customLimits.get(ip) || this.DEFAULT_MAX_REQUESTS;
         const newLimit = decreaseBy ? currentLimit - decreaseBy : Math.floor(currentLimit / 2);
         this.setCustomLimit(ip, Math.max(1, newLimit)); // Ensure limit doesn't go below 1
+    }
+
+    private handleRateLimit(req: Request, res: Response, next: NextFunction) {
+        return res.status(429).json({ error: 'Too many requests from this IP, please try again later.' });
     }
 }

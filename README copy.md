@@ -12,34 +12,34 @@ Devin impressed many by acting like an intern who writes its own plan, updates t
 
 ## Key Highlights
 
-1.	Easy Setup
-   
+1. Easy Setup
+
    Copy the provided config files into your project folder. Cursor users only need the .cursorrules file. It takes about a minute, and you’ll see the difference immediately.
 
-2.	Planner-Executor Multi-Agent (Experimental)
+2. Planner-Executor Multi-Agent (Experimental)
 
    Our new [multi-agent branch](https://github.com/grapeot/devin.cursorrules/tree/multi-agent) introduces a high-level Planner (powered by o1) that coordinates complex tasks, and an Executor (powered by Claude/GPT) that implements step-by-step actions. This two-agent approach drastically improves solution quality, cross-checking, and iteration speed.
 
-3.	Extended Toolset
+3. Extended Toolset
 
    Includes:
-   
-   * Web scraping (Playwright)
-   * Search engine integration (DuckDuckGo)
-   * LLM-powered analysis
+
+* Web scraping (Playwright)
+* Search engine integration (DuckDuckGo)
+* LLM-powered analysis
 
    The AI automatically decides how and when to use them (just like Devin).
 
-4.	Self-Evolution
+-- Self-Evolution
 
    Whenever you correct the AI, it can update its “lessons learned” in .cursorrules. Over time, it accumulates project-specific knowledge and gets smarter with each iteration. It makes AI a coachable and coach-worthy partner.
-	
+
 ## Usage
 
-1.	Copy this repository’s contents into your Cursor or Windsurf project.
-2.	For Cursor, .cursorrules is automatically loaded. For Windsurf, add .windsurfrules plus the Scratchpad for updates.
-3.	Adjust .env with your own API keys, run pip install -r requirements.txt, and you’re all set.
-4.	Start exploring advanced tasks—such as data gathering, building quick prototypes, or cross-referencing external resources—in a fully agentic manner.
+1. Copy this repository’s contents into your Cursor or Windsurf project.
+2. For Cursor, .cursorrules is automatically loaded. For Windsurf, add .windsurfrules plus the Scratchpad for updates.
+3. Adjust .env with your own API keys, run pip install -r requirements.txt, and you’re all set.
+4. Start exploring advanced tasks—such as data gathering, building quick prototypes, or cross-referencing external resources—in a fully agentic manner.
 
 ## Want the Details?
 

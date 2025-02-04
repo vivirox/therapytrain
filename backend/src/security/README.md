@@ -132,7 +132,7 @@ When adding new features to the security monitoring system:
 
 ## Architecture
 
-```
+```text
 security/
 ├── types.ts                    # Type definitions and interfaces
 ├── AlertManager.ts            # Central alert management

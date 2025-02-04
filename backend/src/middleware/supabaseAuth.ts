@@ -1,48 +1,41 @@
-import { createClient } from '@supabase/supabase-js';
 import { Request, Response, NextFunction } from 'express';
+import { supabase } from '../lib/supabase';
+import { User } from '@supabase/supabase-js';
 
-class SupabaseClient {
-  private static instance: ReturnType<typeof createClient>;
-
-  public static getInstance() {
-    if (!this.instance) {
-      const supabaseConfig = {
-        supabaseUrl: process.env.SUPABASE_URL!,
-        supabaseKey: process.env.SUPABASE_ANON_KEY!
-      };
-
-      try {
-        this.instance = createClient(
-          supabaseConfig.supabaseUrl,
-          supabaseConfig.supabaseKey
-        );
-      } catch (error) {
-        console.error('Failed to initialize Supabase client:', error);
-        throw new Error('Database connection failed');
-      }
+export const supabaseAuthMiddleware = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const authHeader = req.headers.authorization;
+    
+    if (!authHeader) {
+      res.status(401).json({ error: 'No authorization header' });
+      return;
     }
-    return this.instance;
+
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error } = await supabase.auth.getUser(token);
+
+    if (error || !user) {
+      res.status(401).json({ error: 'Invalid or expired token' });
+      return;
+    }
+
+    // Add user to request object
+    req.user = user;
+    next();
+  } catch (error) {
+    res.status(401).json({ error: 'Authentication failed' });
+  }
+};
+
+// Extend Express Request type to include user
+declare global {
+  namespace Express {
+    interface Request {
+      user?: User;
+    }
   }
 }
-
-export const supabase = SupabaseClient.getInstance();
-
-export const setupSupabaseAuth = (req: Request, res: Response, next: NextFunction) => {
-  const token = req.headers.authorization?.split(' ')[1];
-
-  if (!token) {
-    return res.status(401).json({ error: 'Unauthorized' });
-  }
-
-  supabase.auth.getUser(token)
-    .then(({ data, error }) => {
-      if (error || !data.user) {
-        return res.status(401).json({ error: 'Unauthorized' });
-      }
-      req.user = data.user; // Attach user to request
-      next();
-    })
-    .catch(() => {
-      return res.status(401).json({ error: 'Unauthorized' });
-    });
-};

@@ -1,22 +1,23 @@
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
-import rateLimit from 'express-rate-limit';
+import { rateLimit } from 'express-rate-limit';
 import { config } from './config';
 import { errorHandler } from './middleware/errorHandler';
-import { setupRoutes } from './routes';
-import { supabase } from './middleware/supabaseAuth';
-import { logger } from './utils/logger';
-import { connectDatabase } from './database';
+import { setupSessionRoutes } from './routes';
+import { supabaseAuthMiddleware } from './middleware/supabaseAuth';
 
 const app = express();
 
-// Security middleware
-app.use(helmet());
+// Middleware
 app.use(cors({
-  origin: config.corsOrigins,
+  origin: config.corsOrigin,
   credentials: true
 }));
+
+app.use(helmet());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Rate limiting
 const limiter = rateLimit({
@@ -25,33 +26,21 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
-// Body parsing
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// Authentication
-app.use(async (req, _res, next) => {
-  const { data: { user } } = await supabase.auth.getUser();
-  req.user = user || undefined;
-  next();
+// Routes
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok' });
 });
 
-// Routes
-setupRoutes(app);
+// Protected routes
+app.use('/api/sessions', supabaseAuthMiddleware, setupSessionRoutes());
 
-// Error handling
-app.use(errorHandler);
+// Error handling must be last
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  errorHandler(err, req, res, next);
+});
 
 // Start server
-const startServer = async () => {
-  try {
-    await connectDatabase();
-    app.listen(config.port, () => {
-      logger.info(`Server running on port ${config.port}`);
-    });
-  } catch (error) {
-    logger.error('Failed to start server:', error);
-  }
-};
-
-startServer();
+const port = config.port || 3000;
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
+});

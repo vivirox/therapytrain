@@ -15,6 +15,66 @@ function generateRandomEntropy(): string {
     return randomBytes(32).toString('hex');
 }
 
+async function compileCircuit(circuitPath: string) {
+    try {
+        const circomPath = process.platform === 'win32'
+            ? path.join(process.env.APPDATA || '', 'npm', 'circom.cmd')
+            : 'circom';
+
+        console.log(`Circuit path: ${circuitPath}`);
+        console.log(`Circom path: ${circomPath}`);
+
+        const command = `"${circomPath}" "${circuitPath}" --r1cs --wasm --sym --c -o "${BUILD_DIR}" --O2 -l circomlib/circuits`;
+        console.log(`Running command: ${command}`);
+
+        execSync(command, { stdio: 'inherit' });
+    } catch (error) {
+        console.error('Error compiling circuit:', error);
+        if (error instanceof Error) {
+            console.error('Stack:', error.stack);
+        }
+        throw error;
+    }
+}
+
+async function generateKeys() {
+    try {
+        // Generate initial zKey
+        console.log('Generating initial proving key...');
+        await snarkjs.zKey.newZKey(
+            path.join(BUILD_DIR, CIRCUIT_NAME + '.r1cs'),
+            path.join(BUILD_DIR, PHASE1_PATH),
+            path.join(BUILD_DIR, CIRCUIT_NAME + '_0.zkey')
+        );
+
+        // Contribute to phase 2 ceremony
+        console.log('Contributing to phase 2 ceremony...');
+        await snarkjs.zKey.contribute(
+            path.join(BUILD_DIR, CIRCUIT_NAME + '_0.zkey'),
+            path.join(BUILD_DIR, CIRCUIT_NAME + '_1.zkey'),
+            'First contribution',
+            generateRandomEntropy()
+        );
+
+        // Generate verification key
+        console.log('Generating verification key...');
+        const vKey = await snarkjs.zKey.exportVerificationKey(
+            path.join(BUILD_DIR, CIRCUIT_NAME + '_1.zkey')
+        );
+
+        await fs.writeFile(
+            path.join(PUBLIC_DIR, CIRCUIT_NAME + '_verification_key.json'),
+            JSON.stringify(vKey, null, 2)
+        );
+    } catch (error) {
+        console.error('Error generating keys:', error);
+        if (error instanceof Error) {
+            console.error('Stack:', error.stack);
+        }
+        throw error;
+    }
+}
+
 async function main() {
     try {
         console.log('Setting up ZK system...');
@@ -57,28 +117,13 @@ async function main() {
             throw error;
         }
 
-        // Compile circuit
-        console.log('Compiling circuit...');
-        try {
-            const circomPath = process.platform === 'win32'
-                ? path.join(process.env.APPDATA || '', 'npm', 'circom.cmd')
-                : 'circom';
+        // Add circuit compilation
+        console.log('Compiling ZK circuits...');
+        await compileCircuit(path.join(__dirname, '../zk/circuits/session_validator.circom'));
 
-            const circuitPath = path.join(CIRCUIT_DIR, CIRCUIT_NAME + '.circom');
-            console.log(`Circuit path: ${circuitPath}`);
-            console.log(`Circom path: ${circomPath}`);
-            
-            const command = `"${circomPath}" "${circuitPath}" --r1cs --wasm --sym --c -o "${BUILD_DIR}" --O2 -l circomlib/circuits`;
-            console.log(`Running command: ${command}`);
-
-            execSync(command, { stdio: 'inherit' });
-        } catch (error) {
-            console.error('Error compiling circuit:', error);
-            if (error instanceof Error) {
-                console.error('Stack:', error.stack);
-            }
-            throw error;
-        }
+        // Generate trusted setup
+        console.log('Generating zk-SNARK keys...');
+        await generateKeys();
 
         // Print circuit statistics
         console.log('Analyzing circuit complexity...');
@@ -87,58 +132,6 @@ async function main() {
             console.log(r1csInfo);
         } catch (error) {
             console.error('Error analyzing circuit:', error);
-            if (error instanceof Error) {
-                console.error('Stack:', error.stack);
-            }
-            throw error;
-        }
-
-        // Generate initial zKey
-        console.log('Generating initial proving key...');
-        try {
-            await snarkjs.zKey.newZKey(
-                path.join(BUILD_DIR, CIRCUIT_NAME + '.r1cs'),
-                path.join(BUILD_DIR, PHASE1_PATH),
-                path.join(BUILD_DIR, CIRCUIT_NAME + '_0.zkey')
-            );
-        } catch (error) {
-            console.error('Error generating initial proving key:', error);
-            if (error instanceof Error) {
-                console.error('Stack:', error.stack);
-            }
-            throw error;
-        }
-
-        // Contribute to phase 2 ceremony
-        console.log('Contributing to phase 2 ceremony...');
-        try {
-            await snarkjs.zKey.contribute(
-                path.join(BUILD_DIR, CIRCUIT_NAME + '_0.zkey'),
-                path.join(BUILD_DIR, CIRCUIT_NAME + '_1.zkey'),
-                'First contribution',
-                generateRandomEntropy()
-            );
-        } catch (error) {
-            console.error('Error contributing to phase 2 ceremony:', error);
-            if (error instanceof Error) {
-                console.error('Stack:', error.stack);
-            }
-            throw error;
-        }
-
-        // Generate verification key
-        console.log('Generating verification key...');
-        try {
-            const vKey = await snarkjs.zKey.exportVerificationKey(
-                path.join(BUILD_DIR, CIRCUIT_NAME + '_1.zkey')
-            );
-
-            await fs.writeFile(
-                path.join(PUBLIC_DIR, CIRCUIT_NAME + '_verification_key.json'),
-                JSON.stringify(vKey, null, 2)
-            );
-        } catch (error) {
-            console.error('Error generating verification key:', error);
             if (error instanceof Error) {
                 console.error('Stack:', error.stack);
             }

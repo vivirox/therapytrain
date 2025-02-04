@@ -1,55 +1,48 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { logger } from '../utils/logger';
-import { ZodError } from 'zod';
-import { MongoError } from 'mongodb';
+import { PostgrestError } from '@supabase/supabase-js';
 
-export class AppError extends Error {
-  constructor(
-    public statusCode: number,
-    message: string,
-    public isOperational = true
-  ) {
-    super(message);
-    Object.setPrototypeOf(this, AppError.prototype);
-  }
+export interface AppError extends Error {
+  status?: number;
+  code?: string;
 }
 
 export const errorHandler = (
-  err: Error,
+  err: Error | AppError | PostgrestError,
   req: Request,
-  res: Response) => {
-  logger.error('Error:', {
-    message: err.message,
-    stack: err.stack,
-    path: req.path,
-    method: req.method,
-  });
+  res: Response,
+  next: NextFunction
+) => {
+  logger.error('Error:', err);
 
-  if (err instanceof AppError) {
-    return res.status(err.statusCode).json({
-      status: 'error',
-      message: err.message,
-    });
-  }
-
-  if (err instanceof ZodError) {
+  // Handle Supabase errors
+  if ('code' in err && 'details' in err && 'hint' in err && 'message' in err) {
+    const pgError = err as PostgrestError;
     return res.status(400).json({
-      status: 'error',
-      message: 'Validation error',
-      errors: err.errors,
+      error: 'Database Error',
+      message: pgError.message,
+      details: pgError.details
     });
   }
 
-  if (err instanceof MongoError && err.code === 11_000) {
-        return res.status(409).json({
-          status: 'error',
-          message: 'Duplicate key error',
-        });
+  // Handle known application errors
+  if ('status' in err) {
+    return res.status(err.status || 500).json({
+      error: err.message
+    });
+  }
+
+  // Handle validation errors
+  if (err.message.includes('validation failed')) {
+    return res.status(400).json({
+      error: 'Validation Error',
+      message: err.message
+    });
   }
 
   // Default error
   return res.status(500).json({
-    status: 'error',
-    message: 'Internal server error',
+    error: 'Internal Server Error',
+    message: process.env.NODE_ENV === 'production' ? 'An unexpected error occurred' : err.message
   });
 };

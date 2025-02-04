@@ -1,31 +1,31 @@
 import { wasm as wasmTester } from 'circom_tester';
 import * as path from 'path';
-import { buildEddsa } from 'circomlibjs';
+import { buildEddsa, eddsa } from 'circomlibjs';
 import { randomBytes } from 'crypto';
 
 describe('Session Integrity Circuit', () => {
     let circuit: any;
-    let eddsa: any;
+    let eddsaInstance: any;
 
     beforeAll(async () => {
         circuit = await wasmTester(path.join(__dirname, '../session_integrity.circom'));
-        eddsa = await buildEddsa();
+        eddsaInstance = await buildEddsa();
     });
 
     it('should verify valid session data', async () => {
         // Generate valid EdDSA keypair
         const privateKey = randomBytes(32);
-        const publicKey = eddsa.prv2pub(privateKey);
+        const publicKey = eddsaInstance.prv2pub(privateKey);
 
         // Create signature for session ID
         const sessionId = '123456789';
         const msgBuf = Buffer.from(sessionId);
-        const signature = eddsa.signMiMC(privateKey, msgBuf);
+        const signature = eddsaInstance.signMiMC(privateKey, msgBuf);
 
         // Convert public key and signature to bit arrays
-        const pubKeyBits = eddsa.pubKey2Bits(publicKey);
-        const sigR8Bits = eddsa.r8Bits(signature.R8);
-        const sigSBits = eddsa.sBits(signature.S);
+        const pubKeyBits = eddsaInstance.pubKey2Bits(publicKey);
+        const sigR8Bits = eddsaInstance.r8Bits(signature.R8);
+        const sigSBits = eddsaInstance.sBits(signature.S);
 
         const input = {
             sessionId,
@@ -48,17 +48,17 @@ describe('Session Integrity Circuit', () => {
     it('should reject invalid duration', async () => {
         // Generate valid EdDSA keypair
         const privateKey = randomBytes(32);
-        const publicKey = eddsa.prv2pub(privateKey);
+        const publicKey = eddsaInstance.prv2pub(privateKey);
 
         // Create signature for session ID
         const sessionId = '123456789';
         const msgBuf = Buffer.from(sessionId);
-        const signature = eddsa.signMiMC(privateKey, msgBuf);
+        const signature = eddsaInstance.signMiMC(privateKey, msgBuf);
 
         // Convert public key and signature to bit arrays
-        const pubKeyBits = eddsa.pubKey2Bits(publicKey);
-        const sigR8Bits = eddsa.r8Bits(signature.R8);
-        const sigSBits = eddsa.sBits(signature.S);
+        const pubKeyBits = eddsaInstance.pubKey2Bits(publicKey);
+        const sigR8Bits = eddsaInstance.r8Bits(signature.R8);
+        const sigSBits = eddsaInstance.sBits(signature.S);
 
         const input = {
             sessionId,
@@ -80,17 +80,17 @@ describe('Session Integrity Circuit', () => {
     it('should reject invalid intervention count', async () => {
         // Generate valid EdDSA keypair
         const privateKey = randomBytes(32);
-        const publicKey = eddsa.prv2pub(privateKey);
+        const publicKey = eddsaInstance.prv2pub(privateKey);
 
         // Create signature for session ID
         const sessionId = '123456789';
         const msgBuf = Buffer.from(sessionId);
-        const signature = eddsa.signMiMC(privateKey, msgBuf);
+        const signature = eddsaInstance.signMiMC(privateKey, msgBuf);
 
         // Convert public key and signature to bit arrays
-        const pubKeyBits = eddsa.pubKey2Bits(publicKey);
-        const sigR8Bits = eddsa.r8Bits(signature.R8);
-        const sigSBits = eddsa.sBits(signature.S);
+        const pubKeyBits = eddsaInstance.pubKey2Bits(publicKey);
+        const sigR8Bits = eddsaInstance.r8Bits(signature.R8);
+        const sigSBits = eddsaInstance.sBits(signature.S);
 
         const input = {
             sessionId,
@@ -112,17 +112,17 @@ describe('Session Integrity Circuit', () => {
     it('should reject invalid risk level', async () => {
         // Generate valid EdDSA keypair
         const privateKey = randomBytes(32);
-        const publicKey = eddsa.prv2pub(privateKey);
+        const publicKey = eddsaInstance.prv2pub(privateKey);
 
         // Create signature for session ID
         const sessionId = '123456789';
         const msgBuf = Buffer.from(sessionId);
-        const signature = eddsa.signMiMC(privateKey, msgBuf);
+        const signature = eddsaInstance.signMiMC(privateKey, msgBuf);
 
         // Convert public key and signature to bit arrays
-        const pubKeyBits = eddsa.pubKey2Bits(publicKey);
-        const sigR8Bits = eddsa.r8Bits(signature.R8);
-        const sigSBits = eddsa.sBits(signature.S);
+        const pubKeyBits = eddsaInstance.pubKey2Bits(publicKey);
+        const sigR8Bits = eddsaInstance.r8Bits(signature.R8);
+        const sigSBits = eddsaInstance.sBits(signature.S);
 
         const input = {
             sessionId,
@@ -144,17 +144,17 @@ describe('Session Integrity Circuit', () => {
     it('should reject invalid engagement score', async () => {
         // Generate valid EdDSA keypair
         const privateKey = randomBytes(32);
-        const publicKey = eddsa.prv2pub(privateKey);
+        const publicKey = eddsaInstance.prv2pub(privateKey);
 
         // Create signature for session ID
         const sessionId = '123456789';
         const msgBuf = Buffer.from(sessionId);
-        const signature = eddsa.signMiMC(privateKey, msgBuf);
+        const signature = eddsaInstance.signMiMC(privateKey, msgBuf);
 
         // Convert public key and signature to bit arrays
-        const pubKeyBits = eddsa.pubKey2Bits(publicKey);
-        const sigR8Bits = eddsa.r8Bits(signature.R8);
-        const sigSBits = eddsa.sBits(signature.S);
+        const pubKeyBits = eddsaInstance.pubKey2Bits(publicKey);
+        const sigR8Bits = eddsaInstance.r8Bits(signature.R8);
+        const sigSBits = eddsaInstance.sBits(signature.S);
 
         const input = {
             sessionId,
@@ -176,17 +176,17 @@ describe('Session Integrity Circuit', () => {
     it('should reject future timestamp', async () => {
         // Generate valid EdDSA keypair
         const privateKey = randomBytes(32);
-        const publicKey = eddsa.prv2pub(privateKey);
+        const publicKey = eddsaInstance.prv2pub(privateKey);
 
         // Create signature for session ID
         const sessionId = '123456789';
         const msgBuf = Buffer.from(sessionId);
-        const signature = eddsa.signMiMC(privateKey, msgBuf);
+        const signature = eddsaInstance.signMiMC(privateKey, msgBuf);
 
         // Convert public key and signature to bit arrays
-        const pubKeyBits = eddsa.pubKey2Bits(publicKey);
-        const sigR8Bits = eddsa.r8Bits(signature.R8);
-        const sigSBits = eddsa.sBits(signature.S);
+        const pubKeyBits = eddsaInstance.pubKey2Bits(publicKey);
+        const sigR8Bits = eddsaInstance.r8Bits(signature.R8);
+        const sigSBits = eddsaInstance.sBits(signature.S);
 
         const input = {
             sessionId,
@@ -208,17 +208,17 @@ describe('Session Integrity Circuit', () => {
     it('should reject old timestamp', async () => {
         // Generate valid EdDSA keypair
         const privateKey = randomBytes(32);
-        const publicKey = eddsa.prv2pub(privateKey);
+        const publicKey = eddsaInstance.prv2pub(privateKey);
 
         // Create signature for session ID
         const sessionId = '123456789';
         const msgBuf = Buffer.from(sessionId);
-        const signature = eddsa.signMiMC(privateKey, msgBuf);
+        const signature = eddsaInstance.signMiMC(privateKey, msgBuf);
 
         // Convert public key and signature to bit arrays
-        const pubKeyBits = eddsa.pubKey2Bits(publicKey);
-        const sigR8Bits = eddsa.r8Bits(signature.R8);
-        const sigSBits = eddsa.sBits(signature.S);
+        const pubKeyBits = eddsaInstance.pubKey2Bits(publicKey);
+        const sigR8Bits = eddsaInstance.r8Bits(signature.R8);
+        const sigSBits = eddsaInstance.sBits(signature.S);
 
         const input = {
             sessionId,
@@ -240,17 +240,17 @@ describe('Session Integrity Circuit', () => {
     it('should reject invalid therapist signature', async () => {
         // Generate valid EdDSA keypair
         const privateKey = randomBytes(32);
-        const publicKey = eddsa.prv2pub(privateKey);
+        const publicKey = eddsaInstance.prv2pub(privateKey);
 
         // Create signature for session ID
         const sessionId = '123456789';
         const msgBuf = Buffer.from(sessionId);
-        const signature = eddsa.signMiMC(privateKey, msgBuf);
+        const signature = eddsaInstance.signMiMC(privateKey, msgBuf);
 
         // Convert public key and signature to bit arrays
-        const pubKeyBits = eddsa.pubKey2Bits(publicKey);
-        const sigR8Bits = eddsa.r8Bits(signature.R8);
-        const sigSBits = eddsa.sBits(signature.S);
+        const pubKeyBits = eddsaInstance.pubKey2Bits(publicKey);
+        const sigR8Bits = eddsaInstance.r8Bits(signature.R8);
+        const sigSBits = eddsaInstance.sBits(signature.S);
 
         const input = {
             sessionId,
@@ -262,8 +262,8 @@ describe('Session Integrity Circuit', () => {
             riskLevel: 3,
             engagementScore: 85,
             clientDataHash: '0x9abc',
-            therapistSigR8: eddsa.r8Bits(Buffer.from('wrong signature', 'utf8')),
-            therapistSigS: eddsa.sBits(Buffer.from('wrong signature', 'utf8'))
+            therapistSigR8: eddsaInstance.r8Bits(Buffer.from('wrong signature', 'utf8')),
+            therapistSigS: eddsaInstance.sBits(Buffer.from('wrong signature', 'utf8'))
         };
 
         await expect(circuit.calculateWitness(input)).rejects.toThrow();
@@ -272,17 +272,17 @@ describe('Session Integrity Circuit', () => {
     it('should reject tampered metrics hash', async () => {
         // Generate valid EdDSA keypair
         const privateKey = randomBytes(32);
-        const publicKey = eddsa.prv2pub(privateKey);
+        const publicKey = eddsaInstance.prv2pub(privateKey);
 
         // Create signature for session ID
         const sessionId = '123456789';
         const msgBuf = Buffer.from(sessionId);
-        const signature = eddsa.signMiMC(privateKey, msgBuf);
+        const signature = eddsaInstance.signMiMC(privateKey, msgBuf);
 
         // Convert public key and signature to bit arrays
-        const pubKeyBits = eddsa.pubKey2Bits(publicKey);
-        const sigR8Bits = eddsa.r8Bits(signature.R8);
-        const sigSBits = eddsa.sBits(signature.S);
+        const pubKeyBits = eddsaInstance.pubKey2Bits(publicKey);
+        const sigR8Bits = eddsaInstance.r8Bits(signature.R8);
+        const sigSBits = eddsaInstance.sBits(signature.S);
 
         const input = {
             sessionId,
