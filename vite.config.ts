@@ -37,6 +37,10 @@ export default defineConfig(({ }) => ({
         manualChunks: (id: string) => {
           // Split node_modules into smaller chunks
           if (id.includes('node_modules')) {
+            // Icons - keep all icon-related code in a single chunk
+            if (id.includes('lucide-react') || id.includes('react-icons') || id.includes('-icons')) {
+              return 'icons';
+            }
             // Core React packages
             if (id.includes('react/') || id.includes('react-dom/')) {
               return 'core-react';
@@ -145,6 +149,9 @@ export default defineConfig(({ }) => ({
     }
   },
   optimizeDeps: {
-    include: ['react-native-web']
+    include: ['react-native-web', 'lucide-react', 'react-icons'],
+    esbuildOptions: {
+      target: 'esnext'
+    }
   }
 }))
