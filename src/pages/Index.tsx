@@ -1,6 +1,6 @@
-import { h } from 'preact';
+import React from 'react';
 import { Button } from "../components/ui/button";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import {
   MdSecurity as Shield,
   MdLock as Lock,
@@ -25,10 +25,10 @@ const Index = () => {
               <span className="ml-2 text-xl font-bold">TherapyTrain AI</span>
             </div>
             <div className="hidden md:flex items-center space-x-8">
-              <a href="/index" className="text-gray-300 hover:text-white">Home</a>
-              <a href="/features" className="text-gray-300 hover:text-white">Features</a>
-              <a href="/benefits" className="text-gray-300 hover:text-white">Benefits</a>
-              <Button 
+              <Link to="/" className="text-gray-300 hover:text-white">Home</Link>
+              <Link to="/features" className="text-gray-300 hover:text-white">Features</Link>
+              <Link to="/benefits" className="text-gray-300 hover:text-white">Benefits</Link>
+              <Button
                 onClick={() => navigate("/auth")}
                 variant="outline"
                 className="bg-transparent border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white"
@@ -49,18 +49,18 @@ const Index = () => {
               <span className="block text-blue-500">Therapeutic Practice</span>
             </h1>
             <p className="mt-6 text-gray-400 text-lg">
-              Enhance your skills with our HIPAA-compliant, AI-powered platform. 
-              Experience challenging scenarios and receive real-time feedback to 
+              Enhance your skills with our HIPAA-compliant, AI-powered platform.
+              Experience challenging scenarios and receive real-time feedback to
               become an exceptional therapist.
             </p>
             <div className="mt-8 flex space-x-4">
-              <Button 
+              <Button
                 onClick={() => navigate("/auth")}
                 className="bg-blue-500 hover:bg-blue-600 px-8"
               >
                 Start Training
               </Button>
-              <Button 
+              <Button
                 variant="outline"
                 className="bg-transparent border-gray-600"
               >
@@ -132,11 +132,11 @@ const Index = () => {
         <div className="max-w-3xl mx-auto text-center px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl font-bold mb-6">Ready to Elevate Your Therapeutic Skills?</h2>
           <p className="text-gray-400 mb-8">
-            Join thousands of therapists who are already benefiting from our 
-            cutting-edge training platform. Start your journey to becoming an 
+            Join thousands of therapists who are already benefiting from our
+            cutting-edge training platform. Start your journey to becoming an
             exceptional therapist today.
           </p>
-          <Button 
+          <Button
             onClick={() => navigate("/auth")}
             className="bg-blue-500 hover:bg-blue-600 px-8"
           >
@@ -154,11 +154,11 @@ const Index = () => {
               <span className="ml-2 text-lg font-bold">TherapyTrain AI</span>
             </div>
             <div className="flex space-x-6 text-sm text-gray-400">
-              <a href="#" className="hover:text-white">Home</a>
-              <a href="#features" className="hover:text-white">Features</a>
-              <a href="#benefits" className="hover:text-white">Benefits</a>
-              <a href="/privacy-policy" className="hover:text-white">Privacy Policy</a>
-              <a href="/terms-of-service" className="hover:text-white">Terms of Service</a>
+              <Link to="/" className="hover:text-white">Home</Link>
+              <Link to="#features" className="hover:text-white">Features</Link>
+              <Link to="#benefits" className="hover:text-white">Benefits</Link>
+              <Link to="/privacy-policy" className="hover:text-white">Privacy Policy</Link>
+              <Link to="/terms-of-service" className="hover:text-white">Terms of Service</Link>
             </div>
           </div>
           <div className="mt-8 text-center text-sm text-gray-400">
@@ -168,3 +168,7 @@ const Index = () => {
         </div>
       </footer>
     </div>
+  );
+};
+
+export default Index;

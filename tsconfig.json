@@ -1,27 +1,60 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
-    "module": "ESNext",
+    "target": "ESNext",
     "lib": [
-      "dom",
-      "es2020"
+      "DOM",
+      "DOM.Iterable",
+      "ESNext"
     ],
-    "outDir": "./dist",
-    "rootDir": "..",
-    "strict": true,
-    "esModuleInterop": true,
+    "module": "ESNext",
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
     "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
-    "jsx": "react",
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "allowJs": true,
+    "forceConsistentCasingInFileNames": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": [
+        "src/*"
+      ],
+      "@/components/*": [
+        "src/components/*"
+      ],
+      "@/lib/*": [
+        "src/lib/*"
+      ],
+      "@/types/*": [
+        "src/types/*"
+      ],
+      "@/utils/*": [
+        "src/utils/*"
+      ],
+      "@/hooks/*": [
+        "src/hooks/*"
+      ],
+      "@/services/*": [
+        "src/services/*"
+      ],
+      "@/integrations/*": [
+        "src/integrations/*"
+      ],
+      "@/context/*": [
+        "src/context/*"
+      ]
     },
-    "typeRoots": [
-      "./types",
-      "./node_modules/@types"
+    "types": [
+      "node",
+      "jest",
+      "react",
+      "react-dom"
     ]
   },
   "include": [
@@ -29,6 +62,11 @@
     "types/**/*"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "build",
+    "dist",
+    ".next",
+    "out",
+    ".cache"
   ]
 }

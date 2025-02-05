@@ -1,94 +1,178 @@
-import * as snarkjs from 'snarkjs';
-import * as circomlibjs from 'circomlibjs';
-import path from 'path';
 import { SecurityAuditService } from './SecurityAuditService';
+import { VerificationKeyService } from './VerificationKeyService';
+import * as snarkjs from 'snarkjs';
+import * as path from 'path';
+import * as fs from 'fs/promises';
+import crypto from 'crypto';
+import { Worker } from 'worker_threads';
 
-interface SessionProofInput {
+interface ProofInput {
     sessionId: string;
     startTimestamp: number;
     endTimestamp: number;
-    therapistPubKey: Uint8Array;
+    therapistPubKey: string[];
     therapistCredentialHash: string;
-    sessionData: Uint8Array[];
+    maxSessionDuration: number;
+    minSessionDuration: number;
+    currentTimestamp: number;
+    sessionData: number[];
+    therapistSigR8: string[];
+    therapistSigS: string[];
+    therapistCredential: number[];
     metadataFlags: number[];
-    therapistCredential: string[];
-    signature: {
-        R8: Uint8Array;
-        S: Uint8Array;
-    };
+    encryptionNonce: string;
+    previousSessionHash: string;
+}
+
+interface ProofOutput {
+    proof: any;
+    publicSignals: string[];
+}
+
+interface ProofVerificationResult {
+    isValid: boolean;
+    error?: string;
 }
 
 export class ZKProofService {
     private readonly circuitPath: string;
-    private readonly keyPath: string;
-    private readonly securityAuditService: SecurityAuditService;
-    private readonly MAX_SESSION_DURATION = 7200; // 2 hours in seconds
+    private readonly workerPool: Worker[] = [];
+    private readonly maxWorkers = 4;
 
-    constructor(securityAuditService: SecurityAuditService) {
-        this.circuitPath = path.join(__dirname, '../zk/circuits');
-        this.keyPath = path.join(__dirname, '../zk/keys');
-        this.securityAuditService = securityAuditService;
+    constructor(
+        private readonly securityAuditService: SecurityAuditService,
+        private readonly verificationKeyService: VerificationKeyService
+    ) {
+        this.circuitPath = path.join(__dirname, '../zk/circuits/SessionDataCircuit.wasm');
     }
 
-    async generateProof(input: SessionProofInput): Promise<{ proof: any; publicSignals: any }> {
+    async initialize(): Promise<void> {
         try {
-            // Validate input parameters
-            this.validateInputs(input);
+            // Initialize worker pool
+            for (let i = 0; i < this.maxWorkers; i++) {
+                const worker = new Worker(path.join(__dirname, '../zk/workers/proof-worker.js'));
+                this.workerPool.push(worker);
+            }
 
-            // Convert inputs to the format expected by the circuit
-            const circuitInput = {
-                sessionId: input.sessionId,
-                startTimestamp: input.startTimestamp,
-                endTimestamp: input.endTimestamp,
-                therapistPubKey: Array.from(input.therapistPubKey).map(b => b.toString()),
-                therapistCredentialHash: input.therapistCredentialHash,
-                maxSessionDuration: this.MAX_SESSION_DURATION,
-                sessionData: input.sessionData.map(d => Array.from(d).map(b => b.toString())),
-                metadataFlags: input.metadataFlags,
-                therapistCredential: input.therapistCredential,
-                therapistSigR8: Array.from(input.signature.R8).map(b => b.toString()),
-                therapistSigS: Array.from(input.signature.S).map(b => b.toString())
-            };
-
-            // Generate the proof
-            const { proof, publicSignals } = await snarkjs.groth16.fullProve(
-                circuitInput,
-                path.join(this.circuitPath, 'SessionDataCircuit.wasm'),
-                path.join(this.keyPath, 'session_proving_key.zkey')
-            );
-
-            await this.securityAuditService.recordAlert(
-                'ZK_PROOF_GENERATED',
-                'LOW',
-                {
-                    sessionId: input.sessionId,
-                    startTime: input.startTimestamp,
-                    endTime: input.endTimestamp
-                }
-            );
-
-            return { proof, publicSignals };
+            await this.verificationKeyService.initialize();
         } catch (error) {
             await this.securityAuditService.recordAlert(
-                'ZK_PROOF_ERROR',
+                'ZK_SERVICE_INIT_ERROR',
                 'HIGH',
                 {
-                    sessionId: input.sessionId,
-                    error: error.message,
-                    component: 'proof_generation'
+                    error: error instanceof Error ? error.message : 'Unknown error'
                 }
             );
             throw error;
         }
     }
 
-    private validateInputs(input: SessionProofInput): void {
-        if (input.endTimestamp <= input.startTimestamp) {
-            throw new Error('End timestamp must be after start timestamp');
+    async generateProof(input: ProofInput): Promise<ProofOutput> {
+        try {
+            // Validate input
+            this.validateProofInput(input);
+
+            // Get available worker
+            const worker = await this.getAvailableWorker();
+
+            // Generate proof using worker
+            const proof = await new Promise<ProofOutput>((resolve, reject) => {
+                worker.once('message', (result) => {
+                    if (result.error) {
+                        reject(new Error(result.error));
+                    } else {
+                        resolve(result as ProofOutput);
+                    }
+                });
+
+                worker.postMessage({
+                    type: 'generate',
+                    input,
+                    circuitPath: this.circuitPath
+                });
+            });
+
+            await this.securityAuditService.recordAlert(
+                'PROOF_GENERATED',
+                'LOW',
+                {
+                    sessionId: input.sessionId,
+                    timestamp: input.currentTimestamp
+                }
+            );
+
+            return proof;
+        } catch (error) {
+            await this.securityAuditService.recordAlert(
+                'PROOF_GENERATION_ERROR',
+                'HIGH',
+                {
+                    error: error instanceof Error ? error.message : 'Unknown error',
+                    sessionId: input.sessionId
+                }
+            );
+            throw error;
+        }
+    }
+
+    async verifyProof(proof: any, publicSignals: string[]): Promise<ProofVerificationResult> {
+        try {
+            const verificationKey = await this.verificationKeyService.getCurrentKey();
+
+            const isValid = await snarkjs.groth16.verify(
+                verificationKey,
+                publicSignals,
+                proof
+            );
+
+            await this.securityAuditService.recordAlert(
+                'PROOF_VERIFIED',
+                'LOW',
+                {
+                    isValid,
+                    timestamp: Date.now()
+                }
+            );
+
+            return { isValid };
+        } catch (error) {
+            await this.securityAuditService.recordAlert(
+                'PROOF_VERIFICATION_ERROR',
+                'HIGH',
+                {
+                    error: error instanceof Error ? error.message : 'Unknown error'
+                }
+            );
+            return {
+                isValid: false,
+                error: error instanceof Error ? error.message : 'Unknown error'
+            };
+        }
+    }
+
+    private validateProofInput(input: ProofInput): void {
+        const now = Math.floor(Date.now() / 1000);
+
+        // Validate timestamps
+        if (input.startTimestamp > input.endTimestamp) {
+            throw new Error('Start timestamp must be before end timestamp');
         }
 
-        if (input.endTimestamp - input.startTimestamp > this.MAX_SESSION_DURATION) {
-            throw new Error('Session duration exceeds maximum allowed time');
+        if (input.endTimestamp - input.startTimestamp > input.maxSessionDuration) {
+            throw new Error('Session duration exceeds maximum allowed duration');
+        }
+
+        if (input.endTimestamp - input.startTimestamp < input.minSessionDuration) {
+            throw new Error('Session duration is less than minimum required duration');
+        }
+
+        if (Math.abs(input.currentTimestamp - now) > 3600) {
+            throw new Error('Current timestamp is too far from actual time');
+        }
+
+        // Validate arrays
+        if (input.therapistPubKey.length !== 256) {
+            throw new Error('Invalid therapist public key length');
         }
 
         if (input.sessionData.length !== 8) {
@@ -99,76 +183,40 @@ export class ZKProofService {
             throw new Error('Invalid metadata flags length');
         }
 
-        if (input.therapistCredential.length !== 4) {
-            throw new Error('Invalid therapist credential length');
+        // Validate nonce
+        if (!input.encryptionNonce || input.encryptionNonce === '0') {
+            throw new Error('Invalid encryption nonce');
+        }
+
+        // Validate previous session hash
+        if (!input.previousSessionHash) {
+            throw new Error('Missing previous session hash');
         }
     }
 
-    async verifyProof(
-        proof: any,
-        publicSignals: any
-    ): Promise<boolean> {
-        try {
-            const vKey = require(path.join(this.keyPath, 'verification_key.json'));
-            const isValid = await snarkjs.groth16.verify(
-                vKey,
-                publicSignals,
-                proof
-            );
-
-            await this.securityAuditService.recordAlert(
-                'ZK_PROOF_VERIFIED',
-                'LOW',
-                {
-                    isValid,
-                    signalCount: publicSignals.length,
-                    timestamp: Date.now()
-                }
-            );
-
-            return isValid;
-        } catch (error) {
-            await this.securityAuditService.recordAlert(
-                'ZK_PROOF_VERIFICATION_ERROR',
-                'HIGH',
-                {
-                    error: error.message,
-                    component: 'proof_verification'
-                }
-            );
-            throw error;
+    private async getAvailableWorker(): Promise<Worker> {
+        // Simple round-robin worker selection
+        const worker = this.workerPool.shift();
+        if (!worker) {
+            throw new Error('No workers available');
         }
+        this.workerPool.push(worker);
+        return worker;
     }
 
-    async compileCircuit(): Promise<void> {
+    async cleanup(): Promise<void> {
         try {
-            const { exec } = require('child_process');
-            const circuitName = 'SessionDataCircuit';
-            const circuitPath = path.join(this.circuitPath, `${circuitName}.circom`);
-
-            // Compile circuit
-            await new Promise((resolve, reject) => {
-                exec(`circom ${circuitPath} --r1cs --wasm --sym`, (error: any) => {
-                    if (error) reject(error);
-                    else resolve(null);
-                });
-            });
-
-            await this.securityAuditService.recordAlert(
-                'ZK_CIRCUIT_COMPILED',
-                'LOW',
-                {
-                    circuitName,
-                    timestamp: Date.now()
-                }
+            // Terminate all workers
+            await Promise.all(
+                this.workerPool.map(worker => worker.terminate())
             );
+            this.workerPool.length = 0;
         } catch (error) {
             await this.securityAuditService.recordAlert(
-                'ZK_CIRCUIT_COMPILATION_ERROR',
+                'ZK_SERVICE_CLEANUP_ERROR',
                 'HIGH',
                 {
-                    error: error.message,
-                    component: 'circuit_compilation'
+                    error: error instanceof Error ? error.message : 'Unknown error'
                 }
             );
             throw error;

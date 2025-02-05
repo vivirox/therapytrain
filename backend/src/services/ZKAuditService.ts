@@ -1,218 +1,287 @@
 import { SecurityAuditService } from './SecurityAuditService';
-import { SupabaseClient } from '@supabase/supabase-js';
-import { WebSocket } from 'ws';
-import { EventEmitter } from 'events';
+import * as fs from 'fs/promises';
+import * as path from 'path';
+import crypto from 'crypto';
 
-interface ZKMetrics {
-    proofGenerationTime: number[];
-    verificationTime: number[];
-    cacheHitRate: number;
-    workerUtilization: number[];
-    errorRate: number;
+interface ZKOperation {
+    id: string;
+    type: 'PROOF_GENERATION' | 'PROOF_VERIFICATION' | 'KEY_ROTATION';
+    timestamp: Date;
+    userId?: string;
+    sessionId?: string;
+    status: 'SUCCESS' | 'FAILURE';
+    details: Record<string, any>;
+    proofHash?: string;
+    keyId?: string;
+    duration: number;
 }
 
-interface ZKAuditEvent {
-    type: string;
-    severity: 'LOW' | 'MEDIUM' | 'HIGH';
-    timestamp: number;
-    data: any;
-    metadata: {
-        workerId?: string;
-        inputHash?: string;
-        proofHash?: string;
-        duration?: number;
-    };
+interface AuditReport {
+    startDate: Date;
+    endDate: Date;
+    totalOperations: number;
+    successRate: number;
+    averageDuration: number;
+    operationsByType: Record<string, number>;
+    failureReasons: Record<string, number>;
+    keyRotations: number;
 }
 
-export class ZKAuditService extends EventEmitter {
-    private metrics: ZKMetrics = {
-        proofGenerationTime: [],
-        verificationTime: [],
-        cacheHitRate: 0,
-        workerUtilization: [],
-        errorRate: 0
-    };
-
-    private totalEvents = 0;
-    private errorEvents = 0;
-    private cacheHits = 0;
-    private cacheMisses = 0;
-    private readonly dashboardClients = new Set<WebSocket>();
+export class ZKAuditService {
+    private readonly auditLogPath: string;
+    private readonly maxLogSize = 100 * 1024 * 1024; // 100MB
+    private currentLogFile: string;
 
     constructor(
-        private supabase: SupabaseClient,
-        private securityAuditService: SecurityAuditService,
-        private readonly metricsWindow = 1000, // Keep last 1000 measurements
-        private readonly metricUpdateInterval = 5000 // Update metrics every 5 seconds
+        private readonly securityAuditService: SecurityAuditService,
+        auditLogPath?: string
     ) {
-        super();
-        this.startMetricsUpdate();
+        this.auditLogPath = auditLogPath || path.join(__dirname, '../logs/zk-audit');
+        this.currentLogFile = this.generateLogFileName();
     }
 
-    async recordAuditEvent(event: ZKAuditEvent): Promise<void> {
+    async initialize(): Promise<void> {
         try {
-            // Record in Supabase
-            const { error } = await this.supabase
-                .from('zk_audit_logs')
-                .insert({
-                    type: event.type,
-                    severity: event.severity,
-                    timestamp: new Date(event.timestamp).toISOString(),
-                    data: event.data,
-                    metadata: event.metadata
-                });
-
-            if (error) throw error;
-
-            // Update metrics
-            this.updateMetrics(event);
-
-            // Emit event for real-time monitoring
-            this.emit('audit-event', event);
-
-            // Forward to security audit service if needed
-            if (event.severity === 'HIGH') {
-                await this.securityAuditService.recordAlert(
-                    event.type,
-                    event.severity,
-                    event.data
-                );
-            }
-
-            // Broadcast to dashboard clients
-            this.broadcastMetrics();
+            await fs.mkdir(this.auditLogPath, { recursive: true });
+            await this.rotateLogIfNeeded();
         } catch (error) {
-            console.error('Error recording audit event:', error);
+            await this.securityAuditService.recordAlert(
+                'ZK_AUDIT_INIT_ERROR',
+                'HIGH',
+                {
+                    error: error instanceof Error ? error.message : 'Unknown error'
+                }
+            );
             throw error;
         }
     }
 
-    private updateMetrics(event: ZKAuditEvent): void {
-        this.totalEvents++;
+    async logOperation(operation: Omit<ZKOperation, 'id'>): Promise<string> {
+        try {
+            const operationId = crypto.randomBytes(16).toString('hex');
+            const logEntry: ZKOperation = {
+                ...operation,
+                id: operationId
+            };
 
-        switch (event.type) {
-            case 'PROOF_GENERATED':
-                this.updateProofGenerationMetrics(event);
-                break;
-            case 'PROOF_VERIFIED':
-                this.updateVerificationMetrics(event);
-                break;
-            case 'PROOF_CACHE_HIT':
-                this.cacheHits++;
-                break;
-            case 'PROOF_CACHE_MISS':
-                this.cacheMisses++;
-                break;
-            case 'WORKER_ERROR':
-            case 'PROOF_GENERATION_ERROR':
-            case 'PROOF_VERIFICATION_ERROR':
-                this.errorEvents++;
-                break;
-        }
+            await this.rotateLogIfNeeded();
+            await this.appendToLog(logEntry);
 
-        // Update cache hit rate
-        const totalCacheEvents = this.cacheHits + this.cacheMisses;
-        this.metrics.cacheHitRate = totalCacheEvents > 0 
-            ? this.cacheHits / totalCacheEvents 
-            : 0;
-
-        // Update error rate
-        this.metrics.errorRate = this.totalEvents > 0 
-            ? this.errorEvents / this.totalEvents 
-            : 0;
-    }
-
-    private updateProofGenerationMetrics(event: ZKAuditEvent): void {
-        if (event.metadata.duration) {
-            this.metrics.proofGenerationTime.push(event.metadata.duration);
-            if (this.metrics.proofGenerationTime.length > this.metricsWindow) {
-                this.metrics.proofGenerationTime.shift();
+            if (operation.status === 'FAILURE') {
+                await this.securityAuditService.recordAlert(
+                    'ZK_OPERATION_FAILURE',
+                    'HIGH',
+                    {
+                        operationType: operation.type,
+                        details: operation.details
+                    }
+                );
             }
-        }
 
-        if (event.metadata.workerId !== undefined) {
-            const workerIndex = parseInt(event.metadata.workerId);
-            this.metrics.workerUtilization[workerIndex] = 
-                (this.metrics.workerUtilization[workerIndex] || 0) + 1;
+            return operationId;
+        } catch (error) {
+            await this.securityAuditService.recordAlert(
+                'ZK_AUDIT_LOG_ERROR',
+                'HIGH',
+                {
+                    error: error instanceof Error ? error.message : 'Unknown error',
+                    operation: operation.type
+                }
+            );
+            throw error;
         }
     }
 
-    private updateVerificationMetrics(event: ZKAuditEvent): void {
-        if (event.metadata.duration) {
-            this.metrics.verificationTime.push(event.metadata.duration);
-            if (this.metrics.verificationTime.length > this.metricsWindow) {
-                this.metrics.verificationTime.shift();
+    async getOperationHistory(
+        startDate: Date,
+        endDate: Date,
+        filters?: {
+            type?: ZKOperation['type'];
+            status?: ZKOperation['status'];
+            userId?: string;
+            sessionId?: string;
+        }
+    ): Promise<ZKOperation[]> {
+        try {
+            const operations: ZKOperation[] = [];
+            const logFiles = await this.getLogFilesBetweenDates(startDate, endDate);
+
+            for (const logFile of logFiles) {
+                const content = await fs.readFile(
+                    path.join(this.auditLogPath, logFile),
+                    'utf-8'
+                );
+                const entries = content.trim().split('\n')
+                    .map(line => JSON.parse(line) as ZKOperation)
+                    .filter(entry => {
+                        const timestamp = new Date(entry.timestamp);
+                        return timestamp >= startDate && timestamp <= endDate;
+                    });
+
+                operations.push(...this.filterOperations(entries, filters));
             }
+
+            return operations.sort((a, b) =>
+                new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+            );
+        } catch (error) {
+            await this.securityAuditService.recordAlert(
+                'ZK_AUDIT_HISTORY_ERROR',
+                'HIGH',
+                {
+                    error: error instanceof Error ? error.message : 'Unknown error',
+                    dateRange: `${startDate.toISOString()} - ${endDate.toISOString()}`
+                }
+            );
+            throw error;
         }
     }
 
-    private startMetricsUpdate(): void {
-        setInterval(() => {
-            this.broadcastMetrics();
-        }, this.metricUpdateInterval);
-    }
+    async generateReport(startDate: Date, endDate: Date): Promise<AuditReport> {
+        try {
+            const operations = await this.getOperationHistory(startDate, endDate);
 
-    private broadcastMetrics(): void {
-        const metricsPayload = {
-            timestamp: Date.now(),
-            metrics: {
-                ...this.metrics,
-                averageProofTime: this.calculateAverage(this.metrics.proofGenerationTime),
-                averageVerificationTime: this.calculateAverage(this.metrics.verificationTime),
-                totalEvents: this.totalEvents,
-                errorEvents: this.errorEvents
-            }
-        };
+            const successfulOps = operations.filter(op => op.status === 'SUCCESS');
+            const totalDuration = operations.reduce((sum, op) => sum + op.duration, 0);
 
-        for (const client of this.dashboardClients) {
-            if (client.readyState === WebSocket.OPEN) {
-                client.send(JSON.stringify(metricsPayload));
-            }
+            const operationsByType = operations.reduce((acc, op) => {
+                acc[op.type] = (acc[op.type] || 0) + 1;
+                return acc;
+            }, {} as Record<string, number>);
+
+            const failureReasons = operations
+                .filter(op => op.status === 'FAILURE')
+                .reduce((acc, op) => {
+                    const reason = op.details.error || 'Unknown';
+                    acc[reason] = (acc[reason] || 0) + 1;
+                    return acc;
+                }, {} as Record<string, number>);
+
+            const keyRotations = operations.filter(
+                op => op.type === 'KEY_ROTATION'
+            ).length;
+
+            const report: AuditReport = {
+                startDate,
+                endDate,
+                totalOperations: operations.length,
+                successRate: operations.length > 0
+                    ? (successfulOps.length / operations.length) * 100
+                    : 100,
+                averageDuration: operations.length > 0
+                    ? totalDuration / operations.length
+                    : 0,
+                operationsByType,
+                failureReasons,
+                keyRotations
+            };
+
+            await this.securityAuditService.recordAlert(
+                'ZK_AUDIT_REPORT_GENERATED',
+                'LOW',
+                {
+                    dateRange: `${startDate.toISOString()} - ${endDate.toISOString()}`,
+                    totalOperations: report.totalOperations,
+                    successRate: report.successRate
+                }
+            );
+
+            return report;
+        } catch (error) {
+            await this.securityAuditService.recordAlert(
+                'ZK_AUDIT_REPORT_ERROR',
+                'HIGH',
+                {
+                    error: error instanceof Error ? error.message : 'Unknown error',
+                    dateRange: `${startDate.toISOString()} - ${endDate.toISOString()}`
+                }
+            );
+            throw error;
         }
     }
 
-    private calculateAverage(numbers: number[]): number {
-        return numbers.length > 0
-            ? numbers.reduce((a, b) => a + b, 0) / numbers.length
-            : 0;
+    private generateLogFileName(): string {
+        const date = new Date().toISOString().split('T')[0];
+        return `zk-audit-${date}.log`;
     }
 
-    async getHistoricalMetrics(
-        startTime: Date,
-        endTime: Date
-    ): Promise<ZKAuditEvent[]> {
-        const { data, error } = await this.supabase
-            .from('zk_audit_logs')
-            .select('*')
-            .gte('timestamp', startTime.toISOString())
-            .lte('timestamp', endTime.toISOString())
-            .order('timestamp', { ascending: true });
+    private async rotateLogIfNeeded(): Promise<void> {
+        try {
+            const currentDate = new Date().toISOString().split('T')[0];
+            const expectedLogFile = `zk-audit-${currentDate}.log`;
 
-        if (error) throw error;
-        return data;
+            if (this.currentLogFile !== expectedLogFile) {
+                this.currentLogFile = expectedLogFile;
+            }
+
+            const logPath = path.join(this.auditLogPath, this.currentLogFile);
+            try {
+                const stats = await fs.stat(logPath);
+                if (stats.size >= this.maxLogSize) {
+                    const timestamp = new Date().getTime();
+                    const newLogFile = `zk-audit-${currentDate}-${timestamp}.log`;
+                    await fs.rename(logPath, path.join(this.auditLogPath, newLogFile));
+                    this.currentLogFile = `zk-audit-${currentDate}.log`;
+                }
+            } catch (error) {
+                if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+                    // File doesn't exist yet, that's fine
+                    return;
+                }
+                throw error;
+            }
+        } catch (error) {
+            await this.securityAuditService.recordAlert(
+                'ZK_AUDIT_ROTATION_ERROR',
+                'HIGH',
+                {
+                    error: error instanceof Error ? error.message : 'Unknown error'
+                }
+            );
+            throw error;
+        }
     }
 
-    registerDashboardClient(client: WebSocket): void {
-        this.dashboardClients.add(client);
-        client.on('close', () => {
-            this.dashboardClients.delete(client);
+    private async appendToLog(entry: ZKOperation): Promise<void> {
+        const logPath = path.join(this.auditLogPath, this.currentLogFile);
+        await fs.appendFile(
+            logPath,
+            JSON.stringify(entry) + '\n',
+            'utf-8'
+        );
+    }
+
+    private async getLogFilesBetweenDates(
+        startDate: Date,
+        endDate: Date
+    ): Promise<string[]> {
+        const files = await fs.readdir(this.auditLogPath);
+        return files.filter(file => {
+            const match = file.match(/zk-audit-(\d{4}-\d{2}-\d{2})/);
+            if (!match) return false;
+
+            const fileDate = new Date(match[1]);
+            return fileDate >= startDate && fileDate <= endDate;
         });
     }
 
-    async cleanup(): Promise<void> {
-        // Close all dashboard connections
-        for (const client of this.dashboardClients) {
-            client.close();
+    private filterOperations(
+        operations: ZKOperation[],
+        filters?: {
+            type?: ZKOperation['type'];
+            status?: ZKOperation['status'];
+            userId?: string;
+            sessionId?: string;
         }
-        this.dashboardClients.clear();
+    ): ZKOperation[] {
+        if (!filters) return operations;
 
-        // Clear metrics
-        this.metrics = {
-            proofGenerationTime: [],
-            verificationTime: [],
-            cacheHitRate: 0,
-            workerUtilization: [],
-            errorRate: 0
-        };
+        return operations.filter(op => {
+            if (filters.type && op.type !== filters.type) return false;
+            if (filters.status && op.status !== filters.status) return false;
+            if (filters.userId && op.userId !== filters.userId) return false;
+            if (filters.sessionId && op.sessionId !== filters.sessionId) return false;
+            return true;
+        });
     }
 }

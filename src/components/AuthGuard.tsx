@@ -1,21 +1,33 @@
-import { ComponentChildren } from 'preact';
-import type { Location } from 'preact-router';
-import { route } from 'preact-router';
+import React from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from './auth/AuthProvider';
+import { Loading } from './ui/loading';
 
 interface AuthGuardProps {
-    children: ComponentChildren;
+    children: React.ReactNode;
 }
 
-export function AuthGuard({ children }: AuthGuardProps) {
-    const { isAuthenticated } = useAuth();
-    const navigate = route;
-    const location = new Location();
+export const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
+    const { session, loading } = useAuth();
+    const navigate = useNavigate();
+    const location = useLocation();
 
-    if (!isAuthenticated) {
-        navigate('/auth', true);
+    React.useEffect(() => {
+        if (!loading && !session) {
+            navigate('/auth', {
+                replace: true,
+                state: { from: location }
+            });
+        }
+    }, [session, loading, navigate, location]);
+
+    if (loading) {
+        return <Loading fullScreen message="Checking authentication..." />;
+    }
+
+    if (!session) {
         return null;
     }
 
     return <>{children}</>;
-}
+};

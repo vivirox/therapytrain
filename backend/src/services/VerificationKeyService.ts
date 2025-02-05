@@ -1,215 +1,200 @@
 import { SecurityAuditService } from './SecurityAuditService';
-import { RateLimiterService } from './RateLimiterService';
-import path from 'path';
-import fs from 'fs';
+import * as fs from 'fs/promises';
+import * as path from 'path';
 import crypto from 'crypto';
 
 interface VerificationKey {
-    key: string;
-    version: string;
-    validFrom: number;
-    validUntil: number | null;
-    signature: string;
+    key: any;
+    id: string;
+    createdAt: Date;
+    expiresAt: Date;
 }
 
 export class VerificationKeyService {
-    private readonly keysDir: string;
+    private readonly keyPath: string;
     private currentKey: VerificationKey | null = null;
-    private readonly keyCache = new Map<string, VerificationKey>();
+    private readonly keyRotationInterval = 30 * 24 * 60 * 60 * 1000; // 30 days
 
     constructor(
-        private securityAuditService: SecurityAuditService,
-        private rateLimiterService: RateLimiterService
+        private readonly securityAuditService: SecurityAuditService,
+        keyPath?: string
     ) {
-        this.keysDir = path.join(__dirname, '../zk/keys');
+        this.keyPath = keyPath || path.join(__dirname, '../zk/keys');
     }
 
-    async getCurrentKey(requesterId: string): Promise<VerificationKey> {
+    async initialize(): Promise<void> {
         try {
-            // Check rate limit
-            await this.rateLimiterService.checkRateLimit(requesterId, 'KEY_FETCH');
-
-            // Load current key if not cached or expired
-            if (!this.currentKey || this.isKeyExpired(this.currentKey)) {
-                this.currentKey = await this.loadLatestKey();
-            }
-
-            await this.securityAuditService.recordAlert(
-                'KEY_FETCH',
-                'LOW',
-                { requesterId, keyVersion: this.currentKey.version }
-            );
-
-            return this.currentKey;
+            await this.loadCurrentKey();
+            this.scheduleKeyRotation();
         } catch (error) {
             await this.securityAuditService.recordAlert(
-                'KEY_FETCH_ERROR',
+                'KEY_SERVICE_INIT_ERROR',
                 'HIGH',
-                { requesterId, error: error.message }
-            );
-            throw error;
-        }
-    }
-
-    async getKeyByVersion(version: string, requesterId: string): Promise<VerificationKey> {
-        try {
-            // Check rate limit
-            await this.rateLimiterService.checkRateLimit(requesterId, 'KEY_FETCH');
-
-            // Check cache first
-            if (this.keyCache.has(version)) {
-                const cachedKey = this.keyCache.get(version)!;
-                if (!this.isKeyExpired(cachedKey)) {
-                    return cachedKey;
+                {
+                    error: error instanceof Error ? error.message : 'Unknown error'
                 }
-                this.keyCache.delete(version);
-            }
-
-            const key = await this.loadKeyByVersion(version);
-            this.keyCache.set(version, key);
-
-            await this.securityAuditService.recordAlert(
-                'KEY_FETCH_VERSION',
-                'LOW',
-                { requesterId, keyVersion: version }
-            );
-
-            return key;
-        } catch (error) {
-            await this.securityAuditService.recordAlert(
-                'KEY_FETCH_VERSION_ERROR',
-                'HIGH',
-                { requesterId, version, error: error.message }
             );
             throw error;
         }
     }
 
-    async rotateKey(): Promise<void> {
+    private async loadCurrentKey(): Promise<void> {
         try {
-            // Run the setup script to generate new keys
-            const setupScript = path.join(__dirname, '../zk/scripts/run-setup.sh');
-            await new Promise((resolve, reject) => {
-                require('child_process').exec(
-                    setupScript,
-                    { cwd: path.dirname(setupScript) },
-                    (error: Error | null) => {
-                        if (error) reject(error);
-                        else resolve(null);
-                    }
+            const keyFiles = await fs.readdir(this.keyPath);
+            const verificationKeys = keyFiles
+                .filter(file => file.startsWith('verification_key_'))
+                .sort((a, b) => b.localeCompare(a)); // Get latest key
+
+            if (verificationKeys.length === 0) {
+                await this.generateNewKey();
+            } else {
+                const latestKeyFile = verificationKeys[0];
+                const keyContent = await fs.readFile(
+                    path.join(this.keyPath, latestKeyFile),
+                    'utf-8'
                 );
-            });
-
-            // Invalidate current key
-            if (this.currentKey) {
-                this.currentKey.validUntil = Date.now();
-                await this.saveKey(this.currentKey);
+                const keyData = JSON.parse(keyContent);
+                this.currentKey = {
+                    key: keyData.key,
+                    id: keyData.id,
+                    createdAt: new Date(keyData.createdAt),
+                    expiresAt: new Date(keyData.expiresAt)
+                };
             }
+        } catch (error) {
+            await this.securityAuditService.recordAlert(
+                'KEY_LOAD_ERROR',
+                'HIGH',
+                {
+                    error: error instanceof Error ? error.message : 'Unknown error'
+                }
+            );
+            throw error;
+        }
+    }
 
-            // Load new key
-            this.currentKey = await this.loadLatestKey();
-            this.keyCache.clear();
+    private async generateNewKey(): Promise<void> {
+        try {
+            const keyId = crypto.randomBytes(16).toString('hex');
+            const createdAt = new Date();
+            const expiresAt = new Date(createdAt.getTime() + this.keyRotationInterval);
+
+            // In a real implementation, this would use a secure key generation process
+            const key = await this.generateVerificationKey();
+
+            this.currentKey = {
+                key,
+                id: keyId,
+                createdAt,
+                expiresAt
+            };
+
+            await this.saveKey(this.currentKey);
 
             await this.securityAuditService.recordAlert(
-                'KEY_ROTATION',
-                'MEDIUM',
-                { newVersion: this.currentKey.version }
+                'KEY_GENERATED',
+                'LOW',
+                {
+                    keyId,
+                    expiresAt
+                }
+            );
+        } catch (error) {
+            await this.securityAuditService.recordAlert(
+                'KEY_GENERATION_ERROR',
+                'HIGH',
+                {
+                    error: error instanceof Error ? error.message : 'Unknown error'
+                }
+            );
+            throw error;
+        }
+    }
+
+    private async saveKey(key: VerificationKey): Promise<void> {
+        try {
+            const filename = `verification_key_${key.id}.json`;
+            await fs.writeFile(
+                path.join(this.keyPath, filename),
+                JSON.stringify({
+                    key: key.key,
+                    id: key.id,
+                    createdAt: key.createdAt.toISOString(),
+                    expiresAt: key.expiresAt.toISOString()
+                }, null, 2),
+                'utf-8'
+            );
+        } catch (error) {
+            await this.securityAuditService.recordAlert(
+                'KEY_SAVE_ERROR',
+                'HIGH',
+                {
+                    error: error instanceof Error ? error.message : 'Unknown error',
+                    keyId: key.id
+                }
+            );
+            throw error;
+        }
+    }
+
+    private scheduleKeyRotation(): void {
+        if (!this.currentKey) return;
+
+        const now = new Date();
+        const timeUntilRotation = this.currentKey.expiresAt.getTime() - now.getTime();
+
+        if (timeUntilRotation <= 0) {
+            this.rotateKey();
+        } else {
+            setTimeout(() => this.rotateKey(), timeUntilRotation);
+        }
+    }
+
+    private async rotateKey(): Promise<void> {
+        try {
+            await this.generateNewKey();
+            this.scheduleKeyRotation();
+
+            await this.securityAuditService.recordAlert(
+                'KEY_ROTATED',
+                'LOW',
+                {
+                    newKeyId: this.currentKey?.id,
+                    expiresAt: this.currentKey?.expiresAt
+                }
             );
         } catch (error) {
             await this.securityAuditService.recordAlert(
                 'KEY_ROTATION_ERROR',
                 'HIGH',
-                { error: error.message }
+                {
+                    error: error instanceof Error ? error.message : 'Unknown error'
+                }
             );
             throw error;
         }
     }
 
-    async revokeKey(version: string, reason: string): Promise<void> {
-        try {
-            const key = await this.loadKeyByVersion(version);
-            key.validUntil = Date.now();
-            await this.saveKey(key);
-            this.keyCache.delete(version);
-
-            if (this.currentKey?.version === version) {
-                this.currentKey = null;
-            }
-
-            await this.securityAuditService.recordAlert(
-                'KEY_REVOCATION',
-                'HIGH',
-                { version, reason }
-            );
-        } catch (error) {
-            await this.securityAuditService.recordAlert(
-                'KEY_REVOCATION_ERROR',
-                'HIGH',
-                { version, reason, error: error.message }
-            );
-            throw error;
+    async getCurrentKey(): Promise<any> {
+        if (!this.currentKey || new Date() > this.currentKey.expiresAt) {
+            await this.rotateKey();
         }
+        return this.currentKey?.key;
     }
 
-    private async loadLatestKey(): Promise<VerificationKey> {
-        const vkeyPath = path.join(this.keysDir, 'SessionDataCircuit.vkey.json');
-        if (!fs.existsSync(vkeyPath)) {
-            throw new Error('Verification key not found');
-        }
-
-        const keyContent = fs.readFileSync(vkeyPath, 'utf8');
-        const version = crypto.createHash('sha256')
-            .update(keyContent)
-            .digest('hex')
-            .slice(0, 8);
-
-        const key: VerificationKey = {
-            key: keyContent,
-            version,
-            validFrom: Date.now(),
-            validUntil: null,
-            signature: this.signKey(keyContent)
+    private async generateVerificationKey(): Promise<any> {
+        // In a real implementation, this would use proper cryptographic key generation
+        // For now, we return a placeholder key structure
+        return {
+            protocol: 'groth16',
+            curve: 'bn128',
+            nPublic: 4,
+            vk_alpha_1: crypto.randomBytes(32).toString('hex'),
+            vk_beta_2: crypto.randomBytes(32).toString('hex'),
+            vk_gamma_2: crypto.randomBytes(32).toString('hex'),
+            vk_delta_2: crypto.randomBytes(32).toString('hex'),
+            vk_alphabeta_12: crypto.randomBytes(32).toString('hex'),
+            IC: Array(5).fill(null).map(() => crypto.randomBytes(32).toString('hex'))
         };
-
-        await this.saveKey(key);
-        return key;
-    }
-
-    private async loadKeyByVersion(version: string): Promise<VerificationKey> {
-        const keyPath = path.join(this.keysDir, `key_${version}.json`);
-        if (!fs.existsSync(keyPath)) {
-            throw new Error(`Key version ${version} not found`);
-        }
-
-        const key = JSON.parse(fs.readFileSync(keyPath, 'utf8'));
-        if (!this.verifyKeySignature(key)) {
-            throw new Error(`Invalid signature for key version ${version}`);
-        }
-
-        return key;
-    }
-
-    private async saveKey(key: VerificationKey): Promise<void> {
-        const keyPath = path.join(this.keysDir, `key_${key.version}.json`);
-        fs.writeFileSync(keyPath, JSON.stringify(key, null, 2));
-    }
-
-    private isKeyExpired(key: VerificationKey): boolean {
-        return key.validUntil !== null && key.validUntil <= Date.now();
-    }
-
-    private signKey(keyContent: string): string {
-        // In production, this should use a proper signing key
-        return crypto.createHmac('sha256', process.env.KEY_SIGNING_SECRET || 'dev-secret')
-            .update(keyContent)
-            .digest('hex');
-    }
-
-    private verifyKeySignature(key: VerificationKey): boolean {
-        const expectedSignature = this.signKey(key.key);
-        return crypto.timingSafeEqual(
-            Buffer.from(key.signature, 'hex'),
-            Buffer.from(expectedSignature, 'hex')
-        );
     }
 }
