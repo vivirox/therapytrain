@@ -1,7 +1,7 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
-export function cn(...inputs: ClassValue[]) {
+export function cn(...inputs: Array<ClassValue>) {
   return twMerge(clsx(inputs));
 }
 
@@ -14,7 +14,7 @@ export function formatBytes(bytes: number, decimals = 2) {
 
   const i = Math.floor(Math.log(bytes) / Math.log(k));
 
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + " " + sizes[i];
+  return `${parseFloat((bytes / k ** i).toFixed(dm))} ${sizes[i]}`;
 }
 
 export function formatDuration(ms: number) {
@@ -31,7 +31,7 @@ export function formatDuration(ms: number) {
   return `${seconds}s`;
 }
 
-export function debounce<T extends (...args: any[]) => void>(
+export function debounce<T extends (...args: Array<any>) => void>(
   func: T,
   wait: number
 ) {
@@ -48,17 +48,18 @@ export function debounce<T extends (...args: any[]) => void>(
   };
 }
 
-export function throttle<T extends (...args: any[]) => void>(
+export function throttle<T extends (...args: Array<any>) => void>(
   func: T,
   limit: number
 ) {
   let inThrottle: boolean;
   
   return function executedFunction(...args: Parameters<T>) {
-    if (!inThrottle) {
-      func(...args);
-      inThrottle = true;
-      setTimeout(() => (inThrottle = false), limit);
+    if (inThrottle) {
+      return;
     }
+    func(...args);
+    inThrottle = true;
+    setTimeout(() => (inThrottle = false), limit);
   };
 }

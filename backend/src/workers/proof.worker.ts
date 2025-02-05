@@ -1,49 +1,52 @@
-import { parentPort } from 'worker_threads';
+import { parentPort, workerData } from 'worker_threads';
 import * as snarkjs from 'snarkjs';
+import { ProofOutput } from '../zk/types';
+
+interface WorkerMessage {
+    type: 'generate' | 'verify';
+    input?: any;
+    proof?: ProofOutput;
+    vKey?: any;
+    wasmPath?: string;
+    zkeyPath?: string;
+}
 
 if (!parentPort) {
     throw new Error('This module must be run as a worker thread');
 }
 
-parentPort.on('message', async (data) => {
+parentPort.on('message', async (message: WorkerMessage) => {
     try {
-        switch (data.type) {
-            case 'generate':
-                const { input, wasmPath, zkeyPath } = data;
-                
-                // Generate witness
-                const { witness } = await snarkjs.wtns.full(
-                    input,
-                    wasmPath,
-                    { logFunction: () => {} }
-                );
+        if (message.type === 'generate') {
+            if (!message.input || !message.wasmPath || !message.zkeyPath) {
+                throw new Error('Missing required parameters for proof generation');
+            }
 
-                // Generate proof
-                const { proof, publicSignals } = await snarkjs.groth16.prove(
-                    zkeyPath,
-                    witness
-                );
+            const { proof, publicSignals } = await snarkjs.groth16.fullProve(
+                message.input,
+                message.wasmPath,
+                message.zkeyPath
+            );
 
-                parentPort!.postMessage({ proof: { proof, publicSignals } });
-                break;
+            parentPort!.postMessage({ proof: { proof, publicSignals } });
+        } else if (message.type === 'verify') {
+            if (!message.proof || !message.vKey) {
+                throw new Error('Missing required parameters for proof verification');
+            }
 
-            case 'verify':
-                const { proof: proofData, vKey } = data;
-                
-                // Verify proof
-                const isValid = await snarkjs.groth16.verify(
-                    vKey.key,
-                    proofData.publicSignals,
-                    proofData.proof
-                );
+            const isValid = await snarkjs.groth16.verify(
+                message.vKey,
+                message.proof.publicSignals,
+                message.proof.proof
+            );
 
-                parentPort!.postMessage({ isValid });
-                break;
-
-            default:
-                throw new Error(`Unknown operation type: ${data.type}`);
+            parentPort!.postMessage({ isValid });
+        } else {
+            throw new Error(`Unknown message type: ${message.type}`);
         }
     } catch (error) {
-        parentPort!.postMessage({ error: error.message });
+        parentPort!.postMessage({ 
+            error: error instanceof Error ? error.message : 'Unknown error in worker'
+        });
     }
 });

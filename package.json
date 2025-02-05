@@ -163,7 +163,11 @@
   ],
   "pnpm": {
     "onlyBuiltDependencies": [
-      "esbuild"
+      "@swc/core",
+      "blake-hash",
+      "deno",
+      "esbuild",
+      "isolated-vm"
     ]
   }
 }

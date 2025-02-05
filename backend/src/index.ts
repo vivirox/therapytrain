@@ -6,6 +6,7 @@ import { config } from './config';
 import { errorHandler } from './middleware/errorHandler';
 import { setupSessionRoutes } from './routes';
 import { supabaseAuthMiddleware } from './middleware/supabaseAuth';
+import auditRoutes from './routes/audit.routes';
 
 const app = express();
 
@@ -33,6 +34,7 @@ app.get('/health', (req, res) => {
 
 // Protected routes
 app.use('/api/sessions', supabaseAuthMiddleware, setupSessionRoutes());
+app.use('/api/audit', auditRoutes); // Audit routes already include auth middleware
 
 // Error handling must be last
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
