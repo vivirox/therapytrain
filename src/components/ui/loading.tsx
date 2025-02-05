@@ -1,5 +1,5 @@
 import { type FC } from 'react';
-import { MdPsychology as Brain } from 'react-icons/md';
+import { MdPsychology } from 'react-icons/md';
 
 interface LoadingProps {
   fullScreen?: boolean;
@@ -13,7 +13,7 @@ export const Loading: FC<LoadingProps> = ({
   const content = (
     <div className="flex flex-col items-center justify-center space-y-4">
       <div className="relative">
-        <Brain className="w-12 h-12 text-blue-500 animate-pulse" />
+        <MdPsychology className="w-12 h-12 text-blue-500 animate-pulse" />
         <div className="absolute inset-0 border-t-2 border-blue-500 rounded-full animate-spin" />
       </div>
       <p className="text-gray-600 animate-pulse">{message}</p>

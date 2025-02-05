@@ -1,15 +1,7 @@
 import { type FC } from 'react';
 import { Button } from "../components/ui/button";
 import { useNavigate, Link } from "react-router-dom";
-import {
-  MdSecurity as Shield,
-  MdLock as Lock,
-  MdBolt as Zap,
-  MdGroups as Users,
-  MdMilitaryTech as Award,
-  MdPsychology as Brain,
-  MdAutoAwesome as Sparkles
-} from "react-icons/md";
+import { MdSecurity, MdLock, MdBolt, MdGroups, MdMilitaryTech, MdPsychology, MdAutoAwesome } from "react-icons/md";
 
 const Index: FC = () => {
   const navigate = useNavigate();
@@ -21,7 +13,7 @@ const Index: FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center">
-              <Brain className="h-8 w-8 text-blue-500" />
+              <MdPsychology className="h-8 w-8 text-blue-500" />
               <span className="ml-2 text-xl font-bold">TherapyTrain AI</span>
             </div>
             <div className="hidden md:flex items-center space-x-8">
@@ -69,7 +61,7 @@ const Index: FC = () => {
             </div>
           </div>
           <div className="flex justify-center items-center">
-            <Brain className="w-64 h-64 text-blue-500 animate-pulse" />
+            <MdPsychology className="w-64 h-64 text-blue-500 animate-pulse" />
           </div>
         </div>
       </div>
@@ -80,17 +72,17 @@ const Index: FC = () => {
           <h2 className="text-3xl font-bold text-center mb-16">Key Features</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="bg-[#1A1A1D] p-8 rounded-lg">
-              <Shield className="w-12 h-12 text-blue-500 mb-4" />
+              <MdSecurity className="w-12 h-12 text-blue-500 mb-4" />
               <h3 className="text-xl font-semibold mb-4">HIPAA Compliant</h3>
               <p className="text-gray-400">Our platform ensures the highest standards of data protection and privacy for all users.</p>
             </div>
             <div className="bg-[#1A1A1D] p-8 rounded-lg">
-              <Lock className="w-12 h-12 text-purple-500 mb-4" />
+              <MdLock className="w-12 h-12 text-purple-500 mb-4" />
               <h3 className="text-xl font-semibold mb-4">Secure Environment</h3>
               <p className="text-gray-400">Advanced encryption guarantees the confidentiality of all training sessions and user data.</p>
             </div>
             <div className="bg-[#1A1A1D] p-8 rounded-lg">
-              <Zap className="w-12 h-12 text-yellow-500 mb-4" />
+              <MdBolt className="w-12 h-12 text-yellow-500 mb-4" />
               <h3 className="text-xl font-semibold mb-4">Real-time Feedback</h3>
               <p className="text-gray-400">Receive immediate, AI-generated evaluations of your therapeutic approaches.</p>
             </div>
@@ -104,22 +96,22 @@ const Index: FC = () => {
           <h2 className="text-3xl font-bold text-center mb-16">Why Choose TherapyTrain AI?</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="bg-[#1A1A1D] p-8 rounded-lg">
-              <Users className="w-12 h-12 text-blue-500 mb-4" />
+              <MdGroups className="w-12 h-12 text-blue-500 mb-4" />
               <h3 className="text-xl font-semibold mb-4">Diverse Case Studies</h3>
               <p className="text-gray-400">Experience a wide range of client presentations and therapeutic challenges.</p>
             </div>
             <div className="bg-[#1A1A1D] p-8 rounded-lg">
-              <Award className="w-12 h-12 text-yellow-500 mb-4" />
+              <MdMilitaryTech className="w-12 h-12 text-yellow-500 mb-4" />
               <h3 className="text-xl font-semibold mb-4">Skill Certification</h3>
               <p className="text-gray-400">Earn certificates as you progress through different levels of therapeutic challenges.</p>
             </div>
             <div className="bg-[#1A1A1D] p-8 rounded-lg">
-              <Sparkles className="w-12 h-12 text-green-500 mb-4" />
+              <MdAutoAwesome className="w-12 h-12 text-green-500 mb-4" />
               <h3 className="text-xl font-semibold mb-4">Adaptive Learning</h3>
               <p className="text-gray-400">Our AI adjusts the difficulty based on your performance, ensuring personalized learning.</p>
             </div>
             <div className="bg-[#1A1A1D] p-8 rounded-lg">
-              <Brain className="w-12 h-12 text-purple-500 mb-4" />
+              <MdPsychology className="w-12 h-12 text-purple-500 mb-4" />
               <h3 className="text-xl font-semibold mb-4">Evidence-Based Approaches</h3>
               <p className="text-gray-400">All simulations are grounded in the latest research and best practices in psychotherapy.</p>
             </div>
@@ -150,7 +142,7 @@ const Index: FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex items-center mb-4 md:mb-0">
-              <Brain className="h-6 w-6 text-blue-500" />
+              <MdPsychology className="h-6 w-6 text-blue-500" />
               <span className="ml-2 text-lg font-bold">TherapyTrain AI</span>
             </div>
             <div className="flex space-x-6 text-sm text-gray-400">
@@ -162,7 +154,7 @@ const Index: FC = () => {
             </div>
           </div>
           <div className="mt-8 text-center text-sm text-gray-400">
-            <p> 2024 TherapyTrain AI. All rights reserved.</p>
+            <p>© 2024 TherapyTrain AI. All rights reserved.</p>
             <p className="mt-2">HIPAA Compliant | Secure | Confidential</p>
           </div>
         </div>
