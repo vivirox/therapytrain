@@ -3,69 +3,157 @@
     "buildCommand": "pnpm run build",
     "outputDirectory": "dist",
     "framework": "vite",
-    "routes": [
-        {
-            "src": "/assets/(.*)",
-            "headers": {
-                "cache-control": "public, max-age=31536000, immutable",
-                "content-encoding": "br, gzip",
-                "x-content-type-options": "nosniff",
-                "x-frame-options": "DENY",
-                "x-xss-protection": "1; mode=block"
-            },
-            "dest": "/assets/$1"
-        },
-        {
-            "src": "/(.*)\\.(?:ico|png|jpg|jpeg|gif|svg|webp)$",
-            "headers": {
-                "cache-control": "public, max-age=31536000, immutable",
-                "content-encoding": "br, gzip"
-            },
-            "dest": "/$1"
-        },
-        {
-            "src": "/(.*)\\.(?:js|css|json)$",
-            "headers": {
-                "cache-control": "public, max-age=31536000, immutable",
-                "content-encoding": "br, gzip",
-                "x-content-type-options": "nosniff"
-            },
-            "dest": "/$1"
-        },
-        {
-            "src": "/api/(.*)",
-            "headers": {
-                "access-control-allow-origin": "*",
-                "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
-                "access-control-allow-headers": "X-Requested-With, Content-Type, Accept",
-                "x-content-type-options": "nosniff",
-                "x-frame-options": "DENY",
-                "x-xss-protection": "1; mode=block"
-            },
-            "dest": "/api/$1"
-        },
-        {
-            "src": "/(.*)",
-            "headers": {
-                "strict-transport-security": "max-age=31536000; includeSubDomains",
-                "x-content-type-options": "nosniff",
-                "x-frame-options": "DENY",
-                "x-xss-protection": "1; mode=block",
-                "referrer-policy": "strict-origin-when-cross-origin",
-                "permissions-policy": "camera=(), microphone=(), geolocation=(), interest-cohort=()"
-            },
-            "dest": "/index.html"
-        }
-    ],
     "headers": [
         {
-            "source": "/(.*)",
+            "source": "/assets/:path*",
             "headers": [
                 {
-                    "key": "Content-Security-Policy",
-                    "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://*.vercel.app https://*.therapytrain.ai;"
+                    "key": "Cache-Control",
+                    "value": "public, max-age=31536000, immutable"
+                },
+                {
+                    "key": "X-Content-Type-Options",
+                    "value": "nosniff"
+                },
+                {
+                    "key": "X-Frame-Options",
+                    "value": "DENY"
+                },
+                {
+                    "key": "X-XSS-Protection",
+                    "value": "1; mode=block"
                 }
             ]
+        },
+        {
+            "source": "/:path*.ico",
+            "headers": [
+                {
+                    "key": "Cache-Control",
+                    "value": "public, max-age=31536000, immutable"
+                }
+            ]
+        },
+        {
+            "source": "/:path*.png",
+            "headers": [
+                {
+                    "key": "Cache-Control",
+                    "value": "public, max-age=31536000, immutable"
+                }
+            ]
+        },
+        {
+            "source": "/:path*.jpg",
+            "headers": [
+                {
+                    "key": "Cache-Control",
+                    "value": "public, max-age=31536000, immutable"
+                }
+            ]
+        },
+        {
+            "source": "/:path*.webp",
+            "headers": [
+                {
+                    "key": "Cache-Control",
+                    "value": "public, max-age=31536000, immutable"
+                }
+            ]
+        },
+        {
+            "source": "/:path*.js",
+            "headers": [
+                {
+                    "key": "Cache-Control",
+                    "value": "public, max-age=31536000, immutable"
+                },
+                {
+                    "key": "X-Content-Type-Options",
+                    "value": "nosniff"
+                }
+            ]
+        },
+        {
+            "source": "/:path*.css",
+            "headers": [
+                {
+                    "key": "Cache-Control",
+                    "value": "public, max-age=31536000, immutable"
+                },
+                {
+                    "key": "X-Content-Type-Options",
+                    "value": "nosniff"
+                }
+            ]
+        },
+        {
+            "source": "/api/:path*",
+            "headers": [
+                {
+                    "key": "Access-Control-Allow-Origin",
+                    "value": "*"
+                },
+                {
+                    "key": "Access-Control-Allow-Methods",
+                    "value": "GET, POST, PUT, DELETE, OPTIONS"
+                },
+                {
+                    "key": "Access-Control-Allow-Headers",
+                    "value": "X-Requested-With, Content-Type, Accept"
+                },
+                {
+                    "key": "X-Content-Type-Options",
+                    "value": "nosniff"
+                },
+                {
+                    "key": "X-Frame-Options",
+                    "value": "DENY"
+                },
+                {
+                    "key": "X-XSS-Protection",
+                    "value": "1; mode=block"
+                }
+            ]
+        },
+        {
+            "source": "/:path*",
+            "headers": [
+                {
+                    "key": "Strict-Transport-Security",
+                    "value": "max-age=31536000; includeSubDomains"
+                },
+                {
+                    "key": "X-Content-Type-Options",
+                    "value": "nosniff"
+                },
+                {
+                    "key": "X-Frame-Options",
+                    "value": "DENY"
+                },
+                {
+                    "key": "X-XSS-Protection",
+                    "value": "1; mode=block"
+                },
+                {
+                    "key": "Referrer-Policy",
+                    "value": "strict-origin-when-cross-origin"
+                },
+                {
+                    "key": "Permissions-Policy",
+                    "value": "accelerometer=(), ambient-light-sensor=(), autoplay=(), battery=(), camera=(), cross-origin-isolated=(), display-capture=(), document-domain=(), encrypted-media=(), execution-while-not-rendered=(), execution-while-out-of-viewport=(), fullscreen=(), geolocation=(), gyroscope=(), keyboard-map=(), magnetometer=(), microphone=(), midi=(), navigation-override=(), payment=(), picture-in-picture=(), publickey-credentials-get=(), screen-wake-lock=(), sync-xhr=(), usb=(), web-share=(), xr-spatial-tracking=()"
+                },
+                {
+                    "key": "Content-Security-Policy",
+                    "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.vercel.app; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://*.vercel.app https://*.therapytrain.ai;"
+                }
+            ]
+        }
+    ],
+    "rewrites": [
+        {
+            "source": "/:path*",
+            "destination": "/index.html"
         }
     ],
     "env": {
