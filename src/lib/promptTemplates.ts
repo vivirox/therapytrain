@@ -1,5 +1,26 @@
 import type { ClientProfile } from '@/types/ClientProfile';
 
+interface ClientProfile {
+  id: string;
+  age: number;
+  primary_issue: string;
+  complexity: string;
+  background: string;
+  key_traits: string[];
+  behavioral_patterns: string[];
+  communication_style: string;
+  defense_mechanisms: string[];
+  treatment_history: string;
+  therapeutic_challenges: string[];
+  description: string;
+  metadata?: {
+    history?: {
+      knownTriggers?: string[];
+    };
+    goals?: string[];
+  };
+}
+
 export const generateClientPrompt = (client: ClientProfile): string => {
   return `You are roleplaying as ${client.name}, a therapy client with the following profile:
 

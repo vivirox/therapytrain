@@ -1,4 +1,4 @@
-import { Session, User } from '@supabase/supabase-js';
+import { User as SupabaseUser, Session } from '@supabase/supabase-js';
 
 export interface User extends SupabaseUser {
   given_name?: string; // Add given_name property

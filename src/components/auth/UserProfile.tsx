@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from './AuthProvider';
-import { useSupabaseClient } from '@supabase/ssr';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import {
   Card,
   CardContent,
@@ -9,58 +9,97 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Organization {
   id: string;
   name: string;
   role: string;
+  organization_id: string;
+  organizations: Array<{
+    id: string;
+    name: string;
+  }>;
 }
 
 interface UserPermission {
   permission: string;
 }
 
+interface FetchError {
+  type: 'permissions' | 'organizations';
+  message: string;
+}
+
 export const UserProfile = () => {
   const { user, isAuthenticated } = useAuth();
-  const supabase = useSupabaseClient();
+  const supabase = createClientComponentClient();
   const [permissions, setPermissions] = useState<Array<string>>([]);
   const [organizations, setOrganizations] = useState<Array<Organization>>([]);
+  const [loading, setLoading] = useState({ permissions: false, organizations: false });
+  const [error, setError] = useState<FetchError | null>(null);
 
   useEffect(() => {
     if (isAuthenticated && user) {
       // Get user permissions
       const fetchPermissions = async () => {
-        const { data: userPermissions, error } = await supabase
-          .from('user_permissions')
-          .select('permission')
-          .eq('user_id', user.id);
+        setLoading(prev => ({ ...prev, permissions: true }));
+        try {
+          const { data: userPermissions, error } = await supabase
+            .from('user_permissions')
+            .select('permission')
+            .eq('user_id', user.id);
 
-        if (!error && userPermissions) {
-          setPermissions(userPermissions.map((p: UserPermission) => p.permission));
+          if (error) throw error;
+
+          if (userPermissions) {
+            setPermissions(userPermissions.map((p: UserPermission) => p.permission));
+          }
+        } catch (err) {
+          setError({ type: 'permissions', message: 'Failed to fetch permissions' });
+          console.error('Error fetching permissions:', err);
+        } finally {
+          setLoading(prev => ({ ...prev, permissions: false }));
         }
       };
 
       // Get user organizations
       const fetchOrganizations = async () => {
-        const { data: userOrgs, error } = await supabase
-          .from('user_organizations')
-          .select(`
-            organization_id,
-            organizations (
-              id,
-              name
-            ),
-            role
-          `)
-          .eq('user_id', user.id);
+        setLoading(prev => ({ ...prev, organizations: true }));
+        try {
+          const { data: userOrgs, error } = await supabase
+            .from('user_organizations')
+            .select(`
+              organization_id,
+              organizations (
+                id,
+                name
+              ),
+              role
+            `)
+            .eq('user_id', user.id);
 
-        if (!error && userOrgs) {
-          const formattedOrgs = userOrgs.map(org => ({
-            id: org.organization_id,
-            name: org.organizations[0].name,
-            role: org.role
-          }));
-          setOrganizations(formattedOrgs);
+          if (error) throw error;
+
+          if (userOrgs) {
+            const formattedOrgs = userOrgs.map(org => ({
+              id: org.organization_id,
+              name: org.organizations[0].name,
+              role: org.role,
+              organization_id: org.organization_id,
+              organizations: org.organizations.map(o => ({
+                id: o.id,
+                name: o.name
+              }))
+            }));
+            setOrganizations(formattedOrgs);
+          }
+        } catch (err) {
+          setError({ type: 'organizations', message: 'Failed to fetch organizations' });
+          console.error('Error fetching organizations:', err);
+        } finally {
+          setLoading(prev => ({ ...prev, organizations: false }));
         }
       };
 
@@ -82,9 +121,21 @@ export const UserProfile = () => {
         <CardDescription>{user.email}</CardDescription>
       </CardHeader>
       <CardContent>
-        {permissions.length > 0 && (
-          <div className="mb-4">
-            <h3 className="text-lg font-semibold mb-2">Permissions</h3>
+        {error && (
+          <Alert variant="destructive" className="mb-4">
+            <AlertDescription>{error.message}</AlertDescription>
+          </Alert>
+        )}
+
+        <div className="mb-4">
+          <h3 className="text-lg font-semibold mb-2">Permissions</h3>
+          {loading.permissions ? (
+            <div className="flex gap-2">
+              <Skeleton className="h-6 w-20" />
+              <Skeleton className="h-6 w-20" />
+              <Skeleton className="h-6 w-20" />
+            </div>
+          ) : (
             <div className="flex flex-wrap gap-2">
               {permissions.map((permission) => (
                 <Badge key={permission} variant="secondary">
@@ -92,12 +143,17 @@ export const UserProfile = () => {
                 </Badge>
               ))}
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
-        {organizations.length > 0 && (
-          <div>
-            <h3 className="text-lg font-semibold mb-2">Organizations</h3>
+        <div>
+          <h3 className="text-lg font-semibold mb-2">Organizations</h3>
+          {loading.organizations ? (
+            <div className="space-y-2">
+              <Skeleton className="h-12 w-full" />
+              <Skeleton className="h-12 w-full" />
+            </div>
+          ) : (
             <div className="space-y-2">
               {organizations.map((org) => (
                 <div
@@ -109,8 +165,8 @@ export const UserProfile = () => {
                 </div>
               ))}
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </CardContent>
     </Card>
   );

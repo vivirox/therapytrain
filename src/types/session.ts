@@ -1,23 +1,100 @@
-export type SessionMode = 'chat' | 'video' | 'hybrid';
+export enum SessionStatus {
+  ACTIVE = 'active',
+  PAUSED = 'paused',
+  COMPLETED = 'completed',
+  CANCELLED = 'cancelled'
+}
+
+export enum SessionMode {
+  CHAT = 'chat',
+  VOICE = 'voice',
+  VIDEO = 'video'
+}
 
 export interface SessionState {
   id: string;
   clientId: string;
   therapistId: string;
+  status: SessionStatus;
   mode: SessionMode;
-  status: 'active' | 'ended' | 'paused';
   startTime: string;
   endTime?: string;
+  duration: number;
   metrics: {
-    sentiment: number;
     engagement: number;
     progress: number;
+    riskLevel: number;
   };
-  settings: {
-    notifications: boolean;
-    recording: boolean;
-    transcription: boolean;
+  notes: {
+    therapist?: string;
+    system?: string;
   };
+  goals: Array<{
+    id: string;
+    description: string;
+    status: 'pending' | 'in-progress' | 'completed';
+    progress: number;
+  }>;
+  interventions: Array<{
+    id: string;
+    type: string;
+    timestamp: string;
+    description: string;
+    outcome?: string;
+  }>;
+  flags: {
+    needsAttention?: boolean;
+    riskAssessment?: boolean;
+    followUpRequired?: boolean;
+  };
+  privacy: {
+    recordingConsent: boolean;
+    dataSharing: boolean;
+    restrictions?: string[];
+  };
+  metadata: {
+    platform: string;
+    version: string;
+    features: string[];
+    settings: Record<string, any>;
+  };
+}
+
+export interface SessionConfig {
+  mode: SessionMode;
+  duration?: number;
+  features?: string[];
+  preferences?: {
+    language?: string;
+    notifications?: boolean;
+    accessibility?: Record<string, boolean>;
+  };
+  privacy?: {
+    recordingConsent?: boolean;
+    dataSharing?: boolean;
+    restrictions?: string[];
+  };
+}
+
+export interface SessionSummary {
+  id: string;
+  clientId: string;
+  therapistId: string;
+  status: SessionStatus;
+  mode: SessionMode;
+  startTime: string;
+  endTime?: string;
+  duration: number;
+  progress: number;
+  mainTopics: string[];
+  keyInsights: string[];
+  nextSteps: string[];
+}
+
+export interface SessionError extends Error {
+  code: string;
+  details?: Record<string, any>;
+  retry?: boolean;
 }
 
 export interface SessionControls {
@@ -39,8 +116,6 @@ export interface SessionMetrics {
     achieved: number;
   };
 }
-
-export type SessionStatus = 'scheduled' | 'in-progress' | 'completed' | 'cancelled';
 
 export type SessionType = 'initial' | 'follow-up' | 'crisis' | 'group' | 'assessment';
 

@@ -1,13 +1,23 @@
-import React, { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from './AuthProvider';
 import { Button } from '../ui/button';
 
+interface AuthCredentials {
+  email: string;
+  password: string;
+}
+
+const defaultCredentials: AuthCredentials = {
+  email: '',
+  password: ''
+};
+
 export const LoginButton = () => {
   const { login } = useAuth();
+  const handleLogin = () => login(defaultCredentials.email, defaultCredentials.password);
+  
   return (
     <Button 
-      onClick={() => login('email', 'password')} 
+      onClick={handleLogin} 
       variant="outline"
     >
       Sign In
@@ -17,9 +27,11 @@ export const LoginButton = () => {
 
 export const RegisterButton = () => {
   const { register } = useAuth();
+  const handleRegister = () => register(defaultCredentials.email, defaultCredentials.password);
+  
   return (
     <Button 
-      onClick={() => register('email', 'password')} 
+      onClick={handleRegister} 
       variant="default"
     >
       Sign Up

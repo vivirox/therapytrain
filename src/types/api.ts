@@ -13,13 +13,20 @@ export interface ApiService {
   messages: {
     send: (sessionId: string, content: string) => Promise<Message>;
     list: (sessionId: string) => Promise<Message[]>;
+    delete: (messageId: string) => Promise<void>;
+    update: (messageId: string, content: string) => Promise<Message>;
   };
   clients: {
-    get: (clientId: string) => Promise<any>;
-    list: () => Promise<any[]>;
-    create: (data: any) => Promise<any>;
-    update: (clientId: string, data: any) => Promise<any>;
+    get: (clientId: string) => Promise<ClientProfile>;
+    list: (filters?: ClientFilters) => Promise<PaginatedResponse<ClientProfile>>;
+    create: (data: CreateClientData) => Promise<ClientProfile>;
+    update: (clientId: string, data: UpdateClientData) => Promise<ClientProfile>;
     delete: (clientId: string) => Promise<void>;
+  };
+  analytics: {
+    getSessionMetrics: (sessionId: string) => Promise<SessionMetrics>;
+    getClientProgress: (clientId: string) => Promise<ClientProgress>;
+    getTherapistStats: (therapistId: string) => Promise<TherapistStats>;
   };
 }
 
@@ -160,4 +167,97 @@ export interface ErrorResponse {
         details?: any;
     };
     status: number;
+}
+
+export interface ClientFilters {
+  status?: 'active' | 'inactive' | 'archived';
+  therapistId?: string;
+  search?: string;
+  page?: number;
+  limit?: number;
+}
+
+export interface CreateClientData {
+  fullName: string;
+  dateOfBirth: string;
+  gender: string;
+  contactInfo: {
+    email?: string;
+    phone?: string;
+    address?: string;
+  };
+  emergencyContact: {
+    name: string;
+    relationship: string;
+    phone: string;
+  };
+  intake: {
+    reason: string;
+    history: string;
+    goals: string[];
+  };
+}
+
+export interface UpdateClientData extends Partial<CreateClientData> {
+  status?: 'active' | 'inactive' | 'archived';
+  diagnosis?: {
+    primary?: string;
+    secondary?: string[];
+    notes?: string;
+  };
+  treatment?: {
+    plan?: string;
+    approach?: string[];
+    goals?: string[];
+    progress?: number;
+  };
+}
+
+export interface SessionMetrics {
+  duration: number;
+  engagement: number;
+  progress: number;
+  interventions: number;
+  riskLevel: number;
+  goals: {
+    set: number;
+    achieved: number;
+  };
+}
+
+export interface ClientProgress {
+  overallProgress: number;
+  goalCompletion: {
+    completed: number;
+    total: number;
+    goals: Array<{
+      id: string;
+      description: string;
+      progress: number;
+      status: 'not-started' | 'in-progress' | 'completed';
+    }>;
+  };
+  sessionMetrics: {
+    total: number;
+    completed: number;
+    averageDuration: number;
+    averageEngagement: number;
+  };
+}
+
+export interface TherapistStats {
+  activeClients: number;
+  totalSessions: number;
+  averageSessionDuration: number;
+  clientSatisfaction: number;
+  successRate: number;
+  specialties: string[];
+  availability: {
+    hours: number;
+    slots: number;
+  };
+  certifications: {
+    active: string[];
+    pending: string[];
+  };
 } 

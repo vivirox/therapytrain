@@ -3,6 +3,20 @@ import * as path from 'path';
 import { buildEddsa } from 'circomlibjs';
 import { randomBytes } from 'crypto';
 
+interface CircuitInput {
+  sessionId: string;
+  timestamp: number;
+  therapistPubKey: Uint8Array;
+  metricsHash: string;
+  durationMinutes: number;
+  interventionCount: number;
+  riskLevel: number;
+  engagementScore: number;
+  clientDataHash: string;
+  therapistSigR8: Uint8Array;
+  therapistSigS: Uint8Array;
+}
+
 describe('Session Integrity Circuit', () => {
     let circuit: any;
     let eddsaInstance: any;
@@ -266,10 +280,14 @@ describe('Session Integrity Circuit', () => {
         const privateKey = randomBytes(32);
         const publicKey = eddsaInstance.prv2pub(privateKey);
 
-        // Create signature for session ID
+        // Create signature for session ID and metrics
         const sessionId = '123456789';
-        const msgBuf = Buffer.from(sessionId);
-        const signature = eddsaInstance.signMiMC(privateKey, msgBuf);
+        const metricsHash = '0x5678';
+        const message = Buffer.concat([
+            Buffer.from(sessionId),
+            Buffer.from(metricsHash.slice(2), 'hex')
+        ]);
+        const signature = eddsaInstance.signMiMC(privateKey, message);
 
         // Convert public key and signature to bit arrays
         const pubKeyBits = eddsaInstance.pubKey2Bits(publicKey);
@@ -277,7 +295,7 @@ describe('Session Integrity Circuit', () => {
         const sigSBits = eddsaInstance.sBits(signature.S);
 
         // Create tampered input with modified metrics hash but original signature
-        const input = {
+        const input: CircuitInput = {
             sessionId,
             timestamp: Math.floor(Date.now() / 1000),
             therapistPubKey: pubKeyBits,
@@ -287,10 +305,11 @@ describe('Session Integrity Circuit', () => {
             riskLevel: 3,
             engagementScore: 85,
             clientDataHash: '0x9abc',
-            therapistSigR8: sigR8Bits, // Use the original signature
-            therapistSigS: sigSBits    // Use the original signature
+            therapistSigR8: signature.R8,
+            therapistSigS: signature.S
         };
 
+        // Expect circuit to reject tampered input
         await expect(circuit.calculateWitness(input)).rejects.toThrow();
     });
 });

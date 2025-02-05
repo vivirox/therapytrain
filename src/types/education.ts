@@ -20,6 +20,10 @@ export interface Tutorial {
   category: string;
   difficulty: 'beginner' | 'intermediate' | 'advanced';
   duration: number;
+  type: 'core' | 'specialized' | 'advanced';
+  estimatedDuration: number;
+  steps: TutorialStep[];
+  tags: string[];
   content: {
     sections: TutorialSection[];
     resources: Resource[];
@@ -89,6 +93,14 @@ export interface SkillProgression {
       progress: number;
       completedExercises: string[];
       achievements: string[];
+      experience: number;
+      practiceHours: number;
+      strengths: string[];
+      areasForImprovement: string[];
+      completedTutorials: string[];
+      completedCaseStudies: string[];
+      nextSteps: string[];
+      certifications: string[];
     };
   };
   completedTutorials: string[];
@@ -96,6 +108,13 @@ export interface SkillProgression {
     id: string;
     progress: number;
     lastAccessed: string;
+  };
+  learningPath: {
+    currentGoals: string[];
+    completedGoals: string[];
+    recommendedTutorials: string[];
+    recommendedCaseStudies: string[];
+    focusAreas: string[];
   };
 }
 
