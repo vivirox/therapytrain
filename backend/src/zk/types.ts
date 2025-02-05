@@ -143,4 +143,4 @@ export class ZKUtils {
             therapistSigS: Array.from(input.signature.S).map(b => b.toString())
         };
     }
-} 
+}

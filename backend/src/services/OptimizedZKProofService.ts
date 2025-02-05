@@ -1,21 +1,14 @@
-import * as snarkjs from 'snarkjs';
 import { Worker } from 'worker_threads';
 import path from 'path';
-import fs from 'fs';
 import crypto from 'crypto';
-import { VerificationKeyService } from './VerificationKeyService';
-import { SecurityAuditService } from './SecurityAuditService';
 import LRU from 'lru-cache';
-
-interface ProofInput {
-    sessionData: any;
-    therapistSignature: string;
-}
-
-interface ProofOutput {
-    proof: any;
-    publicSignals: any[];
-}
+import { SecurityAuditService } from './SecurityAuditService';
+import { VerificationKeyService } from './VerificationKeyService';
+import {
+    ProofGenerationInput,
+    ProofOutput,
+    ZKUtils
+} from '../zk/types';
 
 interface CachedProof {
     proof: ProofOutput;
@@ -23,59 +16,137 @@ interface CachedProof {
     inputHash: string;
 }
 
+interface WorkerPoolMetrics {
+    totalProofsGenerated: number;
+    averageProofTime: number;
+    currentLoad: number;
+    errorRate: number;
+}
+
 export class OptimizedZKProofService {
     private readonly proofCache: LRU<string, CachedProof>;
     private readonly workerPool: Worker[] = [];
+    private readonly workerMetrics: Map<number, WorkerPoolMetrics>;
     private readonly maxWorkers: number;
     private currentWorker = 0;
+    private isInitialized = false;
 
     constructor(
-        private verificationKeyService: VerificationKeyService,
-        private securityAuditService: SecurityAuditService,
+        private readonly verificationKeyService: VerificationKeyService,
+        private readonly securityAuditService: SecurityAuditService,
         maxWorkers = 4,
         maxCacheSize = 1000,
-        private cacheTTL = 3600000 // 1 hour
+        private readonly cacheTTL = 3600000 // 1 hour
     ) {
         this.maxWorkers = maxWorkers;
-        this.initializeWorkerPool();
+        this.workerMetrics = new Map();
 
         this.proofCache = new LRU({
             max: maxCacheSize,
             ttl: cacheTTL,
-            updateAgeOnGet: true
+            updateAgeOnGet: true,
+            dispose: (key, value) => {
+                this.handleCacheDisposal(key, value);
+            }
         });
     }
 
-    private initializeWorkerPool() {
-        const workerScript = path.join(__dirname, '../workers/proof.worker.js');
-        for (let i = 0; i < this.maxWorkers; i++) {
-            const worker = new Worker(workerScript);
-            worker.on('error', this.handleWorkerError.bind(this));
-            this.workerPool.push(worker);
+    async initialize(): Promise<void> {
+        if (this.isInitialized) return;
+
+        try {
+            await this.initializeWorkerPool();
+            this.isInitialized = true;
+
+            await this.securityAuditService.recordAlert(
+                'ZK_SERVICE_INITIALIZED',
+                'LOW',
+                { maxWorkers: this.maxWorkers }
+            );
+        } catch (error) {
+            await this.securityAuditService.recordAlert(
+                'ZK_SERVICE_INIT_ERROR',
+                'HIGH',
+                { error: error instanceof Error ? error.message : 'Unknown error' }
+            );
+            throw error;
         }
     }
 
-    private async handleWorkerError(error: Error) {
+    private async initializeWorkerPool(): Promise<void> {
+        const workerScript = path.join(__dirname, '../workers/proof.worker.js');
+
+        for (let i = 0; i < this.maxWorkers; i++) {
+            const worker = new Worker(workerScript);
+            worker.on('error', this.handleWorkerError.bind(this));
+
+            this.workerPool.push(worker);
+            this.workerMetrics.set(i, {
+                totalProofsGenerated: 0,
+                averageProofTime: 0,
+                currentLoad: 0,
+                errorRate: 0
+            });
+        }
+    }
+
+    private async handleWorkerError(error: Error, workerId: number): Promise<void> {
+        const metrics = this.workerMetrics.get(workerId);
+        if (metrics) {
+            metrics.errorRate = (metrics.errorRate * metrics.totalProofsGenerated + 1) /
+                (metrics.totalProofsGenerated + 1);
+        }
+
         await this.securityAuditService.recordAlert(
             'WORKER_ERROR',
             'HIGH',
-            { error: error.message }
+            {
+                error: error.message,
+                workerId,
+                metrics: metrics || 'No metrics available'
+            }
         );
     }
 
-    private getNextWorker(): Worker {
-        const worker = this.workerPool[this.currentWorker];
+    private getOptimalWorker(): { worker: Worker; workerId: number } {
+        // Simple round-robin for now, but can be enhanced with load balancing
+        const workerId = this.currentWorker;
+        const worker = this.workerPool[workerId];
         this.currentWorker = (this.currentWorker + 1) % this.maxWorkers;
-        return worker;
+        return { worker, workerId };
     }
 
-    private calculateInputHash(input: ProofInput): string {
+    private calculateInputHash(input: ProofGenerationInput): string {
+        const normalizedInput = {
+            sessionId: input.sessionId,
+            startTimestamp: input.startTimestamp,
+            endTimestamp: input.endTimestamp,
+            sessionData: input.sessionData,
+            metadata: input.metadata,
+            therapistCredential: input.therapistCredential
+        };
+
         return crypto.createHash('sha256')
-            .update(JSON.stringify(input))
+            .update(JSON.stringify(normalizedInput))
             .digest('hex');
     }
 
-    async generateProof(input: ProofInput): Promise<ProofOutput> {
+    private async handleCacheDisposal(key: string, value: CachedProof): Promise<void> {
+        await this.securityAuditService.recordAlert(
+            'PROOF_CACHE_DISPOSAL',
+            'LOW',
+            {
+                key,
+                proofAge: Date.now() - value.timestamp
+            }
+        );
+    }
+
+    async generateProof(input: ProofGenerationInput): Promise<ProofOutput> {
+        if (!this.isInitialized) {
+            await this.initialize();
+        }
+
         const startTime = Date.now();
         const inputHash = this.calculateInputHash(input);
 
@@ -86,17 +157,30 @@ export class OptimizedZKProofService {
                 await this.securityAuditService.recordAlert(
                     'PROOF_CACHE_HIT',
                     'LOW',
-                    { inputHash, timeSaved: Date.now() - startTime }
+                    {
+                        inputHash,
+                        proofAge: Date.now() - cachedProof.timestamp
+                    }
                 );
                 return cachedProof.proof;
             }
 
-            // Get next available worker
-            const worker = this.getNextWorker();
+            // Prepare circuit input
+            const circuitInput = await ZKUtils.prepareCircuitInput(input);
+
+            // Get optimal worker
+            const { worker, workerId } = this.getOptimalWorker();
+            const metrics = this.workerMetrics.get(workerId)!;
+            metrics.currentLoad++;
 
             // Generate proof in parallel
             const proof = await new Promise<ProofOutput>((resolve, reject) => {
+                const timeout = setTimeout(() => {
+                    reject(new Error('Proof generation timeout'));
+                }, 30000); // 30 second timeout
+
                 worker.once('message', (result) => {
+                    clearTimeout(timeout);
                     if (result.error) {
                         reject(new Error(result.error));
                     } else {
@@ -106,11 +190,17 @@ export class OptimizedZKProofService {
 
                 worker.postMessage({
                     type: 'generate',
-                    input,
+                    input: circuitInput,
                     wasmPath: path.join(__dirname, '../zk/build/SessionDataCircuit.wasm'),
                     zkeyPath: path.join(__dirname, '../zk/keys/SessionDataCircuit.zkey')
                 });
             });
+
+            // Update metrics
+            metrics.currentLoad--;
+            metrics.totalProofsGenerated++;
+            metrics.averageProofTime = (metrics.averageProofTime * (metrics.totalProofsGenerated - 1) +
+                (Date.now() - startTime)) / metrics.totalProofsGenerated;
 
             // Cache the result
             this.proofCache.set(inputHash, {
@@ -119,11 +209,15 @@ export class OptimizedZKProofService {
                 inputHash
             });
 
-            const duration = Date.now() - startTime;
             await this.securityAuditService.recordAlert(
                 'PROOF_GENERATED',
                 'LOW',
-                { inputHash, duration }
+                {
+                    inputHash,
+                    duration: Date.now() - startTime,
+                    workerId,
+                    metrics
+                }
             );
 
             return proof;
@@ -131,13 +225,21 @@ export class OptimizedZKProofService {
             await this.securityAuditService.recordAlert(
                 'PROOF_GENERATION_ERROR',
                 'HIGH',
-                { inputHash, error: error.message }
+                {
+                    inputHash,
+                    error: error instanceof Error ? error.message : 'Unknown error',
+                    duration: Date.now() - startTime
+                }
             );
             throw error;
         }
     }
 
     async verifyProof(proof: ProofOutput): Promise<boolean> {
+        if (!this.isInitialized) {
+            await this.initialize();
+        }
+
         const startTime = Date.now();
         const proofHash = crypto.createHash('sha256')
             .update(JSON.stringify(proof))
@@ -147,10 +249,17 @@ export class OptimizedZKProofService {
             // Get current verification key
             const vKey = await this.verificationKeyService.getCurrentKey('system');
 
+            // Get optimal worker
+            const { worker, workerId } = this.getOptimalWorker();
+
             // Verify the proof in parallel
-            const worker = this.getNextWorker();
             const isValid = await new Promise<boolean>((resolve, reject) => {
+                const timeout = setTimeout(() => {
+                    reject(new Error('Proof verification timeout'));
+                }, 15000); // 15 second timeout
+
                 worker.once('message', (result) => {
+                    clearTimeout(timeout);
                     if (result.error) {
                         reject(new Error(result.error));
                     } else {
@@ -169,7 +278,12 @@ export class OptimizedZKProofService {
             await this.securityAuditService.recordAlert(
                 'PROOF_VERIFIED',
                 'LOW',
-                { proofHash, isValid, duration }
+                {
+                    proofHash,
+                    isValid,
+                    duration,
+                    workerId
+                }
             );
 
             return isValid;
@@ -177,20 +291,36 @@ export class OptimizedZKProofService {
             await this.securityAuditService.recordAlert(
                 'PROOF_VERIFICATION_ERROR',
                 'HIGH',
-                { proofHash, error: error.message }
+                {
+                    proofHash,
+                    error: error instanceof Error ? error.message : 'Unknown error',
+                    duration: Date.now() - startTime
+                }
             );
             throw error;
         }
     }
 
-    async cleanup() {
+    async getMetrics(): Promise<Map<number, WorkerPoolMetrics>> {
+        return new Map(this.workerMetrics);
+    }
+
+    async cleanup(): Promise<void> {
         // Cleanup worker pool
         await Promise.all(
             this.workerPool.map(worker => worker.terminate())
         );
         this.workerPool.length = 0;
+        this.workerMetrics.clear();
 
         // Clear cache
         this.proofCache.clear();
+        this.isInitialized = false;
+
+        await this.securityAuditService.recordAlert(
+            'ZK_SERVICE_CLEANUP',
+            'LOW',
+            { timestamp: Date.now() }
+        );
     }
 }
