@@ -5,6 +5,7 @@ import './styles/globals.css'
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/react';
 import { ErrorBoundary } from 'react-error-boundary';
+import { VercelFeedbackWrapper } from './components/ui/vercel-feedback';
 
 // Create root before any React component initialization
 const root = ReactDOM.createRoot(document.getElementById('root')!);
@@ -19,7 +20,16 @@ const AppWithErrorBoundary = () => (
       }}
     >
       <App />
-      <Analytics />
+      <VercelFeedbackWrapper />
+      <Analytics
+        beforeSend={(event) => {
+          // Filter out non-error events if needed
+          if (event.type === 'error' && !event.data) {
+            return null;
+          }
+          return event;
+        }}
+      />
       <SpeedInsights />
     </ErrorBoundary>
   </React.StrictMode>

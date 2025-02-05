@@ -37,6 +37,9 @@ export default defineConfig(({ }) => ({
     reportCompressedSize: true,
     chunkSizeWarningLimit: 500,
     sourcemap: true,
+    modulePreload: {
+      polyfill: true
+    },
     rollupOptions: {
       external: [],
       output: {
@@ -81,6 +84,10 @@ export default defineConfig(({ }) => ({
               // State management
               if (id.includes('zustand') || id.includes('jotai') || id.includes('valid')) {
                 return 'state-management';
+              }
+              // Analytics and monitoring
+              if (id.includes('vercel') || id.includes('analytics') || id.includes('insights')) {
+                return 'monitoring';
               }
               // Remaining node_modules split by first letter to avoid large chunks
               const moduleId = id.split('node_modules/').pop()?.split('/')[0] ?? '';
@@ -162,7 +169,9 @@ export default defineConfig(({ }) => ({
       'react-error-boundary',
       'react-native-web',
       'lucide-react',
-      'react-icons'
+      'react-icons',
+      '@vercel/analytics',
+      '@vercel/speed-insights'
     ],
     esbuildOptions: {
       target: 'esnext'
