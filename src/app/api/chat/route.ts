@@ -1,4 +1,3 @@
-import { Readable } from 'stream';
 import fetch from 'node-fetch';
 
 type Message = {

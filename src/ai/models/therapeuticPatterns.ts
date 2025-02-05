@@ -144,29 +144,37 @@ export function analyzeMessage(message: string, clientProfile: ClientProfile): {
     emotions: [] as Array<EmotionalResponse>
   };
 
-  // Check for therapeutic patterns
+  // Use clientProfile to contextualize analysis
+  const personalizedTriggers = clientProfile.metadata?.history?.knownTriggers || [];
+  const clientGoals = clientProfile.metadata?.goals || [];
+
+  // Analyze message for patterns considering client's history
   therapeuticPatterns.forEach(pattern => {
-    if (pattern.triggers.some(trigger => 
-      message.toLowerCase().includes(trigger.toLowerCase())
-    )) {
+    const hasRelevantTriggers = pattern.triggers.some(trigger => 
+      message.toLowerCase().includes(trigger.toLowerCase()) ||
+      personalizedTriggers.includes(trigger)
+    );
+    if (hasRelevantTriggers) {
       result.patterns.push(pattern);
     }
   });
 
-  // Check for defense mechanisms
+  // Analyze for defense mechanisms
   defenseMechanisms.forEach(defense => {
-    if (defense.triggers.some(trigger => 
-      message.toLowerCase().includes(trigger.toLowerCase())
-    )) {
+    const hasDefenseBehavior = defense.behaviors.some(behavior =>
+      message.toLowerCase().includes(behavior.toLowerCase())
+    );
+    if (hasDefenseBehavior) {
       result.defenses.push(defense);
     }
   });
 
-  // Check for emotional responses
+  // Analyze emotional responses considering client goals
   emotionalResponses.forEach(emotion => {
-    if (emotion.triggers.some(trigger => 
-      message.toLowerCase().includes(trigger.toLowerCase())
-    )) {
+    const hasEmotionalIndicator = emotion.manifestation.some(indicator =>
+      message.toLowerCase().includes(indicator.toLowerCase())
+    );
+    if (hasEmotionalIndicator) {
       result.emotions.push(emotion);
     }
   });

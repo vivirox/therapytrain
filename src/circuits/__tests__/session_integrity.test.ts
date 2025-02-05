@@ -1,6 +1,6 @@
 import { wasm as wasmTester } from 'circom_tester';
 import * as path from 'path';
-import { buildEddsa, eddsa } from 'circomlibjs';
+import { buildEddsa } from 'circomlibjs';
 import { randomBytes } from 'crypto';
 
 describe('Session Integrity Circuit', () => {
@@ -17,28 +17,20 @@ describe('Session Integrity Circuit', () => {
         const privateKey = randomBytes(32);
         const publicKey = eddsaInstance.prv2pub(privateKey);
 
-        // Create signature for session ID
-        const sessionId = '123456789';
-        const msgBuf = Buffer.from(sessionId);
-        const signature = eddsaInstance.signMiMC(privateKey, msgBuf);
+        // Create session data
+        const sessionId = randomBytes(32);
+        const signature = eddsaInstance.signPoseidon(privateKey, sessionId);
 
-        // Convert public key and signature to bit arrays
-        const pubKeyBits = eddsaInstance.pubKey2Bits(publicKey);
-        const sigR8Bits = eddsaInstance.r8Bits(signature.R8);
-        const sigSBits = eddsaInstance.sBits(signature.S);
+        // Convert signature to bits for circuit input
+        const sigR8 = signature.R8;
+        const sigS = signature.S;
 
+        // Prepare circuit input
         const input = {
-            sessionId,
-            timestamp: Math.floor(Date.now() / 1000),
-            therapistPubKey: pubKeyBits,
-            metricsHash: '0x5678',
-            durationMinutes: 60,
-            interventionCount: 5,
-            riskLevel: 3,
-            engagementScore: 85,
-            clientDataHash: '0x9abc',
-            therapistSigR8: sigR8Bits,
-            therapistSigS: sigSBits
+            sessionId: sessionId,
+            pubKey: publicKey,
+            R8: sigR8,
+            S: sigS
         };
 
         const witness = await circuit.calculateWitness(input);
