@@ -16,12 +16,18 @@ export default defineConfig(({ }) => ({
     },
   },
   plugins: [
-    reactSwc(),
+    reactSwc({
+      jsxImportSource: 'react',
+      tsDecorators: true,
+    }),
     tailwindcss(),
   ].filter(Boolean),
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "src")
+      "@": path.resolve(__dirname, "src"),
+      "react": path.resolve(__dirname, "node_modules/react"),
+      "react-dom": path.resolve(__dirname, "node_modules/react-dom"),
+      "react-error-boundary": path.resolve(__dirname, "node_modules/react-error-boundary")
     }
   },
   build: {
@@ -34,98 +40,99 @@ export default defineConfig(({ }) => ({
     rollupOptions: {
       external: [],
       output: {
-        manualChunks: (id: string) => {
-          // Split node_modules into smaller chunks
-          if (id.includes('node_modules')) {
-            // Icons - keep all icon-related code in a single chunk
-            if (id.includes('lucide-react') || id.includes('react-icons') || id.includes('-icons')) {
-              return 'icons';
+        manualChunks: {
+          'react-core': ['react', 'react-dom'],
+          'error-boundary': ['react-error-boundary'],
+          ...((id: string) => {
+            // Split node_modules into smaller chunks
+            if (id.includes('node_modules')) {
+              // Icons - keep all icon-related code in a single chunk
+              if (id.includes('lucide-react') || id.includes('react-icons') || id.includes('-icons')) {
+                return 'icons';
+              }
+              // React ecosystem packages
+              if (id.includes('react-router') || id.includes('@tanstack/react-query')) {
+                return 'react-ecosystem';
+              }
+              // UI Framework
+              if (id.includes('@radix-ui/') || id.includes('@floating-ui/')) {
+                return 'ui-framework';
+              }
+              // Form handling
+              if (id.includes('react-hook-form') || id.includes('@hookform/resolvers') || id.includes('zod')) {
+                return 'form-handling';
+              }
+              // Data visualization
+              if (id.includes('chart.js') || id.includes('react-charts-2') || id.includes('recharts')) {
+                return 'data-viz';
+              }
+              // Utilities
+              if (id.includes('date-fns') || id.includes('clsx') || id.includes('tailwind-merge')) {
+                return 'utils';
+              }
+              // Crypto/Security
+              if (id.includes('noble') || id.includes('secp256k1') || id.includes('sha256')) {
+                return 'crypto';
+              }
+              // Animation libraries
+              if (id.includes('framer-motion') || id.includes('vaul') || id.includes('embla-carousel')) {
+                return 'animations';
+              }
+              // State management
+              if (id.includes('zustand') || id.includes('jotai') || id.includes('valid')) {
+                return 'state-management';
+              }
+              // Remaining node_modules split by first letter to avoid large chunks
+              const moduleId = id.split('node_modules/').pop()?.split('/')[0] ?? '';
+              return `vendor-${moduleId.charAt(0).toLowerCase()}`;
             }
-            // Core React packages
-            if (id.includes('react/') || id.includes('react-dom/')) {
-              return 'core-react';
-            }
-            // React ecosystem packages
-            if (id.includes('react-router') || id.includes('@tanstack/react-query')) {
-              return 'react-ecosystem';
-            }
-            // UI Framework
-            if (id.includes('@radix-ui/') || id.includes('@floating-ui/')) {
-              return 'ui-framework';
-            }
-            // Form handling
-            if (id.includes('react-hook-form') || id.includes('@hookform/resolvers') || id.includes('zod')) {
-              return 'form-handling';
-            }
-            // Data visualization
-            if (id.includes('chart.js') || id.includes('react-charts-2') || id.includes('recharts')) {
-              return 'data-viz';
-            }
-            // Utilities
-            if (id.includes('date-fns') || id.includes('clsx') || id.includes('tailwind-merge')) {
-              return 'utils';
-            }
-            // Crypto/Security
-            if (id.includes('noble') || id.includes('secp256k1') || id.includes('sha256')) {
-              return 'crypto';
-            }
-            // Animation libraries
-            if (id.includes('framer-motion') || id.includes('vaul') || id.includes('embla-carousel')) {
-              return 'animations';
-            }
-            // State management
-            if (id.includes('zustand') || id.includes('jotai') || id.includes('valid')) {
-              return 'state-management';
-            }
-            // Remaining node_modules split by first letter to avoid large chunks
-            const moduleId = id.split('node_modules/').pop()?.split('/')[0] ?? '';
-            return `vendor-${moduleId.charAt(0).toLowerCase()}`;
-          }
 
-          // Application code splitting
-          if (id.includes('/src/')) {
-            // Components by feature
-            if (id.includes('/components/')) {
-              if (id.includes('/ui/')) {
-                return 'app-ui';
+            // Application code splitting
+            if (id.includes('/src/')) {
+              // Components by feature
+              if (id.includes('/components/')) {
+                if (id.includes('/ui/')) {
+                  return 'app-ui';
+                }
+                if (id.includes('/auth/')) {
+                  return 'app-auth';
+                }
+                if (id.includes('/analytics/')) {
+                  return 'app-analytics';
+                }
+                if (id.includes('/education/')) {
+                  return 'app-education';
+                }
+                return 'app-components';
               }
-              if (id.includes('/auth/')) {
-                return 'app-auth';
+              // Services by domain
+              if (id.includes('/services/')) {
+                if (id.includes('/ai/')) {
+                  return 'services-ai';
+                }
+                if (id.includes('/auth/')) {
+                  return 'services-auth';
+                }
+                if (id.includes('/api/')) {
+                  return 'services-api';
+                }
+                return 'services-core';
               }
-              if (id.includes('/analytics/')) {
-                return 'app-analytics';
+              // Pages
+              if (id.includes('/pages/')) {
+                return 'pages';
               }
-              if (id.includes('/education/')) {
-                return 'app-education';
+              // Hooks
+              if (id.includes('/hooks/')) {
+                return 'hooks';
               }
-              return 'app-components';
+              // Utils
+              if (id.includes('/utils/')) {
+                return 'utils';
+              }
             }
-            // Services by domain
-            if (id.includes('/services/')) {
-              if (id.includes('/ai/')) {
-                return 'services-ai';
-              }
-              if (id.includes('/auth/')) {
-                return 'services-auth';
-              }
-              if (id.includes('/api/')) {
-                return 'services-api';
-              }
-              return 'services-core';
-            }
-            // Pages
-            if (id.includes('/pages/')) {
-              return 'pages';
-            }
-            // Hooks
-            if (id.includes('/hooks/')) {
-              return 'hooks';
-            }
-            // Utils
-            if (id.includes('/utils/')) {
-              return 'utils';
-            }
-          }
+            return null;
+          })
         },
         // Optimize chunk names and reduce filename length
         chunkFileNames: (chunkInfo: { name: string; }) => {
@@ -149,7 +156,14 @@ export default defineConfig(({ }) => ({
     }
   },
   optimizeDeps: {
-    include: ['react-native-web', 'lucide-react', 'react-icons'],
+    include: [
+      'react',
+      'react-dom',
+      'react-error-boundary',
+      'react-native-web',
+      'lucide-react',
+      'react-icons'
+    ],
     esbuildOptions: {
       target: 'esnext'
     }
