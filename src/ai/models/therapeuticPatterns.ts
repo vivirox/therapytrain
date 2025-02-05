@@ -154,7 +154,15 @@ export function analyzeMessage(message: string, clientProfile: ClientProfile): {
       message.toLowerCase().includes(trigger.toLowerCase()) ||
       personalizedTriggers.includes(trigger)
     );
-    if (hasRelevantTriggers) {
+    
+    // Check if pattern relates to client goals
+    const isGoalRelated = clientGoals.some(goal =>
+      pattern.responses.some(response => 
+        response.toLowerCase().includes(goal.toLowerCase())
+      )
+    );
+
+    if (hasRelevantTriggers || isGoalRelated) {
       result.patterns.push(pattern);
     }
   });

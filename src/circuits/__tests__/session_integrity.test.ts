@@ -276,6 +276,7 @@ describe('Session Integrity Circuit', () => {
         const sigR8Bits = eddsaInstance.r8Bits(signature.R8);
         const sigSBits = eddsaInstance.sBits(signature.S);
 
+        // Create tampered input with modified metrics hash but original signature
         const input = {
             sessionId,
             timestamp: Math.floor(Date.now() / 1000),
@@ -286,8 +287,8 @@ describe('Session Integrity Circuit', () => {
             riskLevel: 3,
             engagementScore: 85,
             clientDataHash: '0x9abc',
-            therapistSigR8: sigR8Bits,
-            therapistSigS: sigSBits
+            therapistSigR8: sigR8Bits, // Use the original signature
+            therapistSigS: sigSBits    // Use the original signature
         };
 
         await expect(circuit.calculateWitness(input)).rejects.toThrow();

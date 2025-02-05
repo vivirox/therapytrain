@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from './AuthProvider';
 import { useSupabaseClient } from '@supabase/ssr';
 import {

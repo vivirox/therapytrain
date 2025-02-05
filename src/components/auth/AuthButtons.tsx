@@ -7,7 +7,7 @@ export const LoginButton = () => {
   const { login } = useAuth();
   return (
     <Button 
-      onClick={() => login()} 
+      onClick={() => login('email', 'password')} 
       variant="outline"
     >
       Sign In
@@ -19,7 +19,7 @@ export const RegisterButton = () => {
   const { register } = useAuth();
   return (
     <Button 
-      onClick={() => register()} 
+      onClick={() => register('email', 'password')} 
       variant="default"
     >
       Sign Up
@@ -31,7 +31,7 @@ export const LogoutButton = () => {
   const { logout } = useAuth();
   return (
     <Button 
-      onClick={() => logout()} 
+      onClick={logout} 
       variant="ghost"
     >
       Sign Out
