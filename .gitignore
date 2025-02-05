@@ -26,9 +26,9 @@ dist-ssr
 *.sw?
 
 .env
-.env.*
 .vercel
 src/utils/supabase.
+.env.staging
 
 .env*.local
 
