@@ -1,4 +1,4 @@
-import React from 'react';
+import { type FC } from 'react';
 import { Button } from "../components/ui/button";
 import { useNavigate, Link } from "react-router-dom";
 import {
@@ -11,7 +11,7 @@ import {
   MdAutoAwesome as Sparkles
 } from "react-icons/md";
 
-const Index = () => {
+const Index: FC = () => {
   const navigate = useNavigate();
 
   return (

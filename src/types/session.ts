@@ -1,31 +1,48 @@
+export type SessionMode = 'chat' | 'video' | 'hybrid';
+
 export interface SessionState {
   id: string;
   clientId: string;
   therapistId: string;
-  startTime: Date;
-  endTime?: Date;
-  status: SessionStatus;
-  type: SessionType;
-  metrics: SessionMetrics;
-  interventions: Intervention[];
-  notes: SessionNote[];
-  flags: SessionFlag[];
+  mode: SessionMode;
+  status: 'active' | 'ended' | 'paused';
+  startTime: string;
+  endTime?: string;
+  metrics: {
+    sentiment: number;
+    engagement: number;
+    progress: number;
+  };
+  settings: {
+    notifications: boolean;
+    recording: boolean;
+    transcription: boolean;
+  };
+}
+
+export interface SessionControls {
+  startSession: (clientId: string, mode: SessionMode) => Promise<void>;
+  endSession: (sessionId: string) => Promise<void>;
+  pauseSession: (sessionId: string) => Promise<void>;
+  resumeSession: (sessionId: string) => Promise<void>;
+  switchMode: (sessionId: string, newMode: SessionMode) => Promise<void>;
+}
+
+export interface SessionMetrics {
+  sentiment: number;
+  engagement: number;
+  progress: number;
+  duration: number;
+  interventions: number;
+  goals: {
+    set: number;
+    achieved: number;
+  };
 }
 
 export type SessionStatus = 'scheduled' | 'in-progress' | 'completed' | 'cancelled';
 
 export type SessionType = 'initial' | 'follow-up' | 'crisis' | 'group' | 'assessment';
-
-export interface SessionMetrics {
-  duration: number;
-  sentiment: number;
-  engagement: number;
-  progress: number;
-  riskLevel: number;
-  interventionEffectiveness: number;
-  clientSatisfaction?: number;
-  therapistConfidence?: number;
-}
 
 export interface Intervention {
   id: string;

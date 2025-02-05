@@ -1,5 +1,5 @@
-import React, { createContext, useContext, ReactNode, useEffect, useState, useMemo } from 'react';
-import { User } from '@supabase/supabase-js';
+import { type FC, createContext, useContext, type ReactNode, useEffect, useState, useMemo } from 'react';
+import { type User } from '@supabase/supabase-js';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 
@@ -36,8 +36,12 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
+interface AuthProviderProps {
+  children: ReactNode;
+}
+
 // Main Auth Provider component
-export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [permissions, setPermissions] = useState<Array<Permission>>([]);
   const [organizations, setOrganizations] = useState<Array<Organization>>([]);
@@ -80,10 +84,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         return;
       }
 
-      setPermissions(data.map(p => ({
-        id: p.permission_id,
-        name: p.permission_name
-      })));
+      if (data) {
+        setPermissions(data.map(p => ({
+          id: p.permission_id,
+          name: p.permission_name
+        })));
+      }
     };
 
     // Fetch user organizations
@@ -98,11 +104,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         return;
       }
 
-      setOrganizations(data.map(o => ({
-        id: o.organizations[0]?.id,
-        name: o.organizations[0]?.name,
-        role: o.role
-      })));
+      if (data) {
+        setOrganizations(data.map(o => ({
+          id: o.organizations?.[0]?.id ?? '',
+          name: o.organizations?.[0]?.name ?? '',
+          role: o.role
+        })));
+      }
     };
 
     // Fetch feature flags
@@ -117,14 +125,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         return;
       }
 
-      const flagsRecord: Record<string, FeatureFlag> = {};
-      data.forEach(flag => {
-        flagsRecord[flag.key] = {
-          key: flag.key,
-          value: flag.value
-        };
-      });
-      setFeatureFlags(flagsRecord);
+      if (data) {
+        const flagsRecord: Record<string, FeatureFlag> = {};
+        data.forEach(flag => {
+          flagsRecord[flag.key] = {
+            key: flag.key,
+            value: flag.value
+          };
+        });
+        setFeatureFlags(flagsRecord);
+      }
     };
 
     fetchPermissions();
@@ -161,19 +171,21 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const createOrg = async (orgName: string) => {
+    if (!user) return;
     const { error } = await supabase
       .from('organizations')
-      .insert([{ name: orgName, created_by: user?.id }]);
+      .insert([{ name: orgName, created_by: user.id }]);
     if (error) {
       throw error;
     }
   };
 
   const switchOrganization = async (orgId: string) => {
+    if (!user) return;
     const { error } = await supabase
       .from('user_organizations')
       .update({ is_active: true })
-      .eq('user_id', user?.id)
+      .eq('user_id', user.id)
       .eq('organization_id', orgId);
 
     if (error) {
@@ -195,7 +207,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return featureFlags[key] || null;
   };
 
-  const value = {
+  const value = useMemo<AuthContextType>(() => ({
     isAuthenticated: !!user,
     user,
     login,
@@ -208,14 +220,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     isOrgAdmin,
     getFeatureFlag,
     switchOrganization
-  };
+  }), [user, permissions, organizations, featureFlags]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 // Auth context hook
 export const useAuth = () => {
-  const context = useMemo(() => useContext(AuthContext), []);
+  const context = useContext(AuthContext);
 
   if (!context) {
     throw new Error('useAuth must be used within an AuthProvider');
@@ -231,7 +243,7 @@ interface ProtectedRouteProps {
   requireOrgAdmin?: boolean;
 }
 
-export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
+export const ProtectedRoute: FC<ProtectedRouteProps> = ({
   children,
   requiredPermission,
   requireOrgAdmin

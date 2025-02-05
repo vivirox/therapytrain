@@ -3,15 +3,13 @@ import { User } from '@supabase/supabase-js';
 export interface Message {
   id: string;
   content: string;
-  role: 'user' | 'assistant' | 'system';
+  sender: string;
   timestamp: string;
   sessionId: string;
-  userId: string;
   metadata?: {
     sentiment?: number;
     intent?: string;
     topics?: string[];
-    [key: string]: any;
   };
 }
 
@@ -21,22 +19,36 @@ export interface ChatSession {
   therapistId: string;
   startTime: string;
   endTime?: string;
-  status: 'active' | 'completed' | 'cancelled';
-  summary?: string;
-  metrics?: {
-    sentiment: number;
-    engagement: number;
-    progress: number;
-    [key: string]: any;
+  mode: string;
+  status: 'active' | 'ended' | 'paused';
+  metadata?: {
+    goals?: string[];
+    notes?: string;
+    metrics?: {
+      sentiment?: number;
+      engagement?: number;
+      progress?: number;
+    };
   };
-  tags?: string[];
-  notes?: string;
+}
+
+export interface Client {
+  id: string;
+  name: string;
+  email: string;
+  status: 'active' | 'inactive';
+  metadata?: {
+    preferences?: any;
+    history?: any;
+    goals?: string[];
+  };
 }
 
 export interface ChatState {
   messages: Message[];
   session: ChatSession | null;
-  isLoading: boolean;
+  client: Client | null;
+  loading: boolean;
   error: Error | null;
 }
 

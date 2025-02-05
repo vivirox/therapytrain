@@ -2,10 +2,38 @@ import { User } from '@supabase/supabase-js';
 import { Message, ChatSession } from './chat';
 import { SessionState } from './session';
 
+export interface ApiService {
+  sessions: {
+    start: (clientId: string, mode: string) => Promise<ChatSession>;
+    end: (sessionId: string) => Promise<void>;
+    switchMode: (sessionId: string, newMode: string) => Promise<void>;
+    get: (sessionId: string) => Promise<ChatSession>;
+    list: (clientId: string) => Promise<ChatSession[]>;
+  };
+  messages: {
+    send: (sessionId: string, content: string) => Promise<Message>;
+    list: (sessionId: string) => Promise<Message[]>;
+  };
+  clients: {
+    get: (clientId: string) => Promise<any>;
+    list: () => Promise<any[]>;
+    create: (data: any) => Promise<any>;
+    update: (clientId: string, data: any) => Promise<any>;
+    delete: (clientId: string) => Promise<void>;
+  };
+}
+
 export interface ApiResponse<T = any> {
-    data: T | null;
-    error: string | null;
-    status: number;
+  data?: T;
+  error?: {
+    message: string;
+    code?: string;
+  };
+}
+
+export interface ApiError extends Error {
+  code?: string;
+  status?: number;
 }
 
 export interface PaginatedResponse<T> extends ApiResponse<T[]> {

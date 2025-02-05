@@ -1,4 +1,4 @@
-import React from 'react';
+import { type FC } from 'react';
 import { MdPsychology as Brain } from 'react-icons/md';
 
 interface LoadingProps {
@@ -6,7 +6,7 @@ interface LoadingProps {
   message?: string;
 }
 
-export const Loading: React.FC<LoadingProps> = ({ 
+export const Loading: FC<LoadingProps> = ({ 
   fullScreen = false,
   message = 'Loading...'
 }) => {
