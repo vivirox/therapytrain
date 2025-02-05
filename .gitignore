@@ -33,3 +33,5 @@ src/utils/supabase.
 .env*.local
 
 .pnpm-store/*
+
+devel/*
