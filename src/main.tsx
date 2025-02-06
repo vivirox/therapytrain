@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react'
 import ReactDOM from 'react-dom/client'
-import App, { routes } from './App'
+import App from './App'
 import './styles/globals.css'
 import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/react'
@@ -10,30 +10,10 @@ import { VercelFeedbackWrapper } from './components/ui/vercel-feedback';
 import { DevTools } from './components/dev/DevTools';
 import { AuthProvider } from './components/auth/AuthProvider';
 import { ThemeProvider } from './components/ui/theme-provider';
-import { RouterProvider, createBrowserRouter } from 'react-router-dom';
+import { BrowserRouter } from 'react-router-dom';
 
 // Create root before any React component initialization
 const root = ReactDOM.createRoot(document.getElementById('root')!);
-
-// Create router configuration
-const router = createBrowserRouter([
-  {
-    path: '/',
-    element: (
-      <ThemeProvider>
-        <AuthProvider>
-          <DevTools />
-          <App />
-          <VercelFeedbackWrapper />
-          <Analytics debug={process.env.NODE_ENV === 'development'} />
-          <SpeedInsights />
-        </AuthProvider>
-      </ThemeProvider>
-    ),
-    children: routes,
-    errorElement: <div>404 - Page Not Found</div>,
-  },
-]);
 
 // Ensure React is initialized before rendering
 const AppWithErrorBoundary = () => {
@@ -60,7 +40,17 @@ const AppWithErrorBoundary = () => {
           console.error('Error caught by boundary:', error, errorInfo);
         }}
       >
-        <RouterProvider router={router} />
+        <BrowserRouter>
+          <ThemeProvider>
+            <AuthProvider>
+              <DevTools />
+              <App />
+              <VercelFeedbackWrapper />
+              <Analytics debug={process.env.NODE_ENV === 'development'} />
+              <SpeedInsights />
+            </AuthProvider>
+          </ThemeProvider>
+        </BrowserRouter>
       </ErrorBoundary>
     </React.StrictMode>
   );
