@@ -7,6 +7,7 @@ import { SpeedInsights } from '@vercel/speed-insights/react'
 import { inject } from '@vercel/analytics';
 import { ErrorBoundary } from 'react-error-boundary';
 import { VercelFeedbackWrapper } from './components/ui/vercel-feedback';
+import { DevTools } from './components/dev/DevTools';
 
 // Create root before any React component initialization
 const root = ReactDOM.createRoot(document.getElementById('root')!);
@@ -16,8 +17,8 @@ const AppWithErrorBoundary = () => {
   useEffect(() => {
     // Inject analytics manually
     inject({
-      mode: 'production',
-      debug: true, // Enable debug mode to see what's happening
+      mode: process.env.NODE_ENV === 'production' ? 'production' : 'development',
+      debug: process.env.NODE_ENV === 'development',
       beforeSend: (event: any) => {
         // Only allow pageview and custom events
         if (event.type === 'pageview' || event.type === 'event') {
@@ -36,9 +37,10 @@ const AppWithErrorBoundary = () => {
           console.error('Error caught by boundary:', error, errorInfo);
         }}
       >
+        <DevTools />
         <App />
         <VercelFeedbackWrapper />
-        <Analytics debug={true} />
+        <Analytics debug={process.env.NODE_ENV === 'development'} />
         <SpeedInsights />
       </ErrorBoundary>
     </React.StrictMode>

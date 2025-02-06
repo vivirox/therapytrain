@@ -1,85 +1,185 @@
 import { type FC } from 'react';
-import { Link } from 'react-router-dom';
+import { Button } from "../components/ui/button";
+import { useNavigate } from "react-router-dom";
 import {
-  MdSecurity as Shield,
-  MdPsychology as Brain,
-  MdAutoAwesome as Sparkles,
-  MdSchool as Education,
-  MdAnalytics as Analytics,
-  MdSupportAgent as Support
-} from 'react-icons/md';
+  MdSecurity,
+  MdAutoAwesome,
+  MdPsychology,
+  MdAnalytics,
+  MdSchool,
+  MdSmartToy,
+  MdPeople,
+  MdStar
+} from "react-icons/md";
 
 const Features: FC = () => {
-  return (
-    <div className="min-h-screen bg-[#0A0A0B] text-white">
-      {/* Navigation */}
-      <nav className="border-b border-gray-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center">
-              <Brain className="h-8 w-8 text-blue-500" />
-              <span className="ml-2 text-xl font-bold">TherapyTrain AI</span>
-            </div>
-            <div className="hidden md:flex items-center space-x-8">
-              <Link to="/" className="text-gray-300 hover:text-white">Home</Link>
-              <Link to="/features" className="text-gray-300 hover:text-white">Features</Link>
-              <Link to="/benefits" className="text-gray-300 hover:text-white">Benefits</Link>
-            </div>
-          </div>
-        </div>
-      </nav>
+  const navigate = useNavigate();
 
-      {/* Features Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-        <div className="text-center mb-16">
-          <h1 className="text-5xl font-bold mb-6">Platform Features</h1>
-          <p className="text-xl text-gray-400 max-w-3xl mx-auto">
-            Discover the powerful features that make TherapyTrain AI the leading platform for therapist training and skill development.
+  return (
+    <div className="max-w-4xl mx-auto px-4 py-16">
+      {/* Hero Section */}
+      <div className="grid grid-cols-2 grid-rows-2 gap-6 mb-24 min-h-[600px] relative overflow-hidden">
+        <div className="absolute inset-0 bg-[#0A0A0B]/80 z-10" /> {/* Overlay to ensure text readability */}
+        <div className="col-start-1 row-start-1 relative">
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-blue-500/20 rounded-3xl blur-2xl" />
+          <img
+            src="https://images.unsplash.com/photo-1633613286991-611fe299c4be?q=80&w=2070&auto=format&fit=crop"
+            alt="Modern therapy training features"
+            className="relative rounded-3xl w-full h-full object-cover opacity-40"
+          />
+        </div>
+        <div className="col-start-2 row-start-2 relative z-20 p-8 text-right">
+          <div className="inline-block mb-4 px-4 py-1 bg-purple-500/10 rounded-full">
+            <span className="text-purple-500 font-medium">Features</span>
+          </div>
+          <h1 className="text-5xl font-bold mb-6 bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">
+            Powerful Features for Modern Therapy Training
+          </h1>
+          <p className="text-xl text-gray-400 ml-auto max-w-xl">
+            Experience the next generation of therapeutic training with our cutting-edge AI-powered platform.
           </p>
         </div>
+      </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {/* HIPAA Compliance */}
-          <div className="bg-[#1A1A1D] p-8 rounded-lg">
-            <Shield className="w-12 h-12 text-blue-500 mb-4" />
-            <h3 className="text-xl font-semibold mb-4">HIPAA Compliant</h3>
-            <p className="text-gray-400">Secure and compliant platform ensuring the highest standards of data protection and privacy.</p>
+      {/* Main Features */}
+      <div className="grid grid-cols-2 gap-8 mb-24">
+        {/* AI-Powered Training */}
+        <div className="relative col-span-2">
+          <div className="absolute -left-4 top-0 w-1 h-full bg-gradient-to-b from-blue-500 to-transparent" />
+          <div className="pl-8">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="bg-blue-500/10 p-3 rounded-xl">
+                <MdSmartToy className="w-8 h-8 text-blue-500" />
+              </div>
+              <h2 className="text-3xl font-bold">AI-Powered Training</h2>
+            </div>
+            <p className="text-gray-400 mb-8 text-lg">
+              Our advanced AI system provides personalized feedback and adapts to your learning style,
+              creating a truly unique training experience.
+            </p>
+            <div className="grid grid-cols-2 gap-6">
+              <div className="bg-[#1A1A1D] p-6 rounded-xl hover:bg-[#1A1A1D]/80 transition-colors">
+                <h3 className="text-xl font-semibold mb-3 flex items-center gap-2">
+                  <MdAutoAwesome className="text-blue-500" />
+                  Real-time Analysis
+                </h3>
+                <p className="text-gray-400">
+                  Get instant feedback on your therapeutic approaches and communication style.
+                </p>
+              </div>
+              <div className="bg-[#1A1A1D] p-6 rounded-xl hover:bg-[#1A1A1D]/80 transition-colors">
+                <h3 className="text-xl font-semibold mb-3 flex items-center gap-2">
+                  <MdAnalytics className="text-purple-500" />
+                  Progress Tracking
+                </h3>
+                <p className="text-gray-400">
+                  Monitor your growth with detailed analytics and performance metrics.
+                </p>
+              </div>
+            </div>
           </div>
+        </div>
 
-          {/* AI-Powered Training */}
-          <div className="bg-[#1A1A1D] p-8 rounded-lg">
-            <Brain className="w-12 h-12 text-purple-500 mb-4" />
-            <h3 className="text-xl font-semibold mb-4">AI-Powered Training</h3>
-            <p className="text-gray-400">Advanced AI simulations providing realistic therapeutic scenarios and immediate feedback.</p>
+        {/* Clinical Scenarios */}
+        <div className="relative">
+          <div className="absolute -left-4 top-0 w-1 h-full bg-gradient-to-b from-purple-500 to-transparent" />
+          <div className="pl-8">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="bg-purple-500/10 p-3 rounded-xl">
+                <MdPsychology className="w-8 h-8 text-purple-500" />
+              </div>
+              <h2 className="text-3xl font-bold">Clinical Scenarios</h2>
+            </div>
+            <p className="text-gray-400 mb-8 text-lg">
+              Practice with diverse, realistic client scenarios that prepare you for real-world therapeutic situations.
+            </p>
+            <div className="bg-[#1A1A1D] p-6 rounded-xl hover:bg-[#1A1A1D]/80 transition-colors">
+              <h3 className="text-xl font-semibold mb-3 flex items-center gap-2">
+                <MdPeople className="text-green-500" />
+                Diverse Client Profiles
+              </h3>
+              <p className="text-gray-400">
+                Work with a wide range of client backgrounds, conditions, and therapeutic needs.
+              </p>
+            </div>
           </div>
+        </div>
 
-          {/* Personalized Learning */}
-          <div className="bg-[#1A1A1D] p-8 rounded-lg">
-            <Sparkles className="w-12 h-12 text-yellow-500 mb-4" />
-            <h3 className="text-xl font-semibold mb-4">Personalized Learning</h3>
-            <p className="text-gray-400">Adaptive learning paths that adjust to your skill level and learning style.</p>
+        {/* Evidence-Based Learning */}
+        <div className="relative">
+          <div className="absolute -left-4 top-0 w-1 h-full bg-gradient-to-b from-green-500 to-transparent" />
+          <div className="pl-8">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="bg-green-500/10 p-3 rounded-xl">
+                <MdSchool className="w-8 h-8 text-green-500" />
+              </div>
+              <h2 className="text-3xl font-bold">Evidence-Based</h2>
+            </div>
+            <p className="text-gray-400 mb-8 text-lg">
+              All scenarios are based on current research and best practices in psychotherapy.
+            </p>
+            <div className="bg-[#1A1A1D] p-6 rounded-xl hover:bg-[#1A1A1D]/80 transition-colors">
+              <h3 className="text-xl font-semibold mb-3 flex items-center gap-2">
+                <MdStar className="text-yellow-500" />
+                Research-Backed
+              </h3>
+              <p className="text-gray-400">
+                Stay current with the latest therapeutic techniques and methodologies.
+              </p>
+            </div>
           </div>
+        </div>
 
-          {/* Comprehensive Education */}
-          <div className="bg-[#1A1A1D] p-8 rounded-lg">
-            <Education className="w-12 h-12 text-green-500 mb-4" />
-            <h3 className="text-xl font-semibold mb-4">Comprehensive Education</h3>
-            <p className="text-gray-400">Extensive library of resources, case studies, and evidence-based therapeutic approaches.</p>
+        {/* Security & Compliance */}
+        <div className="relative col-span-2">
+          <div className="absolute -left-4 top-0 w-1 h-full bg-gradient-to-b from-green-500 to-transparent" />
+          <div className="pl-8">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="bg-green-500/10 p-3 rounded-xl">
+                <MdSecurity className="w-8 h-8 text-green-500" />
+              </div>
+              <h2 className="text-3xl font-bold">Security & Compliance</h2>
+            </div>
+            <p className="text-gray-400 mb-8 text-lg">
+              Train with confidence knowing your data is protected by industry-leading security measures.
+            </p>
+            <div className="grid grid-cols-3 gap-6">
+              <div className="bg-[#1A1A1D] p-6 rounded-xl hover:bg-[#1A1A1D]/80 transition-colors">
+                <div className="flex items-start gap-3">
+                  <MdStar className="w-5 h-5 text-yellow-500 mt-1 flex-shrink-0" />
+                  <span className="text-gray-400">HIPAA-compliant infrastructure</span>
+                </div>
+              </div>
+              <div className="bg-[#1A1A1D] p-6 rounded-xl hover:bg-[#1A1A1D]/80 transition-colors">
+                <div className="flex items-start gap-3">
+                  <MdStar className="w-5 h-5 text-yellow-500 mt-1 flex-shrink-0" />
+                  <span className="text-gray-400">End-to-end encryption</span>
+                </div>
+              </div>
+              <div className="bg-[#1A1A1D] p-6 rounded-xl hover:bg-[#1A1A1D]/80 transition-colors">
+                <div className="flex items-start gap-3">
+                  <MdStar className="w-5 h-5 text-yellow-500 mt-1 flex-shrink-0" />
+                  <span className="text-gray-400">Regular security audits</span>
+                </div>
+              </div>
+            </div>
           </div>
+        </div>
+      </div>
 
-          {/* Progress Analytics */}
-          <div className="bg-[#1A1A1D] p-8 rounded-lg">
-            <Analytics className="w-12 h-12 text-red-500 mb-4" />
-            <h3 className="text-xl font-semibold mb-4">Progress Analytics</h3>
-            <p className="text-gray-400">Detailed insights and analytics to track your development and identify areas for improvement.</p>
-          </div>
-
-          {/* Expert Support */}
-          <div className="bg-[#1A1A1D] p-8 rounded-lg">
-            <Support className="w-12 h-12 text-indigo-500 mb-4" />
-            <h3 className="text-xl font-semibold mb-4">Expert Support</h3>
-            <p className="text-gray-400">Access to professional support and guidance throughout your learning journey.</p>
-          </div>
+      {/* CTA Section */}
+      <div className="mt-32 text-center">
+        <div className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 p-8 rounded-2xl">
+          <h2 className="text-3xl font-bold mb-4">Ready to Transform Your Practice?</h2>
+          <p className="text-gray-400 mb-8 max-w-2xl mx-auto">
+            Join thousands of therapists who are enhancing their skills with TherapyTrain AI.
+          </p>
+          <Button
+            onClick={() => navigate("/auth")}
+            className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 px-8 py-6 text-lg"
+          >
+            Start Your Journey
+          </Button>
         </div>
       </div>
     </div>
