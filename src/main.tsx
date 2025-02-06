@@ -9,7 +9,7 @@ import { ErrorBoundary } from 'react-error-boundary';
 import { VercelFeedbackWrapper } from './components/ui/vercel-feedback';
 import { DevTools } from './components/dev/DevTools';
 import { AuthProvider } from './components/auth/AuthProvider';
-import { ThemeProvider } from './components/theme/theme-provider';
+import { ThemeProvider } from './components/ui/theme-provider';
 
 // Create root before any React component initialization
 const root = ReactDOM.createRoot(document.getElementById('root')!);
