@@ -8,6 +8,8 @@ import { inject } from '@vercel/analytics';
 import { ErrorBoundary } from 'react-error-boundary';
 import { VercelFeedbackWrapper } from './components/ui/vercel-feedback';
 import { DevTools } from './components/dev/DevTools';
+import { AuthProvider } from './components/auth/AuthProvider';
+import { ThemeProvider } from './components/theme/theme-provider';
 
 // Create root before any React component initialization
 const root = ReactDOM.createRoot(document.getElementById('root')!);
@@ -31,17 +33,21 @@ const AppWithErrorBoundary = () => {
 
   return (
     <React.StrictMode>
-      <ErrorBoundary 
+      <ErrorBoundary
         fallback={<div>Something went wrong</div>}
         onError={(error, errorInfo) => {
           console.error('Error caught by boundary:', error, errorInfo);
         }}
       >
-        <DevTools />
-        <App />
-        <VercelFeedbackWrapper />
-        <Analytics debug={process.env.NODE_ENV === 'development'} />
-        <SpeedInsights />
+        <ThemeProvider>
+          <AuthProvider>
+            <DevTools />
+            <App />
+            <VercelFeedbackWrapper />
+            <Analytics debug={process.env.NODE_ENV === 'development'} />
+            <SpeedInsights />
+          </AuthProvider>
+        </ThemeProvider>
       </ErrorBoundary>
     </React.StrictMode>
   );
