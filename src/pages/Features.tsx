@@ -18,27 +18,35 @@ const Features: FC = () => {
   return (
     <div className="max-w-4xl mx-auto px-4 py-16">
       {/* Hero Section */}
-      <div className="grid grid-cols-2 grid-rows-2 gap-6 mb-24 min-h-[600px] relative overflow-hidden">
-        <div className="absolute inset-0 bg-[#0A0A0B]/80 z-10" /> {/* Overlay to ensure text readability */}
-        <div className="col-start-1 row-start-1 relative">
-          <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-blue-500/20 rounded-3xl blur-2xl" />
-          <img
-            src="https://images.unsplash.com/photo-1633613286991-611fe299c4be?q=80&w=2070&auto=format&fit=crop"
-            alt="Modern therapy training features"
-            className="relative rounded-3xl w-full h-full object-cover opacity-40"
-          />
-        </div>
-        <div className="col-start-2 row-start-2 relative z-20 p-8 text-right">
-          <div className="inline-block mb-4 px-4 py-1 bg-purple-500/10 rounded-full">
-            <span className="text-purple-500 font-medium">Features</span>
+      <div className="relative h-[300px] mb-24 rounded-3xl overflow-hidden">
+        {/* Background Image */}
+        <img
+          src="https://images.unsplash.com/photo-1633613286991-611fe299c4be?q=80&w=2070&auto=format&fit=crop"
+          alt="Modern therapy training features"
+          className="absolute inset-0 w-full h-full object-cover opacity-70"
+        />
+
+        {/* Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-r from-[#0A0A0B]/60 to-[#0A0A0B]/60" />
+
+        {/* Content */}
+        <div className="relative z-20 h-full flex flex-col justify-center items-center text-center px-8">
+          <div className="max-w-3xl backdrop-blur-md bg-[#0A0A0B]/40 p-8 rounded-2xl border border-white/10">
+            <div className="inline-block mb-4 px-4 py-1 bg-purple-500/20 backdrop-blur-sm rounded-full">
+              <span className="text-purple-500 font-medium">Features</span>
+            </div>
+            <h1 className="text-5xl font-bold mb-6 bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">
+              Powerful Features for Modern Therapy Training
+            </h1>
+            <p className="text-xl text-gray-300 max-w-2xl mx-auto">
+              Experience the next generation of therapeutic training with our cutting-edge AI-powered platform.
+            </p>
           </div>
-          <h1 className="text-5xl font-bold mb-6 bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">
-            Powerful Features for Modern Therapy Training
-          </h1>
-          <p className="text-xl text-gray-400 ml-auto max-w-xl">
-            Experience the next generation of therapeutic training with our cutting-edge AI-powered platform.
-          </p>
         </div>
+
+        {/* Decorative Elements */}
+        <div className="absolute -right-12 -bottom-12 w-64 h-64 bg-gradient-to-br from-purple-500/30 to-blue-500/30 rounded-full blur-3xl" />
+        <div className="absolute -left-12 -top-12 w-64 h-64 bg-gradient-to-br from-blue-500/30 to-purple-500/30 rounded-full blur-3xl" />
       </div>
 
       {/* Main Features */}
