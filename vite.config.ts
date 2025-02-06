@@ -9,9 +9,6 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
-    headers: {
-      'Permissions-Policy': 'attribution-reporting=(), run-ad-auction=(), private-state-token-redemption=(), private-state-token-issuance=(), join-ad-interest-group=(), browsing-topics=()'
-    },
   },
   plugins: [
     react({
@@ -19,12 +16,17 @@ export default defineConfig(({ mode }) => ({
         plugins: [
           ['@babel/plugin-transform-react-jsx', { runtime: 'automatic' }]
         ]
-      }
+      },
+      jsxRuntime: 'automatic',
+      jsxImportSource: 'react'
     })
   ],
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "src")
+      "@": path.resolve(__dirname, "src"),
+      'react': path.resolve(__dirname, 'node_modules/react'),
+      'react-dom': path.resolve(__dirname, 'node_modules/react-dom'),
+      'react-router-dom': path.resolve(__dirname, 'node_modules/react-router-dom')
     }
   },
   define: {
@@ -44,20 +46,18 @@ export default defineConfig(({ mode }) => ({
       polyfill: true
     },
     rollupOptions: {
-      external: [],
+      preserveEntrySignatures: 'strict',
       output: {
-        manualChunks: (id) => {
-          if (id.includes('node_modules')) {
-            if (id.includes('react/') || id.includes('react-dom/')) {
-              return 'react';
-            }
-            if (id.includes('@vercel/')) {
-              return 'vercel';
-            }
-            return 'vendor';
-          }
-        }
+        format: 'es',
+        inlineDynamicImports: false,
+        manualChunks: undefined
       }
+    }
+  },
+  optimizeDeps: {
+    include: ['react', 'react-dom', 'react-router-dom'],
+    esbuildOptions: {
+      target: 'esnext'
     }
   }
 }))
