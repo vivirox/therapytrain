@@ -1,7 +1,7 @@
 /** @jsxImportSource @emotion/react */
 import { type FC } from 'react';
 import { Suspense, lazy } from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { Route, Routes } from 'react-router-dom';
 import { Loading } from "./components/ui/loading";
 import { Layout } from "./components/layout/Layout";
 
@@ -41,11 +41,9 @@ const AppRoutes: FC = () => {
 
 const App: FC = () => {
   return (
-    <Router>
-      <Suspense fallback={<Loading fullScreen message="Loading TherapyTrain..." />}>
-        <AppRoutes />
-      </Suspense>
-    </Router>
+    <Suspense fallback={<Loading fullScreen message="Loading TherapyTrain..." />}>
+      <AppRoutes />
+    </Suspense>
   );
 };
 

@@ -10,6 +10,7 @@ import { VercelFeedbackWrapper } from './components/ui/vercel-feedback';
 import { DevTools } from './components/dev/DevTools';
 import { AuthProvider } from './components/auth/AuthProvider';
 import { ThemeProvider } from './components/ui/theme-provider';
+import { BrowserRouter } from 'react-router-dom';
 
 // Create root before any React component initialization
 const root = ReactDOM.createRoot(document.getElementById('root')!);
@@ -39,15 +40,17 @@ const AppWithErrorBoundary = () => {
           console.error('Error caught by boundary:', error, errorInfo);
         }}
       >
-        <ThemeProvider>
-          <AuthProvider>
-            <DevTools />
-            <App />
-            <VercelFeedbackWrapper />
-            <Analytics debug={process.env.NODE_ENV === 'development'} />
-            <SpeedInsights />
-          </AuthProvider>
-        </ThemeProvider>
+        <BrowserRouter>
+          <ThemeProvider>
+            <AuthProvider>
+              <DevTools />
+              <App />
+              <VercelFeedbackWrapper />
+              <Analytics debug={process.env.NODE_ENV === 'development'} />
+              <SpeedInsights />
+            </AuthProvider>
+          </ThemeProvider>
+        </BrowserRouter>
       </ErrorBoundary>
     </React.StrictMode>
   );
