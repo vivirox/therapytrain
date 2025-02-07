@@ -132,9 +132,9 @@ export const PeerLearning: React.FC<PeerLearningProps> = ({ userId }) => {
         prev.map(group =>
           group.id === groupId
             ? {
-                ...group,
-                members: [...group.members, { id: userId, name: '', role: 'member' }]
-              }
+              ...group,
+              members: [...group.members, { id: userId, name: '', role: 'member' }]
+            }
             : group
         )
       );
@@ -166,20 +166,20 @@ export const PeerLearning: React.FC<PeerLearningProps> = ({ userId }) => {
               <Input
                 placeholder="Discussion title"
                 value={newDiscussion.title}
-                onChange={e: unknown =>
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                   setNewDiscussion(prev => ({ ...prev, title: e.target.value }))
                 }
               />
               <Textarea
                 placeholder="Share your thoughts or questions..."
                 value={newDiscussion.content}
-                onChange={e: unknown =>
+                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
                   setNewDiscussion(prev => ({ ...prev, content: e.target.value }))
                 }
               />
               <Input
                 placeholder="Add tags (comma-separated)"
-                onChange={e: unknown =>
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                   setNewDiscussion(prev => ({
                     ...prev,
                     tags: e.target.value.split(',').map(tag: unknown => tag.trim())
@@ -202,7 +202,7 @@ export const PeerLearning: React.FC<PeerLearningProps> = ({ userId }) => {
                 className="pl-10"
                 placeholder="Search discussions..."
                 value={searchTerm}
-                onChange={e: unknown => setSearchTerm(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
               />
             </div>
           </Card>

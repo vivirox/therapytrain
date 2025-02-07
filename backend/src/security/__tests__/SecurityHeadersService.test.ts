@@ -81,7 +81,7 @@ describe('SecurityHeadersService', () => {
             );
 
             const cspCalls = (mockResponse.setHeader as jest.Mock).mock.calls
-                .filter(call: unknown => call[0] === 'Content-Security-Policy');
+                .filter((call: [string, string]) => call[0] === 'Content-Security-Policy');
 
             expect(cspCalls.length).toBe(1);
             expect(cspCalls[0][1]).toMatch(/'nonce-[A-Za-z0-9+/]+=?'/);
@@ -108,7 +108,7 @@ describe('SecurityHeadersService', () => {
             );
 
             const cspCalls = (mockResponse.setHeader as jest.Mock).mock.calls
-                .filter(call: unknown => call[0] === 'Content-Security-Policy');
+                .filter((call: [string, string]) => call[0] === 'Content-Security-Policy');
 
             expect(cspCalls[0][1]).toContain('https://trusted.com');
             expect(cspCalls[0][1]).toContain('wss://api.trusted.com');
@@ -126,7 +126,7 @@ describe('SecurityHeadersService', () => {
 
             // Trigger the 'finish' event handler
             const finishHandler = (mockResponse.on as jest.Mock).mock.calls
-                .find(call: unknown => call[0] === 'finish')[1];
+                .find((call: [string, () => void]) => call[0] === 'finish')[1];
             finishHandler();
 
             expect(mockSecurityAuditService.recordAlert).toHaveBeenCalledWith(
@@ -134,7 +134,7 @@ describe('SecurityHeadersService', () => {
                 'HIGH',
                 expect.objectContaining({
                     headerName: 'CSP',
-                    violation: 'Header missing'
+                    violation: 'Header missing',
                 })
             );
         });
@@ -155,7 +155,7 @@ describe('SecurityHeadersService', () => {
                 'SECURITY_HEADERS_ERROR',
                 'HIGH',
                 expect.objectContaining({
-                    error: 'Header error'
+                    error: 'Header error',
                 })
             );
             expect(nextFunction).toHaveBeenCalledWith(expect.any(Error));
@@ -165,7 +165,7 @@ describe('SecurityHeadersService', () => {
     describe('Nonce Management', () => {
         it('should generate and validate nonces correctly', () => {
             const sessionId = 'test-session';
-            const nonce = (securityHeadersService as any).generateNonce();
+            const nonce = (securityHeadersService as unknown).generateNonce();
 
             securityHeadersService.addNonce(sessionId, nonce);
             expect(securityHeadersService.validateNonce(sessionId, nonce)).toBe(true);
@@ -175,17 +175,17 @@ describe('SecurityHeadersService', () => {
         it('should cleanup old nonces', () => {
             const sessionId = 'test-session';
             const nonces = Array(15).fill(null).map(() =>
-                (securityHeadersService as any).generateNonce()
+                (securityHeadersService as unknown).generateNonce()
             );
 
-            nonces.forEach(nonce: unknown => securityHeadersService.addNonce(sessionId, nonce));
+            nonces.forEach((nonce: string) => securityHeadersService.addNonce(sessionId, nonce));
 
             // Only the last 10 nonces should be valid
-            nonces.slice(0, 5).forEach(nonce: unknown => {
+            nonces.slice(0, 5).forEach((nonce: string) => {
                 expect(securityHeadersService.validateNonce(sessionId, nonce)).toBe(false);
             });
 
-            nonces.slice(5).forEach(nonce: unknown => {
+            nonces.slice(5).forEach((nonce: string) => {
                 expect(securityHeadersService.validateNonce(sessionId, nonce)).toBe(true);
             });
         });
@@ -197,13 +197,13 @@ describe('SecurityHeadersService', () => {
                 'csp-report': {
                     'document-uri': 'http://example.com',
                     'violated-directive': 'script-src',
-                    'blocked-uri': 'http://evil.com'
+                    'blocked-uri': 'http://evil.com',
                 }
             };
 
             const mockReportRequest = {
                 ...mockRequest,
-                body: mockViolationReport
+                body: mockViolationReport,
             };
 
             await securityHeadersService.reportViolation(mockReportRequest as Request);
@@ -212,7 +212,7 @@ describe('SecurityHeadersService', () => {
                 'CSP_VIOLATION',
                 'HIGH',
                 expect.objectContaining({
-                    ...mockViolationReport
+                    ...mockViolationReport,
                 })
             );
         });

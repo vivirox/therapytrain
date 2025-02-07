@@ -503,8 +503,8 @@ export class HIPAAComplianceReportService {
     }
 
     private detectIncompleteAudits(auditEvents: any[]): any[] {
-        return auditEvents.filter(event: unknown => {
-            return !this.assessmentCriteria.auditTrails.requiredFields.every(field => {
+        return auditEvents.filter(event: unknown =>
+            !this.assessmentCriteria.auditTrails.requiredFields.every(field => {
                 const parts = field.split('.');
                 let value = event;
                 for (const part of parts) {
@@ -513,7 +513,6 @@ export class HIPAAComplianceReportService {
                 }
                 return true;
             });
-        });
     }
 
     private detectUnauthorizedAccesses(auditEvents: any[]): any[] {

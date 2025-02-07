@@ -106,7 +106,7 @@ export class SecurityService {
 
   async anonymizeData(data: any): Promise<any> {
     const sensitiveFields = ['name', 'email', 'phone', 'address', 'ssn'];
-    
+
     const anonymize = (obj: any): any => {
       if (typeof obj !== 'object' || obj === null) return obj;
 

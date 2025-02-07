@@ -15,7 +15,7 @@ interface EncryptionKey {
     expiresAt: Date;
     rotatedAt?: Date;
     status: KeyStatus;
-    purpose: KeyPurpose[];
+    purpose: Array<KeyPurpose>;
     metadata: {
         hash: string;
         backupLocation?: string;
@@ -28,7 +28,7 @@ interface KeyRotationConfig {
     rotationPeriod: number; // in days
     algorithm: string;
     keySize: number;
-    purposes: KeyPurpose[];
+    purposes: Array<KeyPurpose>;
     backupRequired: boolean;
     verificationRequired: boolean;
     gracePeriod: number; // in days

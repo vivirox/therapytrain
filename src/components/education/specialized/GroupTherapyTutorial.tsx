@@ -176,7 +176,7 @@ export const GroupTherapyTutorial: React.FC<GroupTherapyTutorialProps> = ({
     setMemberStates(prev =>
       prev.map(member => {
         const effect = option.impact.memberEffects.find(
-          e: unknown => e.memberId === member.id
+          e: unknown: unknown: unknown => e.memberId === member.id
         );
         if (effect) {
           return {

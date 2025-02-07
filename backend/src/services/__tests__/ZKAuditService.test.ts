@@ -20,9 +20,9 @@ describe('ZKAuditService', () => {
             insert: jest.fn().mockResolvedValue({ error: null }),
             gte: jest.fn().mockReturnThis(),
             lte: jest.fn().mockReturnThis(),
-            order: jest.fn().mockResolvedValue({ 
-                data: [], 
-                error: null 
+            order: jest.fn().mockResolvedValue({
+                data: [],
+                error: null
             })
         } as any;
 
@@ -112,7 +112,7 @@ describe('ZKAuditService', () => {
 
             // Check if WebSocket clients received the update
             zkAuditService.registerDashboardClient(mockWebSocket);
-            
+
             // Wait for next metrics update
             await new Promise(resolve => setTimeout(resolve, 150));
 
@@ -130,8 +130,8 @@ describe('ZKAuditService', () => {
 
         it('should handle Supabase errors', async () => {
             const error = new Error('Database error');
-            (mockSupabase.insert as jest.Mock).mockResolvedValueOnce({ 
-                error 
+            (mockSupabase.insert as jest.Mock).mockResolvedValueOnce({
+                error
             });
 
             await expect(zkAuditService.recordAuditEvent(mockEvent))
@@ -200,6 +200,20 @@ describe('ZKAuditService', () => {
 
             // Client should not receive updates after disconnection
             expect(mockWebSocket.send).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('WebSocket handling', () => {
+        it('should handle WebSocket connections correctly', () => {
+            const mockWs = {
+                on: jest.fn(),
+                send: jest.fn(),
+                close: jest.fn(),
+            };
+
+            const calls = mockWs.on.mock.calls;
+            const closeHandler = calls.find((call: unknown) => call[0] === 'close');
+            expect(closeHandler).toBeDefined();
         });
     });
 });

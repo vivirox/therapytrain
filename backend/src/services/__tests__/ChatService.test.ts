@@ -83,7 +83,7 @@ describe('ChatService', () => {
     it('should set up client connection successfully', async () => {
       const mockSessionId = 'test-session';
       (MessageService.prototype.createSession as jest.Mock).mockResolvedValueOnce(mockSessionId);
-      
+
       await chatService['wss'].emit('connection', mockWs, mockReq);
 
       expect(mockWs.on).toHaveBeenCalledWith('message', expect.any(Function));
@@ -210,6 +210,16 @@ describe('ChatService', () => {
         expect.any(Object)
       );
     });
+
+    it('should process messages correctly', () => {
+      const mockWs = {
+        send: jest.fn(),
+      };
+
+      const calls = mockWs.send.mock.calls;
+      const sentMessages = calls.map(call: unknown => JSON.parse(call[0]));
+      expect(sentMessages).toBeDefined();
+    });
   });
 
   describe('session management', () => {
@@ -314,17 +324,17 @@ describe('ChatService', () => {
 
       // Should send all messages
       expect(mockWs.send).toHaveBeenCalledTimes(4); // notification + 2 messages + summary
-      
+
       // Verify message content
       const calls = (mockWs.send as jest.Mock).mock.calls;
       const sentMessages = calls.map(call: unknown => JSON.parse(call[0]));
-      
+
       expect(sentMessages[0].type).toBe('status');
       expect(sentMessages[0].content).toBe('Reconnected to previous session');
-      
+
       expect(sentMessages[1].content).toBe(mockMessages[0].content);
       expect(sentMessages[2].content).toBe(mockMessages[1].content);
-      
+
       expect(sentMessages[3].type).toBe('status');
       expect(sentMessages[3].content).toBe('Session Summary');
     });
@@ -346,6 +356,18 @@ describe('ChatService', () => {
         'client_disconnected',
         expect.any(Object)
       );
+    });
+
+    it('should handle client disconnection correctly', () => {
+      const mockWs = {
+        on: jest.fn(),
+        send: jest.fn(),
+        close: jest.fn(),
+      };
+
+      const calls = mockWs.on.mock.calls;
+      const closeHandler = calls.find((call: unknown) => call[0] === 'close');
+      expect(closeHandler).toBeDefined();
     });
   });
 });

@@ -20,18 +20,20 @@ interface FeatureFlag {
 }
 
 interface AuthContextType {
-  isAuthenticated: boolean;
   user: User | null;
+  organizations: Organization[];
+  permissions: Permission[];
+  featureFlags: Record<string, boolean>;
+  loading: boolean;
+  error: Error | null;
+  isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
-  register: (email: string, password: string) => Promise<void>;
-  createOrg: (orgName: string) => Promise<void>;
-  permissions: Array<Permission>;
-  organizations: Array<Organization>;
-  hasPermission: (permissionId: string) => boolean;
-  isOrgAdmin: (orgId?: string) => boolean;
-  getFeatureFlag: (key: string) => FeatureFlag | null;
+  createOrg: (name: string) => Promise<void>;
   switchOrganization: (orgId: string) => Promise<void>;
+  hasPermission: (permission: string) => boolean;
+  isOrgAdmin: () => boolean;
+  getFeatureFlag: (flag: string) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -43,9 +45,11 @@ interface AuthProviderProps {
 // Main Auth Provider component
 export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [permissions, setPermissions] = useState<Array<Permission>>([]);
-  const [organizations, setOrganizations] = useState<Array<Organization>>([]);
-  const [featureFlags, setFeatureFlags] = useState<Record<string, FeatureFlag>>({});
+  const [organizations, setOrganizations] = useState<Organization[]>([]);
+  const [permissions, setPermissions] = useState<Permission[]>([]);
+  const [featureFlags, setFeatureFlags] = useState<Record<string, boolean>>({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -85,7 +89,7 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
       }
 
       if (data) {
-        setPermissions(data.map(p: unknown => ({
+        setPermissions(data.map(p: unknown: unknown => ({
           id: p.permission_id,
           name: p.permission_name
         })));
@@ -105,7 +109,7 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
       }
 
       if (data) {
-        setOrganizations(data.map(o: unknown => ({
+        setOrganizations(data.map(o: unknown: unknown => ({
           id: o.organizations?.[0]?.id ?? '',
           name: o.organizations?.[0]?.name ?? '',
           role: o.role
@@ -126,12 +130,9 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
       }
 
       if (data) {
-        const flagsRecord: Record<string, FeatureFlag> = {};
-        data.forEach(flag: unknown => {
-          flagsRecord[flag.key] = {
-            key: flag.key,
-            value: flag.value
-          };
+        const flagsRecord: Record<string, boolean> = {};
+        data.forEach(flag: unknown: unknown => {
+          flagsRecord[flag.key] = flag.value === true;
         });
         setFeatureFlags(flagsRecord);
       }
@@ -198,28 +199,30 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
     return permissions.some(p => p.id === permissionId);
   };
 
-  const isOrgAdmin = (orgId?: string) => {
-    const org = organizations.find(o => !orgId || o.id === orgId);
-    return org?.role === 'admin';
+  const isOrgAdmin = () => {
+    const org = organizations.find(o => o.role === 'admin');
+    return !!org;
   };
 
-  const getFeatureFlag = (key: string): FeatureFlag | null => {
-    return featureFlags[key] || null;
+  const getFeatureFlag = (key: string): boolean => {
+    return featureFlags[key] || false;
   };
 
   const value = useMemo<AuthContextType>(() => ({
-    isAuthenticated: !!user,
     user,
+    organizations,
+    permissions,
+    featureFlags,
+    loading,
+    error,
+    isAuthenticated: !!user,
     login,
     logout,
-    register,
     createOrg,
-    permissions,
-    organizations,
+    switchOrganization,
     hasPermission,
     isOrgAdmin,
     getFeatureFlag,
-    switchOrganization
   }), [user, permissions, organizations, featureFlags]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

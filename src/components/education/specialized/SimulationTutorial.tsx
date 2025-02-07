@@ -359,7 +359,7 @@ export const SimulationTutorial: React.FC<SimulationTutorialProps> = ({
       <Card className="p-6">
         <h3 className="text-xl font-semibold mb-4">Emotional Insights</h3>
         <div className="space-y-2">
-          {emotionalInsights.slice(-3).map((insight, index) => (
+          {emotionalInsights.slice(-3).map((insight: unknown, index: unknown) => (
             <div
               key={index}
               className="p-3 bg-gray-800 rounded-lg text-sm"

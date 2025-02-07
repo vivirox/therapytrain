@@ -38,7 +38,7 @@ export class SessionAnalytics {
 
   public static async getSessionMetrics(sessionId: string): Promise<SessionMetrics> {
     const session = await dataService.get<ExtendedSessionState>('sessions', sessionId);
-    
+
     if (!session) {
       throw new Error(`Failed to fetch session metrics: Session not found`);
     }
@@ -72,10 +72,10 @@ export class SessionAnalytics {
     if (!interventions.length) {
       return 0;
     }
-    
-    const totalEffectiveness = interventions.reduce((sum: unknown, intervention: unknown) => 
-        sum + (intervention.effectiveness || 0), 0);
-        
+
+    const totalEffectiveness = interventions.reduce((sum: unknown, intervention: unknown) =>
+      sum + (intervention.effectiveness || 0), 0);
+
     return totalEffectiveness / interventions.length;
   }
 
@@ -116,7 +116,7 @@ export class SessionAnalytics {
 
   public static extractTopics(messages: Array<ChatMessage>): Array<string> {
     const topics = new Set<string>();
-  
+
     messages.forEach(message => {
       const keywords = this.extractKeywords(message.content);
       const messageTopic = this.categorizeTopics(keywords);
@@ -134,7 +134,7 @@ export class SessionAnalytics {
 
   private static categorizeTopics(keywords: Array<string>): Array<string> {
     const topics: Array<string> = [];
-  
+
     keywords.forEach(keyword => {
       if (SessionAnalytics.ANXIETY_KEYWORDS.includes(keyword)) {
         topics.push('anxiety');
@@ -145,7 +145,7 @@ export class SessionAnalytics {
       if (SessionAnalytics.RELATIONSHIP_KEYWORDS.includes(keyword)) {
         topics.push('relationships');
       }
-    });  
+    });
     return [...new Set(topics)];
   }
 

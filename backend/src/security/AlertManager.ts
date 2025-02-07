@@ -4,9 +4,11 @@ import { logger } from '../utils/logger';
 
 export class AlertManager {
   private static instance: AlertManager;
-  private handlers: AlertHandler[] = [];
+  private handlers: Array<AlertHandler> = [];
 
-  private constructor() {}
+  constructor(handlers: Array<AlertHandler> = []) {
+    this.handlers = handlers;
+  }
 
   public static getInstance(): AlertManager {
     if (!AlertManager.instance) {
@@ -91,5 +93,13 @@ export class AlertManager {
       `Rate limit exceeded for IP ${ipAddress}`,
       { ipAddress, endpoint, requestCount }
     );
+  }
+
+  async handleAlert(alert: Alert): Promise<void> {
+    for (const handler of this.handlers) {
+      handler.handleAlert(alert).catch((error: unknown) => {
+        console.error('Error in alert handler:', error);
+      });
+    }
   }
 }

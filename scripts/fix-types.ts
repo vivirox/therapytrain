@@ -34,17 +34,33 @@ async function fixAnyTypes(sourceFile: string): Promise<Fix | null> {
             });
         }
 
-        if (ts.isParameter(node) && !node.type) {
+        if (ts.isParameter(node)) {
+            // Handle double type annotations (e.g., p: unknown: unknown)
+            if (node.type && ts.isTypeReferenceNode(node.type) &&
+                ts.isIdentifier(node.type.typeName) && node.type.typeName.text === 'unknown') {
+                const nextToken = node.getChildren().find(child =>
+                    child.kind === ts.SyntaxKind.ColonToken);
+                if (nextToken) {
+                    // Remove the entire type annotation
+                    fixes.push({
+                        start: node.getStart(),
+                        end: node.getEnd(),
+                        replacement: node.name.getText(),
+                    });
+                }
+            }
             // Add type annotation for parameters without types
-            const type = checker.getTypeAtLocation(node);
-            const typeText = checker.typeToString(type);
+            else if (!node.type) {
+                const type = checker.getTypeAtLocation(node);
+                const typeText = checker.typeToString(type);
 
-            if (typeText === 'any') {
-                fixes.push({
-                    start: node.getEnd(),
-                    end: node.getEnd(),
-                    replacement: ': unknown',
-                });
+                if (typeText === 'any') {
+                    fixes.push({
+                        start: node.getEnd(),
+                        end: node.getEnd(),
+                        replacement: '',  // Don't add type annotation
+                    });
+                }
             }
         }
 

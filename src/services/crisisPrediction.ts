@@ -159,11 +159,11 @@ class CrisisPrediction {
     // Check if risk exceeds threshold
     if (assessment.overallRisk >= config.threshold) {
       // Trigger alerts through configured channels
-      await Promise.all([
-        ...config.channels.map(channel: unknown =>
+      await Promise.all(
+        config.channels.map(channel: unknown =>
           this.sendAlert(channel, config, assessment)
         )
-      ]);
+      );
 
       // Log alert
       await this.logAlert(clientId, assessment, config);

@@ -30,7 +30,7 @@ export function ChatInterface() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          messages: [...messages, newMessage].map(m: unknown => ({
+          messages: [...messages, newMessage].map(m: unknown: unknown => ({
             role: m.sender === 'user' ? 'user' : 'assistant',
             content: m.content
           }))
@@ -87,11 +87,10 @@ export function ChatInterface() {
         {messages.map((message) => (
           <div
             key={message.id}
-            className={`mb-4 p-3 rounded-lg ${
-              message.sender === 'user'
+            className={`mb-4 p-3 rounded-lg ${message.sender === 'user'
                 ? 'bg-primary text-primary-foreground ml-auto'
                 : 'bg-muted'
-            } max-w-[80%]`}
+              } max-w-[80%]`}
           >
             {message.content}
           </div>

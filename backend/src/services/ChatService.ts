@@ -11,7 +11,7 @@ interface ChatMessage {
   userId: string;
   content: string;
   timestamp: number;
-  metadata?: any;
+  metadata?: unknown;
   sessionId?: string;
 }
 
@@ -26,7 +26,7 @@ interface ChatClient {
 export class ChatService {
   private wss: WebSocket.Server;
   private clients: Map<string, ChatClient> = new Map();
-  private disconnectedSessions: Map<string, any> = new Map();
+  private disconnectedSessions: Map<string, unknown> = new Map();
   private rateLimiter: RateLimiterService;
   private securityAudit: SecurityAuditService;
   private aiService: AIService;
@@ -48,7 +48,7 @@ export class ChatService {
   private async initialize() {
     this.wss.on('connection', async (ws: WebSocket, req: Request) => {
       const userId = this.getUserIdFromRequest(req);
-      
+
       if (!userId) {
         ws.close(1008, 'Authentication required');
         return;
@@ -72,7 +72,7 @@ export class ChatService {
       };
 
       this.clients.set(userId, client);
-      
+
       // Log connection
       await this.securityAudit.recordEvent('chat_connection', {
         userId,
@@ -142,7 +142,7 @@ export class ChatService {
   private async handleMessage(userId: string, data: string, sessionId: string) {
     try {
       const message = JSON.parse(data) as ChatMessage;
-      
+
       // Rate limiting check for messages
       if (this.rateLimiter.isRateLimited(userId, 'message')) {
         throw new Error('Message rate limit exceeded');
@@ -173,7 +173,7 @@ export class ChatService {
       // Process message with AI
       try {
         const aiResponse = await this.aiService.processMessage(userId, message.content);
-        
+
         // Save and broadcast AI response
         const savedAiResponse = await this.messageService.saveMessage(
           sessionId,
@@ -269,7 +269,7 @@ export class ChatService {
     try {
       // Get recent messages
       const messages = await this.messageService.getRecentMessages(client.sessionId, 50);
-      
+
       if (messages.length > 0) {
         // Send session recovery notification
         const recoveryNotification = {
@@ -283,7 +283,7 @@ export class ChatService {
             sessionId: client.sessionId
           }
         };
-        
+
         client.ws.send(JSON.stringify(recoveryNotification));
 
         // Send recent messages
@@ -346,7 +346,7 @@ export class ChatService {
     // This is a placeholder - replace with actual auth logic
     const authHeader = req.headers.authorization;
     if (!authHeader) return null;
-    
+
     try {
       // Parse JWT or session token to get userId
       return 'user-id'; // Replace with actual userId extraction
@@ -357,7 +357,7 @@ export class ChatService {
 
   private broadcast(message: ChatMessage) {
     const messageStr = JSON.stringify(message);
-    this.wss.clients.forEach(client: unknown => {
+    this.wss.clients.forEach((client: WebSocket) => {
       if (client.readyState === WebSocket.OPEN) {
         client.send(messageStr);
       }
@@ -370,7 +370,7 @@ export class ChatService {
       userId,
       content: status,
       timestamp: Date.now(),
-      sessionId
+      sessionId,
     });
   }
 
@@ -385,14 +385,14 @@ export class ChatService {
       type: 'error',
       userId: 'system',
       content: 'An error occurred while processing your message',
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
     this.sendToClient(ws, errorMessage);
-    
+
     // Log error
     this.securityAudit.recordEvent('chat_error', {
       error: error.message,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
   }
 }

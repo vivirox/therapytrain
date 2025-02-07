@@ -2,6 +2,7 @@ import * as snarkjs from 'snarkjs';
 import path from 'path';
 import crypto from 'crypto';
 import { ZKUtils, SessionMetadata, TherapistCredential } from '../types';
+import wasm_tester from 'wasm-tester';
 
 describe('SessionDataCircuit', () => {
     const circuitWasmPath = path.join(__dirname, '../build/SessionDataCircuit.wasm');
@@ -163,4 +164,23 @@ describe('SessionDataCircuit', () => {
         expect(isValid).toBe(true);
         expect(input.metadataFlags[0]).toBe(1); // Emergency flag should be set
     }, 30000);
+
+    it('should generate valid proof for session data', async () => {
+        const testData = {
+            sessionData: [
+                Buffer.from('test-data-1'),
+                Buffer.from('test-data-2'),
+            ],
+        };
+
+        const input = {
+            sessionData: testData.sessionData.map((d) => Array.from(d)),
+            timestamp: Date.now(),
+            nonce: crypto.randomBytes(32),
+        };
+
+        const circuit = await wasm_tester(path.join(__dirname, 'SessionData.circom'));
+        const witness = await circuit.calculateWitness(input);
+        expect(witness[1]).toBeDefined();
+    });
 }); 

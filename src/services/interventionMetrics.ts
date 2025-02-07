@@ -257,7 +257,7 @@ class InterventionMetrics {
     const typeScores: Record<string, { sum: number; count: number }> = {};
 
     interventions.forEach(intervention: unknown => {
-      const {type} = intervention;
+      const { type } = intervention;
       const score = intervention.immediate_response;
 
       if (!typeScores[type]) {

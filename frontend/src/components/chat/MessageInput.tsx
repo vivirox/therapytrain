@@ -1,18 +1,23 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useChat } from '../../contexts/ChatContext';
 import { Button } from '../ui/button';
 import { Textarea } from '../ui/textarea';
 import { Send, Mic, StopCircle } from 'lucide-react';
 
 interface MessageInputProps {
-  disabled?: boolean;
+  onSendMessage: (message: string) => void;
+  isLoading?: boolean;
 }
 
-export function MessageInput({ disabled }: MessageInputProps) {
+export const MessageInput: React.FC<MessageInputProps> = ({
+  onSendMessage,
+  isLoading = false,
+}) => {
   const { sendMessage } = useChat();
   const [message, setMessage] = useState('');
   const [isRecording, setIsRecording] = useState(false);
   const [isListening, setIsListening] = useState(false);
+  const [transcript, setTranscript] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -25,10 +30,10 @@ export function MessageInput({ disabled }: MessageInputProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!message.trim() || disabled) return;
+    if (!message.trim() || isLoading) return;
 
     try {
-      await sendMessage(message);
+      await onSendMessage(message);
       setMessage('');
     } catch (error) {
       console.error('Failed to send message:', error);
@@ -42,27 +47,37 @@ export function MessageInput({ disabled }: MessageInputProps) {
     }
   };
 
+  const handleSpeechRecognition = useCallback(async () => {
+    try {
+      const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+
+      recognition.onresult = (event: unknown) => {
+        const results = Array.from(event.results)
+          .map((result) => result[0].transcript)
+          .join(' ');
+        setTranscript(results);
+      };
+
+      recognition.start();
+      setIsRecording(true);
+      setIsListening(true);
+
+      return recognition;
+    } catch (error) {
+      console.error('Speech recognition error:', error);
+      return null;
+    }
+  }, []);
+
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       setIsRecording(true);
       // Initialize speech recognition
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (SpeechRecognition) {
-        const recognition = new SpeechRecognition();
-        recognition.continuous = true;
-        recognition.interimResults = true;
-        
-        recognition.onresult = (event: unknown) => {
-          const transcript = Array.from(event.results)
-            .map(result => result[0])
-            .map(result: unknown => result.transcript)
-            .join('');
-          
-          setMessage(transcript);
-        };
-        
-        recognition.start();
+      const recognition = await handleSpeechRecognition();
+      if (recognition) {
         setIsListening(true);
       }
     } catch (error) {
@@ -82,22 +97,22 @@ export function MessageInput({ disabled }: MessageInputProps) {
         <Textarea
           ref={textareaRef}
           value={message}
-          onChange={(e: unknown) => setMessage(e.target.value)}
+          onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setMessage(e.target.value)}
           onKeyPress={handleKeyPress}
           placeholder="Type your message..."
-          disabled={disabled}
+          disabled={isLoading}
           className="min-h-[20px] max-h-[200px] resize-none"
           rows={1}
         />
       </div>
-      
+
       <div className="flex gap-2">
         <Button
           type="button"
           variant="outline"
           size="icon"
           onClick={isRecording ? stopRecording : startRecording}
-          disabled={disabled}
+          disabled={isLoading}
         >
           {isRecording ? (
             <StopCircle className="h-5 w-5 text-red-500" />
@@ -105,10 +120,10 @@ export function MessageInput({ disabled }: MessageInputProps) {
             <Mic className="h-5 w-5" />
           )}
         </Button>
-        
+
         <Button
           type="submit"
-          disabled={!message.trim() || disabled}
+          disabled={!message.trim() || isLoading}
           size="icon"
         >
           <Send className="h-5 w-5" />
@@ -116,4 +131,4 @@ export function MessageInput({ disabled }: MessageInputProps) {
       </div>
     </form>
   );
-}
+};

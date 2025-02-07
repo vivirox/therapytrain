@@ -3,8 +3,8 @@ import { SecurityAuditService } from '../services/SecurityAuditService';
 import { z } from 'zod';
 
 const auditQuerySchema = z.object({
-    startTime: z.string().transform(str: unknown => new Date(str)),
-    endTime: z.string().transform(str: unknown => new Date(str)),
+    startTime: z.string().transform((str: unknown) => new Date(str)),
+    endTime: z.string().transform((str: unknown) => new Date(str)),
     eventType: z.string().optional(),
     userId: z.string().optional(),
     sessionId: z.string().optional(),
@@ -14,9 +14,25 @@ const auditQuerySchema = z.object({
 });
 
 const metricsQuerySchema = z.object({
-    startTime: z.string().transform(str: unknown => new Date(str)),
-    endTime: z.string().transform(str: unknown => new Date(str)),
+    startTime: z.string().transform((str: unknown) => new Date(str)),
+    endTime: z.string().transform((str: unknown) => new Date(str)),
     interval: z.enum(['hour', 'day', 'week', 'month']).default('hour')
+});
+
+const auditLogSchema = z.object({
+    startTime: z.string().transform((str: unknown) => new Date(str)),
+    endTime: z.string().transform((str: unknown) => new Date(str)),
+    userId: z.string().optional(),
+    type: z.string().optional(),
+});
+
+const auditSearchSchema = z.object({
+    startTime: z.string().transform((str: unknown) => new Date(str)),
+    endTime: z.string().transform((str: unknown) => new Date(str)),
+    userId: z.string().optional(),
+    type: z.string().optional(),
+    limit: z.number().optional(),
+    offset: z.number().optional(),
 });
 
 export class AuditController {

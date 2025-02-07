@@ -1,29 +1,34 @@
 import * as snarkjs from 'snarkjs';
-import path from 'path';
-import fs from 'fs';
+import * as fs from 'fs/promises';
+import * as path from 'path';
 import crypto from 'crypto';
 import { execSync } from 'child_process';
 
-async function main() {
+async function setupDirectories() {
     const circuitName = 'SessionDataCircuit';
     const circuitsDir = path.join(__dirname, '../circuits');
     const keysDir = path.join(__dirname, '../keys');
     const buildDir = path.join(__dirname, '../build');
 
-    // Create necessary directories
-    [keysDir, buildDir].forEach(dir: unknown => {
-        if (!fs.existsSync(dir)) {
-            fs.mkdirSync(dir, { recursive: true });
-        }
+    // Create directories if they don't exist
+    [keysDir, buildDir].forEach((dir) => {
+        fs.mkdir(dir, { recursive: true }).catch((error: unknown) => {
+            console.error(`Failed to create directory ${dir}:`, error);
+        });
     });
 
+    return { keysDir, buildDir };
+}
+
+async function main() {
     try {
+        const { keysDir, buildDir } = await setupDirectories();
         console.log('Starting circuit compilation...');
-        
+
         // Compile circuit
         const circuitPath = path.join(circuitsDir, `${circuitName}.circom`);
         execSync(`circom ${circuitPath} --r1cs --wasm --sym -o ${buildDir}`);
-        
+
         console.log('Circuit compiled successfully');
         console.log('Starting trusted setup...');
 
@@ -31,14 +36,14 @@ async function main() {
         const ptauName = "powersOfTau28_hez_final_12.ptau";
         const ptauPath = path.join(keysDir, ptauName);
 
-        if (!fs.existsSync(ptauPath)) {
+        if (!fs.access(ptauPath)) {
             console.log('Generating powers of tau...');
             await snarkjs.powersOfTau.newAccumulator(12);
-            
+
             // Generate random entropy
             const entropy1 = crypto.randomBytes(32).toString('hex');
             const entropy2 = crypto.randomBytes(32).toString('hex');
-            
+
             await snarkjs.powersOfTau.contribute(
                 path.join(keysDir, "pot12_0.ptau"),
                 path.join(keysDir, "pot12_1.ptau"),
@@ -69,7 +74,7 @@ async function main() {
 
         // Phase 2 - Circuit-specific setup
         console.log('Starting circuit-specific setup...');
-        
+
         const r1csPath = path.join(buildDir, `${circuitName}.r1cs`);
         const zkeyPath = path.join(keysDir, `${circuitName}.zkey`);
         const vkeyPath = path.join(keysDir, `${circuitName}.vkey.json`);
@@ -99,7 +104,7 @@ async function main() {
         // Export verification key
         console.log('Exporting verification key...');
         const vKey = await snarkjs.zKey.exportVerificationKey(zkeyPath);
-        fs.writeFileSync(vkeyPath, JSON.stringify(vKey, null, 2));
+        await fs.writeFile(vkeyPath, JSON.stringify(vKey, null, 2));
 
         // Generate Solidity verifier
         console.log('Generating Solidity verifier...');
@@ -110,7 +115,7 @@ async function main() {
             zkeyPath,
             templates
         );
-        fs.writeFileSync(
+        await fs.writeFile(
             path.join(buildDir, `${circuitName}Verifier.sol`),
             verifierCode
         );
@@ -127,13 +132,13 @@ async function main() {
             "circuit_2.zkey",
             "circuit_3.zkey"
         ];
-        
-        filesToCleanup.forEach(file => {
+
+        for (const file of filesToCleanup) {
             const filePath = path.join(keysDir, file);
-            if (fs.existsSync(filePath)) {
-                fs.unlinkSync(filePath);
+            if (await fs.access(filePath)) {
+                await fs.unlink(filePath);
             }
-        });
+        }
 
         console.log('Setup completed successfully!');
         console.log(`Keys generated:
@@ -150,7 +155,7 @@ async function main() {
 main().then(() => {
     console.log('Setup script completed');
     process.exit(0);
-}).catch(error: unknown => {
+}).catch((error: unknown) => {
     console.error('Fatal error:', error);
     process.exit(1);
 });

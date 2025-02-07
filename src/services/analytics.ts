@@ -111,7 +111,7 @@ export class AnalyticsService {
         areasForImprovement: metrics.improvementAreas,
         patterns,
         recommendations,
-        skillGrowth: skillGrowthData.map(growth: unknown => ({
+        skillGrowth: skillGrowthData.map(growth: unknown: unknown => ({
           skillId: growth.skillId,
           growth: growth.growthRate,
           recentMilestones: growth.milestones.slice(-3)
@@ -295,8 +295,7 @@ export class AnalyticsService {
     const timePattern = patterns.find(p => p.pattern === 'Peak Learning Hours');
     if (timePattern) {
       recommendations.push(
-        `Schedule important learning sessions during your peak hours: ${
-          timePattern.description.split(':')[1]
+        `Schedule important learning sessions during your peak hours: ${timePattern.description.split(':')[1]
         }`
       );
     }
@@ -462,6 +461,26 @@ export class AnalyticsService {
       console.error('Error fetching therapist stats:', error);
       throw new Error('Failed to fetch therapist stats');
     }
+  }
+
+  async subscribeToSessionAnalytics(sessionId: string, callback: (payload: any) => void): Promise<void> {
+    const subscription = supabase
+      .channel('analytics')
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'session_analytics',
+        filter: `session_id=eq.${sessionId}`
+      }, (payload: any) => callback(payload));
+
+    // Handle cleanup when the component unmounts
+    subscription.on('error', () => {
+      console.error('Error subscribing to session analytics');
+    });
+
+    subscription.on('close', () => {
+      console.log('Session analytics subscription closed');
+    });
   }
 }
 
