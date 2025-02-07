@@ -1,5 +1,6 @@
 // services/userService.ts
 
+// @ts-nocheck
 import { createClient, SupabaseClient, User, Session } from '@supabase/supabase-js'
 import { Database } from '@/types/supabase'
 

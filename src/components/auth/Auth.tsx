@@ -1,7 +1,9 @@
+import React from 'react';
 import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useAuth } from "./AuthProvider";
+import { useAuth } from "@/context/AuthContext";
 import { Loading } from "@/components/ui/loading";
+import type { AuthProps } from "@/types";
 
 export const Auth: React.FC = () => {
   const { isAuthenticated } = useAuth();

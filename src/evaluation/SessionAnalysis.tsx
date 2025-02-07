@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Message } from '@/types/ClientProfile';
-import { SessionAnalysisProps } from '@/types/ComponentProps';
+import { Message } from '@/types/clientprofile';
+import { SessionAnalysisProps } from '@/types/componentprops';
 
 interface Analysis {
   summary: string;

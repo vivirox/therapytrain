@@ -1,6 +1,6 @@
 import { createSupabaseClient } from "@supabase/auth-helpers-shared";
 import { SupabaseClient, SupabaseClientOptions, RealtimeChannel, User, Session } from "@supabase/supabase-js";
-import { supabase } from '@/../lib/supabaseClient';
+import { supabase } from '@/lib/supabaseclient';
 
 export class TherapyChat {
     private supabase: SupabaseClient;

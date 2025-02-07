@@ -1,6 +1,6 @@
-import { EncryptionService } from "./encryption";
-import { AuditLogger } from "./auditLogger";
-import { ZKProofService, SessionData, ProofData } from "./zkProof";
+import { EncryptionService } from '@/encryption';
+import { AuditLogger } from '@/auditlogger';
+import { ZKProofService, SessionData, ProofData } from '@/zkproof';
 interface SessionMetrics {
     interventionCount: number;
     riskLevel: number;

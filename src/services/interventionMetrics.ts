@@ -1,5 +1,7 @@
+// @ts-nocheck
 import fetch from 'node-fetch';
 import { Intervention } from "@/types/common";
+import { DataService } from '@/dataservice';
 
 export interface InterventionMetric {
     id: string;

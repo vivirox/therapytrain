@@ -1,4 +1,4 @@
-import { HTMLAttributes, ReactNode } from 'react'
+import { HTMLAttributes, ReactNode, FormEventHandler } from 'react'
 
 export interface BaseProps extends HTMLAttributes<HTMLElement> {
   className?: string
@@ -7,7 +7,7 @@ export interface BaseProps extends HTMLAttributes<HTMLElement> {
 
 export interface PositionProps extends BaseProps {
   position?: 'top' | 'bottom' | 'left' | 'right'
-  content?: string | ReactNode
+  content: string | ReactNode
 }
 
 export interface CheckedProps extends BaseProps {
@@ -150,4 +150,107 @@ export interface AccordionProps extends BaseProps {
   defaultValue?: string | string[]
   onValueChange?: (value: string | string[]) => void
   collapsible?: boolean
+}
+
+export interface HoverCardProps extends BaseProps {
+  content: ReactNode
+  trigger: ReactNode
+}
+
+export interface LabelProps extends BaseProps {
+  htmlFor?: string
+}
+
+export interface NavigationMenuProps extends BaseProps {
+  items: Array<{
+    label: string
+    href: string
+  }>
+}
+
+export interface RadioGroupProps extends BaseProps {
+  value?: string
+  onValueChange?: (value: string) => void
+}
+
+export interface SeparatorProps extends BaseProps {
+  orientation?: 'horizontal' | 'vertical'
+}
+
+export interface SheetProps extends BaseProps {
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
+}
+
+export interface SliderProps extends BaseProps {
+  value?: number[]
+  defaultValue?: number[]
+  min?: number
+  max?: number
+  step?: number
+  onValueChange?: (value: number[]) => void
+}
+
+export interface SwitchProps extends BaseProps {
+  checked?: boolean
+  onCheckedChange?: (checked: boolean) => void
+}
+
+export interface TableProps extends BaseProps {
+  data: any[]
+  columns: Array<{
+    header: string
+    accessor: string
+  }>
+}
+
+export interface ToggleProps extends BaseProps {
+  pressed?: boolean
+  onPressedChange?: (pressed: boolean) => void
+}
+
+export interface AspectRatioProps extends BaseProps {
+  ratio?: number
+}
+
+export interface CalendarProps extends BaseProps {
+  mode?: 'single' | 'multiple' | 'range'
+  selected?: Date | Date[]
+  onSelect?: (date: Date | Date[] | undefined) => void
+  disabled?: (date: Date) => boolean
+  fromDate?: Date
+  toDate?: Date
+}
+
+export interface CarouselProps extends BaseProps {
+  orientation?: 'horizontal' | 'vertical'
+  opts?: Record<string, unknown>
+  plugins?: unknown[]
+  setApi?: (api: unknown) => void
+}
+
+export interface CheckboxProps extends BaseProps {
+  checked?: boolean
+  defaultChecked?: boolean
+  onCheckedChange?: (checked: boolean) => void
+  disabled?: boolean
+  required?: boolean
+}
+
+export interface CollapsibleProps extends BaseProps {
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
+  disabled?: boolean
+}
+
+export interface DropdownMenuProps extends BaseProps {
+  trigger?: ReactNode
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
+  modal?: boolean
+}
+
+export interface FormProps extends BaseProps {
+  onSubmit?: (event: React.FormEvent) => void
+  disabled?: boolean
 }

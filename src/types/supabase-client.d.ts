@@ -1,5 +1,5 @@
 import { SupabaseClient as BaseSupabaseClient, User, Session } from '@supabase/supabase-js'
-import { Database } from './database.types'
+import { Database } from '@/database.types'
 
 declare module '../lib/supabaseClient' {
   export const supabase: BaseSupabaseClient<Database>

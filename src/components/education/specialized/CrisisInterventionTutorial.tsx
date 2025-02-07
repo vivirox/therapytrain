@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Card } from "@/../ui/card";
-import { Button } from "@/../ui/button";
-import { Badge } from "@/../ui/badge";
-import { Progress } from "@/../ui/progress";
-import { Alert, AlertDescription, AlertTitle } from "@/../ui/alert";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/../ui/tabs";
-import { MdWarning as AlertTriangle, MdAccessTime as Clock, MdFavorite as Heart, MdSecurity as Shield, MdMonitor as Activity, MdCheckCircle as CheckCircle, MdCancel as XCircle, MdError as AlertCircle, MdTimer as Timer } from 'react-icons/md';
-import { AnalyticsService } from "@/../../services/analytics";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Loading } from "@/components/ui/loading";
+import { AnalyticsService } from "@/services/analytics";
+import type { CrisisInterventionTutorialProps } from "@/types";
+
 interface RiskFactor {
     type: string;
     level: number;
@@ -68,12 +70,7 @@ interface CrisisScenario {
         criticalDecision: boolean;
     }>;
 }
-interface CrisisInterventionTutorialProps {
-    userId: string;
-    scenarioId: string;
-    onComplete: (results: any) => void;
-    className?: string;
-}
+
 export const CrisisInterventionTutorial: React.FC = ({ userId, scenarioId, onComplete }) => {
     const [scenario, setScenario] = useState<CrisisScenario | null>(null);
     const [currentTime, setCurrentTime] = useState<number>(0);

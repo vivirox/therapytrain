@@ -1,4 +1,4 @@
-import { useAuth } from "./AuthProvider";
+import { useAuth } from '@/authprovider';
 import { Button } from "@/components/ui/button";
 interface AuthCredentials {
     email: string;

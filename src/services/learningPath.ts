@@ -1,4 +1,4 @@
-import { AIAnalyticsService } from "./aiAnalytics";
+import { AIAnalyticsService } from '@/aianalytics';
 import { Tutorial, SkillProgression, LearningAnalytics } from "@/types/education";
 
 interface AIAnalyticsService {

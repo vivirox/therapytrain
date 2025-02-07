@@ -1,5 +1,5 @@
 import { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
-import { ClientProfile, ClientSession, Message, Intervention } from './ClientProfile';
+import { ClientProfile, ClientSession, Message, Intervention } from '@/clientprofile';
 
 export interface ServiceConfig {
     enabled: boolean;

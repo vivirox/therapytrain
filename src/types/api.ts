@@ -1,6 +1,6 @@
 import { User, SupabaseClient, Session } from '@supabase/supabase-js';
-import { Message, ChatSession } from "./chat";
-import { SessionState } from "./session";
+import { Message, ChatSession } from '@/chat';
+import { SessionState } from '@/session';
 export interface ApiService {
     sessions: {
         start: (clientId: string, mode: string) => Promise<ChatSession>;

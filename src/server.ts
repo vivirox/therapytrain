@@ -1,5 +1,5 @@
 import express, { Request, Response, NextFunction } from 'express';
-import chatRouter from "./supabase/functions/chat";
+import chatRouter from '@/supabase/functions/chat';
 import path from 'path';
 const port = process.env.PORT || 3000;
 const app = express();

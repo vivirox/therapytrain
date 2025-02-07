@@ -1,5 +1,5 @@
-import { ClientProfile } from '@/types/ClientProfile';
-import { analyzeMessage } from "./models/therapeuticPatterns";
+import { ClientProfile } from '@/types/clientprofile';
+import { analyzeMessage } from '@/models/therapeuticpatterns';
 import { Message } from '@/ollama/process';
 interface ProcessorOptions {
     temperature?: number;

@@ -37,7 +37,7 @@ interface InteractiveTutorialProps {
     onComplete: (results: unknown) => void;
     className?: string;
 }
-export const InteractiveTutorial: React.FC = ({ scenario, onComplete }) => {
+export const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({ scenario, onComplete }) => {
     const [currentStep, setCurrentStep] = useState<number>(0);
     const [selectedChoice, setSelectedChoice] = useState<string>('');
     const [feedback, setFeedback] = useState<string[]>([]);
@@ -51,7 +51,7 @@ export const InteractiveTutorial: React.FC = ({ scenario, onComplete }) => {
     const [showHint, setShowHint] = useState<boolean>(false);
     const currentSimulation = scenario.steps[currentStep];
     const handleChoiceSelection = (choiceId: string) => {
-        const choice = currentSimulation.choices.find(c, unknown, unknown => c.id === choiceId);
+        const choice = currentSimulation.choices.find(c => c.id === choiceId);
         if (!choice)
             return;
         setSelectedChoice(choiceId);

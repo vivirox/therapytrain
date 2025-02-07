@@ -1,5 +1,5 @@
 import { Message } from '@/types/chat';
-import { ClientProfile } from '@/types/ClientProfile';
+import { ClientProfile } from '@/types/clientprofile';
 import { EmotionalResponse } from '@/types/emotions';
 
 export interface SentimentAnalysis {

@@ -1,5 +1,5 @@
 import { LearningAnalytics } from "@/types/education";
-import { AnalyticsService } from "./analytics";
+import { AnalyticsService } from '@/analytics';
 interface AIInsight {
     type: 'strength' | 'weakness' | 'pattern' | 'recommendation';
     confidence: number;

@@ -1,16 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from "@/context/AuthContext"; // Updated import
+import { useAuth } from '@/context/authcontext'; // Updated import
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { SkillProgressionTracker } from "@/components/education/SkillProgressionTracker";
-import { LearningPathView } from "@/components/education/LearningPathView";
-import { CaseStudyLibrary } from "@/components/education/CaseStudyLibrary";
-import { PeerLearning } from "@/components/education/PeerLearning";
-import { TutorialCard } from "@/components/education/TutorialCard";
+import { SkillProgressionTracker } from '@/components/education/skillprogressiontracker';
+import { LearningPathView } from '@/components/education/learningpathview';
+import { CaseStudyLibrary } from '@/components/education/casestudylibrary';
+import { PeerLearning } from '@/components/education/peerlearning';
+import { TutorialCard } from '@/components/education/tutorialcard';
 import { RecommendationEngine } from "@/services/recommendations";
-import { LearningPathService } from "@/services/learningPath";
+import { LearningPathService } from '@/services/learningpath';
 import { MdMenuBook, MdGroups, MdSchool, MdAssessment, MdPeople } from 'react-icons/md';
 import type { Tutorial, CaseStudy, SkillProgression } from "@/types/education";
 const Education: React.FC = () => {

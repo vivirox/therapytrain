@@ -1,5 +1,5 @@
-import { dataService } from "./dataService";
-import type { SessionState, SessionMode } from "./sessionManager";
+import { dataService } from '@/dataservice';
+import type { SessionState, SessionMode } from '@/sessionmanager';
 interface ChatMessage {
     content: string;
     timestamp: Date;

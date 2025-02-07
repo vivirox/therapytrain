@@ -1,8 +1,8 @@
 import { Message } from "@/types/chat.ts";
 import { SessionState } from "@/types/session.ts";
-import { Client } from "@/types/Client.ts"; // Ensure this import is correct
-import { analyzeMessageHistory } from "./sentimentAnalysis";
-import { SessionAnalytics } from "./sessionAnalytics";
+import { Client } from '@/types/client.ts'; // Ensure this import is correct
+import { analyzeMessageHistory } from '@/sentimentanalysis';
+import { SessionAnalytics } from '@/sessionanalytics';
 interface ContextMemory {
     shortTerm: {
         recentTopics: Array<string>;

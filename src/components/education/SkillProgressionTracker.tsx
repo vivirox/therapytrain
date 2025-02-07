@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { SkillProgression } from "@/../types/education";
+import { SkillProgression } from "@/types/education";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
@@ -10,7 +10,7 @@ interface SkillProgressionTrackerProps {
     className?: string;
 }
 
-export const SkillProgressionTracker: React.FC = ({ userId }: SkillProgressionTrackerProps) => {
+export const SkillProgressionTracker: React.FC<SkillProgressionTrackerProps> = ({ userId }) => {
     const [progression, setProgression] = useState<SkillProgression | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
     useEffect(() => {

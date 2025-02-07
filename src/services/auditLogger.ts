@@ -1,4 +1,4 @@
-import { AuditEventType } from "./auditEventType.enum";
+import { AuditEventType } from '@/auditeventtype.enum';
 export interface AuditEvent {
     eventType: AuditEventType;
     userId?: string;

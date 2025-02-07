@@ -1,20 +1,23 @@
 import React, { useEffect, useState } from 'react';
-import { Card, CardContent, CardHeader } from "@/../components/ui/card";
-import { Button } from "@/../components/ui/button";
-import { Badge } from "@/../components/ui/badge";
-import { Progress } from "@/../components/ui/progress";
-import { Alert, AlertDescription } from "@/../components/ui/alert";
-import { ScrollArea } from "@/../components/ui/scroll-area";
-import { Separator } from "@/../components/ui/separator";
-import { LearningPathService } from "@/../services/learningPath";
-import { AIAnalyticsService } from "@/../services/aiAnalytics";
-import { Loading } from "@/../components/ui/loading";
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Separator } from '@/components/ui/separator';
+import { LearningPathService } from '@/services/learningPath';
+import { AIAnalyticsService } from '@/services/aiAnalytics';
+import { Loading } from '@/components/ui/loading';
+import type { LearningPathViewProps } from '@/types';
+
 interface LearningPathViewProps {
     userId: string;
     specialization: string;
     initialSkillLevels: Record<string, number>;
     className?: string;
 }
+
 export const LearningPathView: React.FC = ({ userId, specialization, initialSkillLevels }) => {
     const [path, setPath] = useState<any>(null);
     const [loading, setLoading] = useState<boolean>(true);

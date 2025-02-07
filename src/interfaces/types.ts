@@ -18,4 +18,4 @@ export interface ChatInterface {
 }
 
 // src/interfaces/index.ts
-export type * from './types'
+export type * from '@/types'

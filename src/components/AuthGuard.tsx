@@ -1,7 +1,7 @@
 import { type FC, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from './auth/AuthProvider';
-import { Loading } from './ui/loading';
+import { useAuth } from '@/auth/authprovider';
+import { Loading } from '@/ui/loading';
 
 interface AuthGuardProps {
     children: React.ReactNode;

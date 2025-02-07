@@ -2,9 +2,9 @@ export enum HIPAAEventType {
     ADMINISTRATIVE = 'ADMINISTRATIVE',
     PHI_ACCESS = 'PHI_ACCESS',
     PHI_MODIFICATION = 'PHI_MODIFICATION',
-    SECURITY = 'SECURITY',
-    USER_AUTHENTICATION = 'USER_AUTHENTICATION',
-    SYSTEM_OPERATION = 'SYSTEM_OPERATION'
+    AUTHENTICATION = 'AUTHENTICATION',
+    SYSTEM_OPERATION = 'SYSTEM_OPERATION',
+    SECURITY_EVENT = 'SECURITY_EVENT'
 }
 
 export enum HIPAAActionType {
@@ -14,7 +14,11 @@ export enum HIPAAActionType {
     DELETE = 'DELETE',
     LOGIN = 'LOGIN',
     LOGOUT = 'LOGOUT',
-    EMERGENCY_ACCESS = 'EMERGENCY_ACCESS'
+    EMERGENCY_ACCESS = 'EMERGENCY_ACCESS',
+    EXPORT = 'EXPORT',
+    IMPORT = 'IMPORT',
+    ARCHIVE = 'ARCHIVE',
+    RESTORE = 'RESTORE'
 }
 
 export type HIPAAActionStatus = 'SUCCESS' | 'FAILURE';
@@ -39,7 +43,7 @@ export interface HIPAAResource {
 }
 
 export interface HIPAAAuditEvent {
-    id?: string;
+    id: string;
     eventType: HIPAAEventType;
     timestamp: Date;
     actor: HIPAAActor;
@@ -49,27 +53,51 @@ export interface HIPAAAuditEvent {
 }
 
 export interface HIPAAComplianceReport {
-    startTime: Date;
-    endTime: Date;
+    id: string;
+    startDate: Date;
+    endDate: Date;
     summary: {
         totalEvents: number;
         totalViolations: number;
         complianceScore: number;
         riskLevel: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+        phiAccessEvents: number;
+        phiModificationEvents: number;
+        authenticationEvents: number;
     };
-    events: HIPAAAuditEvent[];
-    violations: HIPAAAuditEvent[];
-    recommendations: string[];
+    violations: Array<{
+        id: string;
+        eventId: string;
+        type: string;
+        severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+        description: string;
+        timestamp: Date;
+        actor: {
+            id: string;
+            role: string;
+        };
+        details: Record<string, any>;
+    }>;
+    recommendations: Array<{
+        id: string;
+        category: string;
+        description: string;
+        priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+        suggestedActions: string[];
+    }>;
+    metadata?: Record<string, any>;
 }
 
 export interface HIPAAQueryFilters {
-    eventType?: HIPAAEventType;
-    actionType?: HIPAAActionType;
-    actorId?: string;
-    patientId?: string;
-    resourceId?: string;
-    startTime?: Date;
-    endTime?: Date;
+    startDate?: Date;
+    endDate?: Date;
+    eventTypes?: HIPAAEventType[];
+    actionTypes?: HIPAAActionType[];
+    actorIds?: string[];
+    resourceTypes?: Array<'SYSTEM' | 'PHI' | 'USER'>;
+    status?: Array<'SUCCESS' | 'FAILURE'>;
+    limit?: number;
+    offset?: number;
 }
 
 export interface HIPAAAlertConfig {

@@ -5,7 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { PeerReviewProps } from '@/types/ComponentProps';
+import { PeerReviewProps } from '@/types/componentprops';
 
 const PeerReview: React.FC<PeerReviewProps> = ({ sessionId, therapistId, onSubmitReview }) => {
   const [rating, setRating] = useState(5);

@@ -5,7 +5,7 @@ import {
   LearningAnalytics,
   SessionAnalytics,
   UserAnalytics
-} from './types';
+} from '@/types';
 
 export class AnalyticsService {
   private static instance: AnalyticsService;

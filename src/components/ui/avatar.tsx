@@ -1,7 +1,7 @@
 import * as React from "react";
 import * as AvatarPrimitive from "@radix-ui/react-avatar";
 import { cn } from "@/lib/utils";
-import { BaseProps } from "./types";
+import { BaseProps } from '@/types';
 
 interface AvatarProps extends BaseProps {
   src?: string;

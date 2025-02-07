@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useAuth } from "./AuthProvider";
+import { useAuth } from '@/authprovider';
 import { createBrowserClient } from '@supabase/ssr';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";

@@ -1,24 +1,104 @@
-export type IncidentType = 
-    | 'WEBAUTHN_VIOLATION'
-    | 'AUTHENTICATION_FAILURE'
-    | 'CSP_VIOLATION'
-    | 'UNAUTHORIZED_ACCESS'
-    | 'RATE_LIMIT_EXCEEDED'
-    | 'SUSPICIOUS_ACTIVITY'
-    | 'DATA_ACCESS_VIOLATION'
-    | 'CONFIGURATION_ERROR';
+export interface SecurityIncident {
+  id: string;
+  type: IncidentType;
+  severity: IncidentSeverity;
+  timestamp: Date;
+  sourceIp: string;
+  userId?: string;
+  details: Record<string, unknown>;
+  resolved: boolean;
+  resolutionDetails?: {
+    resolvedBy: string;
+    resolvedAt: Date;
+    resolution: string;
+    notes?: string;
+  };
+  metadata?: Record<string, unknown>;
+}
+
+export enum IncidentType {
+  UNAUTHORIZED_ACCESS = 'UNAUTHORIZED_ACCESS',
+  SUSPICIOUS_ACTIVITY = 'SUSPICIOUS_ACTIVITY',
+  BRUTE_FORCE = 'BRUTE_FORCE',
+  DATA_LEAK = 'DATA_LEAK',
+  MALWARE = 'MALWARE',
+  CONFIGURATION_ERROR = 'CONFIGURATION_ERROR',
+  POLICY_VIOLATION = 'POLICY_VIOLATION',
+  SYSTEM_ERROR = 'SYSTEM_ERROR'
+}
+
+export enum IncidentSeverity {
+  LOW = 'LOW',
+  MEDIUM = 'MEDIUM',
+  HIGH = 'HIGH',
+  CRITICAL = 'CRITICAL'
+}
+
+export interface Alert {
+  id: string;
+  type: AlertType;
+  severity: AlertSeverity;
+  message: string;
+  timestamp: Date;
+  sourceIp: string;
+  userId?: string;
+  details: Record<string, unknown>;
+  acknowledged: boolean;
+  acknowledgedBy?: string;
+  acknowledgedAt?: Date;
+  metadata?: Record<string, unknown>;
+}
+
+export enum AlertType {
+  SECURITY = 'SECURITY',
+  PERFORMANCE = 'PERFORMANCE',
+  AVAILABILITY = 'AVAILABILITY',
+  COMPLIANCE = 'COMPLIANCE',
+  SYSTEM = 'SYSTEM'
+}
+
+export enum AlertSeverity {
+  INFO = 'INFO',
+  WARNING = 'WARNING',
+  ERROR = 'ERROR',
+  CRITICAL = 'CRITICAL'
+}
+
+export interface AlertHandler {
+  handleAlert(alert: Alert): Promise<void>;
+  canHandle(alert: Alert): boolean;
+}
+
+export interface NotificationConfig {
+  enabled: boolean;
+  channels: Array<{
+    type: 'email' | 'sms' | 'slack' | 'webhook';
+    config: Record<string, unknown>;
+  }>;
+  filters: {
+    minSeverity: AlertSeverity;
+    types?: AlertType[];
+    excludeTypes?: AlertType[];
+  };
+  throttling?: {
+    maxPerMinute: number;
+    maxPerHour: number;
+    cooldownPeriod: number;
+  };
+  templates?: Record<string, string>;
+}
+
+export interface SecurityHeaders {
+  'Content-Security-Policy': string;
+  'Strict-Transport-Security': string;
+  'X-Content-Type-Options': string;
+  'X-Frame-Options': string;
+  'X-XSS-Protection': string;
+  'Referrer-Policy': string;
+  'Permissions-Policy': string;
+}
 
 export type SecuritySeverity = 'LOW' | 'MEDIUM' | 'HIGH';
-
-export interface SecurityIncident {
-    type: IncidentType;
-    severity: SecuritySeverity;
-    timestamp: Date;
-    sourceIp: string;
-    userId?: string;
-    details: Record<string, unknown>;
-    resolved: boolean;
-}
 
 export interface SecurityAlert {
     type: string;

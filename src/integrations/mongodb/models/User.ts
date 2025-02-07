@@ -1,4 +1,4 @@
-import { Database } from '@/../../types/supabase';
+import { Database } from '@/../types/supabase';
 export type User = Database['public']['Tables']['users']['Row'];
 
 // Type for creating a new user

@@ -6,6 +6,7 @@ import { readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { glob } from 'glob';
 import { Command } from 'commander';
+import * as fs from 'fs';
 
 const project = new Project({
   tsConfigFilePath: path.join(process.cwd(), 'tsconfig.json'),
@@ -1060,3 +1061,64 @@ if (options.all || Object.keys(options).length === 0) {
     fixReactComponentTypes();
   }
 }
+
+// Path mappings from tsconfig.json
+const pathMappings = {
+  '@/*': ['src/*'],
+  '@components/*': ['src/components/*'],
+  '@lib/*': ['src/lib/*'],
+  '@hooks/*': ['src/hooks/*'],
+  '@contexts/*': ['src/contexts/*'],
+  '@services/*': ['src/services/*'],
+  '@types/*': ['src/types/*'],
+  '@utils/*': ['src/utils/*'],
+  '@backend/*': ['backend/src/*']
+};
+
+// Fix import paths in a file
+function fixImportPaths(filePath: string): void {
+  let content = fs.readFileSync(filePath, 'utf8');
+  let modified = false;
+
+  // Fix relative imports to use path aliases
+  content = content.replace(
+    /from ['"]\.\.?\/?(.+?)['"]/g,
+    (match, importPath) => {
+      const relativePath = path.relative(path.dirname(filePath), 'src');
+      return `from '@/${importPath}'`;
+    }
+  );
+
+  // Fix incorrect path aliases
+  content = content.replace(
+    /from ['"]@\/\.\.\/(.+?)['"]/g,
+    (match, importPath) => `from '@/${importPath}'`
+  );
+
+  // Fix case sensitivity in imports
+  content = content.replace(
+    /from ['"](.+?)['"]/g,
+    (match, importPath) => {
+      if (importPath.includes('/')) {
+        const parts = importPath.split('/');
+        const lastPart = parts[parts.length - 1];
+        if (lastPart.toLowerCase() !== lastPart) {
+          parts[parts.length - 1] = lastPart.toLowerCase();
+          return `from '${parts.join('/')}'`;
+        }
+      }
+      return match;
+    }
+  );
+
+  if (content !== fs.readFileSync(filePath, 'utf8')) {
+    fs.writeFileSync(filePath, content);
+    console.log(`Fixed imports in ${filePath}`);
+  }
+}
+
+// Find all TypeScript files
+const files = glob.sync('src/**/*.{ts,tsx}');
+files.forEach(fixImportPaths);
+
+console.log('Import paths fixed successfully!');

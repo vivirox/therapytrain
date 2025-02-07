@@ -3,8 +3,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
-import { Intervention } from '@/types/ClientProfile';
-import { InterventionTrackerProps } from '@/types/ComponentProps';
+import { Intervention } from '@/types/clientprofile';
+import { InterventionTrackerProps } from '@/types/componentprops';
 
 const InterventionTracker: React.FC<InterventionTrackerProps> = ({ sessionId, onEffectivenessUpdate }) => {
   const [interventions, setInterventions] = useState<Intervention[]>([]);

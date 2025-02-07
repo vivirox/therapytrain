@@ -1,4 +1,4 @@
-import type { ClientProfile } from '@/types/ClientProfile';
+import type { ClientProfile } from '@/types/clientprofile';
 import { ClientDocument } from '@/types/database.types';
 interface ClientProfile {
     id: string;

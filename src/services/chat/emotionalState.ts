@@ -1,6 +1,6 @@
 import { createSupabaseClient } from "@supabase/auth-helpers-shared";
 import { SupabaseClient, SupabaseClientOptions, User, Session } from "@supabase/supabase-js";
-import { InterventionOptimizationSystem } from "@/interventionOptimization";
+import { InterventionOptimizationSystem } from '@/interventionoptimization';
 export class EmotionalStateManager {
     private supabase: SupabaseClient;
     private interventionOptimizer: InterventionOptimizationSystem;

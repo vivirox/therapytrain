@@ -10,7 +10,15 @@ export default defineConfig({
         port: 3000,
     },
     plugins: [
-        react(),
+        react({
+            jsxRuntime: 'automatic',
+            jsxImportSource: 'react',
+            babel: {
+                plugins: [
+                    ['@babel/plugin-transform-react-jsx', { runtime: 'automatic' }]
+                ]
+            }
+        }),
         visualizer({
             open: true,
             gzipSize: true,

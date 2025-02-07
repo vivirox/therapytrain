@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/components/auth/AuthProvider";
+import { useAuth } from '@/components/auth/authprovider';
 import { MdChat, MdPsychology, MdSchool, MdGroup, MdMenuBook, MdDashboard, MdSettings, MdPeople } from "react-icons/md";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,9 +8,9 @@ import { ErrorBoundary, FallbackProps } from 'react-error-boundary';
 import { supabase } from "@/lib/supabase";
 import { User, SupabaseClient, Session } from '@supabase/supabase-js';
 import { cn } from "@/lib/utils";
-import MetricCard from "@/components/MetricCard";
-import MonthlyChart from "@/components/MonthlyChart";
-import TherapyInsights from "@/components/CustomerRequests";
+import MetricCard from '@/components/metriccard';
+import MonthlyChart from '@/components/monthlychart';
+import TherapyInsights from '@/components/customerrequests';
 import React from "react";
 // Error Fallback Component
 const ErrorFallback: React.FC = ({ error, resetErrorBoundary }: FallbackProps) => {

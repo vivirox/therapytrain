@@ -2,8 +2,8 @@
 import { type FC } from 'react';
 import { Suspense, lazy } from 'react';
 import { Routes, Route } from 'react-router-dom';
-import { Loading } from "./components/ui/loading";
-import { Layout } from "./components/layout/Layout";
+import { Loading } from '@/components/ui/loading';
+import { Layout } from '@/components/layout/layout';
 
 // Lazy load components
 const Index = lazy(() => import("./pages/Index"));

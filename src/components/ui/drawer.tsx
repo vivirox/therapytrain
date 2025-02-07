@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Drawer as DrawerPrimitive } from "vaul";
 import { cn } from "@/lib/utils";
-import { DrawerProps } from "./types";
+import { DrawerProps } from '@/types';
 
 const Drawer = DrawerPrimitive.Root;
 

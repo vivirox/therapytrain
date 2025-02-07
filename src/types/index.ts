@@ -1,11 +1,11 @@
 // Authentication Types
-export type { User } from './auth'
-export type { AuthProviderProps } from './ComponentProps'
+export type { User } from '@/auth'
+export type { AuthProviderProps } from '@/componentprops'
 
 // Client Types
-export type { Client } from './Client'
-export type { ClientProfile } from './ClientProfile'
-export type { ClientSession } from './session'
+export type { Client } from '@/client'
+export type { ClientProfile } from '@/clientprofile'
+export type { ClientSession } from '@/session'
 
 // Analytics Types
 export type { 
@@ -13,7 +13,7 @@ export type {
   SkillGrowth,
   AnalyticsData,
   MetricsData 
-} from './analytics'
+} from '@/analytics'
 
 // Service Types
 export type { 
@@ -22,7 +22,7 @@ export type {
   DataService,
   ServiceConfig,
   ServiceStatus 
-} from './Services'
+} from '@/services'
 
 // Component Types
 export type { 
@@ -32,13 +32,13 @@ export type {
   FormProps,
   SelectProps,
   TooltipProps 
-} from './ui/types'
+} from '@/ui/types'
 
 // Database Types
-export type { Database, Json } from './database.types'
+export type { Database, Json } from '@/database.types'
 
 // Message Types
-export type { Message, ChatSession } from './chat'
+export type { Message, ChatSession } from '@/chat'
 
 // Education Types
 export type { 
@@ -46,8 +46,16 @@ export type {
   Tutorial, 
   CaseStudy,
   LearningPath,
-  SkillLevel 
-} from './education'
+  SkillLevel,
+  Reply,
+  PeerDiscussion,
+  Member,
+  MeetingSchedule,
+  UpcomingSession,
+  StudyGroup,
+  NewDiscussion,
+  PeerLearningProps
+} from '@/education'
 
 // Session Types
 export type { 
@@ -55,7 +63,7 @@ export type {
   SessionMetrics,
   SessionConfig,
   SessionStatus 
-} from './session'
+} from '@/session'
 
 // Supabase Types
 export type { SupabaseClient } from '@supabase/supabase-js'
@@ -66,7 +74,7 @@ export type {
   UsageData,
   UsageConfig,
   UsageStatus 
-} from './usage'
+} from '@/usage'
 
 // Common Types
 export type {
@@ -79,97 +87,47 @@ export type {
   DeepPartial,
   AsyncReturnType,
   PromiseType
-} from './common'
+} from '@/common'
 
 // Intervention Types
-export type { Intervention } from './ClientProfile'
+export type { Intervention } from '@/clientprofile'
 
 // Emotion Types
-export type { EmotionState, EmotionTrigger } from './emotions'
+export type { EmotionState, EmotionTrigger } from '@/emotions'
 
 // Hub Types
-export type { HubConnection, HubMessage } from './hub'
+export type { HubConnection, HubMessage } from '@/hub'
 
 // Metric Types
 export type { 
   MetricDefinition,
   MetricValue,
   MetricRange 
-} from './metrics'
+} from '@/metrics'
 
-// Re-export all service types
+// Export all types from consistently named files
 export * from './services';
-
-// Re-export all UI types
-export * from './ui';
-
-// Re-export common types
-export * from './common';
-
-// Re-export analytics types
 export * from './analytics';
+export * from './api';
+export * from './auth';
+export * from './chat';
+export * from './client';
+export * from './common';
+export * from './database';
+export * from './education';
+export * from './emotions';
+export * from './hub';
+export * from './metrics';
+export * from './session';
+export * from './ui';
+export * from './usage';
 
-// Export specific types that might be used across the application
-export interface User {
-  id: string;
-  email: string;
-  name?: string;
-  role: 'user' | 'admin' | 'therapist';
-  preferences?: Record<string, unknown>;
-}
+// Export specific types
+export type { ClientProfile } from './ClientProfile';
+export type { Database } from './database.types';
 
-export interface Session {
-  id: string;
-  userId: string;
-  startTime: number;
-  endTime?: number;
-  type: 'chat' | 'video' | 'assessment';
-  status: 'active' | 'completed' | 'cancelled';
-}
-
-export interface ClientProfile {
-  id: string;
-  name: string;
-  age?: number;
-  gender?: string;
-  primaryIssue?: string;
-  background?: string;
-  goals?: string[];
-  preferences?: Record<string, unknown>;
-}
-
-export interface TherapySession extends Session {
-  clientId: string;
-  notes?: string;
-  metrics?: {
-    engagement: number;
-    progress: number;
-    effectiveness: number;
-  };
-}
-
-export interface LearningProgress {
-  userId: string;
-  skills: Record<string, {
-    level: number;
-    progress: number;
-    lastUpdated: number;
-  }>;
-  completedTutorials: string[];
-  certificates: string[];
-}
-
-export interface NotificationPreferences {
-  email: boolean;
-  push: boolean;
-  sms: boolean;
-  frequency: 'immediate' | 'daily' | 'weekly';
-  types: {
-    sessionReminders: boolean;
-    progressUpdates: boolean;
-    systemAlerts: boolean;
-  };
-}
+// Re-export all component props
+export * from './ComponentProps';
 
 // Auth types
 export interface AuthState {
@@ -180,9 +138,11 @@ export interface AuthState {
 
 export interface AuthContextType {
   user: User | null;
-  isLoading: boolean;
+  isAuthenticated: boolean;
+  loading: boolean;
   error: Error | null;
-  signIn: (email: string, password: string) => Promise<void>;
-  signOut: () => Promise<void>;
-  resetPassword: (email: string) => Promise<void>;
+}
+
+export interface AuthProviderProps {
+  children: React.ReactNode;
 } 

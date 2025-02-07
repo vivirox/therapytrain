@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { ClientProfile, ClientSession, Message, Intervention } from './ClientProfile';
+import { ClientProfile, ClientSession, Message, Intervention } from '@/clientprofile';
 
 export interface BaseProps {
   className?: string;

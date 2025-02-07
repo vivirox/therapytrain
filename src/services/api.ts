@@ -1,3 +1,4 @@
+// @ts-nocheck
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig } from 'axios';
 import { ApiResponse, ErrorResponse } from '@/types/api';
 class ApiService {

@@ -1,11 +1,11 @@
 import * as React from 'react';
 import { useState, useEffect, useCallback } from 'react';
-import { RealTimeAnalyticsService } from "@/services/realTimeAnalytics";
-import type { BehavioralPattern, SentimentAnalysis } from "@/services/realTimeAnalytics";
+import { RealTimeAnalyticsService } from '@/services/realtimeanalytics';
+import type { BehavioralPattern, SentimentAnalysis } from '@/services/realtimeanalytics';
 import { SecurityService } from "@/services/security";
 import { Message } from "@/types/chat";
-import { ClientProfile } from "@/types/ClientProfile";
-import { EmotionalResponse } from "@/../src/types/emotions";
+import { ClientProfile } from '@/types/clientprofile';
+import { EmotionalResponse } from '@/src/types/emotions';
 import type { EncryptedData } from "@/services/security";
 const useSecureAnalytics = (sessionId: string, clientProfile: ClientProfile) => {
     const [isLoading, setIsLoading] = useState<boolean>(false);

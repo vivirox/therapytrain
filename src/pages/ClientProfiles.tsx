@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
-import ClientProfileCard from '@/components/ClientProfileCard';
-import ClientProfileDialog from '@/components/ClientProfileDialog';
+import ClientProfileCard from '@/components/clientprofilecard';
+import ClientProfileDialog from '@/components/clientprofiledialog';
 import { useToast } from '@/components/ui/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, } from '@/components/ui/alert-dialog';
-import type { ClientProfile } from '@/types/ClientProfile';
+import type { ClientProfile } from '@/types/clientprofile';
 import { supabase } from '@/integrations/supabase/client';
-import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { ErrorBoundary } from '@/components/errorboundary';
 export default function ClientProfiles(): JSX.Element {
     const [profiles, setProfiles] = useState<ClientProfile[]>([]);
     const [loading, setLoading] = useState<boolean>(true);

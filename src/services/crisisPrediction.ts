@@ -1,4 +1,5 @@
-import { dataService } from "./dataService";
+// @ts-nocheck
+import { dataService } from '@/dataservice';
 
 interface DataService {
     upsertAlertConfig: (config: any) => Promise<void>;

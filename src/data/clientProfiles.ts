@@ -1,4 +1,4 @@
-import { ClientProfile } from '@/types/Client';
+import { ClientProfile } from '@/types/client';
 
 export const clientProfiles: ClientProfile[] = [
   {

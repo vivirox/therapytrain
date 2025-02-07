@@ -1,5 +1,5 @@
-import { Usage } from "./usage";
-import { USAGE_METRICS } from "./usage";
+import { Usage } from '@/usage';
+import { USAGE_METRICS } from '@/usage';
 
 export interface LearningAnalytics {
     userId: string;

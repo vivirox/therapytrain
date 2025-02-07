@@ -1,5 +1,5 @@
 import { createClient, SupabaseClient, User, Session } from '@supabase/supabase-js';
-import { type ClientProfile } from '@/types/ClientProfile';
+import { type ClientProfile } from '@/types/clientprofile';
 
 const supabase: SupabaseClient<Database> = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,

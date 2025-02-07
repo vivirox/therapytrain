@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { MdAccessTime, MdMenuBook, MdGroups, MdStar } from 'react-icons/md';
-import type { Tutorial as FullTutorial } from "@/../types/education";
+import type { Tutorial as FullTutorial } from '@/types/education';
 
 interface TutorialCardProps {
     tutorial: FullTutorial;
