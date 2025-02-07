@@ -18,7 +18,7 @@ const Features: FC = () => {
   return (
     <div className="max-w-4xl mx-auto px-4 py-16">
       {/* Hero Section */}
-      <div className="relative h-[400px] mb-24 grid grid-cols-2 gap-8">
+      <div className="relative h-[400px] mb-48 grid grid-cols-2 gap-8">
         {/* Left Content - Top 2/3 */}
         <div className="relative z-20 flex flex-col justify-start h-[267px] pt-12">
           <div className="backdrop-blur-md bg-[#0A0A0B]/40 p-8 rounded-2xl border border-white/10">
@@ -35,7 +35,7 @@ const Features: FC = () => {
         </div>
 
         {/* Right Image - Bottom 2/3 */}
-        <div className="relative h-[400px] mt-[133px]">
+        <div className="relative h-[267px] mt-[133px]">
           <div className="absolute inset-0 rounded-3xl overflow-hidden">
             <img
               src="https://images.unsplash.com/photo-1633613286991-611fe299c4be?q=80&w=2070&auto=format&fit=crop"

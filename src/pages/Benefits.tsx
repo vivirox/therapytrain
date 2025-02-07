@@ -104,9 +104,9 @@ const Benefits: FC = () => {
     return (
         <div className="max-w-4xl mx-auto px-4 py-16">
             {/* Hero Section */}
-            <div className="relative h-[400px] mb-24 grid grid-cols-2 gap-8">
+            <div className="relative h-[400px] mb-48 grid grid-cols-2 gap-8">
                 {/* Left Image - Bottom 2/3 */}
-                <div className="relative h-[400px] mt-[133px]">
+                <div className="relative h-[267px] mt-[133px]">
                     <div className="absolute inset-0 rounded-3xl overflow-hidden">
                         <img
                             src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072&auto=format&fit=crop"

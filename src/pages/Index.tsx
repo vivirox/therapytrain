@@ -10,40 +10,61 @@ const Index: FC = () => {
     <>
       {/* Hero Section */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-          <div>
-            <h1 className="text-5xl font-bold leading-tight">
-              Revolutionize Your
-              <span className="block text-blue-500">Therapeutic Practice</span>
-            </h1>
-            <p className="mt-6 text-gray-400 text-lg">
-              Enhance your skills with our HIPAA-compliant, AI-powered platform.
-              Experience challenging scenarios and receive real-time feedback to
-              become an exceptional therapist.
-            </p>
-            <div className="mt-8 flex space-x-4">
-              <Button
-                onClick={() => navigate("/auth")}
-                className="bg-blue-500 hover:bg-blue-600 px-8"
-              >
-                Start Training
-              </Button>
-              <Button
-                variant="outline"
-                className="bg-transparent border-gray-600"
-              >
-                Learn More
-              </Button>
+        <div className="relative h-[400px] mb-48 grid grid-cols-2 gap-8">
+          {/* Left Content - Top 2/3 */}
+          <div className="relative z-20 flex flex-col justify-start h-[267px] pt-12">
+            <div className="backdrop-blur-md bg-[#0A0A0B]/40 p-8 rounded-2xl border border-white/10">
+              <div className="inline-block mb-4 px-4 py-1 bg-blue-500/20 backdrop-blur-sm rounded-full">
+                <span className="text-blue-500 font-medium">Welcome to TherapyTrain AI</span>
+              </div>
+              <h1 className="text-5xl font-bold mb-6">
+                Revolutionize Your
+                <span className="block text-blue-500">Therapeutic Practice</span>
+              </h1>
+              <p className="text-xl text-gray-300 max-w-2xl">
+                Enhance your skills with our HIPAA-compliant, AI-powered platform.
+                Experience challenging scenarios and receive real-time feedback to
+                become an exceptional therapist.
+              </p>
+              <div className="mt-8 flex space-x-4">
+                <Button
+                  onClick={() => navigate("/auth")}
+                  className="bg-blue-500 hover:bg-blue-600 px-8"
+                >
+                  Start Training
+                </Button>
+                <Button
+                  variant="outline"
+                  className="bg-transparent border-gray-600"
+                  onClick={() => navigate("/features")}
+                >
+                  Learn More
+                </Button>
+              </div>
             </div>
           </div>
-          <div className="flex justify-center items-center">
-            <MdPsychology className="w-64 h-64 text-blue-500 animate-pulse" />
+
+          {/* Right Image - Bottom 2/3 */}
+          <div className="relative h-[267px] mt-[133px]">
+            <div className="absolute inset-0 rounded-3xl overflow-hidden">
+              <img
+                src="https://images.unsplash.com/photo-1590650153855-d9e808231d41?q=80&w=2070&auto=format&fit=crop"
+                alt="AI-powered therapy platform"
+                className="absolute inset-0 w-full h-full object-cover opacity-70"
+              />
+              {/* Gradient Overlay */}
+              <div className="absolute inset-0 bg-gradient-to-r from-[#0A0A0B]/60 to-[#0A0A0B]/60" />
+            </div>
           </div>
+
+          {/* Decorative Elements */}
+          <div className="absolute right-0 bottom-0 w-64 h-64 bg-gradient-to-br from-purple-500/30 to-blue-500/30 rounded-full blur-3xl" />
+          <div className="absolute left-0 top-0 w-64 h-64 bg-gradient-to-br from-blue-500/30 to-purple-500/30 rounded-full blur-3xl" />
         </div>
       </div>
 
       {/* Key Features */}
-      <section id="features" className="py-20 bg-[#111114]">
+      <section className="py-24 bg-[#0A0A0B]/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl font-bold text-center mb-16">Key Features</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -67,7 +88,7 @@ const Index: FC = () => {
       </section>
 
       {/* Why Choose Section */}
-      <section id="benefits" className="py-20">
+      <section className="py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl font-bold text-center mb-16">Why Choose TherapyTrain AI?</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -92,24 +113,6 @@ const Index: FC = () => {
               <p className="text-gray-400">All simulations are grounded in the latest research and best practices in psychotherapy.</p>
             </div>
           </div>
-        </div>
-      </section>
-
-      {/* Final CTA */}
-      <section className="py-20 bg-[#111114]">
-        <div className="max-w-3xl mx-auto text-center px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold mb-6">Ready to Elevate Your Therapeutic Skills?</h2>
-          <p className="text-gray-400 mb-8">
-            Join thousands of therapists who are already benefiting from our
-            cutting-edge training platform. Start your journey to becoming an
-            exceptional therapist today.
-          </p>
-          <Button
-            onClick={() => navigate("/auth")}
-            className="bg-blue-500 hover:bg-blue-600 px-8"
-          >
-            Begin Your Training
-          </Button>
         </div>
       </section>
     </>
