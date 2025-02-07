@@ -160,7 +160,7 @@ class InterventionMetrics {
       contextualRelevance: 0.4
     };
 
-    return interventions.reduce((sum, intervention) => {
+    return interventions.reduce((sum: unknown, intervention: unknown) => {
       const immediateScore =
         (intervention.immediate_response + 1) / 2; // Convert -1:1 to 0:1
       const contextScore = intervention.contextual_relevance;
@@ -174,7 +174,7 @@ class InterventionMetrics {
 
   private static async calculateSustainedEffect(interventions: Array<any>): Promise<number> {
     const followUpScores = await Promise.all(
-      interventions.map(async (intervention) => {
+      interventions.map(async (intervention: unknown) => {
         // Get subsequent session metrics
         const nextSession = await getNextSession(intervention.sessions.client_id);
 
@@ -195,7 +195,7 @@ class InterventionMetrics {
   }
 
   private static calculateClientReceptiveness(interventions: Array<any>): number {
-    return interventions.reduce((sum, intervention) =>
+    return interventions.reduce((sum: unknown, intervention: unknown) =>
       sum + intervention.client_engagement, 0) / (interventions.length || 1);
   }
 
@@ -205,7 +205,7 @@ class InterventionMetrics {
       adaptation: 0.3
     };
 
-    return interventions.reduce((sum, intervention) => {
+    return interventions.reduce((sum: unknown, intervention: unknown) => {
       const followThroughScore = intervention.follow_through_rate;
       const adaptationScore = intervention.adaptation_score;
 
@@ -233,7 +233,7 @@ class InterventionMetrics {
   private static analyzeTimeOfDayEffectiveness(interventions: Array<any>): Record<string, number> {
     const hourlyScores: Record<string, { sum: number; count: number }> = {};
 
-    interventions.forEach(intervention => {
+    interventions.forEach(intervention: unknown => {
       const hour = new Date(intervention.timestamp).getHours();
       const score = intervention.immediate_response;
 
@@ -256,8 +256,8 @@ class InterventionMetrics {
   private static analyzeTypeEffectiveness(interventions: Array<any>): Record<string, number> {
     const typeScores: Record<string, { sum: number; count: number }> = {};
 
-    interventions.forEach(intervention => {
-      const {type} = intervention;
+    interventions.forEach(intervention: unknown => {
+      const { type } = intervention;
       const score = intervention.immediate_response;
 
       if (!typeScores[type]) {
@@ -279,7 +279,7 @@ class InterventionMetrics {
   private static analyzeContextEffectiveness(interventions: Array<any>): Record<string, number> {
     const contextScores: Record<string, { sum: number; count: number }> = {};
 
-    interventions.forEach(intervention => {
+    interventions.forEach(intervention: unknown => {
       const context = JSON.stringify(intervention.context);
       const score = intervention.immediate_response;
 

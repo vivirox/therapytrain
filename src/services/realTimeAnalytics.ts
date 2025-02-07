@@ -2,19 +2,19 @@ import { Message } from '../types/chat';
 import { ClientProfile } from '../types/ClientProfile';
 import { EmotionalResponse } from '../types/emotions';
 
-interface SentimentAnalysis {
+export interface SentimentAnalysis {
   score: number;
   sentiment: 'positive' | 'negative' | 'neutral';
   confidence: number;
-  emotionalTags: string[];
+  emotionalTags: Array<string>;
 }
 
-interface BehavioralPattern {
+export interface BehavioralPattern {
   pattern: string;
   frequency: number;
   context: string;
   confidence: number;
-  relatedTriggers: string[];
+  relatedTriggers: Array<string>;
 }
 
 interface InterventionMetric {
@@ -27,9 +27,9 @@ interface InterventionMetric {
 
 export class RealTimeAnalyticsService {
   private static instance: RealTimeAnalyticsService;
-  private sessionPatterns: Map<string, BehavioralPattern[]>;
-  private interventionMetrics: Map<string, InterventionMetric[]>;
-  private emotionalTrends: Map<string, EmotionalResponse[]>;
+  private sessionPatterns: Map<string, Array<BehavioralPattern>>;
+  private interventionMetrics: Map<string, Array<InterventionMetric>>;
+  private emotionalTrends: Map<string, Array<EmotionalResponse>>;
 
   private constructor() {
     this.sessionPatterns = new Map();
@@ -64,9 +64,9 @@ export class RealTimeAnalyticsService {
 
   async detectBehavioralPatterns(
     sessionId: string,
-    messages: Message[],
+    messages: Array<Message>,
     clientProfile: ClientProfile
-  ): Promise<BehavioralPattern[]> {
+  ): Promise<Array<BehavioralPattern>> {
     try {
       const response = await fetch('/api/analyze/patterns', {
         method: 'POST',

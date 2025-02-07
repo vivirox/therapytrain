@@ -62,8 +62,8 @@ export const SkillProgressionTracker: React.FC<SkillProgressionTrackerProps> = (
 
   const getNextMilestone = () => {
     const skills = Object.values(progression.skills);
-    const lowestSkill = skills.reduce((min, skill) => 
-      skill.level < min.level ? skill : min, 
+    const lowestSkill = skills.reduce((min, skill) =>
+      skill.level < min.level ? skill : min,
       skills[0]
     );
     return lowestSkill?.areasForImprovement[0] || 'All skills are at maximum level';
@@ -84,7 +84,7 @@ export const SkillProgressionTracker: React.FC<SkillProgressionTrackerProps> = (
         </div>
 
         <Progress value={calculateOverallProgress()} className="h-3 mb-4" />
-        
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
           <div className="flex items-center gap-3">
             <Target className="w-8 h-8 text-blue-500" />
@@ -132,9 +132,9 @@ export const SkillProgressionTracker: React.FC<SkillProgressionTrackerProps> = (
               </Badge>
             </div>
 
-            <Progress 
-              value={(skill.experience / (1000 * skill.level)) * 100} 
-              className="h-2 mb-4" 
+            <Progress
+              value={(skill.experience / (1000 * skill.level)) * 100}
+              className="h-2 mb-4"
             />
 
             <div className="grid grid-cols-2 gap-4 mb-4">
@@ -183,7 +183,7 @@ export const SkillProgressionTracker: React.FC<SkillProgressionTrackerProps> = (
         <Card className="p-6">
           <h2 className="text-2xl font-bold mb-6">Certifications</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {progression.certifications.map(cert => (
+            {progression.certifications.map(cert: unknown => (
               <Card key={cert.id} className="p-4 border-2 border-primary">
                 <div className="flex items-start gap-4">
                   <Award className="w-8 h-8 text-primary" />
@@ -198,7 +198,7 @@ export const SkillProgressionTracker: React.FC<SkillProgressionTrackerProps> = (
                       </p>
                     )}
                     <div className="flex flex-wrap gap-2 mt-2">
-                      {cert.skills.map(skill => (
+                      {cert.skills.map(skill: unknown => (
                         <Badge key={skill} variant="secondary">
                           {skill}
                         </Badge>
@@ -269,7 +269,7 @@ export const SkillProgressionTracker: React.FC<SkillProgressionTrackerProps> = (
           <div>
             <h3 className="font-semibold mb-3">Focus Areas</h3>
             <div className="flex flex-wrap gap-2">
-              {progression.learningPath.customizedFocus.map(focus => (
+              {progression.learningPath.customizedFocus.map(focus: unknown => (
                 <Badge key={focus} variant="outline">
                   {focus}
                 </Badge>

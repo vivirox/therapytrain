@@ -1,0 +1,1 @@
+/root/therapytrain/build/circuits/session_integrity_verifier_template.sol

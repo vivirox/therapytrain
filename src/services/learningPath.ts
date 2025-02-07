@@ -53,7 +53,7 @@ export class LearningPathService {
   ): Promise<LearningPath> {
     // Get AI insights for the user
     const aiInsights = await this.aiAnalytics.generateAIInsights(userId);
-    
+
     // Generate curriculum based on specialization and skill levels
     const curriculum = await this.aiAnalytics.generatePersonalizedCurriculum(
       userId,
@@ -63,12 +63,12 @@ export class LearningPathService {
     // Analyze potential challenges
     const challenges = await this.aiAnalytics.predictLearningChallenges(
       userId,
-      curriculum.map(module => module.resources).flat()
+      curriculum.map(module: unknown => module.resources).flat()
     );
 
     // Create learning path nodes from curriculum
-    const nodes = curriculum.flatMap(module => 
-      module.resources.map(resource => ({
+    const nodes = curriculum.flatMap(module: unknown =>
+      module.resources.map(resource: unknown => ({
         id: resource.id,
         title: resource.type === 'tutorial' ? `${module.module}: ${resource.id}` : resource.id,
         description: resource.rationale,
@@ -101,7 +101,7 @@ export class LearningPathService {
         assessmentScores: {}
       },
       aiRecommendations: {
-        nextBestNodes: nodes.slice(0, 3).map(n => n.id),
+        nextBestNodes: nodes.slice(0, 3).map(n: unknown => n.id),
         focusAreas: aiInsights.predictedGrowthAreas,
         supplementaryResources: []
       }
@@ -148,15 +148,15 @@ export class LearningPathService {
     const remainingNodes = path.nodes.filter(
       node => !path.progress.completedNodes.includes(node.id)
     );
-    
+
     path.aiRecommendations = {
       nextBestNodes: remainingNodes.slice(0, 3).map(n => n.id),
       focusAreas: feedback.areas
-        .filter(area => !area.strength)
-        .map(area => area.name),
+        .filter(area: unknown => !area.strength)
+        .map(area: unknown => area.name),
       paceAdjustment: this.calculatePaceAdjustment(performance),
       supplementaryResources: feedback.areas
-        .flatMap(area => area.suggestedResources)
+        .flatMap(area: unknown => area.suggestedResources)
     };
 
     // Save updated path
@@ -179,12 +179,12 @@ export class LearningPathService {
     const indicators = [
       performance.score ? performance.score > 0.85 : null,
       performance.practiceHours ? performance.practiceHours > 3 : null,
-      performance.skillProgress ? 
+      performance.skillProgress ?
         Object.values(performance.skillProgress).every(level => level > 0.7) : null
     ].filter(i => i !== null);
 
     if (indicators.length === 0) return 'maintain';
-    
+
     const positiveIndicators = indicators.filter(Boolean).length;
     const ratio = positiveIndicators / indicators.length;
 

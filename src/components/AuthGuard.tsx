@@ -1,41 +1,29 @@
-import { Navigate } from "react-router-dom";
-import { useEffect, useState } from "react";
-import { supabase } from "../lib/supabase";
+import { type FC, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from './auth/AuthProvider';
+import { Loading } from './ui/loading';
 
-export const AuthGuard = ({ children }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+interface AuthGuardProps {
+    children: React.ReactNode;
+}
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        setIsAuthenticated(!!session);
-      } catch (error) {
-        console.error('Error checking authentication:', error);
-        setIsAuthenticated(false);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+export const AuthGuard: FC<AuthGuardProps> = ({ children }) => {
+    const { isAuthenticated, user } = useAuth();
+    const navigate = useNavigate();
+    const location = useLocation();
 
-    checkAuth();
+    useEffect(() => {
+        if (!isAuthenticated) {
+            navigate('/auth', {
+                replace: true,
+                state: { from: location }
+            });
+        }
+    }, [isAuthenticated, navigate, location]);
 
-    // Subscribe to auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setIsAuthenticated(!!session);
-    });
+    if (!user) {
+        return <Loading fullScreen message="Checking authentication..." />;
+    }
 
-    return () => subscription.unsubscribe();
-  }, []);
-
-  if (isLoading) {
-    return <div>Loading...</div>; // Or your loading component
-  }
-
-  if (!isAuthenticated) {
-    return <Navigate to="/auth" />;
-  }
-
-  return children;
+    return <>{children}</>;
 };

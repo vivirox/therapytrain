@@ -1,0 +1,22 @@
+# Web scraping
+playwright
+html5lib
+
+# Search engine
+duckduckgo-search
+
+# LLM integration
+openai
+anthropic
+python-dotenv
+
+# Testing
+unittest2
+pytest
+pytest-asyncio
+
+# Google Generative AI
+google-generativeai
+
+# gRPC, for Google Generative AI preventing WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+grpcio

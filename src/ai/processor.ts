@@ -160,9 +160,9 @@ export class TherapeuticAIProcessor {
       return {
         content: adjustedResponse,
         analysis: {
-          patterns: analysis.patterns.map(p => p.type),
-          defenses: analysis.defenses.map(d => d.name),
-          emotions: analysis.emotions.map(e => e.emotion),
+          patterns: analysis.patterns.map(p: unknown: unknown => p.type),
+          defenses: analysis.defenses.map(d: unknown: unknown => d.name),
+          emotions: analysis.emotions.map(e: unknown: unknown => e.emotion),
           intensity: this.emotionalState.intensity
         }
       };

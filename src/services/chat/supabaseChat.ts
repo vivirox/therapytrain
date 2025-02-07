@@ -28,7 +28,7 @@ export class TherapyChat {
   subscribeToSession(sessionId: string, callback: (payload: any) => void) {
     return this.supabase
       .channel(`therapy_messages:session_id=eq.${sessionId}`)
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'therapy_messages', filter: `session_id=eq.${sessionId}` }, payload => callback(payload))
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'therapy_messages', filter: `session_id=eq.${sessionId}` }, payload: unknown: unknown => callback(payload))
       .subscribe();
   }
 }

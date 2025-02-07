@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from './AuthProvider';
-import { useSupabaseClient } from '@supabase/auth-helpers-react';
+import { createBrowserClient } from '@supabase/ssr';
 import {
   Card,
   CardContent,
@@ -9,68 +9,163 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Organization {
   id: string;
   name: string;
   role: string;
+  organization_id: string;
+  organizations: Array<{
+    id: string;
+    name: string;
+  }>;
 }
 
 interface UserPermission {
   permission: string;
 }
 
-export const UserProfile = () => {
+interface FetchError {
+  type: 'permissions' | 'organizations';
+  message: string;
+}
+
+interface UserProfileProps {
+  userId: string;
+}
+
+export const UserProfile: React.FC<UserProfileProps> = ({ userId }) => {
   const { user, isAuthenticated } = useAuth();
-  const supabase = useSupabaseClient();
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
   const [permissions, setPermissions] = useState<Array<string>>([]);
   const [organizations, setOrganizations] = useState<Array<Organization>>([]);
+  const [loading, setLoading] = useState({ permissions: false, organizations: false });
+  const [error, setError] = useState<FetchError | null>(null);
+  const [userOrgs, setUserOrgs] = useState<Array<Organization>>([]);
 
   useEffect(() => {
-    if (isAuthenticated && user) {
-      // Get user permissions
-      const fetchPermissions = async () => {
+    if (!(isAuthenticated && user)) {
+      return;
+    }
+    // Get user permissions
+    const fetchPermissions = async () => {
+      setLoading(prev => ({ ...prev, permissions: true }));
+      try {
         const { data: userPermissions, error } = await supabase
           .from('user_permissions')
           .select('permission')
           .eq('user_id', user.id);
 
-        if (!error && userPermissions) {
+        if (error) throw error;
+
+        if (userPermissions) {
           setPermissions(userPermissions.map((p: UserPermission) => p.permission));
         }
-      };
+      } catch (err) {
+        setError({ type: 'permissions', message: 'Failed to fetch permissions' });
+        console.error('Error fetching permissions:', err);
+      } finally {
+        setLoading(prev => ({ ...prev, permissions: false }));
+      }
+    };
 
-      // Get user organizations
-      const fetchOrganizations = async () => {
+    // Get user organizations
+    const fetchOrganizations = async () => {
+      setLoading(prev => ({ ...prev, organizations: true }));
+      try {
         const { data: userOrgs, error } = await supabase
+          .from('user_organizations')
+          .select(`
+              organization_id,
+              organizations (
+                id,
+                name
+              ),
+              role
+            `)
+          .eq('user_id', user.id);
+
+        if (error) throw error;
+
+        if (userOrgs) {
+          const formattedOrgs = userOrgs.map((org: any) => ({
+            id: org.organization_id,
+            name: org.organizations[0].name,
+            role: org.role,
+            organization_id: org.organization_id,
+            organizations: org.organizations.map((o: any) => ({
+              id: o.id,
+              name: o.name
+            }))
+          }));
+          setOrganizations(formattedOrgs);
+        }
+      } catch (err) {
+        setError({ type: 'organizations', message: 'Failed to fetch organizations' });
+        console.error('Error fetching organizations:', err);
+      } finally {
+        setLoading(prev => ({ ...prev, organizations: false }));
+      }
+    };
+
+    fetchPermissions();
+    fetchOrganizations();
+  }, [isAuthenticated, user, supabase]);
+
+  useEffect(() => {
+    const loadUserOrganizations = async () => {
+      setLoading(prev => ({ ...prev, organizations: true }));
+      try {
+        const { data: response, error } = await supabase
           .from('user_organizations')
           .select(`
             organization_id,
             organizations (
               id,
-              name
+              name,
+              members
             ),
             role
           `)
-          .eq('user_id', user.id);
+          .eq('user_id', userId);
 
-        if (!error && userOrgs) {
-          const formattedOrgs = userOrgs.map(org => ({
+        if (error) throw error;
+
+        if (response) {
+          const formattedOrgs = response.map((org) => ({
             id: org.organization_id,
             name: org.organizations[0].name,
-            role: org.role
+            role: org.role,
+            members: org.organizations[0].members
           }));
           setOrganizations(formattedOrgs);
         }
-      };
+      } catch (err) {
+        setError({ type: 'organizations', message: 'Failed to load organizations' });
+        console.error('Error loading organizations:', err);
+      } finally {
+        setLoading(prev => ({ ...prev, organizations: false }));
+      }
+    };
 
-      fetchPermissions();
-      fetchOrganizations();
-    }
-  }, [isAuthenticated, user, supabase]);
+    loadUserOrganizations();
+  }, [userId, supabase]);
 
   if (!isAuthenticated || !user) {
     return null;
+  }
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error.message}</div>;
   }
 
   return (
@@ -82,9 +177,21 @@ export const UserProfile = () => {
         <CardDescription>{user.email}</CardDescription>
       </CardHeader>
       <CardContent>
-        {permissions.length > 0 && (
-          <div className="mb-4">
-            <h3 className="text-lg font-semibold mb-2">Permissions</h3>
+        {error && (
+          <Alert variant="destructive" className="mb-4">
+            <AlertDescription>{error.message}</AlertDescription>
+          </Alert>
+        )}
+
+        <div className="mb-4">
+          <h3 className="text-lg font-semibold mb-2">Permissions</h3>
+          {loading.permissions ? (
+            <div className="flex gap-2">
+              <Skeleton className="h-6 w-20" />
+              <Skeleton className="h-6 w-20" />
+              <Skeleton className="h-6 w-20" />
+            </div>
+          ) : (
             <div className="flex flex-wrap gap-2">
               {permissions.map((permission) => (
                 <Badge key={permission} variant="secondary">
@@ -92,14 +199,19 @@ export const UserProfile = () => {
                 </Badge>
               ))}
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
-        {organizations.length > 0 && (
-          <div>
-            <h3 className="text-lg font-semibold mb-2">Organizations</h3>
+        <div>
+          <h3 className="text-lg font-semibold mb-2">Organizations</h3>
+          {loading.organizations ? (
             <div className="space-y-2">
-              {organizations.map((org) => (
+              <Skeleton className="h-12 w-full" />
+              <Skeleton className="h-12 w-full" />
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {userOrgs.map((org) => (
                 <div
                   key={org.id}
                   className="p-3 border rounded-lg flex justify-between items-center"
@@ -109,8 +221,8 @@ export const UserProfile = () => {
                 </div>
               ))}
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </CardContent>
     </Card>
   );

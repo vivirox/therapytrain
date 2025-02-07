@@ -288,7 +288,7 @@ const EvaluationPage = () => {
               <div>
                 <p className="text-sm font-medium">Key Traits</p>
                 <div className="flex flex-wrap gap-2 mt-1">
-                  {client.key_traits.map((trait, idx) => (
+                  {client.key_traits.map((trait: unknown, idx: unknown) => (
                     <Badge key={idx} variant="outline">
                       {trait}
                     </Badge>

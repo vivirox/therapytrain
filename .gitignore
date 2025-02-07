@@ -26,8 +26,14 @@ dist-ssr
 *.sw?
 
 .env
-.env.*
 .vercel
 src/utils/supabase.
+.env.staging
 
 .env*.local
+
+.pnpm-store/*
+
+devel/*
+
+liftoff

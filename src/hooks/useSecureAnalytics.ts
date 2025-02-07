@@ -1,11 +1,14 @@
+import * as React from 'react';
 import { useState, useEffect, useCallback } from 'react';
 import { RealTimeAnalyticsService } from '../services/realTimeAnalytics';
+import type { BehavioralPattern, SentimentAnalysis } from '../services/realTimeAnalytics';
 import { SecurityService } from '../services/security';
 import { Message } from '../types/chat';
 import { ClientProfile } from '../types/ClientProfile';
-import { EmotionalResponse } from '../types/emotions';
+import { EmotionalResponse } from '../../src/types/emotions';
+import type { EncryptedData } from '../services/security';
 
-export const useSecureAnalytics = (
+const useSecureAnalytics = (
   sessionId: string,
   clientProfile: ClientProfile
 ) => {
@@ -29,12 +32,11 @@ export const useSecureAnalytics = (
 
         // Encrypt message content before analysis
         const encrypted = await security.encryptData(message);
-        const sentiment = await analytics.analyzeSentiment({
+
+        return await analytics.analyzeSentiment({
           ...message,
           content: encrypted.data,
         });
-
-        return sentiment;
       } catch (err) {
         setError(err as Error);
         await security.logAudit(
@@ -53,7 +55,7 @@ export const useSecureAnalytics = (
   );
 
   const trackPatternSecurely = useCallback(
-    async (messages: Message[]) => {
+    async (messages: Array<Message>) => {
       setIsLoading(true);
       try {
         // Anonymize data before pattern analysis
@@ -137,21 +139,25 @@ export const useSecureAnalytics = (
       const analytics = await RealTimeAnalyticsService.getInstance().getSessionAnalytics(
         sessionId
       );
+      
 
-      // Decrypt the data before returning
-      const decryptedAnalytics = {
+      return {
         patterns: await Promise.all(
-          analytics.patterns.map(p => security.decryptData(p))
+          analytics.patterns.map(async p => {
+            const encryptedPattern = await security.encryptData(p);
+            return security.decryptData(encryptedPattern);
+          })
         ),
         interventions: await Promise.all(
-          analytics.interventions.map(i => security.decryptData(i))
+          analytics.interventions.map(async i => {
+            const encryptedIntervention = await security.encryptData(i);
+            return security.decryptData(encryptedIntervention);
+          })
         ),
         emotionalTrends: await Promise.all(
-          analytics.emotionalTrends.map(e => security.decryptData(e))
+          analytics.emotionalTrends.map(e => security.decryptData(e as unknown as EncryptedData))
         ),
       };
-
-      return decryptedAnalytics;
     } catch (err) {
       setError(err as Error);
       throw err;
@@ -167,3 +173,5 @@ export const useSecureAnalytics = (
     error,
   };
 };
+
+export default useSecureAnalytics;

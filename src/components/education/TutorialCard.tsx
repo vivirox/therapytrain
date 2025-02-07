@@ -67,7 +67,7 @@ export const TutorialCard: React.FC<TutorialCardProps> = ({
         </div>
 
         <div className="flex flex-wrap gap-2 mb-4">
-          {tutorial.tags.map(tag => (
+          {tutorial.tags.map(tag: unknown => (
             <Badge key={tag} variant="secondary" className="text-xs">
               {tag}
             </Badge>

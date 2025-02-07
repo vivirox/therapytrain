@@ -1,3 +1,103 @@
+# TherapyTrain AI
+
+A HIPAA-compliant AI-powered platform for therapist training and skill development.
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js 18+ 
+- pnpm 9.15.3+
+
+### Installation
+
+1. Clone the repository:
+```bash
+git clone https://github.com/yourusername/therapytrain.git
+cd therapytrain
+```
+
+2. Install dependencies:
+```bash
+pnpm install
+```
+
+3. Copy the environment variables:
+```bash
+cp .env.example .env
+```
+
+4. Update the environment variables in `.env` with your values
+
+### Development
+
+Run the development server:
+
+```bash
+pnpm dev
+```
+
+### Building for Production
+
+Build the application:
+
+```bash
+pnpm build
+```
+
+Preview the production build:
+
+```bash
+pnpm preview
+```
+
+## Deployment
+
+### Deploying to Vercel
+
+1. Install Vercel CLI:
+```bash
+npm i -g vercel
+```
+
+2. Login to Vercel:
+```bash
+vercel login
+```
+
+3. Deploy:
+```bash
+vercel
+```
+
+Or configure GitHub integration for automatic deployments.
+
+### Environment Variables
+
+Make sure to configure the following environment variables in your Vercel project settings:
+
+- `VITE_APP_TITLE`
+- `VITE_APP_ENV`
+- `VITE_API_URL`
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_ANON_KEY`
+- `VITE_OPENAI_API_KEY`
+- `VITE_ANTHROPIC_API_KEY`
+- `VITE_GOOGLE_ANALYTICS_ID`
+
+## Features
+
+- HIPAA-compliant platform
+- AI-powered training scenarios
+- Real-time feedback
+- Progress tracking
+- Skill certification
+- Secure environment
+
+## License
+
+[License Type] - See LICENSE file for details
+
 # TherapyTrain - Advanced Therapy Training Simulator
 
 ![Black Mage Vivi](public/vivi-master.jpg)
@@ -26,34 +126,6 @@ Current project completion: ~85%
 - Enhanced Security Features (85%)
 - Zero-Knowledge Implementation (65%)
 
-## Getting Started
-
-### Prerequisites
-
-- Node.js & npm - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-### Installation
-
-1. Clone the repository:
-```bash
-git clone https://github.com/yourusername/therapytrain.git
-```
-
-2. Install dependencies:
-```bash
-npm install
-```
-
-3. Set up environment variables:
-```bash
-cp .env.example .env
-```
-
-4. Start the development server:
-```bash
-npm run dev
-```
-
 ## Technology Stack
 
 - Vite
@@ -61,13 +133,6 @@ npm run dev
 - React
 - shadcn-ui
 - Tailwind CSS
-
-## Deployment
-
-The project can be deployed through multiple methods:
-
-1. **GPT Engineer App**: Visit [GPT Engineer](https://gptengineer.app/projects/9d4bcff1-da7e-4e73-bb35-7a988b4bdb7f/improve) and use Share -> Publish
-2. **Custom Deployment**: For custom domain deployments, we recommend using Netlify. See our [Custom domains documentation](https://docs.gptengineer.app/tips-tricks/custom-domain/)
 
 ## Contributing
 

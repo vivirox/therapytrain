@@ -194,7 +194,7 @@ export class AuditLogger {
    */
   private startBufferFlush(): void {
     setInterval(() => {
-      this.flushBuffer().catch(error => {
+      this.flushBuffer().catch(error: unknown: unknown => {
         console.error('Error in flush interval:', error);
       });
     }, this.FLUSH_INTERVAL);

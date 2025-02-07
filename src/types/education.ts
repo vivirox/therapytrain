@@ -14,20 +14,53 @@ export interface TutorialStep {
 }
 
 export interface Tutorial {
-  type: string;
   id: string;
   title: string;
   description: string;
+  category: string;
   difficulty: 'beginner' | 'intermediate' | 'advanced';
-  category: 'clinical-skills' | 'crisis-management' | 'therapeutic-techniques' | 'client-engagement';
-  tags: Array<string>;
-  steps: Array<TutorialStep>;
-  estimatedDuration: number; // in minutes
-  completionCriteria: {
-    requiredSteps: Array<string>; // step ids that must be completed
-    minimumScore?: number; // if there are assessments
-    requiredPractice?: number; // minimum practice sessions
+  duration: number;
+  type: 'core' | 'specialized' | 'advanced';
+  estimatedDuration: number;
+  steps: TutorialStep[];
+  tags: string[];
+  content: {
+    sections: TutorialSection[];
+    resources: Resource[];
+    exercises: Exercise[];
   };
+  metadata: {
+    author: string;
+    createdAt: string;
+    updatedAt: string;
+    tags: string[];
+  };
+}
+
+export interface TutorialSection {
+  id: string;
+  title: string;
+  content: string;
+  order: number;
+  resources?: Resource[];
+  exercises?: Exercise[];
+}
+
+export interface Resource {
+  id: string;
+  title: string;
+  type: 'video' | 'article' | 'document' | 'link';
+  url: string;
+  description?: string;
+}
+
+export interface Exercise {
+  id: string;
+  title: string;
+  description: string;
+  type: 'quiz' | 'practice' | 'reflection';
+  content: any;
+  solution?: any;
 }
 
 export interface CaseStudy {
@@ -55,56 +88,61 @@ export interface CaseStudy {
 export interface SkillProgression {
   userId: string;
   skills: {
-    [skillId: string]: {
+    [key: string]: {
       level: number;
+      progress: number;
+      completedExercises: string[];
+      achievements: string[];
       experience: number;
-      completedTutorials: Array<string>;
-      completedCaseStudies: Array<string>;
       practiceHours: number;
-      strengths: Array<string>;
-      areasForImprovement: Array<string>;
-      nextSteps: Array<string>;
+      strengths: string[];
+      areasForImprovement: string[];
+      completedTutorials: string[];
+      completedCaseStudies: string[];
+      nextSteps: string[];
+      certifications: string[];
     };
   };
-  certifications: Array<{
+  completedTutorials: string[];
+  currentTutorial?: {
     id: string;
-    name: string;
-    dateEarned: Date;
-    expiryDate?: Date;
-    skills: Array<string>;
-  }>;
+    progress: number;
+    lastAccessed: string;
+  };
   learningPath: {
-    currentGoals: Array<string>;
-    recommendedTutorials: Array<string>;
-    recommendedCaseStudies: Array<string>;
-    customizedFocus: Array<string>;
+    currentGoals: string[];
+    completedGoals: string[];
+    recommendedTutorials: string[];
+    recommendedCaseStudies: string[];
+    focusAreas: string[];
   };
 }
 
 export interface LearningAnalytics {
-  [x: string]: Array<any> | string | object;
   userId: string;
-  timeSpent: {
-    tutorials: number;
-    caseStudies: number;
-    practice: number;
+  timeSpent: number;
+  progress: {
+    completed: number;
     total: number;
   };
-  progress: {
-    tutorialsCompleted: number;
-    caseStudiesReviewed: number;
-    skillsProgressed: number;
-    certificationsEarned: number;
-  };
   performance: {
-    quizScores: Array<number>;
-    practiceEvaluations: Array<number>;
-    peerReviews: Array<number>;
+    exercises: {
+      attempted: number;
+      completed: number;
+      accuracy: number;
+    };
+    quizzes: {
+      average: number;
+      best: number;
+      completed: number;
+    };
   };
   engagement: {
-    lastActive: Date;
-    weeklyActivity: Array<number>;
-    streakDays: number;
-    contributionsCount: number;
+    lastActive: string;
+    sessionsCompleted: number;
+    averageSessionDuration: number;
   };
+  strengths: string[];
+  areasForImprovement: string[];
+  recommendations: string[];
 }

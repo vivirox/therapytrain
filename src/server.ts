@@ -6,7 +6,7 @@ const port = process.env.PORT || 3000;
 const app = express();
 app.use(express.json());
 app.use('/api', chatRouter);
-app.get('/', (req, res) => {
+app.get('/', (req: unknown, res: unknown) => {
   res.sendFile(path.join(__dirname, '../index.html'));
 });
 

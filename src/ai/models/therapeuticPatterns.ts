@@ -1,11 +1,11 @@
 import { ClientProfile } from '@/types/ClientProfile';
 
 export interface TherapeuticPattern {
-  type: string;
-  triggers: Array<string>;
-  responses: Array<string>;
-  emotionalState: string;
-  intensity: number; // 1-10
+  name: string;
+  description: string;
+  keywords: string[];
+  examples: string[];
+  isApplicable: (message: string, context: MessageContext) => boolean;
 }
 
 export interface DefenseMechanism {
@@ -23,42 +23,82 @@ export interface EmotionalResponse {
   manifestation: Array<string>;
 }
 
+interface MessageContext {
+  clientGoals: string[];
+  sessionHistory: string[];
+  clientProfile: {
+    preferredApproach?: string;
+    triggers?: string[];
+    strengths?: string[];
+  };
+}
+
 // Core therapeutic dialogue patterns
 export const therapeuticPatterns: Array<TherapeuticPattern> = [
   {
-    type: 'resistance',
-    triggers: ['why', 'how do you know', 'you don\'t understand'],
-    responses: [
+    name: 'resistance',
+    description: 'Resistance to change or questioning',
+    keywords: ['why', 'how do you know', 'you don\'t understand'],
+    examples: [
       'deflecting the question',
       'changing the subject',
       'expressing skepticism',
       'challenging the therapist'
     ],
-    emotionalState: 'defensive',
-    intensity: 7
+    isApplicable: (message: string, context: MessageContext) => {
+      const isGoalRelated = context.clientGoals.some((goal) =>
+        message.toLowerCase().includes(goal.toLowerCase())
+      );
+      return isGoalRelated;
+    },
   },
   {
-    type: 'transference',
-    triggers: ['you remind me of', 'just like my', 'always'],
-    responses: [
+    name: 'transference',
+    description: 'Projecting past relationships onto the therapist',
+    keywords: ['you remind me of', 'just like my', 'always'],
+    examples: [
       'projecting past relationships',
       'emotional displacement',
       'pattern repetition'
     ],
-    emotionalState: 'triggered',
-    intensity: 8
+    isApplicable: (message: string, context: MessageContext) => {
+      const isGoalRelated = context.clientGoals.some((goal) =>
+        message.toLowerCase().includes(goal.toLowerCase())
+      );
+      return isGoalRelated;
+    },
   },
   {
-    type: 'breakthrough',
-    triggers: ['I never thought about', 'I just realized', 'that makes sense'],
-    responses: [
+    name: 'breakthrough',
+    description: 'Emotional release and new understanding',
+    keywords: ['I never thought about', 'I just realized', 'that makes sense'],
+    examples: [
       'emotional release',
       'new understanding',
       'connecting patterns'
     ],
-    emotionalState: 'insightful',
-    intensity: 6
-  }
+    isApplicable: (message: string, context: MessageContext) => {
+      const isGoalRelated = context.clientGoals.some((goal) =>
+        message.toLowerCase().includes(goal.toLowerCase())
+      );
+      return isGoalRelated;
+    },
+  },
+  {
+    name: 'Goal Alignment',
+    description: 'Aligns responses with client\'s therapeutic goals',
+    keywords: ['goal', 'objective', 'aim', 'target'],
+    examples: [
+      'How does this relate to your goal of...',
+      'This seems connected to your objective of...',
+    ],
+    isApplicable: (message: string, context: MessageContext) => {
+      const isGoalRelated = context.clientGoals.some((goal) =>
+        message.toLowerCase().includes(goal.toLowerCase())
+      );
+      return isGoalRelated;
+    },
+  },
 ];
 
 // Common defense mechanisms
@@ -132,44 +172,76 @@ export const emotionalResponses: Array<EmotionalResponse> = [
   }
 ];
 
-// Function to analyze client message for patterns
-export function analyzeMessage(message: string, clientProfile: ClientProfile): {
-  patterns: Array<TherapeuticPattern>;
-  defenses: Array<DefenseMechanism>;
-  emotions: Array<EmotionalResponse>;
-} {
-  const result = {
-    patterns: [] as Array<TherapeuticPattern>,
-    defenses: [] as Array<DefenseMechanism>,
-    emotions: [] as Array<EmotionalResponse>
-  };
+export function analyzeMessage(message: string, context: MessageContext): TherapeuticPattern[] {
+  const patterns = getTherapeuticPatterns();
+  return patterns.filter(pattern => pattern.isApplicable(message, context));
+}
 
-  // Check for therapeutic patterns
-  therapeuticPatterns.forEach(pattern => {
-    if (pattern.triggers.some(trigger => 
-      message.toLowerCase().includes(trigger.toLowerCase())
-    )) {
-      result.patterns.push(pattern);
-    }
-  });
-
-  // Check for defense mechanisms
-  defenseMechanisms.forEach(defense => {
-    if (defense.triggers.some(trigger => 
-      message.toLowerCase().includes(trigger.toLowerCase())
-    )) {
-      result.defenses.push(defense);
-    }
-  });
-
-  // Check for emotional responses
-  emotionalResponses.forEach(emotion => {
-    if (emotion.triggers.some(trigger => 
-      message.toLowerCase().includes(trigger.toLowerCase())
-    )) {
-      result.emotions.push(emotion);
-    }
-  });
-
-  return result;
+function getTherapeuticPatterns(): TherapeuticPattern[] {
+  return [
+    {
+      name: 'resistance',
+      description: 'Resistance to change or questioning',
+      keywords: ['why', 'how do you know', 'you don\'t understand'],
+      examples: [
+        'deflecting the question',
+        'changing the subject',
+        'expressing skepticism',
+        'challenging the therapist'
+      ],
+      isApplicable: (message: string, context: MessageContext) => {
+        const isGoalRelated = context.clientGoals.some((goal) =>
+          message.toLowerCase().includes(goal.toLowerCase())
+        );
+        return isGoalRelated;
+      },
+    },
+    {
+      name: 'transference',
+      description: 'Projecting past relationships onto the therapist',
+      keywords: ['you remind me of', 'just like my', 'always'],
+      examples: [
+        'projecting past relationships',
+        'emotional displacement',
+        'pattern repetition'
+      ],
+      isApplicable: (message: string, context: MessageContext) => {
+        const isGoalRelated = context.clientGoals.some((goal) =>
+          message.toLowerCase().includes(goal.toLowerCase())
+        );
+        return isGoalRelated;
+      },
+    },
+    {
+      name: 'breakthrough',
+      description: 'Emotional release and new understanding',
+      keywords: ['I never thought about', 'I just realized', 'that makes sense'],
+      examples: [
+        'emotional release',
+        'new understanding',
+        'connecting patterns'
+      ],
+      isApplicable: (message: string, context: MessageContext) => {
+        const isGoalRelated = context.clientGoals.some((goal) =>
+          message.toLowerCase().includes(goal.toLowerCase())
+        );
+        return isGoalRelated;
+      },
+    },
+    {
+      name: 'Goal Alignment',
+      description: 'Aligns responses with client\'s therapeutic goals',
+      keywords: ['goal', 'objective', 'aim', 'target'],
+      examples: [
+        'How does this relate to your goal of...',
+        'This seems connected to your objective of...',
+      ],
+      isApplicable: (message: string, context: MessageContext) => {
+        const isGoalRelated = context.clientGoals.some((goal) =>
+          message.toLowerCase().includes(goal.toLowerCase())
+        );
+        return isGoalRelated;
+      },
+    },
+  ];
 }

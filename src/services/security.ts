@@ -11,14 +11,14 @@ interface AuditLog {
   metadata: Record<string, any>;
 }
 
-interface EncryptedData {
+export interface EncryptedData {
   data: string;
   iv: string;
 }
 
 export class SecurityService {
   private static instance: SecurityService;
-  private auditLogs: AuditLog[];
+  private auditLogs: Array<AuditLog>;
   private encryptionKey: string;
 
   private constructor() {
@@ -41,7 +41,7 @@ export class SecurityService {
     try {
       const iv = enc.Hex.parse(uuidv4().replace(/-/g, ''));
       const encrypted = AES.encrypt(JSON.stringify(data), this.encryptionKey, {
-        iv: iv,
+        iv,
       });
 
       return {
@@ -106,12 +106,12 @@ export class SecurityService {
 
   async anonymizeData(data: any): Promise<any> {
     const sensitiveFields = ['name', 'email', 'phone', 'address', 'ssn'];
-    
+
     const anonymize = (obj: any): any => {
       if (typeof obj !== 'object' || obj === null) return obj;
 
       if (Array.isArray(obj)) {
-        return obj.map(item => anonymize(item));
+        return obj.map(item: unknown => anonymize(item));
       }
 
       const anonymized: any = {};
@@ -162,7 +162,7 @@ export class SecurityService {
     userId?: string,
     startDate?: Date,
     endDate?: Date
-  ): AuditLog[] {
+  ): Array<AuditLog> {
     let filteredLogs = [...this.auditLogs];
 
     if (userId) {
@@ -174,7 +174,7 @@ export class SecurityService {
     }
 
     if (endDate) {
-      filteredLogs = filteredLogs.filter(log => log.timestamp <= endDate);
+      return filteredLogs.filter(log => log.timestamp <= endDate);
     }
 
     return filteredLogs;

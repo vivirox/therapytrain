@@ -143,7 +143,7 @@ const PeerReview: React.FC<PeerReviewProps> = ({
               
               {comment.rating && (
                 <div className="flex items-center gap-1">
-                  {[...Array(5)].map((_, i) => (
+                  {[...Array(5)].map((_: unknown, i) => (
                     <Star
                       key={i}
                       className={`h-4 w-4 ${
@@ -176,7 +176,7 @@ const PeerReview: React.FC<PeerReviewProps> = ({
           <Textarea
             placeholder="Share your professional feedback..."
             value={newComment}
-            onChange={(e) => setNewComment(e.target.value)}
+            onChange={(e: unknown) => setNewComment(e.target.value)}
             className="min-h-[100px]"
           />
 

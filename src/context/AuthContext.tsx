@@ -1,10 +1,27 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { Session } from '@supabase/supabase-js';
-import { supabase } from '../lib/supabase'; // Adjusted import path
-import { AuthContextType, AuthState } from '../types/auth'; // Corrected import path
-import { useToast } from '../hooks/use-toast'; // Corrected import path
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { Session, User } from '@supabase/supabase-js';
+import { supabase } from '@/lib/supabase';
+import { useToast } from '@/components/ui/use-toast';
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+interface AuthState {
+  session: Session | null;
+  user: User | null;
+  loading: boolean;
+  error: Error | null;
+}
+
+interface AuthContextType {
+  session: Session | null;
+  user: User | null;
+  loading: boolean;
+  error: Error | null;
+  signIn: (email: string, password: string) => Promise<void>;
+  signUp: (email: string, password: string) => Promise<void>;
+  signOut: () => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
+}
+
+const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [state, setState] = useState<AuthState>({
@@ -13,75 +30,58 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     loading: true,
     error: null,
   });
+
   const { toast } = useToast();
 
   useEffect(() => {
+    // Check active sessions and sets the user
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setState(prev => ({
-        ...prev,
-        session,
-        user: session?.user ?? null,
-        loading: false,
-      }));
+      setState(prev => ({ ...prev, session, user: session?.user ?? null, loading: false }));
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      setState(prev => ({
-        ...prev,
-        session,
-        user: session?.user ?? null,
-      }));
-
-      if (event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
-        setState(prev => ({ ...prev, loading: false }));
-      }
+    // Listen for changes on auth state (signed in, signed out, etc.)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: unknown, session: unknown) => {
+      setState(prev => ({ ...prev, session, user: session?.user ?? null }));
     });
 
-    return () => {
-      subscription.unsubscribe();
-    };
+    return () => subscription.unsubscribe();
   }, []);
 
   const signIn = async (email: string, password: string) => {
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
-      // Redirect after successful sign-in
-      window.location.href = `${window.location.origin}/dashboard`;
+      setState(prev => ({ ...prev, error: null }));
     } catch (error) {
-      toast({
-        title: "Error signing in",
-        description: error.message,
-        variant: "destructive",
-      });
-      setState(prev => ({ ...prev, error }));
+      if (error instanceof Error) {
+        setState(prev => ({ ...prev, error }));
+        toast({
+          variant: "destructive",
+          title: "Authentication Error",
+          description: error.message,
+        });
+      }
     }
   };
 
   const signUp = async (email: string, password: string) => {
     try {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/select-client`, // Add redirect URI
-        },
-      });
+      const { error } = await supabase.auth.signUp({ email, password });
       if (error) throw error;
+      setState(prev => ({ ...prev, error: null }));
       toast({
         title: "Success",
-        description: "Please check your email to verify your account",
+        description: "Please check your email for verification.",
       });
     } catch (error) {
-      toast({
-        title: "Error signing up",
-        description: error.message,
-        variant: "destructive",
-      });
-      setState(prev => ({ ...prev, error }));
+      if (error instanceof Error) {
+        setState(prev => ({ ...prev, error }));
+        toast({
+          variant: "destructive",
+          title: "Registration Error",
+          description: error.message,
+        });
+      }
     }
   };
 
@@ -89,13 +89,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
+      setState(prev => ({ ...prev, error: null, session: null, user: null }));
     } catch (error) {
-      toast({
-        title: "Error signing out",
-        description: error.message,
-        variant: "destructive",
-      });
-      setState(prev => ({ ...prev, error }));
+      if (error instanceof Error) {
+        setState(prev => ({ ...prev, error }));
+        toast({
+          variant: "destructive",
+          title: "Sign Out Error",
+          description: error.message,
+        });
+      }
     }
   };
 
@@ -104,16 +107,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const { error } = await supabase.auth.resetPasswordForEmail(email);
       if (error) throw error;
       toast({
-        title: "Password reset email sent",
-        description: "Please check your email for the reset link",
+        title: "Password Reset",
+        description: "Please check your email for password reset instructions.",
       });
     } catch (error) {
-      toast({
-        title: "Error resetting password",
-        description: error.message,
-        variant: "destructive",
-      });
-      setState(prev => ({ ...prev, error }));
+      if (error instanceof Error) {
+        toast({
+          variant: "destructive",
+          title: "Password Reset Error",
+          description: error.message,
+        });
+      }
     }
   };
 
@@ -123,14 +127,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signUp,
     signOut,
     resetPassword,
-    isAuthenticated: !!state.session,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
+
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;

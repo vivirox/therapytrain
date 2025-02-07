@@ -1,5 +1,5 @@
-import React, { createContext, useContext, ReactNode, useEffect, useState, useMemo } from 'react';
-import { User } from '@supabase/supabase-js';
+import { type FC, createContext, useContext, type ReactNode, useEffect, useState, useMemo } from 'react';
+import { type User } from '@supabase/supabase-js';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 
@@ -20,33 +20,41 @@ interface FeatureFlag {
 }
 
 interface AuthContextType {
-  isAuthenticated: boolean;
   user: User | null;
+  organizations: Organization[];
+  permissions: Permission[];
+  featureFlags: Record<string, boolean>;
+  loading: boolean;
+  error: Error | null;
+  isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
-  register: (email: string, password: string) => Promise<void>;
-  createOrg: (orgName: string) => Promise<void>;
-  permissions: Array<Permission>;
-  organizations: Array<Organization>;
-  hasPermission: (permissionId: string) => boolean;
-  isOrgAdmin: (orgId?: string) => boolean;
-  getFeatureFlag: (key: string) => FeatureFlag | null;
+  createOrg: (name: string) => Promise<void>;
   switchOrganization: (orgId: string) => Promise<void>;
+  hasPermission: (permission: string) => boolean;
+  isOrgAdmin: () => boolean;
+  getFeatureFlag: (flag: string) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
+interface AuthProviderProps {
+  children: ReactNode;
+}
+
 // Main Auth Provider component
-export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [permissions, setPermissions] = useState<Array<Permission>>([]);
-  const [organizations, setOrganizations] = useState<Array<Organization>>([]);
-  const [featureFlags, setFeatureFlags] = useState<Record<string, FeatureFlag>>({});
+  const [organizations, setOrganizations] = useState<Organization[]>([]);
+  const [permissions, setPermissions] = useState<Permission[]>([]);
+  const [featureFlags, setFeatureFlags] = useState<Record<string, boolean>>({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
     // Set up Supabase auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event: unknown, session: unknown) => {
       setUser(session?.user ?? null);
       if (event === 'SIGNED_IN') {
         navigate('/dashboard');
@@ -80,10 +88,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         return;
       }
 
-      setPermissions(data.map(p => ({
-        id: p.permission_id,
-        name: p.permission_name
-      })));
+      if (data) {
+        setPermissions(data.map(p: unknown: unknown => ({
+          id: p.permission_id,
+          name: p.permission_name
+        })));
+      }
     };
 
     // Fetch user organizations
@@ -98,11 +108,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         return;
       }
 
-      setOrganizations(data.map(o => ({
-        id: o.organizations[0]?.id,
-        name: o.organizations[0]?.name,
-        role: o.role
-      })));
+      if (data) {
+        setOrganizations(data.map(o: unknown: unknown => ({
+          id: o.organizations?.[0]?.id ?? '',
+          name: o.organizations?.[0]?.name ?? '',
+          role: o.role
+        })));
+      }
     };
 
     // Fetch feature flags
@@ -117,14 +129,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         return;
       }
 
-      const flagsRecord: Record<string, FeatureFlag> = {};
-      data.forEach(flag => {
-        flagsRecord[flag.key] = {
-          key: flag.key,
-          value: flag.value
-        };
-      });
-      setFeatureFlags(flagsRecord);
+      if (data) {
+        const flagsRecord: Record<string, boolean> = {};
+        data.forEach(flag: unknown: unknown => {
+          flagsRecord[flag.key] = flag.value === true;
+        });
+        setFeatureFlags(flagsRecord);
+      }
     };
 
     fetchPermissions();
@@ -161,19 +172,21 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const createOrg = async (orgName: string) => {
+    if (!user) return;
     const { error } = await supabase
       .from('organizations')
-      .insert([{ name: orgName, created_by: user?.id }]);
+      .insert([{ name: orgName, created_by: user.id }]);
     if (error) {
       throw error;
     }
   };
 
   const switchOrganization = async (orgId: string) => {
+    if (!user) return;
     const { error } = await supabase
       .from('user_organizations')
       .update({ is_active: true })
-      .eq('user_id', user?.id)
+      .eq('user_id', user.id)
       .eq('organization_id', orgId);
 
     if (error) {
@@ -186,36 +199,38 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return permissions.some(p => p.id === permissionId);
   };
 
-  const isOrgAdmin = (orgId?: string) => {
-    const org = organizations.find(o => !orgId || o.id === orgId);
-    return org?.role === 'admin';
+  const isOrgAdmin = () => {
+    const org = organizations.find(o => o.role === 'admin');
+    return !!org;
   };
 
-  const getFeatureFlag = (key: string): FeatureFlag | null => {
-    return featureFlags[key] || null;
+  const getFeatureFlag = (key: string): boolean => {
+    return featureFlags[key] || false;
   };
 
-  const value = {
-    isAuthenticated: !!user,
+  const value = useMemo<AuthContextType>(() => ({
     user,
+    organizations,
+    permissions,
+    featureFlags,
+    loading,
+    error,
+    isAuthenticated: !!user,
     login,
     logout,
-    register,
     createOrg,
-    permissions,
-    organizations,
+    switchOrganization,
     hasPermission,
     isOrgAdmin,
     getFeatureFlag,
-    switchOrganization
-  };
+  }), [user, permissions, organizations, featureFlags]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 // Auth context hook
 export const useAuth = () => {
-  const context = useMemo(() => useContext(AuthContext), []);
+  const context = useContext(AuthContext);
 
   if (!context) {
     throw new Error('useAuth must be used within an AuthProvider');
@@ -231,7 +246,7 @@ interface ProtectedRouteProps {
   requireOrgAdmin?: boolean;
 }
 
-export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
+export const ProtectedRoute: FC<ProtectedRouteProps> = ({
   children,
   requiredPermission,
   requireOrgAdmin

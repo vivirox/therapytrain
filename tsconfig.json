@@ -1,26 +1,53 @@
 {
   "compilerOptions": {
     "target": "ES2020",
-    "module": "preserve",
+    "useDefineForClassFields": true,
     "lib": [
-      "dom",
-      "es2020"
+      "ES2020",
+      "DOM",
+      "DOM.Iterable"
     ],
-    "outDir": "./dist",
-    "rootDir": "..",
-    "strict": true,
-    "esModuleInterop": true,
+    "module": "ESNext",
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
     "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
-    "jsx": "react",
-    "baseUrl": "..",
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "strict": false,
+    "noImplicitAny": false,
+    "strictNullChecks": false,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noFallthroughCasesInSwitch": false,
+    "allowJs": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
-    },
-    "types": ["node"]
+      "@/*": [
+        "./src/*"
+      ],
+      "@backend/*": [
+        "./backend/src/*"
+      ],
+      "@frontend/*": [
+        "./frontend/src/*"
+      ]
+    }
   },
-  "include": ["src/**/*", "../src/types/**/*"],
-  "exclude": ["node_modules", "dist"]
+  "include": [
+    "src",
+    "backend/src",
+    "frontend/src",
+    "vite.config.ts",
+    "vitest.config.ts"
+  ],
+  "references": [
+    {
+      "path": "./tsconfig.node.json"
+    }
+  ]
 }

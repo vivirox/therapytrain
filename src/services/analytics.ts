@@ -1,4 +1,6 @@
 import { LearningAnalytics } from '../types/education';
+import { SessionMetrics, ClientProgress, TherapistStats } from '@/types/api';
+import { supabase } from '@/lib/supabase';
 
 interface AnalyticsEvent {
   userId: string;
@@ -109,7 +111,7 @@ export class AnalyticsService {
         areasForImprovement: metrics.improvementAreas,
         patterns,
         recommendations,
-        skillGrowth: skillGrowthData.map(growth => ({
+        skillGrowth: skillGrowthData.map(growth: unknown: unknown => ({
           skillId: growth.skillId,
           growth: growth.growthRate,
           recentMilestones: growth.milestones.slice(-3)
@@ -161,7 +163,7 @@ export class AnalyticsService {
     const engagementPatterns = this.analyzeEngagementPatterns(trends);
     patterns.push(...engagementPatterns);
 
-    return patterns.sort((a, b) => b.significance - a.significance);
+    return patterns.sort((a: unknown, b: unknown) => b.significance - a.significance);
   }
 
   private static analyzeTimingPatterns(
@@ -174,7 +176,7 @@ export class AnalyticsService {
     }));
 
     // Find optimal learning times
-    const hourlyAverages = new Array(24).fill(0).map((_, hour) => {
+    const hourlyAverages = new Array(24).fill(0).map((_: unknown, hour) => {
       const hourData = timeOfDayData.filter(d => d.hour === hour);
       return {
         hour,
@@ -293,8 +295,7 @@ export class AnalyticsService {
     const timePattern = patterns.find(p => p.pattern === 'Peak Learning Hours');
     if (timePattern) {
       recommendations.push(
-        `Schedule important learning sessions during your peak hours: ${
-          timePattern.description.split(':')[1]
+        `Schedule important learning sessions during your peak hours: ${timePattern.description.split(':')[1]
         }`
       );
     }
@@ -360,4 +361,127 @@ export class AnalyticsService {
       metadata: { interactionType, targetId }
     });
   }
+
+  async getSessionMetrics(sessionId: string): Promise<SessionMetrics> {
+    try {
+      const { data, error } = await supabase
+        .from('session_metrics')
+        .select('*')
+        .eq('session_id', sessionId)
+        .single();
+
+      if (error) throw error;
+
+      return {
+        duration: data.duration,
+        engagement: data.engagement_score,
+        progress: data.progress_score,
+        interventions: data.intervention_count,
+        riskLevel: data.risk_level,
+        goals: {
+          set: data.goals_set,
+          achieved: data.goals_achieved
+        }
+      };
+    } catch (error) {
+      console.error('Error fetching session metrics:', error);
+      throw new Error('Failed to fetch session metrics');
+    }
+  }
+
+  async getClientProgress(clientId: string): Promise<ClientProgress> {
+    try {
+      const { data: progressData, error: progressError } = await supabase
+        .from('client_progress')
+        .select('*')
+        .eq('client_id', clientId)
+        .single();
+
+      if (progressError) throw progressError;
+
+      const { data: goalsData, error: goalsError } = await supabase
+        .from('client_goals')
+        .select('*')
+        .eq('client_id', clientId);
+
+      if (goalsError) throw goalsError;
+
+      return {
+        overallProgress: progressData.overall_progress,
+        goalCompletion: {
+          completed: progressData.completed_goals,
+          total: progressData.total_goals,
+          goals: goalsData.map((goal: any) => ({
+            id: goal.id,
+            description: goal.description,
+            progress: goal.progress,
+            status: goal.status
+          }))
+        },
+        sessionMetrics: {
+          total: progressData.total_sessions,
+          completed: progressData.completed_sessions,
+          averageDuration: progressData.average_duration,
+          averageEngagement: progressData.average_engagement
+        }
+      };
+    } catch (error) {
+      console.error('Error fetching client progress:', error);
+      throw new Error('Failed to fetch client progress');
+    }
+  }
+
+  async getTherapistStats(therapistId: string): Promise<TherapistStats> {
+    try {
+      const { data, error } = await supabase
+        .from('therapist_stats')
+        .select('*')
+        .eq('therapist_id', therapistId)
+        .single();
+
+      if (error) throw error;
+
+      return {
+        activeClients: data.active_clients,
+        totalSessions: data.total_sessions,
+        averageSessionDuration: data.average_session_duration,
+        clientSatisfaction: data.client_satisfaction,
+        successRate: data.success_rate,
+        specialties: data.specialties,
+        availability: {
+          hours: data.available_hours,
+          slots: data.available_slots
+        },
+        certifications: {
+          active: data.active_certifications,
+          pending: data.pending_certifications
+        }
+      };
+    } catch (error) {
+      console.error('Error fetching therapist stats:', error);
+      throw new Error('Failed to fetch therapist stats');
+    }
+  }
+
+  async subscribeToSessionAnalytics(sessionId: string, callback: (payload: any) => void): Promise<void> {
+    const subscription = supabase
+      .channel('analytics')
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'session_analytics',
+        filter: `session_id=eq.${sessionId}`
+      }, (payload: any) => callback(payload));
+
+    // Handle cleanup when the component unmounts
+    subscription.on('error', () => {
+      console.error('Error subscribing to session analytics');
+    });
+
+    subscription.on('close', () => {
+      console.log('Session analytics subscription closed');
+    });
+  }
 }
+
+export const analyticsService = new AnalyticsService();

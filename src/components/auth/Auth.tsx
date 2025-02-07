@@ -1,7 +1,9 @@
+import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "./AuthProvider";
+import { Loading } from "../ui/loading";
 
-const Auth = () => {
+export const Auth = () => {
   const { isAuthenticated } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
@@ -18,12 +20,8 @@ const Auth = () => {
       navigate('/dashboard', { replace: true });
       return;
     }
-  }, [isAuthenticated, location.pathname]);
+  }, [isAuthenticated, location.pathname, navigate]);
 
   return <Loading fullScreen message="Processing authentication..." />;
 };
-import { useEffect as useReactEffect } from "react";import { Loading } from "../ui/loading";
-function useEffect(arg0: () => void, arg1: Array<(string | boolean)>) {
-  throw new Error("Function not implemented.");
-}
 

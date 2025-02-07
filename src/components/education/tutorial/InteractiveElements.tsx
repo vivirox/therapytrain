@@ -8,22 +8,22 @@ import { MdPsychology as Brain } from 'react-icons/md';
 interface DecisionTreeNode {
   id: string;
   content: string;
-  choices: {
+  choices: Array<{
     id: string;
     text: string;
     nextNodeId: string;
     feedback: string;
-  }[];
+  }>;
 }
 
 interface SimulationConfig {
   type: 'roleplay' | 'decision-tree' | 'simulation';
   data: {
-    nodes?: DecisionTreeNode[];
+    nodes?: Array<DecisionTreeNode>;
     scenario?: {
       setup: string;
       variables: Record<string, any>;
-      successCriteria: string[];
+      successCriteria: Array<string>;
     };
   };
 }
@@ -35,25 +35,25 @@ interface InteractiveElementProps {
 }
 
 const DecisionTreeElement: React.FC<{
-  nodes: DecisionTreeNode[];
-  onComplete: (path: string[]) => void;
+  nodes: Array<DecisionTreeNode>;
+  onComplete: (path: Array<string>) => void;
 }> = ({ nodes, onComplete }) => {
   const [currentNode, setCurrentNode] = React.useState(nodes[0]);
-  const [path, setPath] = React.useState<string[]>([nodes[0].id]);
+  const [path, setPath] = React.useState<Array<string>>([nodes[0].id]);
   const [selectedChoice, setSelectedChoice] = React.useState<string>('');
 
   const handleChoice = (choiceId: string) => {
-    const choice = currentNode.choices.find(c => c.id === choiceId);
+    const choice = currentNode.choices.find(c: unknown: unknown: unknown => c.id === choiceId);
     if (!choice) return;
 
-    const nextNode = nodes.find(n => n.id === choice.nextNodeId);
+    const nextNode = nodes.find(n: unknown: unknown: unknown => n.id === choice.nextNodeId);
     if (nextNode) {
       setPath([...path, nextNode.id]);
       setCurrentNode(nextNode);
       setSelectedChoice('');
-    } else {
-      onComplete(path);
+      return;
     }
+    onComplete(path);
   };
 
   return (
@@ -85,8 +85,8 @@ const SimulationElement: React.FC<{
   onProgress: (progress: number) => void;
   onComplete: (results: any) => void;
 }> = ({ config, onProgress, onComplete }) => {
-  const [variables, setVariables] = React.useState(config?.variables || {});
-  const [steps, setSteps] = React.useState<string[]>([]);
+  const [variables,] = React.useState(config?.variables || {});
+  const [steps, setSteps] = React.useState<Array<string>>([]);
 
   const updateSimulation = (action: string) => {
     // Here we would implement the simulation logic
@@ -126,7 +126,7 @@ const SimulationElement: React.FC<{
         <Textarea
           placeholder="Enter your action..."
           className="mt-4"
-          onKeyPress={(e) => {
+          onKeyPress={(e: unknown) => {
             if (e.key === 'Enter') {
               updateSimulation((e.target as HTMLTextAreaElement).value);
               (e.target as HTMLTextAreaElement).value = '';
@@ -148,7 +148,7 @@ export const InteractiveElement: React.FC<InteractiveElementProps> = ({
       return (
         <DecisionTreeElement
           nodes={config.data.nodes || []}
-          onComplete={(path) => onComplete({ type: 'decision-tree', path })}
+          onComplete={(path: unknown) => onComplete({ type: 'decision-tree', path })}
         />
       );
     case 'simulation':

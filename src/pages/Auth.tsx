@@ -59,14 +59,14 @@ const AuthPage = () => {
             type="email"
             placeholder="Email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e: unknown) => setEmail(e.target.value)}
             className="w-full p-2 border border-gray-300 rounded"
           />
           <input
             type="password"
             placeholder="Password"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e: unknown) => setPassword(e.target.value)}
             className="w-full p-2 border border-gray-300 rounded"
           />
           <Button

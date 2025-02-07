@@ -1,4 +1,4 @@
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { createRouteHandlerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { type Message } from '../../ollama/process';
 import { TherapeuticAIProcessor } from '@/ai/processor';
