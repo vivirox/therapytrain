@@ -57,7 +57,7 @@ const Features: FC = () => {
           <div className="pl-8">
             <div className="flex items-center gap-4 mb-6">
               <div className="bg-blue-500/10 p-3 rounded-xl">
-                <MdSmartToy className="w-8 h-8 text-blue-500" />
+                <MdSmartToy className="w-8 h-8 text-blue-500" ></MdSmartToy>
               </div>
               <h2 className="text-3xl font-bold">Advanced Simulation & Feedback</h2>
             </div>
@@ -67,7 +67,7 @@ const Features: FC = () => {
             <div className="grid grid-cols-2 gap-6">
               <div className="bg-[#1A1A1D] p-6 rounded-xl hover:bg-[#1A1A1D]/80 transition-colors">
                 <h3 className="text-xl font-semibold mb-3 flex items-center gap-2">
-                  <MdAutoAwesome className="text-blue-500" />
+                  <MdAutoAwesome className="text-blue-500" ></MdAutoAwesome>
                   Real-time Analysis
                 </h3>
                 <p className="text-gray-400">
@@ -76,7 +76,7 @@ const Features: FC = () => {
               </div>
               <div className="bg-[#1A1A1D] p-6 rounded-xl hover:bg-[#1A1A1D]/80 transition-colors">
                 <h3 className="text-xl font-semibold mb-3 flex items-center gap-2">
-                  <MdAnalytics className="text-purple-500" />
+                  <MdAnalytics className="text-purple-500" ></MdAnalytics>
                   Comprehensive Tracking
                 </h3>
                 <p className="text-gray-400">
@@ -92,7 +92,7 @@ const Features: FC = () => {
           <div className="pl-8">
             <div className="flex items-center gap-4 mb-6">
               <div className="bg-purple-500/10 p-3 rounded-xl">
-                <MdPsychology className="w-8 h-8 text-purple-500" />
+                <MdPsychology className="w-8 h-8 text-purple-500" ></MdPsychology>
               </div>
               <h2 className="text-3xl font-bold">Skill Development</h2>
             </div>
@@ -101,7 +101,7 @@ const Features: FC = () => {
             </p>
             <div className="bg-[#1A1A1D] p-6 rounded-xl hover:bg-[#1A1A1D]/80 transition-colors">
               <h3 className="text-xl font-semibold mb-3 flex items-center gap-2">
-                <MdPeople className="text-green-500" />
+                <MdPeople className="text-green-500" ></MdPeople>
                 Adaptive Learning
               </h3>
               <p className="text-gray-400">
@@ -116,7 +116,7 @@ const Features: FC = () => {
           <div className="pl-8">
             <div className="flex items-center gap-4 mb-6">
               <div className="bg-green-500/10 p-3 rounded-xl">
-                <MdSchool className="w-8 h-8 text-green-500" />
+                <MdSchool className="w-8 h-8 text-green-500" ></MdSchool>
               </div>
               <h2 className="text-3xl font-bold">Professional Growth</h2>
             </div>
@@ -125,7 +125,7 @@ const Features: FC = () => {
             </p>
             <div className="bg-[#1A1A1D] p-6 rounded-xl hover:bg-[#1A1A1D]/80 transition-colors">
               <h3 className="text-xl font-semibold mb-3 flex items-center gap-2">
-                <MdStar className="text-yellow-500" />
+                <MdStar className="text-yellow-500" ></MdStar>
                 Continuous Learning
               </h3>
               <p className="text-gray-400">
@@ -140,7 +140,7 @@ const Features: FC = () => {
           <div className="pl-8">
             <div className="flex items-center gap-4 mb-6">
               <div className="bg-green-500/10 p-3 rounded-xl">
-                <MdSecurity className="w-8 h-8 text-green-500" />
+                <MdSecurity className="w-8 h-8 text-green-500" ></MdSecurity>
               </div>
               <h2 className="text-3xl font-bold">Privacy-First Architecture</h2>
             </div>
@@ -150,19 +150,19 @@ const Features: FC = () => {
             <div className="grid grid-cols-3 gap-6">
               <div className="bg-[#1A1A1D] p-6 rounded-xl hover:bg-[#1A1A1D]/80 transition-colors">
                 <div className="flex items-start gap-3">
-                  <MdStar className="w-5 h-5 text-yellow-500 mt-1 flex-shrink-0" />
+                  <MdStar className="w-5 h-5 text-yellow-500 mt-1 flex-shrink-0" ></MdStar>
                   <span className="text-gray-400">End-to-end encryption for all communications</span>
                 </div>
               </div>
               <div className="bg-[#1A1A1D] p-6 rounded-xl hover:bg-[#1A1A1D]/80 transition-colors">
                 <div className="flex items-start gap-3">
-                  <MdStar className="w-5 h-5 text-yellow-500 mt-1 flex-shrink-0" />
+                  <MdStar className="w-5 h-5 text-yellow-500 mt-1 flex-shrink-0" ></MdStar>
                   <span className="text-gray-400">Zero-knowledge proofs for data verification</span>
                 </div>
               </div>
               <div className="bg-[#1A1A1D] p-6 rounded-xl hover:bg-[#1A1A1D]/80 transition-colors">
                 <div className="flex items-start gap-3">
-                  <MdStar className="w-5 h-5 text-yellow-500 mt-1 flex-shrink-0" />
+                  <MdStar className="w-5 h-5 text-yellow-500 mt-1 flex-shrink-0" ></MdStar>
                   <span className="text-gray-400">Role-based access control & audit trails</span>
                 </div>
               </div>

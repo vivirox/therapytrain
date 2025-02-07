@@ -69,17 +69,17 @@ const Index: FC = () => {
           <h2 className="text-3xl font-bold text-center mb-16">Key Features</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="bg-[#1A1A1D] p-8 rounded-lg">
-              <MdSecurity className="w-12 h-12 text-blue-500 mb-4" />
+              <MdSecurity className="w-12 h-12 text-blue-500 mb-4" ></MdSecurity>
               <h3 className="text-xl font-semibold mb-4">HIPAA Compliant</h3>
               <p className="text-gray-400">Our platform ensures the highest standards of data protection and privacy for all users.</p>
             </div>
             <div className="bg-[#1A1A1D] p-8 rounded-lg">
-              <MdLock className="w-12 h-12 text-purple-500 mb-4" />
+              <MdLock className="w-12 h-12 text-purple-500 mb-4" ></MdLock>
               <h3 className="text-xl font-semibold mb-4">Secure Environment</h3>
               <p className="text-gray-400">Advanced encryption guarantees the confidentiality of all training sessions and user data.</p>
             </div>
             <div className="bg-[#1A1A1D] p-8 rounded-lg">
-              <MdBolt className="w-12 h-12 text-yellow-500 mb-4" />
+              <MdBolt className="w-12 h-12 text-yellow-500 mb-4" ></MdBolt>
               <h3 className="text-xl font-semibold mb-4">Real-time Feedback</h3>
               <p className="text-gray-400">Receive immediate, AI-generated evaluations of your therapeutic approaches.</p>
             </div>
@@ -93,22 +93,22 @@ const Index: FC = () => {
           <h2 className="text-3xl font-bold text-center mb-16">Why Choose TherapyTrain AI?</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="bg-[#1A1A1D] p-8 rounded-lg">
-              <MdGroups className="w-12 h-12 text-blue-500 mb-4" />
+              <MdGroups className="w-12 h-12 text-blue-500 mb-4" ></MdGroups>
               <h3 className="text-xl font-semibold mb-4">Diverse Case Studies</h3>
               <p className="text-gray-400">Experience a wide range of client presentations and therapeutic challenges.</p>
             </div>
             <div className="bg-[#1A1A1D] p-8 rounded-lg">
-              <MdMilitaryTech className="w-12 h-12 text-yellow-500 mb-4" />
+              <MdMilitaryTech className="w-12 h-12 text-yellow-500 mb-4" ></MdMilitaryTech>
               <h3 className="text-xl font-semibold mb-4">Skill Certification</h3>
               <p className="text-gray-400">Earn certificates as you progress through different levels of therapeutic challenges.</p>
             </div>
             <div className="bg-[#1A1A1D] p-8 rounded-lg">
-              <MdAutoAwesome className="w-12 h-12 text-green-500 mb-4" />
+              <MdAutoAwesome className="w-12 h-12 text-green-500 mb-4" ></MdAutoAwesome>
               <h3 className="text-xl font-semibold mb-4">Adaptive Learning</h3>
               <p className="text-gray-400">Our AI adjusts the difficulty based on your performance, ensuring personalized learning.</p>
             </div>
             <div className="bg-[#1A1A1D] p-8 rounded-lg">
-              <MdPsychology className="w-12 h-12 text-purple-500 mb-4" />
+              <MdPsychology className="w-12 h-12 text-purple-500 mb-4" ></MdPsychology>
               <h3 className="text-xl font-semibold mb-4">Evidence-Based Approaches</h3>
               <p className="text-gray-400">All simulations are grounded in the latest research and best practices in psychotherapy.</p>
             </div>

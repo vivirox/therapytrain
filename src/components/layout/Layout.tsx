@@ -18,7 +18,7 @@ export const Layout: FC<LayoutProps> = ({ children }) => {
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center">
               <Link to="/" className="flex items-center">
-                <MdPsychology className="h-8 w-8 text-blue-500" />
+                <MdPsychology className="h-8 w-8 text-blue-500" ></MdPsychology>
                 <span className="ml-2 text-xl font-bold">TherapyTrain AI</span>
               </Link>
             </div>
@@ -49,7 +49,7 @@ export const Layout: FC<LayoutProps> = ({ children }) => {
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex items-center mb-4 md:mb-0">
               <Link to="/" className="flex items-center">
-                <MdPsychology className="h-6 w-6 text-blue-500" />
+                <MdPsychology className="h-6 w-6 text-blue-500" ></MdPsychology>
                 <span className="ml-2 text-lg font-bold">TherapyTrain AI</span>
               </Link>
             </div>

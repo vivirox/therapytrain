@@ -30,7 +30,7 @@ const BenefitCard: FC<{
             <ul className="space-y-3">
                 {points.map((point, index) => (
                     <li key={index} className="flex items-start gap-3">
-                        <MdCheck className="w-5 h-5 text-green-500 mt-1 flex-shrink-0" />
+                        <MdCheck className="w-5 h-5 text-green-500 mt-1 flex-shrink-0" ></MdCheck>
                         <span className="text-gray-400">{point}</span>
                     </li>
                 ))}
@@ -44,7 +44,7 @@ const Benefits: FC = () => {
 
     const benefits = [
         {
-            icon: <MdTrendingUp className="w-8 h-8 text-white" />,
+            icon: <MdTrendingUp className="w-8 h-8 text-white" ></MdTrendingUp>,
             title: "Comprehensive Skill Development",
             description: "Master therapeutic techniques through our structured progression system.",
             points: [
@@ -55,7 +55,7 @@ const Benefits: FC = () => {
             color: "bg-blue-500"
         },
         {
-            icon: <MdTimer className="w-8 h-8 text-white" />,
+            icon: <MdTimer className="w-8 h-8 text-white" ></MdTimer>,
             title: "Enhanced Learning Experience",
             description: "Accelerate your professional development with AI-powered training.",
             points: [
@@ -66,7 +66,7 @@ const Benefits: FC = () => {
             color: "bg-purple-500"
         },
         {
-            icon: <MdAttachMoney className="w-8 h-8 text-white" />,
+            icon: <MdAttachMoney className="w-8 h-8 text-white" ></MdAttachMoney>,
             title: "Future-Ready Platform",
             description: "Stay ahead with cutting-edge technology and security.",
             points: [
@@ -80,22 +80,22 @@ const Benefits: FC = () => {
 
     const additionalBenefits = [
         {
-            icon: <MdWorkspaces className="w-6 h-6 text-white" />,
+            icon: <MdWorkspaces className="w-6 h-6 text-white" ></MdWorkspaces>,
             title: "Multi-Modal Training",
             description: "Practice through video, text, and interactive simulations"
         },
         {
-            icon: <MdPsychology className="w-6 h-6 text-white" />,
+            icon: <MdPsychology className="w-6 h-6 text-white" ></MdPsychology>,
             title: "Real-time Analytics",
             description: "Get instant feedback on therapeutic techniques"
         },
         {
-            icon: <MdSchool className="w-6 h-6 text-white" />,
+            icon: <MdSchool className="w-6 h-6 text-white" ></MdSchool>,
             title: "Professional Development",
             description: "Earn CE credits while enhancing your skills"
         },
         {
-            icon: <MdStars className="w-6 h-6 text-white" />,
+            icon: <MdStars className="w-6 h-6 text-white" ></MdStars>,
             title: "HIPAA Compliance",
             description: "Train with confidence on a secure platform"
         }
@@ -140,7 +140,7 @@ const Benefits: FC = () => {
             <div className="grid grid-cols-2 gap-6 mb-24">
                 {benefits.map((benefit, index) => (
                     <div key={index} className={index === 2 ? "col-span-2" : ""}>
-                        <BenefitCard {...benefit} />
+                        <BenefitCard {...benefit} ></BenefitCard>
                     </div>
                 ))}
             </div>

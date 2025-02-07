@@ -1,154 +1,130 @@
 import React, { useState, useEffect } from 'react';
-import { Card } from '../ui/card';
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
-import { Textarea } from '../ui/textarea';
-import { Badge } from '../ui/badge';
-import { Avatar, AvatarImage, AvatarFallback } from '../ui/avatar';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
-import {
-  MdGroups as Users,
-  MdMessage as MessageSquare,
-  MdShare as Share2,
-  MdThumbUp as ThumbsUp,
-  MdMenuBook as BookOpen,
-  MdAdd as Plus,
-  MdCalendarMonth as Calendar,
-  MdSearch as Search
-} from 'react-icons/md';
-
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { MdGroups as Users, MdMessage as MessageSquare, MdShare as Share2, MdThumbUp as ThumbsUp, MdMenuBook as BookOpen, MdAdd as Plus, MdCalendarMonth as Calendar, MdSearch as Search } from 'react-icons/md';
 interface PeerDiscussion {
-  id: string;
-  title: string;
-  content: string;
-  authorId: string;
-  authorName: string;
-  authorAvatar?: string;
-  tags: Array<string>;
-  createdAt: Date;
-  likes: number;
-  replies: Array<{
     id: string;
+    title: string;
     content: string;
     authorId: string;
     authorName: string;
     authorAvatar?: string;
+    tags: Array<string>;
     createdAt: Date;
-  }>;
+    likes: number;
+    replies: Array<{
+        id: string;
+        content: string;
+        authorId: string;
+        authorName: string;
+        authorAvatar?: string;
+        createdAt: Date;
+    }>;
 }
-
 interface StudyGroup {
-  id: string;
-  name: string;
-  description: string;
-  members: Array<{
     id: string;
     name: string;
-    avatar?: string;
-    role: 'leader' | 'member';
-  }>;
-  meetingSchedule?: {
-    day: string;
-    time: string;
-    frequency: 'weekly' | 'biweekly' | 'monthly';
-  };
-  topics: Array<string>;
-  upcomingSession?: {
-    date: Date;
-    topic: string;
-    materials: Array<string>;
-  };
-}
-
-interface PeerLearningProps {
-  userId: string;
-}
-
-export const PeerLearning: React.FC<PeerLearningProps> = ({ userId }) => {
-  const [discussions, setDiscussions] = useState<Array<PeerDiscussion>>([]);
-  const [studyGroups, setStudyGroups] = useState<Array<StudyGroup>>([]);
-  const [newDiscussion, setNewDiscussion] = useState({ title: '', content: '', tags: [] });
-  const [searchTerm, setSearchTerm] = useState('');
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchPeerContent = async () => {
-      try {
-        const [discussionsRes, groupsRes] = await Promise.all([
-          fetch('/api/peer-discussions'),
-          fetch('/api/study-groups')
-        ]);
-
-        if (discussionsRes.ok && groupsRes.ok) {
-          const [discussionsData, groupsData] = await Promise.all([
-            discussionsRes.json(),
-            groupsRes.json()
-          ]);
-
-          setDiscussions(discussionsData);
-          setStudyGroups(groupsData);
-        }
-      } catch (error) {
-        console.error('Error fetching peer content:', error);
-      } finally {
-        setLoading(false);
-      }
+    description: string;
+    members: Array<{
+        id: string;
+        name: string;
+        avatar?: string;
+        role: 'leader' | 'member';
+    }>;
+    meetingSchedule?: {
+        day: string;
+        time: string;
+        frequency: 'weekly' | 'biweekly' | 'monthly';
     };
-
-    fetchPeerContent();
-  }, []);
-
-  const createDiscussion = async () => {
-    try {
-      const response = await fetch('/api/peer-discussions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...newDiscussion,
-          authorId: userId,
-          createdAt: new Date().toISOString()
-        })
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setDiscussions(prev => [data, ...prev]);
-        setNewDiscussion({ title: '', content: '', tags: [] });
-      }
-    } catch (error) {
-      console.error('Error creating discussion:', error);
-    }
-  };
-
-  const joinStudyGroup = async (groupId: string) => {
-    try {
-      await fetch(`/api/study-groups/${groupId}/join`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId })
-      });
-
-      setStudyGroups(prev =>
-        prev.map(group =>
-          group.id === groupId
-            ? {
-              ...group,
-              members: [...group.members, { id: userId, name: '', role: 'member' }]
+    topics: Array<string>;
+    upcomingSession?: {
+        date: Date;
+        topic: string;
+        materials: Array<string>;
+    };
+}
+interface PeerLearningProps {
+    userId: string;
+}
+export const PeerLearning = ({ userId }: PeerLearningProps) => {
+    const [discussions, setDiscussions] = useState<Array<PeerDiscussion>>([]);
+    const [studyGroups, setStudyGroups] = useState<Array<StudyGroup>>([]);
+    const [newDiscussion, setNewDiscussion] = useState({ title: '', content: '', tags: [] });
+    const [searchTerm, setSearchTerm] = useState<string>('');
+    const [loading, setLoading] = useState<boolean>(true);
+    useEffect(() => {
+        const fetchPeerContent = async () => {
+            try {
+                const [discussionsRes, groupsRes] = await Promise.all([
+                    fetch('/api/peer-discussions'),
+                    fetch('/api/study-groups')
+                ]);
+                if (discussionsRes.ok && groupsRes.ok) {
+                    const [discussionsData, groupsData] = await Promise.all([
+                        discussionsRes.json(),
+                        groupsRes.json()
+                    ]);
+                    setDiscussions(discussionsData);
+                    setStudyGroups(groupsData);
+                }
             }
-            : group
-        )
-      );
-    } catch (error) {
-      console.error('Error joining study group:', error);
+            catch (error) {
+                console.error('Error fetching peer content:', error);
+            }
+            finally {
+                setLoading(false);
+            }
+        };
+        fetchPeerContent();
+    }, []);
+    const createDiscussion = async () => {
+        try {
+            const response = await fetch('/api/peer-discussions', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    ...newDiscussion,
+                    authorId: userId,
+                    createdAt: new Date().toISOString()
+                })
+            });
+            if (response.ok) {
+                const data = await response.json();
+                setDiscussions(prev => [data, ...prev]);
+                setNewDiscussion({ title: '', content: '', tags: [] });
+            }
+        }
+        catch (error) {
+            console.error('Error creating discussion:', error);
+        }
+    };
+    const joinStudyGroup = async (groupId: string) => {
+        try {
+            await fetch(`/api/study-groups/${groupId}/join`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId })
+            });
+            setStudyGroups(prev => prev.map(group => group.id === groupId
+                ? {
+                    ...group,
+                    members: [...group.members, { id: userId, name: '', role: 'member' }]
+                }
+                : group));
+        }
+        catch (error) {
+            console.error('Error joining study group:', error);
+        }
+    };
+    if (loading) {
+        return <div>Loading...</div>;
     }
-  };
-
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-
-  return (
-    <div className="max-w-6xl mx-auto p-6 space-y-8">
+    return (<div className="max-w-6xl mx-auto p-6 space-y-8">
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-3xl font-bold">Peer Learning Hub</h1>
         <Dialog>
@@ -163,29 +139,12 @@ export const PeerLearning: React.FC<PeerLearningProps> = ({ userId }) => {
               <DialogTitle>Create New Discussion</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
-              <Input
-                placeholder="Discussion title"
-                value={newDiscussion.title}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  setNewDiscussion(prev => ({ ...prev, title: e.target.value }))
-                }
-              />
-              <Textarea
-                placeholder="Share your thoughts or questions..."
-                value={newDiscussion.content}
-                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-                  setNewDiscussion(prev => ({ ...prev, content: e.target.value }))
-                }
-              />
-              <Input
-                placeholder="Add tags (comma-separated)"
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  setNewDiscussion(prev => ({
-                    ...prev,
-                    tags: e.target.value.split(',').map(tag: unknown => tag.trim())
-                  }))
-                }
-              />
+              <Input placeholder="Discussion title" value={newDiscussion.title} onChange={(e) => setNewDiscussion(prev => ({ ...prev, title: e.target.value }))}/>
+              <Textarea placeholder="Share your thoughts or questions..." value={newDiscussion.content} onChange={(e) => setNewDiscussion(prev => ({ ...prev, content: e.target.value }))}/>
+              <Input placeholder="Add tags (comma-separated)" onChange={(e) => setNewDiscussion(prev => ({
+            ...prev,
+            tags: e.target.value.split(',').map(tag => tag.trim())
+        }))}/>
               <Button onClick={createDiscussion}>Post Discussion</Button>
             </div>
           </DialogContent>
@@ -198,26 +157,17 @@ export const PeerLearning: React.FC<PeerLearningProps> = ({ userId }) => {
           <Card className="p-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-              <Input
-                className="pl-10"
-                placeholder="Search discussions..."
-                value={searchTerm}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
-              />
+              <Input className="pl-10" placeholder="Search discussions..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}/>
             </div>
           </Card>
 
           {discussions
-            .filter(
-              discussion =>
-                discussion.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                discussion.content.toLowerCase().includes(searchTerm.toLowerCase())
-            )
-            .map(discussion => (
-              <Card key={discussion.id} className="p-6">
+            .filter(discussion => discussion.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            discussion.content.toLowerCase().includes(searchTerm.toLowerCase()))
+            .map(discussion => (<Card key={discussion.id} className="p-6">
                 <div className="flex items-start gap-4">
                   <Avatar>
-                    <AvatarImage src={discussion.authorAvatar} />
+                    <AvatarImage src={discussion.authorAvatar} alt={discussion.authorName} />
                     <AvatarFallback>
                       {discussion.authorName.charAt(0)}
                     </AvatarFallback>
@@ -234,11 +184,9 @@ export const PeerLearning: React.FC<PeerLearningProps> = ({ userId }) => {
                     </p>
                     <p className="mb-4">{discussion.content}</p>
                     <div className="flex flex-wrap gap-2 mb-4">
-                      {discussion.tags.map(tag => (
-                        <Badge key={tag} variant="secondary">
+                      {discussion.tags.map(tag => (<Badge key={tag} variant="secondary">
                           {tag}
-                        </Badge>
-                      ))}
+                        </Badge>))}
                     </div>
                     <div className="flex items-center gap-4 text-sm text-gray-400">
                       <button className="flex items-center gap-1">
@@ -256,15 +204,13 @@ export const PeerLearning: React.FC<PeerLearningProps> = ({ userId }) => {
                     </div>
                   </div>
                 </div>
-              </Card>
-            ))}
+              </Card>))}
         </div>
 
         {/* Study Groups Column */}
         <div className="space-y-6">
           <h2 className="text-xl font-semibold mb-4">Study Groups</h2>
-          {studyGroups.map(group => (
-            <Card key={group.id} className="p-6">
+          {studyGroups.map(group => (<Card key={group.id} className="p-6">
               <div className="space-y-4">
                 <div className="flex items-start justify-between">
                   <div>
@@ -275,11 +221,9 @@ export const PeerLearning: React.FC<PeerLearningProps> = ({ userId }) => {
                 </div>
 
                 <div className="flex flex-wrap gap-2">
-                  {group.topics.map(topic => (
-                    <Badge key={topic} variant="outline">
+                  {group.topics.map(topic => (<Badge key={topic} variant="outline">
                       {topic}
-                    </Badge>
-                  ))}
+                    </Badge>))}
                 </div>
 
                 <div className="flex items-center gap-2 text-sm text-gray-400">
@@ -287,38 +231,26 @@ export const PeerLearning: React.FC<PeerLearningProps> = ({ userId }) => {
                   <span>{group.members.length} members</span>
                 </div>
 
-                {group.upcomingSession && (
-                  <div className="flex items-start gap-2 text-sm">
+                {group.upcomingSession && (<div className="flex items-start gap-2 text-sm">
                     <Calendar className="w-4 h-4 text-primary mt-1" />
                     <div>
                       <div className="font-medium">Next Session</div>
                       <div className="text-gray-400">
-                        {new Date(
-                          group.upcomingSession.date
-                        ).toLocaleDateString()}{' '}
+                        {new Date(group.upcomingSession.date).toLocaleDateString()}{' '}
                         - {group.upcomingSession.topic}
                       </div>
                     </div>
-                  </div>
-                )}
+                  </div>)}
 
-                <Button
-                  variant="outline"
-                  className="w-full"
-                  onClick={() => joinStudyGroup(group.id)}
-                  disabled={group.members.some(member => member.id === userId)}
-                >
+                <Button variant="outline" className="w-full" onClick={() => joinStudyGroup(group.id)} disabled={group.members.some(member => member.id === userId)}>
                   {group.members.some(member => member.id === userId)
-                    ? 'Joined'
-                    : 'Join Group'}
+                ? 'Joined'
+                : 'Join Group'}
                 </Button>
               </div>
-            </Card>
-          ))}
+            </Card>))}
         </div>
       </div>
-    </div>
-  );
+    </div>);
 };
-
 export default PeerLearning;

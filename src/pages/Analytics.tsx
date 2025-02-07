@@ -1,7 +1,7 @@
 import React from 'react';
 import { MetricsDashboard } from '@/components/MetricsDashboard';
 
-const Analytics: React.FC = () => {
+const Analytics: React.FC =    () => {
   return (
     <div className="min-h-screen bg-gradient-radial from-[#0A0A0B] via-gray-900 to-black text-white">
       <div className="max-w-7xl mx-auto py-8">
@@ -9,7 +9,7 @@ const Analytics: React.FC = () => {
           Analytics Dashboard
         </h1>
         <div className="bg-gradient-radial from-gray-800/30 to-transparent p-6 rounded-xl">
-          <MetricsDashboard />
+          <MetricsDashboard ></MetricsDashboard>
         </div>
       </div>
     </div>

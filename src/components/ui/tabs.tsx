@@ -1,14 +1,14 @@
 import * as React from "react"
 import * as TabsPrimitive from "@radix-ui/react-tabs"
-
-import { cn } from "../../lib/utils"
+import { cn } from "@/lib/utils"
+import { BaseProps } from './types'
 
 const Tabs = TabsPrimitive.Root
 
 const TabsList = React.forwardRef<
   React.ElementRef<typeof TabsPrimitive.List>,
-  React.ComponentPropsWithoutRef<typeof TabsPrimitive.List>
->(({ className, ...props }: unknown, ref) => (
+  React.ComponentPropsWithoutRef<typeof TabsPrimitive.List> & BaseProps
+>(({ className, ...props }, ref) => (
   <TabsPrimitive.List
     ref={ref}
     className={cn(
@@ -22,8 +22,8 @@ TabsList.displayName = TabsPrimitive.List.displayName
 
 const TabsTrigger = React.forwardRef<
   React.ElementRef<typeof TabsPrimitive.Trigger>,
-  React.ComponentPropsWithoutRef<typeof TabsPrimitive.Trigger>
->(({ className, ...props }: unknown, ref) => (
+  React.ComponentPropsWithoutRef<typeof TabsPrimitive.Trigger> & BaseProps
+>(({ className, ...props }, ref) => (
   <TabsPrimitive.Trigger
     ref={ref}
     className={cn(
@@ -37,8 +37,8 @@ TabsTrigger.displayName = TabsPrimitive.Trigger.displayName
 
 const TabsContent = React.forwardRef<
   React.ElementRef<typeof TabsPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof TabsPrimitive.Content>
->(({ className, ...props }: unknown, ref) => (
+  React.ComponentPropsWithoutRef<typeof TabsPrimitive.Content> & BaseProps
+>(({ className, ...props }, ref) => (
   <TabsPrimitive.Content
     ref={ref}
     className={cn(

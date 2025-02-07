@@ -1,35 +1,41 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { AuthState } from '@/types/auth';
 
-interface User {
-  id: string;
-  email: string;
-  name: string;
-  role: 'therapist' | 'supervisor' | 'admin';
-  specializations: string[];
-}
-
-interface AuthState {
-  user: User | null;
-  token: string | null;
-  isAuthenticated: boolean;
-  setUser: (user: User | null) => void;
-  setToken: (token: string | null) => void;
+interface AuthStore extends AuthState {
+  setUser: (user: AuthState['user']) => void;
+  setToken: (token: AuthState['token']) => void;
   logout: () => void;
 }
 
-export const useAuth = create<AuthState>()(
+const initialState: AuthState = {
+  user: null,
+  token: null,
+  isAuthenticated: false,
+};
+
+export const useAuth = create<AuthStore>()(
   persist(
-    (set: unknown) => ({
-      user: null,
-      token: null,
-      isAuthenticated: false,
-      setUser: (user: unknown) => set({ user, isAuthenticated: !!user }),
-      setToken: (token: unknown) => set({ token }),
-      logout: () => set({ user: null, token: null, isAuthenticated: false }),
+    (set) => ({
+      ...initialState,
+      setUser: (user) => set((state) => ({ 
+        ...state, 
+        user, 
+        isAuthenticated: !!user 
+      })),
+      setToken: (token) => set((state) => ({ 
+        ...state, 
+        token 
+      })),
+      logout: () => set(initialState),
     }),
     {
       name: 'auth-storage',
+      partialize: (state) => ({
+        user: state.user,
+        token: state.token,
+        isAuthenticated: state.isAuthenticated,
+      }),
     }
   )
 );

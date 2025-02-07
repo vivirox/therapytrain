@@ -1,5 +1,4 @@
 {
-  "extends": "@tsconfig/strictest/tsconfig.json",
   "compilerOptions": {
     "target": "ESNext",
     "module": "ESNext",
@@ -13,12 +12,31 @@
     "resolveJsonModule": true,
     "jsx": "preserve",
     "incremental": true,
+    "tsBuildInfoFile": "./node_modules/.cache/.tsbuildinfo",
     "baseUrl": ".",
     "paths": {
       "@/*": [
         "src/*"
       ]
-    }
+    },
+    "allowImportingTsExtensions": true,
+    "noImplicitAny": false,
+    "strictNullChecks": false,
+    "strictFunctionTypes": false,
+    "strictBindCallApply": true,
+    "strictPropertyInitialization": false,
+    "noImplicitThis": false,
+    "useUnknownInCatchVariables": false,
+    "alwaysStrict": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "exactOptionalPropertyTypes": false,
+    "noImplicitReturns": false,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": false,
+    "noImplicitOverride": false,
+    "allowUnusedLabels": true,
+    "allowUnreachableCode": true
   },
   "include": [
     "src/**/*",

@@ -1,5 +1,4 @@
-import { SecurityHeadersConfig } from '../security/SecurityHeadersService';
-
+import { SecurityHeadersConfig } from "@/security/SecurityHeadersService";
 export const securityConfig: Partial<SecurityHeadersConfig> = {
     enableHSTS: process.env.NODE_ENV === 'production',
     enableCSP: true,
@@ -55,7 +54,6 @@ export const securityConfig: Partial<SecurityHeadersConfig> = {
         reportUri: '/api/security/csp-report'
     }
 };
-
 export const webAuthnConfig = {
     rpName: 'TherapyTrain',
     rpID: process.env.WEBAUTHN_RP_ID || 'localhost',
@@ -65,7 +63,6 @@ export const webAuthnConfig = {
     authenticatorAttachment: 'platform' as const,
     cryptoParams: [-7, -257] // ECDSA with SHA-256, RSA-PSS with SHA-256
 };
-
 export const rateLimitConfig = {
     windowMs: 15 * 60 * 1000, // 15 minutes
     max: 100, // Limit each IP to 100 requests per windowMs
@@ -74,7 +71,6 @@ export const rateLimitConfig = {
     skipSuccessfulRequests: false,
     keyGenerator: (req: any) => req.ip // Can be enhanced with user ID when authenticated
 };
-
 export const corsConfig = {
     origin: process.env.CORS_ORIGIN?.split(',') || ['http://localhost:3000'],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -83,7 +79,6 @@ export const corsConfig = {
     credentials: true,
     maxAge: 600 // 10 minutes
 };
-
 export const helmetConfig = {
     contentSecurityPolicy: false, // We handle CSP separately
     crossOriginEmbedderPolicy: true,
@@ -100,4 +95,4 @@ export const helmetConfig = {
     permittedCrossDomainPolicies: true,
     referrerPolicy: false, // We handle Referrer-Policy separately
     xssFilter: true
-}; 
+};

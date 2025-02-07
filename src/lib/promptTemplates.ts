@@ -1,28 +1,27 @@
 import type { ClientProfile } from '@/types/ClientProfile';
-
+import { ClientDocument } from '@/types/database.types';
 interface ClientProfile {
-  id: string;
-  age: number;
-  primary_issue: string;
-  complexity: string;
-  background: string;
-  key_traits: string[];
-  behavioral_patterns: string[];
-  communication_style: string;
-  defense_mechanisms: string[];
-  treatment_history: string;
-  therapeutic_challenges: string[];
-  description: string;
-  metadata?: {
-    history?: {
-      knownTriggers?: string[];
+    id: string;
+    age: number;
+    primary_issue: string;
+    complexity: string;
+    background: string;
+    key_traits: string[];
+    behavioral_patterns: string[];
+    communication_style: string;
+    defense_mechanisms: string[];
+    treatment_history: string;
+    therapeutic_challenges: string[];
+    description: string;
+    metadata?: {
+        history?: {
+            knownTriggers?: string[];
+        };
+        goals?: string[];
     };
-    goals?: string[];
-  };
 }
-
 export const generateClientPrompt = (client: ClientProfile): string => {
-  return `You are roleplaying as ${client.name}, a therapy client with the following profile:
+    return `You are roleplaying as ${client.name}, a therapy client with the following profile:
 
 Basic Information:
 - Age: ${client.age}
@@ -76,12 +75,11 @@ Never:
 
 Begin the session showing characteristic opening behaviors and communication style.`;
 };
-
-export const generateAnalysisPrompt = (
-  messages: Array<{ role: 'user' | 'assistant'; content: string; }>,
-  client: ClientProfile
-): string => {
-  return `Analyze this therapy session with ${client.name} who presents with ${client.primary_issue}.
+export const generateAnalysisPrompt = (messages: Array<{
+    role: 'user' | 'assistant';
+    content: string;
+}>, client: ClientProfile): string => {
+    return `Analyze this therapy session with ${client.name} who presents with ${client.primary_issue}.
 
 Session Context:
 - Client Profile: ${client.description}
@@ -115,13 +113,8 @@ Provide specific examples from the transcript to support your analysis.
 Session Transcript:
 ${messages.map(m => `${m.role.toUpperCase()}: ${m.content}`).join('\n\n')}`;
 };
-
-export const generateBehaviorAnalysisPrompt = (
-  message: string,
-  clientTraits: string[],
-  behaviorPatterns: string[]
-): string => {
-  return `Analyze this client message for specific behavioral patterns and therapeutic significance.
+export const generateBehaviorAnalysisPrompt = (message: string, clientTraits: string[], behaviorPatterns: string[]): string => {
+    return `Analyze this client message for specific behavioral patterns and therapeutic significance.
 
 Client Characteristics:
 - Known Traits: ${clientTraits.join(', ')}
@@ -137,13 +130,8 @@ Identify:
 
 Focus on concrete, observable behaviors rather than interpretations.`;
 };
-
-export const generateInterventionPrompt = (
-  interventionType: string,
-  clientProfile: ClientProfile,
-  sessionContext: string
-): string => {
-  return `Suggest appropriate therapeutic interventions of type "${interventionType}" for this client and context.
+export const generateInterventionPrompt = (interventionType: string, clientProfile: ClientProfile, sessionContext: string): string => {
+    return `Suggest appropriate therapeutic interventions of type "${interventionType}" for this client and context.
 
 Client Profile:
 - Primary Issue: ${clientProfile.primary_issue}
@@ -165,3 +153,80 @@ Format each suggestion with:
 - Potential client response
 - Cautions or considerations`;
 };
+export const generateClientSummaryPrompt = (client: ClientDocument) => `
+Client Summary:
+Name: ${client.name}
+Primary Issue: ${client.primaryIssue}
+Key Traits: ${client.keyTraits.join(', ')}
+Background: ${client.background}
+
+Goals:
+${client.goals.map(goal => `- ${goal}`).join('\n')}
+
+Preferences:
+- Communication Style: ${client.preferences.communicationStyle}
+- Therapy Approach: ${client.preferences.therapyApproach}
+- Session Frequency: ${client.preferences.sessionFrequency}
+
+Progress:
+- Milestones: ${client.progress.milestones.join(', ')}
+- Challenges: ${client.progress.challenges.join(', ')}
+- Next Steps: ${client.progress.nextSteps.join(', ')}
+
+Additional Information:
+${client.riskFactors ? `Risk Factors: ${client.riskFactors.join(', ')}\n` : ''}
+${client.supportNetwork ? `Support Network: ${client.supportNetwork.join(', ')}\n` : ''}
+${client.medications ? `Medications: ${client.medications.join(', ')}\n` : ''}
+${client.notes ? `Notes: ${client.notes.join('\n')}\n` : ''}
+`;
+export const generateSessionSummaryPrompt = (clientName: string, date: Date, duration: number, notes: string, interventions: Array<{
+    type: string;
+    description: string;
+    outcome: string;
+}>, progress: {
+    goals: string[];
+    challenges: string[];
+    insights: string[];
+}, nextSteps: string[]) => `
+Session Summary:
+Client: ${clientName}
+Date: ${date.toLocaleDateString()}
+Duration: ${duration} minutes
+
+Notes:
+${notes}
+
+Interventions:
+${interventions.map(i => `- Type: ${i.type}\n  Description: ${i.description}\n  Outcome: ${i.outcome}`).join('\n')}
+
+Progress:
+Goals:
+${progress.goals.map(g => `- ${g}`).join('\n')}
+
+Challenges:
+${progress.challenges.map(c => `- ${c}`).join('\n')}
+
+Insights:
+${progress.insights.map(i => `- ${i}`).join('\n')}
+
+Next Steps:
+${nextSteps.map(s => `- ${s}`).join('\n')}
+`;
+export const generateProgressReportPrompt = (clientName: string, startDate: Date, endDate: Date, sessions: number, goals: string[], achievements: string[], challenges: string[], recommendations: string[]) => `
+Progress Report:
+Client: ${clientName}
+Period: ${startDate.toLocaleDateString()} - ${endDate.toLocaleDateString()}
+Number of Sessions: ${sessions}
+
+Treatment Goals:
+${goals.map(g => `- ${g}`).join('\n')}
+
+Key Achievements:
+${achievements.map(a => `- ${a}`).join('\n')}
+
+Challenges Encountered:
+${challenges.map(c => `- ${c}`).join('\n')}
+
+Recommendations:
+${recommendations.map(r => `- ${r}`).join('\n')}
+`;

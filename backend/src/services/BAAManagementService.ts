@@ -1,9 +1,8 @@
-import { SecurityAuditService } from './SecurityAuditService';
-import { HIPAACompliantAuditService } from './HIPAACompliantAuditService';
+import { SecurityAuditService } from "./SecurityAuditService";
+import { HIPAACompliantAuditService } from "./HIPAACompliantAuditService";
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import crypto from 'crypto';
-
 interface BusinessAssociate {
     id: string;
     name: string;
@@ -20,7 +19,6 @@ interface BusinessAssociate {
     createdAt: Date;
     updatedAt: Date;
 }
-
 interface BAA {
     id: string;
     businessAssociateId: string;
@@ -40,7 +38,6 @@ interface BAA {
     createdAt: Date;
     updatedAt: Date;
 }
-
 interface BAADocument {
     id: string;
     type: BAADocumentType;
@@ -51,7 +48,6 @@ interface BAADocument {
     uploadedAt: Date;
     metadata: Record<string, any>;
 }
-
 interface BAASignature {
     id: string;
     signerId: string;
@@ -62,7 +58,6 @@ interface BAASignature {
     ipAddress: string;
     metadata: Record<string, any>;
 }
-
 interface BAAAmendment {
     id: string;
     version: string;
@@ -72,7 +67,6 @@ interface BAAAmendment {
     signatures: BAASignature[];
     createdAt: Date;
 }
-
 interface DataHandlingRequirement {
     id: string;
     dataType: string;
@@ -82,7 +76,6 @@ interface DataHandlingRequirement {
     disposalMethod: string;
     specialHandlingNotes?: string;
 }
-
 interface SecurityRequirement {
     id: string;
     category: SecurityCategory;
@@ -93,7 +86,6 @@ interface SecurityRequirement {
     lastVerified?: Date;
     nextVerificationDue?: Date;
 }
-
 interface BreachNotificationRequirement {
     id: string;
     timeframe: number;
@@ -101,7 +93,6 @@ interface BreachNotificationRequirement {
     requiredInformation: string[];
     escalationProcedure: string;
 }
-
 interface TerminationRequirement {
     id: string;
     condition: string;
@@ -110,7 +101,6 @@ interface TerminationRequirement {
     dataDestructionMethod: string;
     verificationRequired: boolean;
 }
-
 enum BAType {
     SERVICE_PROVIDER = 'SERVICE_PROVIDER',
     TECHNOLOGY_VENDOR = 'TECHNOLOGY_VENDOR',
@@ -118,7 +108,6 @@ enum BAType {
     CONTRACTOR = 'CONTRACTOR',
     SUBCONTRACTOR = 'SUBCONTRACTOR'
 }
-
 enum BAStatus {
     ACTIVE = 'ACTIVE',
     PENDING_REVIEW = 'PENDING_REVIEW',
@@ -126,7 +115,6 @@ enum BAStatus {
     INACTIVE = 'INACTIVE',
     TERMINATED = 'TERMINATED'
 }
-
 enum BAAStatus {
     DRAFT = 'DRAFT',
     PENDING_SIGNATURE = 'PENDING_SIGNATURE',
@@ -134,7 +122,6 @@ enum BAAStatus {
     EXPIRED = 'EXPIRED',
     TERMINATED = 'TERMINATED'
 }
-
 enum BAADocumentType {
     AGREEMENT = 'AGREEMENT',
     AMENDMENT = 'AMENDMENT',
@@ -143,7 +130,6 @@ enum BAADocumentType {
     INSURANCE_CERTIFICATE = 'INSURANCE_CERTIFICATE',
     TERMINATION_NOTICE = 'TERMINATION_NOTICE'
 }
-
 enum DataAccessType {
     VIEW = 'VIEW',
     CREATE = 'CREATE',
@@ -152,7 +138,6 @@ enum DataAccessType {
     EXPORT = 'EXPORT',
     FULL = 'FULL'
 }
-
 enum SecurityCategory {
     ENCRYPTION = 'ENCRYPTION',
     ACCESS_CONTROL = 'ACCESS_CONTROL',
@@ -162,51 +147,36 @@ enum SecurityCategory {
     NETWORK = 'NETWORK',
     PHYSICAL = 'PHYSICAL'
 }
-
 enum SignatureType {
     ELECTRONIC = 'ELECTRONIC',
     DIGITAL = 'DIGITAL',
     WET = 'WET'
 }
-
 export class BAAManagementService {
     private readonly documentsPath: string;
     private readonly templatesPath: string;
-
-    constructor(
-        private readonly securityAuditService: SecurityAuditService,
-        private readonly hipaaAuditService: HIPAACompliantAuditService,
-        documentsPath?: string
-    ) {
+    constructor(private readonly securityAuditService: SecurityAuditService, private readonly hipaaAuditService: HIPAACompliantAuditService, documentsPath?: string) {
         this.documentsPath = documentsPath || path.join(__dirname, '../data/baa');
         this.templatesPath = path.join(this.documentsPath, 'templates');
     }
-
     async initialize(): Promise<void> {
         try {
             // Create required directories
             await fs.mkdir(this.documentsPath, { recursive: true });
             await fs.mkdir(this.templatesPath, { recursive: true });
-
             // Create subdirectories for different document types
             for (const type of Object.values(BAADocumentType)) {
                 await fs.mkdir(path.join(this.documentsPath, type), { recursive: true });
             }
-        } catch (error) {
-            await this.securityAuditService.recordAlert(
-                'BAA_INIT_ERROR',
-                'HIGH',
-                {
-                    error: error instanceof Error ? error.message : 'Unknown error'
-                }
-            );
+        }
+        catch (error) {
+            await this.securityAuditService.recordAlert('BAA_INIT_ERROR', 'HIGH', {
+                error: error instanceof Error ? error.message : 'Unknown error'
+            });
             throw error;
         }
     }
-
-    async createBusinessAssociate(
-        data: Omit<BusinessAssociate, 'id' | 'createdAt' | 'updatedAt'>
-    ): Promise<BusinessAssociate> {
+    async createBusinessAssociate(data: Omit<BusinessAssociate, 'id' | 'createdAt' | 'updatedAt'>): Promise<BusinessAssociate> {
         try {
             const businessAssociate: BusinessAssociate = {
                 ...data,
@@ -214,9 +184,7 @@ export class BAAManagementService {
                 createdAt: new Date(),
                 updatedAt: new Date()
             };
-
             await this.saveBusinessAssociate(businessAssociate);
-
             await this.hipaaAuditService.logEvent({
                 eventType: 'ADMINISTRATIVE',
                 actor: {
@@ -238,25 +206,17 @@ export class BAAManagementService {
                     description: 'Business Associate'
                 }
             });
-
             return businessAssociate;
-        } catch (error) {
-            await this.securityAuditService.recordAlert(
-                'BAA_CREATE_ERROR',
-                'HIGH',
-                {
-                    error: error instanceof Error ? error.message : 'Unknown error',
-                    businessAssociateName: data.name
-                }
-            );
+        }
+        catch (error) {
+            await this.securityAuditService.recordAlert('BAA_CREATE_ERROR', 'HIGH', {
+                error: error instanceof Error ? error.message : 'Unknown error',
+                businessAssociateName: data.name
+            });
             throw error;
         }
     }
-
-    async createBAA(
-        businessAssociateId: string,
-        data: Omit<BAA, 'id' | 'businessAssociateId' | 'createdAt' | 'updatedAt'>
-    ): Promise<BAA> {
+    async createBAA(businessAssociateId: string, data: Omit<BAA, 'id' | 'businessAssociateId' | 'createdAt' | 'updatedAt'>): Promise<BAA> {
         try {
             const baa: BAA = {
                 ...data,
@@ -265,9 +225,7 @@ export class BAAManagementService {
                 createdAt: new Date(),
                 updatedAt: new Date()
             };
-
             await this.saveBAA(baa);
-
             await this.hipaaAuditService.logEvent({
                 eventType: 'ADMINISTRATIVE',
                 actor: {
@@ -289,40 +247,25 @@ export class BAAManagementService {
                     description: 'Business Associate Agreement'
                 }
             });
-
             return baa;
-        } catch (error) {
-            await this.securityAuditService.recordAlert(
-                'BAA_CREATE_ERROR',
-                'HIGH',
-                {
-                    error: error instanceof Error ? error.message : 'Unknown error',
-                    businessAssociateId
-                }
-            );
+        }
+        catch (error) {
+            await this.securityAuditService.recordAlert('BAA_CREATE_ERROR', 'HIGH', {
+                error: error instanceof Error ? error.message : 'Unknown error',
+                businessAssociateId
+            });
             throw error;
         }
     }
-
-    async uploadBAADocument(
-        baaId: string,
-        document: Omit<BAADocument, 'id' | 'hash' | 'uploadedAt'>
-    ): Promise<BAADocument> {
+    async uploadBAADocument(baaId: string, document: Omit<BAADocument, 'id' | 'hash' | 'uploadedAt'>): Promise<BAADocument> {
         try {
             const documentId = crypto.randomBytes(16).toString('hex');
-            const documentPath = path.join(
-                this.documentsPath,
-                document.type,
-                `${documentId}-${document.filename}`
-            );
-
+            const documentPath = path.join(this.documentsPath, document.type, `${documentId}-${document.filename}`);
             // Copy file to documents directory
             await fs.copyFile(document.path, documentPath);
-
             // Calculate file hash
             const fileContent = await fs.readFile(documentPath);
             const hash = crypto.createHash('sha256').update(fileContent).digest('hex');
-
             const baaDocument: BAADocument = {
                 ...document,
                 id: documentId,
@@ -330,13 +273,11 @@ export class BAAManagementService {
                 hash,
                 uploadedAt: new Date()
             };
-
             // Update BAA with new document
             const baa = await this.getBAA(baaId);
             baa.documents.push(baaDocument);
             baa.updatedAt = new Date();
             await this.saveBAA(baa);
-
             await this.hipaaAuditService.logEvent({
                 eventType: 'ADMINISTRATIVE',
                 actor: {
@@ -360,45 +301,33 @@ export class BAAManagementService {
                     description: 'BAA Document'
                 }
             });
-
             return baaDocument;
-        } catch (error) {
-            await this.securityAuditService.recordAlert(
-                'BAA_DOCUMENT_UPLOAD_ERROR',
-                'HIGH',
-                {
-                    error: error instanceof Error ? error.message : 'Unknown error',
-                    baaId,
-                    filename: document.filename
-                }
-            );
+        }
+        catch (error) {
+            await this.securityAuditService.recordAlert('BAA_DOCUMENT_UPLOAD_ERROR', 'HIGH', {
+                error: error instanceof Error ? error.message : 'Unknown error',
+                baaId,
+                filename: document.filename
+            });
             throw error;
         }
     }
-
-    async addBAASignature(
-        baaId: string,
-        signature: Omit<BAASignature, 'id'>
-    ): Promise<BAASignature> {
+    async addBAASignature(baaId: string, signature: Omit<BAASignature, 'id'>): Promise<BAASignature> {
         try {
             const signatureId = crypto.randomBytes(16).toString('hex');
             const baaSignature: BAASignature = {
                 ...signature,
                 id: signatureId
             };
-
             // Update BAA with new signature
             const baa = await this.getBAA(baaId);
             baa.signatures.push(baaSignature);
             baa.updatedAt = new Date();
-
             // Check if all required signatures are present
             if (this.hasAllRequiredSignatures(baa)) {
                 baa.status = BAAStatus.ACTIVE;
             }
-
             await this.saveBAA(baa);
-
             await this.hipaaAuditService.logEvent({
                 eventType: 'ADMINISTRATIVE',
                 actor: {
@@ -421,26 +350,18 @@ export class BAAManagementService {
                     description: 'BAA Signature'
                 }
             });
-
             return baaSignature;
-        } catch (error) {
-            await this.securityAuditService.recordAlert(
-                'BAA_SIGNATURE_ERROR',
-                'HIGH',
-                {
-                    error: error instanceof Error ? error.message : 'Unknown error',
-                    baaId,
-                    signerId: signature.signerId
-                }
-            );
+        }
+        catch (error) {
+            await this.securityAuditService.recordAlert('BAA_SIGNATURE_ERROR', 'HIGH', {
+                error: error instanceof Error ? error.message : 'Unknown error',
+                baaId,
+                signerId: signature.signerId
+            });
             throw error;
         }
     }
-
-    async addBAAAmendment(
-        baaId: string,
-        amendment: Omit<BAAAmendment, 'id' | 'createdAt'>
-    ): Promise<BAAAmendment> {
+    async addBAAAmendment(baaId: string, amendment: Omit<BAAAmendment, 'id' | 'createdAt'>): Promise<BAAAmendment> {
         try {
             const amendmentId = crypto.randomBytes(16).toString('hex');
             const baaAmendment: BAAAmendment = {
@@ -448,13 +369,11 @@ export class BAAManagementService {
                 id: amendmentId,
                 createdAt: new Date()
             };
-
             // Update BAA with new amendment
             const baa = await this.getBAA(baaId);
             baa.amendments.push(baaAmendment);
             baa.updatedAt = new Date();
             await this.saveBAA(baa);
-
             await this.hipaaAuditService.logEvent({
                 eventType: 'ADMINISTRATIVE',
                 actor: {
@@ -477,41 +396,29 @@ export class BAAManagementService {
                     description: 'BAA Amendment'
                 }
             });
-
             return baaAmendment;
-        } catch (error) {
-            await this.securityAuditService.recordAlert(
-                'BAA_AMENDMENT_ERROR',
-                'HIGH',
-                {
-                    error: error instanceof Error ? error.message : 'Unknown error',
-                    baaId
-                }
-            );
+        }
+        catch (error) {
+            await this.securityAuditService.recordAlert('BAA_AMENDMENT_ERROR', 'HIGH', {
+                error: error instanceof Error ? error.message : 'Unknown error',
+                baaId
+            });
             throw error;
         }
     }
-
-    async terminateBAA(
-        baaId: string,
-        terminationNotice: BAADocument,
-        effectiveDate: Date
-    ): Promise<void> {
+    async terminateBAA(baaId: string, terminationNotice: BAADocument, effectiveDate: Date): Promise<void> {
         try {
             const baa = await this.getBAA(baaId);
-
             // Upload termination notice
             const document = await this.uploadBAADocument(baaId, {
                 ...terminationNotice,
                 type: BAADocumentType.TERMINATION_NOTICE
             });
-
             // Update BAA status
             baa.status = BAAStatus.TERMINATED;
             baa.expirationDate = effectiveDate;
             baa.updatedAt = new Date();
             await this.saveBAA(baa);
-
             await this.hipaaAuditService.logEvent({
                 eventType: 'ADMINISTRATIVE',
                 actor: {
@@ -535,46 +442,31 @@ export class BAAManagementService {
                     description: 'Business Associate Agreement'
                 }
             });
-        } catch (error) {
-            await this.securityAuditService.recordAlert(
-                'BAA_TERMINATION_ERROR',
-                'HIGH',
-                {
-                    error: error instanceof Error ? error.message : 'Unknown error',
-                    baaId
-                }
-            );
+        }
+        catch (error) {
+            await this.securityAuditService.recordAlert('BAA_TERMINATION_ERROR', 'HIGH', {
+                error: error instanceof Error ? error.message : 'Unknown error',
+                baaId
+            });
             throw error;
         }
     }
-
-    async verifySecurityRequirements(
-        baaId: string,
-        verifications: Array<{
-            requirementId: string;
-            verified: boolean;
-            verificationDate: Date;
-            verificationNotes?: string;
-        }>
-    ): Promise<void> {
+    async verifySecurityRequirements(baaId: string, verifications: Array<{
+        requirementId: string;
+        verified: boolean;
+        verificationDate: Date;
+        verificationNotes?: string;
+    }>): Promise<void> {
         try {
             const baa = await this.getBAA(baaId);
-
             for (const verification of verifications) {
-                const requirement = baa.securityRequirements.find(
-                    r => r.id === verification.requirementId
-                );
-
+                const requirement = baa.securityRequirements.find(r => r.id === verification.requirementId);
                 if (!requirement) {
                     throw new Error(`Security requirement ${verification.requirementId} not found`);
                 }
-
                 requirement.lastVerified = verification.verificationDate;
-                requirement.nextVerificationDue = new Date(
-                    verification.verificationDate.getTime() +
-                    requirement.verificationFrequency * 24 * 60 * 60 * 1000
-                );
-
+                requirement.nextVerificationDue = new Date(verification.verificationDate.getTime() +
+                    requirement.verificationFrequency * 24 * 60 * 60 * 1000);
                 await this.hipaaAuditService.logEvent({
                     eventType: 'ADMINISTRATIVE',
                     actor: {
@@ -600,55 +492,42 @@ export class BAAManagementService {
                         description: 'Security Requirement Verification'
                     }
                 });
-
                 if (!verification.verified) {
-                    await this.securityAuditService.recordAlert(
-                        'BAA_SECURITY_VERIFICATION_FAILED',
-                        'HIGH',
-                        {
-                            baaId,
-                            requirementId: requirement.id,
-                            category: requirement.category,
-                            notes: verification.verificationNotes
-                        }
-                    );
+                    await this.securityAuditService.recordAlert('BAA_SECURITY_VERIFICATION_FAILED', 'HIGH', {
+                        baaId,
+                        requirementId: requirement.id,
+                        category: requirement.category,
+                        notes: verification.verificationNotes
+                    });
                 }
             }
-
             baa.updatedAt = new Date();
             await this.saveBAA(baa);
-        } catch (error) {
-            await this.securityAuditService.recordAlert(
-                'BAA_SECURITY_VERIFICATION_ERROR',
-                'HIGH',
-                {
-                    error: error instanceof Error ? error.message : 'Unknown error',
-                    baaId
-                }
-            );
+        }
+        catch (error) {
+            await this.securityAuditService.recordAlert('BAA_SECURITY_VERIFICATION_ERROR', 'HIGH', {
+                error: error instanceof Error ? error.message : 'Unknown error',
+                baaId
+            });
             throw error;
         }
     }
-
     private async saveBusinessAssociate(businessAssociate: BusinessAssociate): Promise<void> {
         const filePath = path.join(this.documentsPath, `ba-${businessAssociate.id}.json`);
         await fs.writeFile(filePath, JSON.stringify(businessAssociate, null, 2));
     }
-
     private async saveBAA(baa: BAA): Promise<void> {
         const filePath = path.join(this.documentsPath, `baa-${baa.id}.json`);
         await fs.writeFile(filePath, JSON.stringify(baa, null, 2));
     }
-
     private async getBAA(baaId: string): Promise<BAA> {
         const filePath = path.join(this.documentsPath, `baa-${baaId}.json`);
         const content = await fs.readFile(filePath, 'utf-8');
         return JSON.parse(content);
     }
-
     private hasAllRequiredSignatures(baa: BAA): boolean {
         // In a real implementation, this would check against a list of required signers
         // For now, just check if we have at least one signature
         return baa.signatures.length > 0;
     }
-} 
+}

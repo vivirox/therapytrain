@@ -1,126 +1,102 @@
 import React, { useState, useEffect } from 'react';
-import { Card } from '../ui/card';
-import { Button } from '../ui/button';
-import { Progress } from '../ui/progress';
-import { Badge } from '../ui/badge';
-import { Textarea } from '../ui/textarea';
-import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
-import { Label } from '../ui/label';
-import {
-  MdPlayArrow as Play,
-  MdPause as Pause,
-  MdRefresh as RotateCcw,
-  MdCheckCircle as CheckCircle,
-  MdCancel as XCircle,
-  MdHelpOutline as HelpCircle,
-  MdMessage as MessageSquare
-} from 'react-icons/md';
-
+import { Card } from "@/ui/card";
+import { Button } from "@/ui/button";
+import { Progress } from "@/ui/progress";
+import { Badge } from "@/ui/badge";
+import { Textarea } from "@/ui/textarea";
+import { RadioGroup, RadioGroupItem } from "@/ui/radio-group";
+import { Label } from "@/ui/label";
+import { MdPlayArrow as Play, MdPause as Pause, MdRefresh as RotateCcw, MdCheckCircle as CheckCircle, MdCancel as XCircle, MdHelpOutline as HelpCircle, MdMessage as MessageSquare } from 'react-icons/md';
 interface Choice {
-  id: string;
-  text: string;
-  feedback: string;
-  isCorrect: boolean;
+    id: string;
+    text: string;
+    feedback: string;
+    isCorrect: boolean;
 }
-
 interface SimulationStep {
-  id: string;
-  situation: string;
-  clientResponse: string;
-  choices: Choice[];
-  feedback: {
-    positive: string[];
-    negative: string[];
-  };
+    id: string;
+    situation: string;
+    clientResponse: string;
+    choices: Choice[];
+    feedback: {
+        positive: string[];
+        negative: string[];
+    };
 }
-
 interface RoleplayScenario {
-  id: string;
-  title: string;
-  description: string;
-  clientBackground: string;
-  presentingIssue: string;
-  goals: string[];
-  steps: SimulationStep[];
+    id: string;
+    title: string;
+    description: string;
+    clientBackground: string;
+    presentingIssue: string;
+    goals: string[];
+    steps: SimulationStep[];
 }
-
 interface InteractiveTutorialProps {
-  scenario: RoleplayScenario;
-  onComplete: (results: unknown) => void;
+    scenario: RoleplayScenario;
+    onComplete: (results: unknown) => void;
 }
-
-export const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({
-  scenario,
-  onComplete
-}) => {
-  const [currentStep, setCurrentStep] = useState(0);
-  const [selectedChoice, setSelectedChoice] = useState<string>('');
-  const [feedback, setFeedback] = useState<string[]>([]);
-  const [responses, setResponses] = useState<Array<{
-    stepId: string;
-    choiceId: string;
-    success: boolean;
-  }>>([]);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [customResponse, setCustomResponse] = useState('');
-  const [showHint, setShowHint] = useState(false);
-
-  const currentSimulation = scenario.steps[currentStep];
-
-  const handleChoiceSelection = (choiceId: string) => {
-    const choice = currentSimulation.choices.find(c: unknown: unknown => c.id === choiceId);
-    if (!choice) return;
-
-    setSelectedChoice(choiceId);
-    setFeedback([choice.feedback]);
-    setResponses(prev => [
-      ...prev,
-      {
-        stepId: currentSimulation.id,
-        choiceId: choice.id,
-        success: choice.isCorrect
-      }
-    ]);
-  };
-
-  const handleCustomResponse = () => {
-    // Here we would typically send the custom response to an AI model
-    // for analysis and feedback
-    setFeedback(['Your response has been recorded for review.']);
-    setCustomResponse('');
-  };
-
-  const nextStep = () => {
-    if (currentStep < scenario.steps.length - 1) {
-      setCurrentStep(prev => prev + 1);
-      setSelectedChoice('');
-      setFeedback([]);
-      setShowHint(false);
-    } else {
-      const results = {
-        scenarioId: scenario.id,
-        completedAt: new Date(),
-        responses,
-        successRate:
-          responses.filter(r => r.success).length / scenario.steps.length
-      };
-      onComplete(results);
-    }
-  };
-
-  const resetStep = () => {
-    setSelectedChoice('');
-    setFeedback([]);
-    setCustomResponse('');
-    setShowHint(false);
-  };
-
-  const togglePlayback = () => {
-    setIsPlaying(!isPlaying);
-  };
-
-  return (
-    <div className="max-w-4xl mx-auto space-y-8">
+export const InteractiveTutorial: React.FC = ({ scenario, onComplete }) => {
+    const [currentStep, setCurrentStep] = useState<number>(0);
+    const [selectedChoice, setSelectedChoice] = useState<string>('');
+    const [feedback, setFeedback] = useState<string[]>([]);
+    const [responses, setResponses] = useState<Array<{
+        stepId: string;
+        choiceId: string;
+        success: boolean;
+    }>>([]);
+    const [isPlaying, setIsPlaying] = useState<boolean>(false);
+    const [customResponse, setCustomResponse] = useState<string>('');
+    const [showHint, setShowHint] = useState<boolean>(false);
+    const currentSimulation = scenario.steps[currentStep];
+    const handleChoiceSelection = (choiceId: string) => {
+        const choice = currentSimulation.choices.find(c, unknown, unknown => c.id === choiceId);
+        if (!choice)
+            return;
+        setSelectedChoice(choiceId);
+        setFeedback([choice.feedback]);
+        setResponses(prev => [
+            ...prev,
+            {
+                stepId: currentSimulation.id,
+                choiceId: choice.id,
+                success: choice.isCorrect
+            }
+        ]);
+    };
+    const handleCustomResponse = () => {
+        // Here we would typically send the custom response to an AI model
+        // for analysis and feedback
+        setFeedback(['Your response has been recorded for review.']);
+        setCustomResponse('');
+    };
+    const nextStep = () => {
+        if (currentStep < scenario.steps.length - 1) {
+            setCurrentStep(prev => prev + 1);
+            setSelectedChoice('');
+            setFeedback([]);
+            setShowHint(false);
+        }
+        else {
+            const results = {
+                scenarioId: scenario.id,
+                completedAt: new Date(),
+                responses,
+                successRate: responses.filter(r => r.success).length / scenario.steps.length
+            };
+            onComplete(results);
+        }
+    };
+    const resetStep = () => {
+        setSelectedChoice('');
+        setFeedback([]);
+        setCustomResponse('');
+        setShowHint(false);
+    };
+    const togglePlayback = () => {
+        setIsPlaying(!isPlaying);
+    };
+    return (<div className="max-w-4xl mx-auto space-y-8">
       {/* Progress Bar */}
       <div className="space-y-2">
         <div className="flex justify-between text-sm text-gray-400">
@@ -130,10 +106,7 @@ export const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({
             Complete
           </span>
         </div>
-        <Progress
-          value={((currentStep + 1) / scenario.steps.length) * 100}
-          className="h-2"
-        />
+        <Progress value={((currentStep + 1) / scenario.steps.length) * 100} className="h-2"></Progress>
       </div>
 
       {/* Scenario Context */}
@@ -155,25 +128,11 @@ export const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-lg font-semibold">Current Situation</h3>
           <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={togglePlayback}
-              className="w-8 h-8 p-0"
-            >
-              {isPlaying ? (
-                <Pause className="w-4 h-4" />
-              ) : (
-                <Play className="w-4 h-4" />
-              )}
+            <Button variant="ghost" size="sm" onClick={togglePlayback} className="w-8 h-8 p-0">
+              {isPlaying ? (<Pause className="w-4 h-4"></Pause>) : (<Play className="w-4 h-4"></Play>)}
             </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={resetStep}
-              className="w-8 h-8 p-0"
-            >
-              <RotateCcw className="w-4 h-4" />
+            <Button variant="ghost" size="sm" onClick={resetStep} className="w-8 h-8 p-0">
+              <RotateCcw className="w-4 h-4"></RotateCcw>
             </Button>
           </div>
         </div>
@@ -192,101 +151,57 @@ export const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({
           <div className="space-y-4">
             <p className="font-medium">How would you respond?</p>
 
-            <RadioGroup
-              value={selectedChoice}
-              onValueChange={handleChoiceSelection}
-              className="space-y-3"
-            >
-              {currentSimulation.choices.map((choice: Choice) => (
-                <div key={choice.id} className="flex items-start space-x-3">
-                  <RadioGroupItem value={choice.id} id={choice.id} />
-                  <Label
-                    htmlFor={choice.id}
-                    className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                  >
+            <RadioGroup value={selectedChoice} onValueChange={handleChoiceSelection} className="space-y-3">
+              {currentSimulation.choices.map((choice: Choice) => (<div key={choice.id} className="flex items-start space-x-3">
+                  <RadioGroupItem value={choice.id} id={choice.id}></RadioGroupItem>
+                  <Label htmlFor={choice.id} className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                     {choice.text}
                   </Label>
-                </div>
-              ))}
+                </div>))}
             </RadioGroup>
 
             <div className="space-y-2">
               <p className="text-sm text-gray-400">Or provide your own response:</p>
-              <Textarea
-                value={customResponse}
-                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setCustomResponse(e.target.value)}
-                placeholder="Type your response here..."
-                className="min-h-[100px]"
-              />
-              <Button
-                variant="outline"
-                onClick={handleCustomResponse}
-                disabled={!customResponse.trim()}
-              >
+              <Textarea value={customResponse} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setCustomResponse(e.target.value)} placeholder="Type your response here..." className="min-h-[100px]"/>
+              <Button variant="outline" onClick={handleCustomResponse} disabled={!customResponse.trim()}>
                 Submit Custom Response
               </Button>
             </div>
           </div>
 
           {/* Feedback Section */}
-          {feedback.length > 0 && (
-            <div className="space-y-4">
+          {feedback.length > 0 && (<div className="space-y-4">
               <h4 className="font-medium">Feedback</h4>
-              {feedback.map((item, index) => (
-                <div
-                  key={index}
-                  className="flex items-start gap-2 p-4 rounded-lg bg-gray-800"
-                >
-                  {selectedChoice && currentSimulation.choices.find(
-                    (c: Choice) => c.id === selectedChoice
-                  )?.isCorrect ? (
-                    <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
-                  ) : (
-                    <XCircle className="w-5 h-5 text-red-500 mt-0.5" />
-                  )}
+              {feedback.map((item, index) => (<div key={index} className="flex items-start gap-2 p-4 rounded-lg bg-gray-800">
+                  {selectedChoice && currentSimulation.choices.find((c: Choice) => c.id === selectedChoice)?.isCorrect ? (<CheckCircle className="w-5 h-5 text-green-500 mt-0.5"></CheckCircle>) : (<XCircle className="w-5 h-5 text-red-500 mt-0.5"></XCircle>)}
                   <p>{item}</p>
-                </div>
-              ))}
-            </div>
-          )}
+                </div>))}
+            </div>)}
 
           {/* Hint System */}
           <div className="flex items-center justify-between">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowHint(!showHint)}
-              className="flex items-center gap-2"
-            >
-              <HelpCircle className="w-4 h-4" />
+            <Button variant="ghost" size="sm" onClick={() => setShowHint(!showHint)} className="flex items-center gap-2">
+              <HelpCircle className="w-4 h-4"></HelpCircle>
               {showHint ? 'Hide Hint' : 'Show Hint'}
             </Button>
-            <Button
-              onClick={nextStep}
-              disabled={!selectedChoice && !customResponse}
-              className="flex items-center gap-2"
-            >
+            <Button onClick={nextStep} disabled={!selectedChoice && !customResponse} className="flex items-center gap-2">
               {currentStep === scenario.steps.length - 1
-                ? 'Complete Scenario'
-                : 'Next Step'}
-              <MessageSquare className="w-4 h-4" />
+            ? 'Complete Scenario'
+            : 'Next Step'}
+              <MessageSquare className="w-4 h-4"></MessageSquare>
             </Button>
           </div>
 
-          {showHint && (
-            <Card className="p-4 bg-gray-800">
+          {showHint && (<Card className="p-4 bg-gray-800">
               <h5 className="font-medium mb-2">Helpful Tips:</h5>
               <ul className="list-disc list-inside space-y-1 text-sm text-gray-400">
                 <li>Consider the client's emotional state</li>
                 <li>Think about their presenting issue</li>
                 <li>Remember your therapeutic goals</li>
               </ul>
-            </Card>
-          )}
+            </Card>)}
         </div>
       </Card>
-    </div>
-  );
+    </div>);
 };
-
 export default InteractiveTutorial;

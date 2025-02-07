@@ -2,43 +2,36 @@ import { wasm as wasmTester } from 'circom_tester';
 import * as path from 'path';
 import { buildEddsa } from 'circomlibjs';
 import { randomBytes } from 'crypto';
-
 interface CircuitInput {
-  sessionId: string;
-  timestamp: number;
-  therapistPubKey: Uint8Array;
-  metricsHash: string;
-  durationMinutes: number;
-  interventionCount: number;
-  riskLevel: number;
-  engagementScore: number;
-  clientDataHash: string;
-  therapistSigR8: Uint8Array;
-  therapistSigS: Uint8Array;
+    sessionId: string;
+    timestamp: number;
+    therapistPubKey: Uint8Array;
+    metricsHash: string;
+    durationMinutes: number;
+    interventionCount: number;
+    riskLevel: number;
+    engagementScore: number;
+    clientDataHash: string;
+    therapistSigR8: Uint8Array;
+    therapistSigS: Uint8Array;
 }
-
 describe('Session Integrity Circuit', () => {
     let circuit: any;
     let eddsaInstance: any;
-
     beforeAll(async () => {
         circuit = await wasmTester(path.join(__dirname, '../session_integrity.circom'));
         eddsaInstance = await buildEddsa();
     });
-
     it('should verify valid session data', async () => {
         // Generate valid EdDSA keypair
         const privateKey = randomBytes(32);
         const publicKey = eddsaInstance.prv2pub(privateKey);
-
         // Create session data
         const sessionId = randomBytes(32);
         const signature = eddsaInstance.signPoseidon(privateKey, sessionId);
-
         // Convert signature to bits for circuit input
         const sigR8 = signature.R8;
         const sigS = signature.S;
-
         // Prepare circuit input
         const input = {
             sessionId: sessionId,
@@ -46,26 +39,21 @@ describe('Session Integrity Circuit', () => {
             R8: sigR8,
             S: sigS
         };
-
         const witness = await circuit.calculateWitness(input);
         await circuit.checkConstraints(witness);
     });
-
     it('should reject invalid duration', async () => {
         // Generate valid EdDSA keypair
         const privateKey = randomBytes(32);
         const publicKey = eddsaInstance.prv2pub(privateKey);
-
         // Create signature for session ID
         const sessionId = '123456789';
         const msgBuf = Buffer.from(sessionId);
         const signature = eddsaInstance.signMiMC(privateKey, msgBuf);
-
         // Convert public key and signature to bit arrays
         const pubKeyBits = eddsaInstance.pubKey2Bits(publicKey);
         const sigR8Bits = eddsaInstance.r8Bits(signature.R8);
         const sigSBits = eddsaInstance.sBits(signature.S);
-
         const input = {
             sessionId,
             timestamp: Math.floor(Date.now() / 1000),
@@ -79,25 +67,20 @@ describe('Session Integrity Circuit', () => {
             therapistSigR8: sigR8Bits,
             therapistSigS: sigSBits
         };
-
         await expect(circuit.calculateWitness(input)).rejects.toThrow();
     });
-
     it('should reject invalid intervention count', async () => {
         // Generate valid EdDSA keypair
         const privateKey = randomBytes(32);
         const publicKey = eddsaInstance.prv2pub(privateKey);
-
         // Create signature for session ID
         const sessionId = '123456789';
         const msgBuf = Buffer.from(sessionId);
         const signature = eddsaInstance.signMiMC(privateKey, msgBuf);
-
         // Convert public key and signature to bit arrays
         const pubKeyBits = eddsaInstance.pubKey2Bits(publicKey);
         const sigR8Bits = eddsaInstance.r8Bits(signature.R8);
         const sigSBits = eddsaInstance.sBits(signature.S);
-
         const input = {
             sessionId,
             timestamp: Math.floor(Date.now() / 1000),
@@ -111,25 +94,20 @@ describe('Session Integrity Circuit', () => {
             therapistSigR8: sigR8Bits,
             therapistSigS: sigSBits
         };
-
         await expect(circuit.calculateWitness(input)).rejects.toThrow();
     });
-
     it('should reject invalid risk level', async () => {
         // Generate valid EdDSA keypair
         const privateKey = randomBytes(32);
         const publicKey = eddsaInstance.prv2pub(privateKey);
-
         // Create signature for session ID
         const sessionId = '123456789';
         const msgBuf = Buffer.from(sessionId);
         const signature = eddsaInstance.signMiMC(privateKey, msgBuf);
-
         // Convert public key and signature to bit arrays
         const pubKeyBits = eddsaInstance.pubKey2Bits(publicKey);
         const sigR8Bits = eddsaInstance.r8Bits(signature.R8);
         const sigSBits = eddsaInstance.sBits(signature.S);
-
         const input = {
             sessionId,
             timestamp: Math.floor(Date.now() / 1000),
@@ -143,25 +121,20 @@ describe('Session Integrity Circuit', () => {
             therapistSigR8: sigR8Bits,
             therapistSigS: sigSBits
         };
-
         await expect(circuit.calculateWitness(input)).rejects.toThrow();
     });
-
     it('should reject invalid engagement score', async () => {
         // Generate valid EdDSA keypair
         const privateKey = randomBytes(32);
         const publicKey = eddsaInstance.prv2pub(privateKey);
-
         // Create signature for session ID
         const sessionId = '123456789';
         const msgBuf = Buffer.from(sessionId);
         const signature = eddsaInstance.signMiMC(privateKey, msgBuf);
-
         // Convert public key and signature to bit arrays
         const pubKeyBits = eddsaInstance.pubKey2Bits(publicKey);
         const sigR8Bits = eddsaInstance.r8Bits(signature.R8);
         const sigSBits = eddsaInstance.sBits(signature.S);
-
         const input = {
             sessionId,
             timestamp: Math.floor(Date.now() / 1000),
@@ -175,25 +148,20 @@ describe('Session Integrity Circuit', () => {
             therapistSigR8: sigR8Bits,
             therapistSigS: sigSBits
         };
-
         await expect(circuit.calculateWitness(input)).rejects.toThrow();
     });
-
     it('should reject future timestamp', async () => {
         // Generate valid EdDSA keypair
         const privateKey = randomBytes(32);
         const publicKey = eddsaInstance.prv2pub(privateKey);
-
         // Create signature for session ID
         const sessionId = '123456789';
         const msgBuf = Buffer.from(sessionId);
         const signature = eddsaInstance.signMiMC(privateKey, msgBuf);
-
         // Convert public key and signature to bit arrays
         const pubKeyBits = eddsaInstance.pubKey2Bits(publicKey);
         const sigR8Bits = eddsaInstance.r8Bits(signature.R8);
         const sigSBits = eddsaInstance.sBits(signature.S);
-
         const input = {
             sessionId,
             timestamp: Math.floor(Date.now() / 1000) + 3600, // 1 hour in future
@@ -207,25 +175,20 @@ describe('Session Integrity Circuit', () => {
             therapistSigR8: sigR8Bits,
             therapistSigS: sigSBits
         };
-
         await expect(circuit.calculateWitness(input)).rejects.toThrow();
     });
-
     it('should reject old timestamp', async () => {
         // Generate valid EdDSA keypair
         const privateKey = randomBytes(32);
         const publicKey = eddsaInstance.prv2pub(privateKey);
-
         // Create signature for session ID
         const sessionId = '123456789';
         const msgBuf = Buffer.from(sessionId);
         const signature = eddsaInstance.signMiMC(privateKey, msgBuf);
-
         // Convert public key and signature to bit arrays
         const pubKeyBits = eddsaInstance.pubKey2Bits(publicKey);
         const sigR8Bits = eddsaInstance.r8Bits(signature.R8);
         const sigSBits = eddsaInstance.sBits(signature.S);
-
         const input = {
             sessionId,
             timestamp: Math.floor(Date.now() / 1000) - (31 * 24 * 3600), // 31 days old
@@ -239,25 +202,20 @@ describe('Session Integrity Circuit', () => {
             therapistSigR8: sigR8Bits,
             therapistSigS: sigSBits
         };
-
         await expect(circuit.calculateWitness(input)).rejects.toThrow();
     });
-
     it('should reject invalid therapist signature', async () => {
         // Generate valid EdDSA keypair
         const privateKey = randomBytes(32);
         const publicKey = eddsaInstance.prv2pub(privateKey);
-
         // Create signature for session ID
         const sessionId = '123456789';
         const msgBuf = Buffer.from(sessionId);
         const signature = eddsaInstance.signMiMC(privateKey, msgBuf);
-
         // Convert public key and signature to bit arrays
         const pubKeyBits = eddsaInstance.pubKey2Bits(publicKey);
         const sigR8Bits = eddsaInstance.r8Bits(signature.R8);
         const sigSBits = eddsaInstance.sBits(signature.S);
-
         const input = {
             sessionId,
             timestamp: Math.floor(Date.now() / 1000),
@@ -271,15 +229,12 @@ describe('Session Integrity Circuit', () => {
             therapistSigR8: eddsaInstance.r8Bits(Buffer.from('wrong signature', 'utf8')),
             therapistSigS: eddsaInstance.sBits(Buffer.from('wrong signature', 'utf8'))
         };
-
         await expect(circuit.calculateWitness(input)).rejects.toThrow();
     });
-
     it('should reject tampered metrics hash', async () => {
         // Generate valid EdDSA keypair
         const privateKey = randomBytes(32);
         const publicKey = eddsaInstance.prv2pub(privateKey);
-
         // Create signature for session ID and metrics
         const sessionId = '123456789';
         const metricsHash = '0x5678';
@@ -288,12 +243,10 @@ describe('Session Integrity Circuit', () => {
             Buffer.from(metricsHash.slice(2), 'hex')
         ]);
         const signature = eddsaInstance.signMiMC(privateKey, message);
-
         // Convert public key and signature to bit arrays
         const pubKeyBits = eddsaInstance.pubKey2Bits(publicKey);
         const sigR8Bits = eddsaInstance.r8Bits(signature.R8);
         const sigSBits = eddsaInstance.sBits(signature.S);
-
         // Create tampered input with modified metrics hash but original signature
         const input: CircuitInput = {
             sessionId,
@@ -308,7 +261,6 @@ describe('Session Integrity Circuit', () => {
             therapistSigR8: signature.R8,
             therapistSigS: signature.S
         };
-
         // Expect circuit to reject tampered input
         await expect(circuit.calculateWitness(input)).rejects.toThrow();
     });

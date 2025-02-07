@@ -22,7 +22,7 @@ export const AuthGuard: FC<AuthGuardProps> = ({ children }) => {
     }, [isAuthenticated, navigate, location]);
 
     if (!user) {
-        return <Loading fullScreen message="Checking authentication..." />;
+        return <Loading fullScreen message="Checking authentication..." ></Loading>;
     }
 
     return <>{children}</>;
