@@ -10,7 +10,7 @@ const Index: FC = () => {
     <>
       {/* Hero Section */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-        <div className="relative h-[400px] mb-48 grid grid-cols-2 gap-8">
+        <div className="relative h-[400px] mb-24 grid grid-cols-2 gap-8">
           {/* Left Content - Top 2/3 */}
           <div className="relative z-20 flex flex-col justify-start h-[267px] pt-12">
             <div className="backdrop-blur-md bg-[#0A0A0B]/40 p-8 rounded-2xl border border-white/10">
@@ -48,12 +48,12 @@ const Index: FC = () => {
           <div className="relative h-[267px] mt-[133px]">
             <div className="absolute inset-0 rounded-3xl overflow-hidden">
               <img
-                src="https://images.unsplash.com/photo-1590650153855-d9e808231d41?q=80&w=2070&auto=format&fit=crop"
-                alt="AI-powered therapy platform"
-                className="absolute inset-0 w-full h-full object-cover opacity-70"
+                src="https://images.unsplash.com/photo-1633356122544-f134324a6cee?q=80&w=2070&auto=format&fit=crop"
+                alt="Modern AI interface with brain visualization"
+                className="absolute inset-0 w-full h-full object-cover opacity-90"
               />
               {/* Gradient Overlay */}
-              <div className="absolute inset-0 bg-gradient-to-r from-[#0A0A0B]/60 to-[#0A0A0B]/60" />
+              <div className="absolute inset-0 bg-gradient-to-r from-[#0A0A0B]/20 to-[#0A0A0B]/20" />
             </div>
           </div>
 
@@ -64,7 +64,7 @@ const Index: FC = () => {
       </div>
 
       {/* Key Features */}
-      <section className="py-24 bg-[#0A0A0B]/50">
+      <section className="py-16 bg-[#0A0A0B]/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl font-bold text-center mb-16">Key Features</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">

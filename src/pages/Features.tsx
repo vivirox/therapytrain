@@ -22,11 +22,9 @@ const Features: FC = () => {
         {/* Left Content - Top 2/3 */}
         <div className="relative z-20 flex flex-col justify-start h-[267px] pt-12">
           <div className="backdrop-blur-md bg-[#0A0A0B]/40 p-8 rounded-2xl border border-white/10">
-            <div className="inline-block mb-4 px-4 py-1 bg-purple-500/20 backdrop-blur-sm rounded-full">
-              <span className="text-purple-500 font-medium">Features</span>
-            </div>
-            <h1 className="text-5xl font-bold mb-6 bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">
-              Powerful Features for Modern Therapy Training
+            <h1 className="text-5xl font-bold mb-6">
+              Simply the Best
+              <span className="bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">Features</span>
             </h1>
             <p className="text-xl text-gray-300 max-w-2xl">
               Experience the next generation of therapeutic training with our cutting-edge AI-powered platform.
@@ -56,7 +54,6 @@ const Features: FC = () => {
       <div className="grid grid-cols-2 gap-8 mb-24">
         {/* AI-Powered Training */}
         <div className="relative col-span-2">
-          <div className="absolute -left-4 top-0 w-1 h-full bg-gradient-to-b from-blue-500 to-transparent" />
           <div className="pl-8">
             <div className="flex items-center gap-4 mb-6">
               <div className="bg-blue-500/10 p-3 rounded-xl">
@@ -92,7 +89,6 @@ const Features: FC = () => {
 
         {/* Clinical Scenarios */}
         <div className="relative">
-          <div className="absolute -left-4 top-0 w-1 h-full bg-gradient-to-b from-purple-500 to-transparent" />
           <div className="pl-8">
             <div className="flex items-center gap-4 mb-6">
               <div className="bg-purple-500/10 p-3 rounded-xl">
@@ -117,7 +113,6 @@ const Features: FC = () => {
 
         {/* Evidence-Based Learning */}
         <div className="relative">
-          <div className="absolute -left-4 top-0 w-1 h-full bg-gradient-to-b from-green-500 to-transparent" />
           <div className="pl-8">
             <div className="flex items-center gap-4 mb-6">
               <div className="bg-green-500/10 p-3 rounded-xl">
@@ -142,7 +137,6 @@ const Features: FC = () => {
 
         {/* Security & Compliance */}
         <div className="relative col-span-2">
-          <div className="absolute -left-4 top-0 w-1 h-full bg-gradient-to-b from-green-500 to-transparent" />
           <div className="pl-8">
             <div className="flex items-center gap-4 mb-6">
               <div className="bg-green-500/10 p-3 rounded-xl">

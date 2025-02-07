@@ -121,12 +121,9 @@ const Benefits: FC = () => {
                 {/* Right Content - Top 2/3 */}
                 <div className="relative z-20 flex flex-col justify-start h-[267px] pt-12">
                     <div className="backdrop-blur-md bg-[#0A0A0B]/40 p-8 rounded-2xl border border-white/10">
-                        <div className="inline-block mb-4 px-4 py-1 bg-blue-500/20 backdrop-blur-sm rounded-full">
-                            <span className="text-blue-500 font-medium">Why Choose TherapyTrain AI?</span>
-                        </div>
                         <h1 className="text-5xl font-bold mb-6">
-                            Transform Your
-                            <span className="bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent"> Therapeutic Practice</span>
+                            A Few Fantastic 
+                            <span className="bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">Benefits</span>
                         </h1>
                         <p className="text-xl text-gray-300 max-w-2xl">
                             Experience the future of therapeutic training and elevate your professional skills to new heights.
