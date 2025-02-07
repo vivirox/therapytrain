@@ -1,7 +1,7 @@
-import { createClient } from '@supabase/supabase-js';
-import { type ClientProfile } from '../types/ClientProfile';
+import { createClient, SupabaseClient, User, Session } from '@supabase/supabase-js';
+import { type ClientProfile } from '@/types/ClientProfile';
 
-const supabase = createClient(
+const supabase: SupabaseClient<Database> = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
@@ -73,4 +73,8 @@ export async function deleteClientProfile(id: number) {
   if (error) {
     throw new Error(`Failed to delete profile: ${error.message}`);
   }
+}
+
+export interface Database {
+    public: { Tables: { [key: string]: any } };
 }

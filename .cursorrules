@@ -113,73 +113,488 @@ If needed, you can further use the `web_scraper.py` file to scrape the web page 
 
 # Scratchpad
 
-## Current Task: Fix TypeScript type issues using ts:fix script
+## Current Task: CI/CD Pipeline Compliance
 
-### Problem:
-Getting error: "[plugin:vite:css] [postcss] It looks like you're trying to use `tailwindcss` directly as a PostCSS plugin"
+### Required Checks from CI/CD Configuration:
+1. Frontend (Node.js):
+   - Type checking (pnpm run type-check)
+   - ESLint (pnpm run lint)
+   - Unit tests (pnpm run test:ci)
+   - Build verification
 
-### Previous Attempts:
-[X] Attempt 1: Changed PostCSS config to CommonJS format
-  - Changed to `module.exports`
-  - Still got module format error
+2. Backend (Python):
+   - Python 3.10 compatibility
+   - Unit tests
+   - Environment configuration
+   - Playwright browser tests
 
-[X] Attempt 2: Renamed config files to .cjs
-  - Renamed postcss.config.js → postcss.config.cjs
-  - Renamed tailwind.config.js → tailwind.config.cjs
-  - Updated Vite config to point to .cjs file
-  - Still getting require not defined error
+### Action Plan:
+[ ] Frontend Checks
+  [ ] Run and fix type checking issues
+  [ ] Run and fix ESLint violations
+  [ ] Run and fix unit tests
+  [ ] Verify build process
 
-[X] Attempt 3: Removed old config files
-  - Deleted .js versions
-  - Reinstalled dependencies
-  - Still getting module errors
+[ ] Backend Checks
+  [ ] Verify Python 3.10 compatibility
+  [ ] Run and fix unit tests
+  [ ] Verify environment configuration
+  [ ] Run Playwright tests
 
-[X] Attempt 4: Updated Vite config CSS options
-  - Changed postcss option to point to .cjs file
-  - Still getting plugin errors
+[ ] Deployment Checks
+  [ ] Verify Vercel configuration
+  [ ] Test staging deployment process
+  [ ] Validate production deployment setup
 
-[X] Attempt 5: Reinstalled dependencies
-  - Ran pnpm install
-  - Still getting same error
+### Progress Tracking:
+Current Status: Starting frontend checks
+Next Step: Run type checking
 
-[X] Attempt 6: Full module system alignment ✓
-  - Checked package.json settings (using "type": "module")
-  - Converted all config files to use ES modules
-  - Updated imports to use ES module syntax
-  - Changed file extensions back to .js
-  - Build successful!
+## Current Task: Fix TypeScript Errors (March 2024)
 
-### Root Cause:
-The issue was trying to mix CommonJS and ES modules. Since the project is set to use ES modules (`"type": "module"` in package.json), we needed to:
-1. Use ES module syntax (import/export) in all config files
-2. Use proper file extensions (.js for ES modules)
-3. Import plugins directly instead of using require()
+### Error Analysis:
+1. Import Path Issues:
+   - [ ] Fix relative imports to use @/ prefix
+   - [ ] Fix missing module declarations
+   - [ ] Fix case-sensitive import conflicts
 
-### Solution:
-1. Updated PostCSS config to use ES modules:
-   ```js
-   import tailwindcss from 'tailwindcss'
-   import autoprefixer from 'autoprefixer'
-   export default { plugins: [tailwindcss, autoprefixer] }
-   ```
+2. Interface Extension Issues:
+   - [ ] Fix OTPProps extending BaseProps (onChange type mismatch)
+   - [ ] Fix TooltipProps extending PositionProps (content type mismatch)
+   - [ ] Fix CalendarProps extending BaseProps (onSelect type mismatch)
+   - [ ] Fix SliderProps extending BaseProps (defaultValue type mismatch)
 
-2. Updated Tailwind config to use ES modules:
-   ```js
-   import animate from "tailwindcss-animate"
-   import typography from "@tailwindcss/typography"
-   export default { plugins: [animate, typography] }
-   ```
+3. Missing Type Declarations:
+   - [ ] Create types/ClientProfile.ts
+   - [ ] Create types/supabase.ts
+   - [ ] Create utils/eventUtils.ts
+   - [ ] Create lib/supabaseClient.ts
 
-3. Used .js extensions for config files to match ES module system
+4. Component Type Issues:
+   - [ ] Fix Badge variant type issues
+   - [ ] Fix Dialog component props
+   - [ ] Fix Toast state and action types
+   - [ ] Fix Auth component event handling
+
+5. Service Type Issues:
+   - [ ] Fix API service interceptor types
+   - [ ] Fix Crisis Prediction service method types
+   - [ ] Fix Intervention Metrics service method types
+   - [ ] Fix Learning Path service method types
+
+### Action Plan:
+1. Fix Import Path Issues
+   - [ ] Update tsconfig.json paths
+   - [ ] Create missing type declaration files
+   - [ ] Fix case sensitivity in imports
+
+2. Fix Interface Extensions
+   - [ ] Update base interfaces
+   - [ ] Fix property type mismatches
+   - [ ] Add proper type guards
+
+3. Create Missing Type Files
+   - [ ] Add ClientProfile types
+   - [ ] Add Supabase types
+   - [ ] Add Event utility types
+   - [ ] Add Supabase client types
+
+4. Fix Component Types
+   - [ ] Update component prop types
+   - [ ] Fix event handler types
+   - [ ] Update state management types
+
+5. Fix Service Types
+   - [ ] Add proper method signatures
+   - [ ] Fix return types
+   - [ ] Add type guards for API responses
+
+### Progress:
+[X] Initial error analysis
+[X] Created detailed plan
+[ ] Fixed import path issues
+[ ] Fixed interface extensions
+[ ] Created missing type files
+[ ] Fixed component types
+[ ] Fixed service types
+
+### Next Steps:
+1. First, let's fix the import path issues as they are the most common:
+   - Update tsconfig.json to properly configure path aliases
+   - Fix all relative imports to use @/ prefix
+   - Create missing type declaration files
+
+2. Then move on to interface extension issues:
+   - Fix OTPProps onChange type
+   - Fix TooltipProps content type
+   - Fix CalendarProps onSelect type
+   - Fix SliderProps defaultValue type
+
+### Notes:
+- Many errors stem from incorrect import paths
+- Need to ensure consistent use of @/ prefix for imports
+- Several interface extensions have type mismatches
+- Missing type declarations for key modules
+- Some components need proper prop type definitions
+- Service layer needs proper type definitions for methods
 
 ### Lessons Learned:
-- Simply renaming to .cjs isn't enough when project is set to ES modules
-- Need to ensure consistent module system across all config files
-- Previous attempts focused on symptoms rather than root cause
-- Keep track of failed attempts to avoid repeating them
-- When using ES modules, use import/export syntax and .js extensions
-- Check package.json "type" field to determine module system
-- Import plugins directly instead of using require()
+- Always use @/ prefix for imports to maintain consistency
+- Ensure proper type declarations before extending interfaces
+- Add proper type guards for API responses
+- Use proper event handler types for form elements
+
+## Current Task: Fix TypeScript Errors
+
+### Error Categories:
+1. UI Component Type Issues
+   - [ ] Fix Drawer component type errors (Title and Description properties)
+   - [ ] Fix Form component type errors (className and props typing)
+   - [ ] Fix HoverCard content type errors
+   - [ ] Fix InputOTP type errors
+   - [ ] Fix component re-export conflicts in index.ts
+
+2. Service Type Issues
+   - [ ] Fix API service type errors
+   - [ ] Fix Audit Logger service type errors
+   - [ ] Fix Crisis Prediction service type errors
+   - [ ] Fix Intervention Metrics service type errors
+   - [ ] Fix Learning Path service type errors
+
+3. Type Definition Issues
+   - [ ] Fix missing type declarations
+   - [ ] Fix type conflicts in index.ts
+   - [ ] Fix incorrect type assignments
+   - [ ] Fix missing module declarations
+
+4. Authentication and Context Issues
+   - [ ] Fix Auth context type errors
+   - [ ] Fix Supabase client import issues
+   - [ ] Fix session and user type errors
+
+### Action Plan:
+1. UI Component Fixes
+   - [ ] Update @vaul/react types for Drawer component
+   - [ ] Fix form component type definitions
+   - [ ] Resolve component re-export conflicts
+   - [ ] Update component prop types
+
+2. Service Layer Fixes
+   - [ ] Create proper type definitions for services
+   - [ ] Fix service method signatures
+   - [ ] Update service imports and exports
+   - [ ] Add missing type declarations
+
+3. Type System Cleanup
+   - [ ] Organize and deduplicate type exports
+   - [ ] Fix circular dependencies
+   - [ ] Create missing type declaration files
+   - [ ] Update type imports
+
+4. Auth and Context Fixes
+   - [ ] Update auth context types
+   - [ ] Fix Supabase client setup
+   - [ ] Update session management types
+
+### Current Focus:
+Starting with UI component fixes, specifically the Drawer component issues, as they appear to be blocking the most immediate functionality.
+
+### Progress:
+[X] Initial error analysis
+[X] Categorized issues
+[X] Created action plan
+[ ] UI Component Fixes
+[ ] Service Layer Fixes
+[ ] Type System Cleanup
+[ ] Auth and Context Fixes
+
+### Next Steps:
+1. Fix Drawer component type issues:
+   - Update @vaul/react types
+   - Add proper type declarations for Title and Description
+   - Fix component prop types
+
+2. Then move on to form component issues:
+   - Fix className type errors
+   - Update prop type definitions
+   - Resolve rest parameter typing
+
+### Notes:
+- Many errors stem from missing or incorrect type declarations
+- Some issues are related to third-party library types (@vaul/react)
+- Need to ensure consistent type exports across the application
+- Should consider creating a central types directory for better organization
+
+## Current Task: Fix TypeScript Errors in Backend
+
+### Error Analysis from Latest Type Check:
+1. Express Type Issues:
+   - [ ] Fix Request/Response type issues in app.ts
+   - [ ] Add proper type definitions for Express middleware
+   - [ ] Fix WebSocket type conflicts
+
+2. Security Service Issues:
+   - [ ] Fix SecurityIncident type missing 'resolved' property
+   - [ ] Fix IncidentType string literal type issues
+   - [ ] Add proper type exports for security config
+
+3. Authentication Issues:
+   - [ ] Add @simplewebauthn/server type declarations
+   - [ ] Fix WebAuthn service type issues
+   - [ ] Fix session type declarations
+
+4. BAA Management Issues:
+   - [ ] Export enum types from BAAManagementService
+   - [ ] Fix HIPAAAuditEvent timestamp property
+   - [ ] Fix audit service type conflicts
+
+### Current Focus:
+Working on Express type issues in app.ts, specifically:
+1. Adding proper type declarations for Request/Response objects
+2. Fixing property access on 'unknown' types
+3. Adding proper type guards for request body validation
+
+### Next Steps:
+1. Fix Express type issues:
+   ```typescript
+   import { Request, Response } from 'express';
+   
+   interface TypedRequestBody<T> extends Request {
+     body: T;
+   }
+   ```
+
+2. Add security incident type fixes:
+   ```typescript
+   export interface SecurityIncident {
+     type: IncidentType;
+     severity: string;
+     timestamp: Date;
+     sourceIp: string;
+     userId?: string;
+     details: Record<string, unknown>;
+     resolved: boolean;
+   }
+   ```
+
+3. Install missing type declarations:
+   ```bash
+   pnpm add -D @types/simplewebauthn__server @types/express-session
+   ```
+
+### Progress:
+[X] Identified all TypeScript errors from type-check
+[X] Categorized errors by component/service
+[X] Fixed Express type issues
+[ ] Fixed Security Service types
+[ ] Fixed Authentication types
+[ ] Fixed BAA Management types
+
+### Lessons Learned:
+- Need to properly type Express request/response objects
+- Always include required properties in interface definitions
+- Export enum types when they're used across modules
+- Use proper type guards for unknown types
+- Install type declarations for external packages
+
+## Current Task: Fix TypeScript type issues using ts:fix script
+
+### Current Status:
+Found existing fix-types.ts script with the following functionality:
+- [X] Path alias fixes
+- [X] Component prop types fixes
+- [X] Unknown type fixes
+- [X] Array callback fixes
+- [X] Missing type declarations
+- [X] React component type fixes
+- [X] Event handler type fixes
+- [X] Common TypeScript issue fixes
+
+### Next Steps:
+[ ] Add additional type fixes:
+  - [ ] Add Supabase client type fixes
+  - [ ] Add Express middleware type fixes
+  - [ ] Add WebAuthn type fixes
+  - [ ] Add BAA Management type fixes
+
+[ ] Improve error reporting:
+  - [ ] Add detailed error messages
+  - [ ] Add line numbers to error reports
+  - [ ] Add suggestions for manual fixes
+
+[ ] Add type validation:
+  - [ ] Validate fixed types against schema
+  - [ ] Check for circular dependencies
+  - [ ] Verify import/export consistency
+
+[ ] Add testing:
+  - [ ] Add unit tests for each fix function
+  - [ ] Add integration tests
+  - [ ] Add snapshot tests for before/after fixes
+
+### Implementation Plan:
+1. First, let's add the new type fixes:
+   ```typescript
+   // Supabase client type fixes
+   function fixSupabaseTypes() {
+     // Add type fixes for Supabase client
+     // Fix session and user types
+     // Add proper error handling
+   }
+
+   // Express middleware type fixes
+   function fixExpressTypes() {
+     // Add Request/Response type fixes
+     // Add middleware type definitions
+     // Fix route handler types
+   }
+
+   // WebAuthn type fixes
+   function fixWebAuthnTypes() {
+     // Add @simplewebauthn/server types
+     // Fix authentication flow types
+     // Add proper error handling
+   }
+
+   // BAA Management type fixes
+   function fixBAATypes() {
+     // Add enum type exports
+     // Fix timestamp property types
+     // Add proper audit event types
+   }
+   ```
+
+2. Then improve error reporting:
+   ```typescript
+   interface TypeFixError {
+     file: string;
+     line: number;
+     message: string;
+     suggestion?: string;
+   }
+
+   function reportError(error: TypeFixError) {
+     // Improved error reporting logic
+   }
+   ```
+
+3. Add type validation:
+   ```typescript
+   function validateTypes() {
+     // Type validation logic
+     // Circular dependency checking
+     // Import/export verification
+   }
+   ```
+
+4. Add tests:
+   ```typescript
+   describe('Type Fixes', () => {
+     // Test cases for each fix function
+     // Integration tests
+     // Snapshot tests
+   })
+   ```
+
+### Progress:
+[X] Analyzed existing script
+[X] Identified missing functionality
+[X] Created implementation plan
+[X] Implemented Supabase client type fixes
+  [X] Added import fixes
+  [X] Added client instance type fixes
+  [X] Added auth type fixes
+  [X] Added database type fixes
+[X] Implemented Express middleware type fixes
+  [X] Added import fixes for Request, Response, NextFunction
+  [X] Added middleware function type fixes
+  [X] Added error handler type fixes
+  [X] Added route handler type fixes
+  [X] Added router declaration type fixes
+[X] Implemented WebAuthn type fixes
+  [X] Added server-side type imports
+  [X] Added client-side type imports
+  [X] Fixed WebAuthn service method types
+  [X] Fixed WebAuthn request/response types
+[X] Implemented BAA Management type fixes
+  [X] Added enum exports
+  [X] Added interface exports
+  [X] Fixed timestamp property types
+  [X] Fixed metadata types
+  [X] Fixed service method types
+[X] Added improved error reporting
+  [X] Added error interfaces and types
+  [X] Added error collection and reporting
+  [X] Added per-file result tracking
+  [X] Added detailed error messages
+  [X] Added error suggestions
+[X] Added type validation
+  [X] Added validation interfaces and types
+  [X] Added type error checking
+  [X] Added circular dependency detection
+  [X] Added unused export detection
+  [X] Added type assertion warnings
+[X] Added tests
+  [X] Added test setup with temporary files
+  [X] Added path alias fix tests
+  [X] Added component prop type fix tests
+  [X] Added unknown type fix tests
+  [X] Added array callback fix tests
+  [X] Added Express type fix tests
+  [X] Added WebAuthn type fix tests
+  [X] Added BAA Management type fix tests
+  [X] Added type validation tests
+
+### Next Action:
+All planned tasks have been completed. The script is ready for use.
+
+### Notes:
+- Successfully added comprehensive test suite that covers:
+  - All type fix functions
+  - Type validation functionality
+  - Error reporting system
+  - Edge cases and error conditions
+  - Temporary file handling
+- Test suite uses isolated environment for each test
+- Tests are descriptive and maintainable
+- Consider adding:
+  - Performance tests for large codebases
+  - Integration tests with actual project files
+  - Snapshot tests for complex fixes
+  - More edge cases and error conditions
+
+### Final Implementation Summary:
+1. Type Fixes:
+   - Path alias resolution
+   - Component prop types
+   - Unknown type handling
+   - Array callback types
+   - Express middleware types
+   - WebAuthn service types
+   - BAA Management types
+
+2. Error Reporting:
+   - Structured error types
+   - Detailed error messages
+   - File-specific tracking
+   - Error suggestions
+   - Summary statistics
+
+3. Type Validation:
+   - Type error detection
+   - Circular dependency checks
+   - Unused export detection
+   - Type assertion warnings
+   - Comprehensive reporting
+
+4. Test Coverage:
+   - Unit tests for all fixes
+   - Validation tests
+   - Error reporting tests
+   - Edge case handling
+   - Clean test environment
+
+The script is now ready to help maintain type safety across the codebase.
 
 ## Analysis
 

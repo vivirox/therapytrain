@@ -1,5 +1,5 @@
 import React from 'react';
-import { MetricsDashboard } from '../components/MetricsDashboard';
+import { MetricsDashboard } from '@/components/MetricsDashboard';
 
 const Analytics: React.FC =    () => {
   return (

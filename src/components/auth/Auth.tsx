@@ -1,9 +1,9 @@
 import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "./AuthProvider";
-import { Loading } from "../ui/loading";
+import { Loading } from "@/components/ui/loading";
 
-export const Auth = () => {
+export const Auth: React.FC = () => {
   const { isAuthenticated } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();

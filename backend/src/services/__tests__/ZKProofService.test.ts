@@ -1,5 +1,5 @@
-import { ZKProofService } from "../ZKProofService";
-import { SecurityAuditService } from "../SecurityAuditService";
+import { ZKProofService } from "@/ZKProofService";
+import { SecurityAuditService } from "@/SecurityAuditService";
 import * as snarkjs from 'snarkjs';
 import * as circomlibjs from 'circomlibjs';
 import path from 'path';

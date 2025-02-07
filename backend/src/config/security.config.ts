@@ -1,4 +1,4 @@
-import { SecurityHeadersConfig } from "../security/SecurityHeadersService";
+import { SecurityHeadersConfig } from "@/security/SecurityHeadersService";
 export const securityConfig: Partial<SecurityHeadersConfig> = {
     enableHSTS: process.env.NODE_ENV === 'production',
     enableCSP: true,

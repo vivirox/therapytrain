@@ -146,3 +146,18 @@ export interface LearningAnalytics {
   areasForImprovement: string[];
   recommendations: string[];
 }
+
+export interface LearningPath {
+  id: string;
+  userId: string;
+  currentGoals: string[];
+  completedGoals: string[];
+  recommendedTutorials: string[];
+  recommendedCaseStudies: string[];
+  focusAreas: string[];
+  customizedFocus?: string[];
+  progress: number;
+  lastUpdated: Date;
+}
+
+export type SkillLevel = 'beginner' | 'intermediate' | 'advanced' | 'expert';

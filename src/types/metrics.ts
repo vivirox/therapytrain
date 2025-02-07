@@ -79,3 +79,31 @@ export interface AggregateMetrics {
   timestamp: number;
   sessionId: string;
 }
+
+export interface MetricDefinition {
+  id: string;
+  name: string;
+  description: string;
+  unit: string;
+  type: 'numeric' | 'percentage' | 'categorical' | 'boolean';
+  range?: MetricRange;
+  thresholds?: {
+    warning: number;
+    critical: number;
+  };
+  tags: string[];
+}
+
+export interface MetricValue {
+  metricId: string;
+  value: number | string | boolean;
+  timestamp: Date;
+  context?: Record<string, any>;
+}
+
+export interface MetricRange {
+  min: number;
+  max: number;
+  step?: number;
+  defaultValue?: number;
+}

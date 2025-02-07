@@ -1,4 +1,4 @@
-import { Session } from '@supabase/supabase-js';
+import { Session, SupabaseClient, User } from '@supabase/supabase-js';
 
 export interface User {
   id: string;
@@ -36,3 +36,7 @@ export interface AuthProviderProps {
 }
 
 export type UserRole = 'client' | 'therapist' | 'admin';
+
+export interface Database {
+    public: { Tables: { [key: string]: any } };
+}

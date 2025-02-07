@@ -1,6 +1,6 @@
-import { Message } from '../types/chat';
-import { ClientProfile } from '../types/ClientProfile';
-import { EmotionalResponse } from '../types/emotions';
+import { Message } from '@/types/chat';
+import { ClientProfile } from '@/types/ClientProfile';
+import { EmotionalResponse } from '@/types/emotions';
 
 export interface SentimentAnalysis {
   score: number;

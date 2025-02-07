@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import { Alert, AlertType, AlertSeverity, AlertHandler } from './types';
-import { logger } from '../utils/logger';
+import { logger } from '@/utils/logger';
 
 export class AlertManager {
   private static instance: AlertManager;
@@ -47,7 +47,7 @@ export class AlertManager {
   private async processAlert(alert: Alert): Promise<void> {
     logger.info('Processing alert', { alertId: alert.id, type: alert.type });
 
-    const handlerPromises = this.handlers.map(handler =>
+    const handlerPromises = this.handlers.map((handler: any) =>
       handler.handleAlert(alert).catch((error: Error) => {
         logger.error('Handler failed to process alert', {
           alertId: alert.id,

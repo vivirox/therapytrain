@@ -1,5 +1,5 @@
-import { NotificationHandler } from '../NotificationHandler';
-import { Alert, AlertType, AlertSeverity, NotificationConfig } from '../types';
+import { NotificationHandler } from '@/NotificationHandler';
+import { Alert, AlertType, AlertSeverity, NotificationConfig } from '@/types';
 import * as nodemailer from 'nodemailer';
 import axios from 'axios';
 

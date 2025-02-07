@@ -1,10 +1,10 @@
 import { Worker } from 'worker_threads';
 import path from 'path';
 import crypto from 'crypto';
-import LRU from 'lru-cache';
+import { LRUCache } from 'lru-cache';
 import { SecurityAuditService } from "./SecurityAuditService";
 import { VerificationKeyService } from "./VerificationKeyService";
-import { ProofGenerationInput, ProofOutput, ZKUtils } from "../zk/types";
+import { ProofGenerationInput, ProofOutput, ZKUtils } from "@/zk/types";
 
 interface ProofResult {
     error?: string;
@@ -16,13 +16,22 @@ interface VerificationResult {
     isValid?: boolean;
 }
 
+interface WorkerPoolMetrics {
+    totalProofs: number;
+    successfulProofs: number;
+    failedProofs: number;
+    averageProofTime: number;
+    lastProofTime: number;
+}
+
 interface CacheEntry {
     proof: string;
+    publicSignals: any[];
     timestamp: number;
 }
 
 export class OptimizedZKProofService {
-    private readonly proofCache: LRU<string, CacheEntry>;
+    private readonly proofCache: LRUCache<string, CacheEntry>;
     private readonly workerPool: Worker[] = [];
     private readonly workerMetrics: Map<number, WorkerPoolMetrics>;
     private readonly maxWorkers: number;
@@ -35,12 +44,12 @@ export class OptimizedZKProofService {
     ) {
         this.maxWorkers = maxWorkers;
         this.workerMetrics = new Map();
-        this.proofCache = new LRU({
+        this.proofCache = new LRUCache({
             max: maxCacheSize,
             ttl: cacheTTL,
             updateAgeOnGet: true,
-            dispose: (key: unknown, value: unknown) => {
-                this.handleCacheDisposal(key, value as CacheEntry);
+            dispose: (key: string, value: CacheEntry) => {
+                this.handleCacheDisposal(key, value);
             }
         });
         this.proofWorker = new Worker(path.join(__dirname, '../workers/proof.worker.js'));
@@ -68,10 +77,11 @@ export class OptimizedZKProofService {
             worker.on('error', this.handleWorkerError.bind(this));
             this.workerPool.push(worker);
             this.workerMetrics.set(i, {
-                totalProofsGenerated: 0,
+                totalProofs: 0,
+                successfulProofs: 0,
+                failedProofs: 0,
                 averageProofTime: 0,
-                currentLoad: 0,
-                errorRate: 0
+                lastProofTime: 0
             });
         }
     }
@@ -272,7 +282,7 @@ export class OptimizedZKProofService {
 
     async cleanup(): Promise<void> {
         // Cleanup worker pool
-        await Promise.all(this.workerPool.map(worker => worker.terminate()));
+        await Promise.all(this.workerPool.map((worker: any) => worker.terminate()));
         this.workerPool.length = 0;
         this.workerMetrics.clear();
         // Clear cache

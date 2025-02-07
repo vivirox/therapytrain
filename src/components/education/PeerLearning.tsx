@@ -5,7 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { DialogHeader } from "@/components/ui/dialog-header";
 import { MdGroups as Users, MdMessage as MessageSquare, MdShare as Share2, MdThumbUp as ThumbsUp, MdMenuBook as BookOpen, MdAdd as Plus, MdCalendarMonth as Calendar, MdSearch as Search } from 'react-icons/md';
 import { Loading } from "@/components/ui/loading";
 import { cn } from "@/lib/utils";
@@ -118,7 +119,7 @@ export const PeerLearning: React.FC<PeerLearningProps> = ({ userId, className })
         void fetchPeerContent();
     }, []);
 
-    const createDiscussion = async (e: MouseEvent<HTMLButtonElement>) => {
+    const createDiscussion = async (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
         setIsSubmitting(true);
         setError(null);
@@ -163,7 +164,7 @@ export const PeerLearning: React.FC<PeerLearningProps> = ({ userId, className })
                 throw new Error('Failed to join group');
             }
 
-            setStudyGroups(prev => prev.map(group => group.id === groupId
+            setStudyGroups(prev => prev.map((group: any) => group.id === groupId
                 ? {
                     ...group,
                     members: [...group.members, { id: userId, name: '', role: 'member' }]
@@ -176,11 +177,11 @@ export const PeerLearning: React.FC<PeerLearningProps> = ({ userId, className })
         }
     };
 
-    const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, field: keyof NewDiscussion) => {
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, field: keyof NewDiscussion) => {
         if (field === 'tags') {
             setNewDiscussion(prev => ({
                 ...prev,
-                tags: e.target.value.split(',').map(tag => tag.trim()).filter(Boolean)
+                tags: e.target.value.split(',').map((tag: any) => tag.trim()).filter(Boolean)
             }));
         } else {
             setNewDiscussion(prev => ({
@@ -213,8 +214,8 @@ export const PeerLearning: React.FC<PeerLearningProps> = ({ userId, className })
               Start Discussion
             </Button>
           </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader className="space-y-1">
               <DialogTitle>Create New Discussion</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
@@ -234,10 +235,9 @@ export const PeerLearning: React.FC<PeerLearningProps> = ({ userId, className })
               />
               <Button 
                 onClick={createDiscussion} 
-                isLoading={isSubmitting}
                 disabled={!newDiscussion.title || !newDiscussion.content}
               >
-                Post Discussion
+                {isSubmitting ? "Posting..." : "Post Discussion"}
               </Button>
             </div>
           </DialogContent>
@@ -255,9 +255,9 @@ export const PeerLearning: React.FC<PeerLearningProps> = ({ userId, className })
           </Card>
 
           {discussions
-            .filter(discussion => discussion.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            .filter((discussion: any) => discussion.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
             discussion.content.toLowerCase().includes(searchTerm.toLowerCase()))
-            .map(discussion => (<Card key={discussion.id} className="p-6">
+            .map((discussion: any) => (<Card key={discussion.id} className="p-6">
                 <div className="flex items-start gap-4">
                   <Avatar>
                     <AvatarImage src={discussion.authorAvatar} alt={discussion.authorName} />
@@ -277,7 +277,7 @@ export const PeerLearning: React.FC<PeerLearningProps> = ({ userId, className })
                     </p>
                     <p className="mb-4">{discussion.content}</p>
                     <div className="flex flex-wrap gap-2 mb-4">
-                      {discussion.tags.map(tag => (<Badge key={tag} variant="secondary">
+                      {discussion.tags.map((tag: any) => (<Badge key={tag} variant="secondary">
                           {tag}
                         </Badge>))}
                     </div>
@@ -303,7 +303,7 @@ export const PeerLearning: React.FC<PeerLearningProps> = ({ userId, className })
         {/* Study Groups Column */}
         <div className="space-y-6">
           <h2 className="text-xl font-semibold mb-4">Study Groups</h2>
-          {studyGroups.map(group => (<Card key={group.id} className="p-6">
+          {studyGroups.map((group: any) => (<Card key={group.id} className="p-6">
               <div className="space-y-4">
                 <div className="flex items-start justify-between">
                   <div>
@@ -314,7 +314,7 @@ export const PeerLearning: React.FC<PeerLearningProps> = ({ userId, className })
                 </div>
 
                 <div className="flex flex-wrap gap-2">
-                  {group.topics.map(topic => (<Badge key={topic} variant="outline">
+                  {group.topics.map((topic: any) => (<Badge key={topic} variant="outline">
                       {topic}
                     </Badge>))}
                 </div>

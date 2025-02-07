@@ -1,6 +1,6 @@
 import { type FC, type ReactNode } from 'react';
 import { Link, useNavigate } from "react-router-dom";
-import { Button } from "../ui/button";
+import { Button } from "@/components/ui/button";
 import { MdPsychology } from "react-icons/md";
 
 interface LayoutProps {

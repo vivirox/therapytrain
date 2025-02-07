@@ -1,18 +1,18 @@
 import React, { useEffect, useRef } from 'react';
-import { addPassiveEventListener, removePassiveEventListener } from '../utils/eventUtils';
+import { addPassiveEventListener, removePassiveEventListener } from '@/utils/eventUtils';
 export const VercelFeedbackWrapper: React.FC =    () => {
     const wrapperRef = useRef<HTMLDivElement>(null);
     useEffect(() => {
         // Remove aria-hidden from Vercel feedback element when it's added to the DOM
         const observer = new MutationObserver((mutations) => {
-            mutations.forEach((mutation) => {
+            mutations.forEach((mutation: any) => {
                 if (mutation.addedNodes.length) {
-                    mutation.addedNodes.forEach((node) => {
+                    mutation.addedNodes.forEach((node: any) => {
                         if (node instanceof HTMLElement && node.tagName.toLowerCase() === 'vercel-live-feedback') {
                             node.removeAttribute('aria-hidden');
                             // Add passive event listeners to all touchstart events
                             const touchElements = node.querySelectorAll('*');
-                            touchElements.forEach((el) => {
+                            touchElements.forEach((el: any) => {
                                 if (el instanceof HTMLElement) {
                                     const existingTouchStart = el.ontouchstart;
                                     if (existingTouchStart) {
@@ -23,7 +23,7 @@ export const VercelFeedbackWrapper: React.FC =    () => {
                             });
                             // Use inert instead of aria-hidden for elements that should be hidden from a11y tree
                             const nonInteractiveElements = node.querySelectorAll('[aria-hidden="true"]');
-                            nonInteractiveElements.forEach((el) => {
+                            nonInteractiveElements.forEach((el: any) => {
                                 if (el instanceof HTMLElement) {
                                     el.removeAttribute('aria-hidden');
                                     el.setAttribute('inert', '');

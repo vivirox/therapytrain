@@ -2,7 +2,7 @@ import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { ChevronRight, MoreHorizontal } from "./icons"
 
-import { cn } from "../../lib/utils"
+import { cn } from "@/../lib/utils"
 
 const Breadcrumb = React.forwardRef<
   HTMLElement,
@@ -72,7 +72,7 @@ const BreadcrumbPage = React.forwardRef<
 ))
 BreadcrumbPage.displayName = "BreadcrumbPage"
 
-const BreadcrumbSeparator = ({
+const BreadcrumbSeparator: React.FC = ({
   children,
   className,
   ...props
@@ -88,7 +88,7 @@ const BreadcrumbSeparator = ({
 )
 BreadcrumbSeparator.displayName = "BreadcrumbSeparator"
 
-const BreadcrumbEllipsis = ({
+const BreadcrumbEllipsis: React.FC = ({
   className,
   ...props
 }: React.ComponentProps<"span">) => (

@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { MdPsychology as Brain } from "react-icons/md";
-import { Button } from "../components/ui/button";
-import { supabase } from "../lib/supabase"; // Import Supabase client
-const AuthPage = () => {
+import { Button } from "@/components/ui/button";
+import { supabase } from "@/lib/supabase"; // Import Supabase client
+const AuthPage: React.FC = () => {
     const navigate = useNavigate();
     const [email, setEmail] = useState<string>("");
     const [password, setPassword] = useState<string>("");

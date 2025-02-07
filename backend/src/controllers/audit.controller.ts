@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { SecurityAuditService } from "../services/SecurityAuditService";
+import { SecurityAuditService } from "@/services/SecurityAuditService";
 import { z } from 'zod';
 const auditQuerySchema = z.object({
     startTime: z.string().transform((str: unknown) => new Date(str)),

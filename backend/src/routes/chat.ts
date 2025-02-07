@@ -1,8 +1,8 @@
-import { Router, Request, Response } from 'express';
-import { ChatService } from "../services/chat/ChatService";
-import { ChatStreamService } from "../services/chat/ChatStreamService";
-import { SecurityAuditService } from "../services/SecurityAuditService";
-import { Session, Message } from "../types/chat";
+import { Router, Request, Response, NextFunction } from 'express';
+import { ChatService } from "@/services/chat/ChatService";
+import { ChatStreamService } from "@/services/chat/ChatStreamService";
+import { SecurityAuditService } from "@/services/SecurityAuditService";
+import { Session, Message } from "@/types/chat";
 const router = Router();
 const chatService = new ChatService();
 const chatStreamService = new ChatStreamService();

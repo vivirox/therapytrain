@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient, User, Session } from '@supabase/supabase-js';
 import * as dotenv from 'dotenv';
 import * as path from 'path';
 // Load environment variables
@@ -9,7 +9,7 @@ if (!supabaseUrl || !supabaseServiceKey) {
     throw new Error('Missing Supabase environment variables');
 }
 // Create Supabase client with additional options
-export const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+export const supabase: SupabaseClient<Database> = createClient(supabaseUrl, supabaseServiceKey, {
     auth: {
         autoRefreshToken: false,
         persistSession: false
@@ -18,7 +18,7 @@ export const supabase = createClient(supabaseUrl, supabaseServiceKey, {
         schema: 'public'
     }
 });
-export const connectDB = async () => {
+export const connectDB: SupabaseClient<Database> = async () => {
     try {
         const { data, error } = await supabase.auth.getSession();
         if (error) {
@@ -32,3 +32,7 @@ export const connectDB = async () => {
         process.exit(1);
     }
 };
+
+export interface Database {
+    public: { Tables: { [key: string]: any } };
+}

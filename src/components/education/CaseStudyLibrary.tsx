@@ -1,16 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { CaseStudy } from "../../types/education";
-import { Button } from "../ui/button";
-import { Card } from "../ui/card";
-import { Input } from "../ui/input";
-import { Badge } from "../ui/badge";
+import { CaseStudy } from "@/types/education";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import { MdSearch as Search, MdMenuBook as BookOpen, MdGroups as Users, MdPsychology as Brain, MdMessage as MessageSquare, MdLightbulb as Lightbulb, MdLabel as Tag } from 'react-icons/md';
+
 interface CaseStudyLibraryProps {
     userId: string;
     recommendedCases?: Array<CaseStudy>;
     className?: string;
 }
-export const CaseStudyLibrary: React.FC = ({ userId, recommendedCases = [] }) => {
+
+export const CaseStudyLibrary: React.FC<CaseStudyLibraryProps> = ({ userId, recommendedCases = [] }) => {
     const [caseStudies, setCaseStudies] = useState<Array<CaseStudy>>([]);
     const [selectedCase, setSelectedCase] = useState<CaseStudy | null>(null);
     const [searchTerm, setSearchTerm] = useState<string>('');
@@ -40,7 +42,7 @@ export const CaseStudyLibrary: React.FC = ({ userId, recommendedCases = [] }) =>
         };
         fetchCaseStudies();
     }, [userId, recommendedCases]);
-    const filteredCaseStudies = caseStudies.filter(study => {
+    const filteredCaseStudies = caseStudies.filter((study: any) => {
         const matchesSearch = searchTerm === '' ||
             study.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
             study.description.toLowerCase().includes(searchTerm.toLowerCase());
@@ -92,7 +94,7 @@ export const CaseStudyLibrary: React.FC = ({ userId, recommendedCases = [] }) =>
               <div>
                 <h4 className="font-medium mb-2">Presenting Issues</h4>
                 <div className="flex flex-wrap gap-2">
-                  {selectedCase.clientProfile.presentingIssues.map(issue => (<Badge key={issue} variant="secondary">
+                  {selectedCase.clientProfile.presentingIssues.map((issue: any) => (<Badge key={issue} variant="secondary">
                       {issue}
                     </Badge>))}
                 </div>
@@ -105,7 +107,7 @@ export const CaseStudyLibrary: React.FC = ({ userId, recommendedCases = [] }) =>
             <div>
               <h4 className="font-medium mb-2">Behavioral Patterns</h4>
               <ul className="list-disc list-inside space-y-1">
-                {selectedCase.clientProfile.behavioralPatterns.map(pattern => (<li key={pattern}>{pattern}</li>))}
+                {selectedCase.clientProfile.behavioralPatterns.map((pattern: any) => (<li key={pattern}>{pattern}</li>))}
               </ul>
             </div>
           </Card>
@@ -122,19 +124,19 @@ export const CaseStudyLibrary: React.FC = ({ userId, recommendedCases = [] }) =>
             <div>
               <h4 className="font-medium mb-2">Key Interventions</h4>
               <ul className="list-disc list-inside space-y-1">
-                {selectedCase.therapeuticProcess.keyInterventions.map(intervention => (<li key={intervention}>{intervention}</li>))}
+                {selectedCase.therapeuticProcess.keyInterventions.map((intervention: any) => (<li key={intervention}>{intervention}</li>))}
               </ul>
             </div>
             <div>
               <h4 className="font-medium mb-2">Challenges</h4>
               <ul className="list-disc list-inside space-y-1">
-                {selectedCase.therapeuticProcess.challenges.map(challenge => (<li key={challenge}>{challenge}</li>))}
+                {selectedCase.therapeuticProcess.challenges.map((challenge: any) => (<li key={challenge}>{challenge}</li>))}
               </ul>
             </div>
             <div>
               <h4 className="font-medium mb-2">Outcomes</h4>
               <ul className="list-disc list-inside space-y-1">
-                {selectedCase.therapeuticProcess.outcomes.map(outcome => (<li key={outcome}>{outcome}</li>))}
+                {selectedCase.therapeuticProcess.outcomes.map((outcome: any) => (<li key={outcome}>{outcome}</li>))}
               </ul>
             </div>
           </Card>
@@ -147,19 +149,19 @@ export const CaseStudyLibrary: React.FC = ({ userId, recommendedCases = [] }) =>
             <div>
               <h4 className="font-medium mb-2">Learning Objectives</h4>
               <ul className="list-disc list-inside space-y-1">
-                {selectedCase.learningObjectives.map(objective => (<li key={objective}>{objective}</li>))}
+                {selectedCase.learningObjectives.map((objective: any) => (<li key={objective}>{objective}</li>))}
               </ul>
             </div>
             <div>
               <h4 className="font-medium mb-2">Discussion Questions</h4>
               <ul className="list-disc list-inside space-y-1">
-                {selectedCase.discussionQuestions.map(question => (<li key={question}>{question}</li>))}
+                {selectedCase.discussionQuestions.map((question: any) => (<li key={question}>{question}</li>))}
               </ul>
             </div>
             <div>
               <h4 className="font-medium mb-2">Expert Insights</h4>
               <ul className="list-disc list-inside space-y-1">
-                {selectedCase.expertInsights.map(insight => (<li key={insight}>{insight}</li>))}
+                {selectedCase.expertInsights.map((insight: any) => (<li key={insight}>{insight}</li>))}
               </ul>
             </div>
           </Card>
@@ -181,7 +183,7 @@ export const CaseStudyLibrary: React.FC = ({ userId, recommendedCases = [] }) =>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredCaseStudies.map(study => (<Card key={study.id} className="p-6 hover:border-primary transition-colors cursor-pointer" onClick={() => {
+        {filteredCaseStudies.map((study: any) => (<Card key={study.id} className="p-6 hover:border-primary transition-colors cursor-pointer" onClick={() => {
                 setSelectedCase(study);
                 recordCaseStudyView(study.id);
             }}>
@@ -195,7 +197,7 @@ export const CaseStudyLibrary: React.FC = ({ userId, recommendedCases = [] }) =>
 
             <div className="space-y-3">
               <div className="flex flex-wrap gap-2">
-                {study.clientProfile.presentingIssues.slice(0, 3).map(issue => (<Badge key={issue} variant="secondary">
+                {study.clientProfile.presentingIssues.slice(0, 3).map((issue: any) => (<Badge key={issue} variant="secondary">
                     {issue}
                   </Badge>))}
                 {study.clientProfile.presentingIssues.length > 3 && (<Badge variant="secondary">

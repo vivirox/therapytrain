@@ -1,20 +1,38 @@
 import { type FC, createContext, useContext, type ReactNode, useEffect, useState, useMemo } from 'react';
-import { type User } from '@supabase/supabase-js';
+import { type User, type Session, type AuthChangeEvent, SupabaseClient } from '@supabase/supabase-js';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { supabase } from "../lib/supabase";
+import { supabase } from "@/lib/supabase";
+
 interface Permission {
     id: string;
     name: string;
 }
+
 interface Organization {
     id: string;
     name: string;
     role: string;
 }
+
 interface FeatureFlag {
     key: string;
     value: boolean | string | number;
 }
+
+interface UserPermission {
+    permission_id: string;
+    permission_name: string;
+}
+
+interface UserOrganization {
+    organization_id: string;
+    organizations: Array<{
+        id: string;
+        name: string;
+    }>;
+    role: string;
+}
+
 interface AuthContextType {
     user: User | null;
     organizations: Array<Organization>;
@@ -31,11 +49,14 @@ interface AuthContextType {
     isOrgAdmin: () => boolean;
     getFeatureFlag: (flag: string) => boolean;
 }
+
 const AuthContext = createContext<AuthContextType | null>(null);
+
 interface AuthProviderProps {
     children: ReactNode;
     className?: string;
 }
+
 // Main Auth Provider component
 export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
     const [user, setUser] = useState<User | null>(null);
@@ -45,83 +66,99 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<Error | null>(null);
     const navigate = useNavigate();
+
     useEffect(() => {
         // Set up Supabase auth state listener
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((event: unknown, session: unknown) => {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event: AuthChangeEvent, session: Session | null) => {
             setUser(session?.user ?? null);
             if (event === 'SIGNED_IN') {
                 navigate('/dashboard');
             }
         });
+
         // Initial session check
         supabase.auth.getSession().then(({ data: { session } }) => {
             setUser(session?.user ?? null);
+            setLoading(false);
         });
+
         return () => {
             subscription.unsubscribe();
         };
     }, [navigate]);
+
     useEffect(() => {
         if (!user) {
             return;
         }
+
         // Fetch user permissions
         const fetchPermissions = async () => {
             const { data, error } = await supabase
                 .from('user_permissions')
                 .select('*')
                 .eq('user_id', user.id);
+
             if (error) {
                 console.error('Error fetching permissions:', error);
                 return;
             }
+
             if (data) {
-                setPermissions(data.map(p, unknown, unknown => ({
+                setPermissions(data.map((p: UserPermission) => ({
                     id: p.permission_id,
                     name: p.permission_name
                 })));
             }
         };
+
         // Fetch user organizations
         const fetchOrganizations = async () => {
             const { data, error } = await supabase
                 .from('user_organizations')
                 .select('organization_id, organizations(id, name), role')
                 .eq('user_id', user.id);
+
             if (error) {
                 console.error('Error fetching organizations:', error);
                 return;
             }
+
             if (data) {
-                setOrganizations(data.map(o, unknown, unknown => ({
+                setOrganizations(data.map((o: UserOrganization) => ({
                     id: o.organizations?.[0]?.id ?? '',
                     name: o.organizations?.[0]?.name ?? '',
                     role: o.role
                 })));
             }
         };
+
         // Fetch feature flags
         const fetchFeatureFlags = async () => {
             const { data, error } = await supabase
                 .from('feature_flags')
                 .select('*')
                 .eq('user_id', user.id);
+
             if (error) {
                 console.error('Error fetching feature flags:', error);
                 return;
             }
+
             if (data) {
                 const flagsRecord: Record<string, boolean> = {};
-                data.forEach(flag, unknown, unknown => {
+                data.forEach((flag: FeatureFlag) => {
                     flagsRecord[flag.key] = flag.value === true;
                 });
                 setFeatureFlags(flagsRecord);
             }
         };
+
         fetchPermissions();
         fetchOrganizations();
         fetchFeatureFlags();
     }, [user]);
+
     const login = async (email: string, password: string) => {
         const { error } = await supabase.auth.signInWithPassword({
             email,
@@ -198,6 +235,7 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
     }), [user, permissions, organizations, featureFlags]);
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
+
 // Auth context hook
 export const useAuth = () => {
     const context = useContext(AuthContext);
@@ -206,6 +244,7 @@ export const useAuth = () => {
     }
     return context;
 };
+
 // Protected route component with optional permission check
 interface ProtectedRouteProps {
     children: ReactNode;
@@ -213,6 +252,7 @@ interface ProtectedRouteProps {
     requireOrgAdmin?: boolean;
     className?: string;
 }
+
 export const ProtectedRoute: FC<ProtectedRouteProps> = ({ children, requiredPermission, requireOrgAdmin }) => {
     const location = useLocation();
     const { isAuthenticated, hasPermission, isOrgAdmin: checkIsOrgAdmin } = useAuth();
@@ -227,3 +267,7 @@ export const ProtectedRoute: FC<ProtectedRouteProps> = ({ children, requiredPerm
     }
     return <>{children}</>;
 };
+
+export interface Database {
+    public: { Tables: { [key: string]: any } };
+}

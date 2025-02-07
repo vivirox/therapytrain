@@ -1,32 +1,11 @@
 import * as React from "react";
 import * as AlertDialogPrimitive from "@radix-ui/react-alert-dialog";
-import { cn } from "../lib/utils";
-import { BaseProps } from "./types";
+import { cn } from "@/lib/utils";
+import { buttonVariants } from "./button";
 
-interface AlertDialogProps extends BaseProps {
-  open?: boolean;
-  onOpenChange?: (open: boolean) => void;
-    className?: string;
-}
+const AlertDialog = AlertDialogPrimitive.Root;
 
-const AlertDialog = ({ children, ...props }: AlertDialogProps) => (
-  <AlertDialogPrimitive.Root {...props}>{children}</AlertDialogPrimitive.Root>
-);
-AlertDialog.displayName = AlertDialogPrimitive.Root.displayName;
-
-const AlertDialogTrigger = React.forwardRef<
-  React.ElementRef<typeof AlertDialogPrimitive.Trigger>,
-  React.ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Trigger>
->(({ className, children, ...props }, ref) => (
-  <AlertDialogPrimitive.Trigger
-    ref={ref}
-    className={cn("", className)}
-    {...props}
-  >
-    {children}
-  </AlertDialogPrimitive.Trigger>
-));
-AlertDialogTrigger.displayName = AlertDialogPrimitive.Trigger.displayName;
+const AlertDialogTrigger = AlertDialogPrimitive.Trigger;
 
 const AlertDialogPortal = AlertDialogPrimitive.Portal;
 
@@ -48,9 +27,9 @@ AlertDialogOverlay.displayName = AlertDialogPrimitive.Overlay.displayName;
 const AlertDialogContent = React.forwardRef<
   React.ElementRef<typeof AlertDialogPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Content>
->(({ className, ...props }, ref) => (
+>(({ className, children, ...props }, ref) => (
   <AlertDialogPortal>
-    <AlertDialogOverlay ></AlertDialogOverlay>
+    <AlertDialogOverlay />
     <AlertDialogPrimitive.Content
       ref={ref}
       className={cn(
@@ -58,27 +37,30 @@ const AlertDialogContent = React.forwardRef<
         className
       )}
       {...props}
-    />
+    >
+      {children}
+    </AlertDialogPrimitive.Content>
   </AlertDialogPortal>
 ));
 AlertDialogContent.displayName = AlertDialogPrimitive.Content.displayName;
 
-const AlertDialogHeader = ({
+const AlertDialogHeader: React.FC = ({
   className,
+  children,
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
-    className={cn(
-      "flex flex-col space-y-2 text-center sm:text-left",
-      className
-    )}
+    className={cn("flex flex-col space-y-2 text-center sm:text-left", className)}
     {...props}
-  />
+  >
+    {children}
+  </div>
 );
 AlertDialogHeader.displayName = "AlertDialogHeader";
 
-const AlertDialogFooter = ({
+const AlertDialogFooter: React.FC = ({
   className,
+  children,
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
@@ -87,7 +69,9 @@ const AlertDialogFooter = ({
       className
     )}
     {...props}
-  />
+  >
+    {children}
+  </div>
 );
 AlertDialogFooter.displayName = "AlertDialogFooter";
 
@@ -121,10 +105,7 @@ const AlertDialogAction = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <AlertDialogPrimitive.Action
     ref={ref}
-    className={cn(
-      "inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground ring-offset-background transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
-      className
-    )}
+    className={cn(buttonVariants(), className)}
     {...props}
   />
 ));
@@ -137,7 +118,8 @@ const AlertDialogCancel = React.forwardRef<
   <AlertDialogPrimitive.Cancel
     ref={ref}
     className={cn(
-      "mt-2 inline-flex h-10 items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-semibold ring-offset-background transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 sm:mt-0",
+      buttonVariants({ variant: "outline" }),
+      "mt-2 sm:mt-0",
       className
     )}
     {...props}

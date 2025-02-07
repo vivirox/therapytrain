@@ -134,13 +134,13 @@ export class ZKUtils {
             sessionId: input.sessionId,
             startTimestamp: input.startTimestamp,
             endTimestamp: input.endTimestamp,
-            therapistPubKey: Array.from(input.therapistPubKey).map(b => b.toString()),
+            therapistPubKey: Array.from(input.therapistPubKey).map((b: any) => b.toString()),
             therapistCredentialHash: input.therapistCredentialHash,
-            sessionData: input.sessionData.map(d => Array.from(d).map(b => b.toString())),
+            sessionData: input.sessionData.map((d: any) => Array.from(d).map((b: any) => b.toString())),
             metadataFlags: this.metadataToFlags(input.metadata),
             therapistCredential: this.credentialToArray(input.therapistCredential),
-            therapistSigR8: Array.from(input.signature.R8).map(b => b.toString()),
-            therapistSigS: Array.from(input.signature.S).map(b => b.toString())
+            therapistSigR8: Array.from(input.signature.R8).map((b: any) => b.toString()),
+            therapistSigS: Array.from(input.signature.S).map((b: any) => b.toString())
         };
     }
 }

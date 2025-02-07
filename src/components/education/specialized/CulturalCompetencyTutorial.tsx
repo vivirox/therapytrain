@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Card } from "../../ui/card";
-import { Button } from "../../ui/button";
-import { Progress } from "../../ui/progress";
-import { Badge } from "../../ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../ui/tabs";
+import { Card } from "@/../ui/card";
+import { Button } from "@/../ui/button";
+import { Progress } from "@/../ui/progress";
+import { Badge } from "@/../ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/../ui/tabs";
 import { MdPublic as Globe, MdGroups as Users, MdMenuBook as BookOpen, MdMessage as MessageCircle, MdFavorite as Heart, MdCheckCircle as Check, MdWarning as AlertTriangle, MdPsychology as Brain } from 'react-icons/md';
-import { AnalyticsService } from "../../../services/analytics";
-import { AIAnalyticsService } from "../../../services/aiAnalytics";
+import { AnalyticsService } from "@/../../services/analytics";
+import { AIAnalyticsService } from "@/../../services/aiAnalytics";
 interface CulturalContext {
     id: string;
     name: string;
@@ -242,7 +242,7 @@ export const CulturalCompetencyTutorial: React.FC = ({ userId, caseStudyId, onCo
                 <div className="space-y-3">
                   <h4 className="font-medium">Values & Beliefs</h4>
                   <ul className="space-y-2">
-                    {caseStudy.culturalContext.values.map((value, index) => (<li key={index} className="flex items-center gap-2">
+                    {caseStudy.culturalContext.values.map((value: any, index: any) => (<li key={index} className="flex items-center gap-2">
                         <Heart className="w-4 h-4 text-primary"></Heart>
                         <span>{value}</span>
                       </li>))}
@@ -254,11 +254,11 @@ export const CulturalCompetencyTutorial: React.FC = ({ userId, caseStudyId, onCo
                   <div className="space-y-2">
                     <h5 className="text-sm font-medium">Verbal</h5>
                     <ul className="space-y-1">
-                      {caseStudy.culturalContext.communication.verbal.map((style, index) => (<li key={index} className="text-sm">{style}</li>))}
+                      {caseStudy.culturalContext.communication.verbal.map((style: any, index: any) => (<li key={index} className="text-sm">{style}</li>))}
                     </ul>
                     <h5 className="text-sm font-medium">Non-verbal</h5>
                     <ul className="space-y-1">
-                      {caseStudy.culturalContext.communication.nonverbal.map((style, index) => (<li key={index} className="text-sm">{style}</li>))}
+                      {caseStudy.culturalContext.communication.nonverbal.map((style: any, index: any) => (<li key={index} className="text-sm">{style}</li>))}
                     </ul>
                   </div>
                 </div>
@@ -266,7 +266,7 @@ export const CulturalCompetencyTutorial: React.FC = ({ userId, caseStudyId, onCo
                 <div className="space-y-3">
                   <h4 className="font-medium">Family Dynamics</h4>
                   <ul className="space-y-2">
-                    {caseStudy.culturalContext.familyDynamics.map((dynamic, index) => (<li key={index} className="flex items-center gap-2">
+                    {caseStudy.culturalContext.familyDynamics.map((dynamic: any, index: any) => (<li key={index} className="flex items-center gap-2">
                           <Users className="w-4 h-4 text-primary"></Users>
                           <span>{dynamic}</span>
                         </li>))}
@@ -276,7 +276,7 @@ export const CulturalCompetencyTutorial: React.FC = ({ userId, caseStudyId, onCo
                 <div className="space-y-3">
                   <h4 className="font-medium">Health Beliefs</h4>
                   <ul className="space-y-2">
-                    {caseStudy.culturalContext.healthBeliefs.map((belief, index) => (<li key={index} className="flex items-center gap-2">
+                    {caseStudy.culturalContext.healthBeliefs.map((belief: any, index: any) => (<li key={index} className="flex items-center gap-2">
                           <Brain className="w-4 h-4 text-primary"></Brain>
                           <span>{belief}</span>
                         </li>))}
@@ -293,7 +293,7 @@ export const CulturalCompetencyTutorial: React.FC = ({ userId, caseStudyId, onCo
                 <div className="mt-4">
                   <h5 className="text-sm font-medium mb-2">Cultural Factors</h5>
                   <div className="flex flex-wrap gap-2">
-                    {currentChallengePoint.culturalFactors.map((factor, index) => (<Badge key={index} variant="outline" className="text-sm">
+                    {currentChallengePoint.culturalFactors.map((factor: any, index: any) => (<Badge key={index} variant="outline" className="text-sm">
                         {factor}
                       </Badge>))}
                   </div>
@@ -302,7 +302,7 @@ export const CulturalCompetencyTutorial: React.FC = ({ userId, caseStudyId, onCo
 
               <div className="space-y-4">
                 <h4 className="font-medium">Response Options</h4>
-                {currentChallengePoint.options.map(option => (<div key={option.id} className="p-4 border rounded-lg hover:bg-primary/5">
+                {currentChallengePoint.options.map((option: any) => (<div key={option.id} className="p-4 border rounded-lg hover:bg-primary/5">
                     <div className="mb-2">
                       <h5 className="font-medium">{option.action}</h5>
                       <p className="text-sm text-gray-400">{option.rationale}</p>
@@ -340,10 +340,10 @@ export const CulturalCompetencyTutorial: React.FC = ({ userId, caseStudyId, onCo
 
             <TabsContent value="reflections" className="space-y-4">
               <div className="space-y-4">
-                {reflections.map((reflection, index) => (<div key={index} className="p-4 bg-primary/5 rounded-lg">
+                {reflections.map((reflection: any, index: any) => (<div key={index} className="p-4 bg-primary/5 rounded-lg">
                     <p className="mb-2">{reflection.notes}</p>
                     <div className="space-y-2">
-                      {reflection.insights.map((insight, i) => (<div key={i} className="flex items-center gap-2 text-sm text-gray-400">
+                      {reflection.insights.map((insight: any, i: any) => (<div key={i} className="flex items-center gap-2 text-sm text-gray-400">
                           <BookOpen className="w-4 h-4"></BookOpen>
                           <span>{insight}</span>
                         </div>))}
@@ -359,7 +359,7 @@ export const CulturalCompetencyTutorial: React.FC = ({ userId, caseStudyId, onCo
       <Card className="p-6">
         <h3 className="text-xl font-semibold mb-4">Learning Insights</h3>
         <div className="space-y-3">
-          {feedback.map((item, index) => (<div key={index} className={`p-4 rounded-lg ${item.type === 'success'
+          {feedback.map((item: any, index: any) => (<div key={index} className={`p-4 rounded-lg ${item.type === 'success'
                 ? 'bg-green-500/10'
                 : item.type === 'warning'
                     ? 'bg-yellow-500/10'

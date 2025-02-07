@@ -1,5 +1,5 @@
 import { type FC } from 'react';
-import { Button } from "../components/ui/button";
+import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import {
     MdTrendingUp,
@@ -28,7 +28,7 @@ const BenefitCard: FC<{
             <h3 className="text-2xl font-bold mb-4">{title}</h3>
             <p className="text-gray-400 mb-6">{description}</p>
             <ul className="space-y-3">
-                {points.map((point, index) => (
+                {points.map((point: any, index: any) => (
                     <li key={index} className="flex items-start gap-3">
                         <MdCheck className="w-5 h-5 text-green-500 mt-1 flex-shrink-0" ></MdCheck>
                         <span className="text-gray-400">{point}</span>
@@ -138,7 +138,7 @@ const Benefits: FC = () => {
 
             {/* Main Benefits */}
             <div className="grid grid-cols-2 gap-6 mb-24">
-                {benefits.map((benefit, index) => (
+                {benefits.map((benefit: any, index: any) => (
                     <div key={index} className={index === 2 ? "col-span-2" : ""}>
                         <BenefitCard {...benefit} ></BenefitCard>
                     </div>
@@ -149,7 +149,7 @@ const Benefits: FC = () => {
             <div className="mb-24">
                 <h2 className="text-3xl font-bold text-center mb-12">More Benefits</h2>
                 <div className="grid grid-cols-3 gap-6">
-                    {additionalBenefits.map((benefit, index) => (
+                    {additionalBenefits.map((benefit: any, index: any) => (
                         <div key={index} className="bg-[#1A1A1D] p-6 rounded-xl border border-gray-800 hover:border-gray-700 transition-colors">
                             <div className="flex items-center gap-4 mb-4">
                                 <div className="text-white">{benefit.icon}</div>

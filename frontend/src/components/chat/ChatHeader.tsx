@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import { useChat } from "@/../contexts/ChatContext";
 import { Session } from "@/../../../backend/src/types/chat";
 import { MoreVertical, Settings, Share2, Download, Trash2 } from 'lucide-react';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/ui/dropdown-menu";
-import { Button } from "@/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/ui/dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 interface ChatHeaderProps {
     session: Session;
 }

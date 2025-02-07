@@ -320,7 +320,7 @@ export class EncryptionKeyRotationService {
     private async loadExistingKeys(): Promise<void> {
         try {
             const files = await fs.readdir(this.keysPath);
-            const keyFiles = files.filter(f => f.startsWith('key-') && f.endsWith('.json'));
+            const keyFiles = files.filter((f: any) => f.startsWith('key-') && f.endsWith('.json'));
 
             for (const file of keyFiles) {
                 const content = await fs.readFile(path.join(this.keysPath, file), 'utf-8');

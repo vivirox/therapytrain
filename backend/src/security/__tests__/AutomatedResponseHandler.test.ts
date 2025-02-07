@@ -1,8 +1,8 @@
-import { AutomatedResponseHandler } from '../AutomatedResponseHandler';
-import { Alert, AlertType, AlertSeverity } from '../types';
-import { UserService } from '../../services/UserService';
-import { RateLimiterService } from '../../services/RateLimiterService';
-import { SecurityAuditService } from '../../services/SecurityAuditService';
+import { AutomatedResponseHandler } from '@/AutomatedResponseHandler';
+import { Alert, AlertType, AlertSeverity } from '@/types';
+import { UserService } from '@/../services/UserService';
+import { RateLimiterService } from '@/../services/RateLimiterService';
+import { SecurityAuditService } from '@/../services/SecurityAuditService';
 
 jest.mock('../../services/UserService');
 jest.mock('../../services/RateLimiterService');

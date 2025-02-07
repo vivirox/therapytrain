@@ -1,5 +1,5 @@
-import type { ClientProfile } from '../types/ClientProfile';
-import { ClientDocument } from '../types/database.types';
+import type { ClientProfile } from '@/types/ClientProfile';
+import { ClientDocument } from '@/types/database.types';
 interface ClientProfile {
     id: string;
     age: number;
@@ -111,7 +111,7 @@ Analyze the following aspects:
 Provide specific examples from the transcript to support your analysis.
 
 Session Transcript:
-${messages.map(m => `${m.role.toUpperCase()}: ${m.content}`).join('\n\n')}`;
+${messages.map((m: any) => `${m.role.toUpperCase()}: ${m.content}`).join('\n\n')}`;
 };
 export const generateBehaviorAnalysisPrompt = (message: string, clientTraits: string[], behaviorPatterns: string[]): string => {
     return `Analyze this client message for specific behavioral patterns and therapeutic significance.
@@ -161,7 +161,7 @@ Key Traits: ${client.keyTraits.join(', ')}
 Background: ${client.background}
 
 Goals:
-${client.goals.map(goal => `- ${goal}`).join('\n')}
+${client.goals.map((goal: any) => `- ${goal}`).join('\n')}
 
 Preferences:
 - Communication Style: ${client.preferences.communicationStyle}
@@ -197,20 +197,20 @@ Notes:
 ${notes}
 
 Interventions:
-${interventions.map(i => `- Type: ${i.type}\n  Description: ${i.description}\n  Outcome: ${i.outcome}`).join('\n')}
+${interventions.map((i: any) => `- Type: ${i.type}\n  Description: ${i.description}\n  Outcome: ${i.outcome}`).join('\n')}
 
 Progress:
 Goals:
-${progress.goals.map(g => `- ${g}`).join('\n')}
+${progress.goals.map((g: any) => `- ${g}`).join('\n')}
 
 Challenges:
-${progress.challenges.map(c => `- ${c}`).join('\n')}
+${progress.challenges.map((c: any) => `- ${c}`).join('\n')}
 
 Insights:
-${progress.insights.map(i => `- ${i}`).join('\n')}
+${progress.insights.map((i: any) => `- ${i}`).join('\n')}
 
 Next Steps:
-${nextSteps.map(s => `- ${s}`).join('\n')}
+${nextSteps.map((s: any) => `- ${s}`).join('\n')}
 `;
 export const generateProgressReportPrompt = (clientName: string, startDate: Date, endDate: Date, sessions: number, goals: string[], achievements: string[], challenges: string[], recommendations: string[]) => `
 Progress Report:
@@ -219,14 +219,14 @@ Period: ${startDate.toLocaleDateString()} - ${endDate.toLocaleDateString()}
 Number of Sessions: ${sessions}
 
 Treatment Goals:
-${goals.map(g => `- ${g}`).join('\n')}
+${goals.map((g: any) => `- ${g}`).join('\n')}
 
 Key Achievements:
-${achievements.map(a => `- ${a}`).join('\n')}
+${achievements.map((a: any) => `- ${a}`).join('\n')}
 
 Challenges Encountered:
-${challenges.map(c => `- ${c}`).join('\n')}
+${challenges.map((c: any) => `- ${c}`).join('\n')}
 
 Recommendations:
-${recommendations.map(r => `- ${r}`).join('\n')}
+${recommendations.map((r: any) => `- ${r}`).join('\n')}
 `;

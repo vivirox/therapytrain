@@ -1,6 +1,6 @@
 import React from 'react';
-import { Card } from '../components/ui/card';
-import { Skeleton } from '../components/ui/skeleton';
+import { Card } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useQuery } from '@tanstack/react-query';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 interface Metric {
@@ -68,7 +68,7 @@ const MetricsDashboard: React.FC =    () => {
     if (metricsLoading || chartLoading) {
         return (<div className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {[1, 2, 3, 4].map((i) => (<Card key={i} className="p-4">
+          {[1, 2, 3, 4].map((i: any) => (<Card key={i} className="p-4">
               <Skeleton className="h-4 w-[100px] mb-2"></Skeleton>
               <Skeleton className="h-8 w-[60px] mb-2"></Skeleton>
               <Skeleton className="h-4 w-[80px]"></Skeleton>

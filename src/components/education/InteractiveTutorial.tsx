@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Card } from "../ui/card";
-import { Button } from "../ui/button";
-import { Progress } from "../ui/progress";
-import { Badge } from "../ui/badge";
-import { Textarea } from "../ui/textarea";
-import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
-import { Label } from "../ui/label";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 import { MdPlayArrow as Play, MdPause as Pause, MdRefresh as RotateCcw, MdCheckCircle as CheckCircle, MdCancel as XCircle, MdHelpOutline as HelpCircle, MdMessage as MessageSquare } from 'react-icons/md';
 interface Choice {
     id: string;
@@ -83,7 +83,7 @@ export const InteractiveTutorial: React.FC = ({ scenario, onComplete }) => {
                 scenarioId: scenario.id,
                 completedAt: new Date(),
                 responses,
-                successRate: responses.filter(r => r.success).length / scenario.steps.length
+                successRate: responses.filter((r: any) => r.success).length / scenario.steps.length
             };
             onComplete(results);
         }
@@ -173,7 +173,7 @@ export const InteractiveTutorial: React.FC = ({ scenario, onComplete }) => {
           {/* Feedback Section */}
           {feedback.length > 0 && (<div className="space-y-4">
               <h4 className="font-medium">Feedback</h4>
-              {feedback.map((item, index) => (<div key={index} className="flex items-start gap-2 p-4 rounded-lg bg-gray-800">
+              {feedback.map((item: any, index: any) => (<div key={index} className="flex items-start gap-2 p-4 rounded-lg bg-gray-800">
                   {selectedChoice && currentSimulation.choices.find((c: Choice) => c.id === selectedChoice)?.isCorrect ? (<CheckCircle className="w-5 h-5 text-green-500 mt-0.5"></CheckCircle>) : (<XCircle className="w-5 h-5 text-red-500 mt-0.5"></XCircle>)}
                   <p>{item}</p>
                 </div>))}

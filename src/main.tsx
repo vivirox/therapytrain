@@ -16,7 +16,7 @@ import { BrowserRouter } from 'react-router-dom';
 const root = ReactDOM.createRoot(document.getElementById('root')!);
 
 // Ensure React is initialized before rendering
-const AppWithErrorBoundary = () => {
+const AppWithErrorBoundary: React.FC = () => {
   useEffect(() => {
     // Inject analytics manually
     inject({

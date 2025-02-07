@@ -1,6 +1,6 @@
-import { Server as HttpServer } from 'http';
-import WebSocket from 'ws';
-import { SecurityAuditService } from '../SecurityAuditService';
+import { WebSocket, WebSocketServer } from 'ws';
+import { Server } from 'http';
+import { SecurityAuditService } from '@/SecurityAuditService';
 import { SessionManager } from './SessionManager';
 
 interface WebSocketClient extends WebSocket {
@@ -9,17 +9,17 @@ interface WebSocketClient extends WebSocket {
     isAlive: boolean;
 }
 
-export class WebSocketServer {
-    private wss: WebSocket.Server;
+export class WebSocketService {
+    private wss: WebSocketServer;
     private readonly clients: Set<WebSocketClient> = new Set();
     private readonly pingInterval: NodeJS.Timeout;
 
     constructor(
-        server: HttpServer,
+        server: Server,
         private readonly sessionManager: SessionManager,
         private readonly securityAuditService: SecurityAuditService
     ) {
-        this.wss = new WebSocket.Server({ server });
+        this.wss = new WebSocketServer({ server });
         this.setupWebSocketServer();
         this.pingInterval = setInterval(() => this.pingClients(), 30000);
     }
@@ -36,11 +36,14 @@ export class WebSocketServer {
                 client.isAlive = true;
             });
 
-            client.on('message', async (message: WebSocket.Data) => {
+            client.on('message', async (message: string) => {
                 try {
                     await this.handleMessage(client, message);
                 } catch (error) {
-                    this.handleError(client, error as Error);
+                    await this.securityAuditService.recordAlert('WEBSOCKET_MESSAGE_ERROR', 'MEDIUM', {
+                        error: error instanceof Error ? error.message : 'Unknown error',
+                        clientId: client.id
+                    });
                 }
             });
 
@@ -51,107 +54,20 @@ export class WebSocketServer {
                 }
             });
 
-            client.on('error', (error: Error) => {
-                this.handleError(client, error);
+            client.on('error', async (error: Error) => {
+                await this.securityAuditService.recordAlert('WEBSOCKET_CLIENT_ERROR', 'HIGH', {
+                    error: error.message,
+                    clientId: client.id
+                });
             });
         });
     }
 
-    private async handleMessage(client: WebSocketClient, message: WebSocket.Data): Promise<void> {
-        const data = JSON.parse(message.toString());
-
-        switch (data.type) {
-            case 'join':
-                await this.handleJoin(client, data.sessionId);
-                break;
-            case 'leave':
-                await this.handleLeave(client);
-                break;
-            case 'message':
-                await this.handleClientMessage(client, data.content);
-                break;
-            default:
-                throw new Error(`Unknown message type: ${data.type}`);
-        }
-    }
-
-    private async handleJoin(client: WebSocketClient, sessionId: string): Promise<void> {
-        try {
-            await this.sessionManager.addClient(sessionId, client.id);
-            client.sessionId = sessionId;
-            client.send(JSON.stringify({ type: 'joined', sessionId }));
-        } catch (error) {
-            await this.securityAuditService.recordAlert(
-                'WS_JOIN_ERROR',
-                'MEDIUM',
-                {
-                    error: error instanceof Error ? error.message : 'Unknown error',
-                    clientId: client.id,
-                    sessionId
-                }
-            );
-            throw error;
-        }
-    }
-
-    private async handleLeave(client: WebSocketClient): Promise<void> {
-        if (client.sessionId) {
-            await this.sessionManager.removeClient(client.sessionId, client.id);
-            client.sessionId = undefined;
-            client.send(JSON.stringify({ type: 'left' }));
-        }
-    }
-
-    private async handleClientMessage(client: WebSocketClient, content: string): Promise<void> {
-        if (!client.sessionId) {
-            throw new Error('Client not in a session');
-        }
-
-        try {
-            await this.sessionManager.broadcastMessage(client.sessionId, {
-                type: 'message',
-                clientId: client.id,
-                content
-            });
-        } catch (error) {
-            await this.securityAuditService.recordAlert(
-                'WS_MESSAGE_ERROR',
-                'MEDIUM',
-                {
-                    error: error instanceof Error ? error.message : 'Unknown error',
-                    clientId: client.id,
-                    sessionId: client.sessionId
-                }
-            );
-            throw error;
-        }
-    }
-
-    private handleError(client: WebSocketClient, error: Error): void {
-        client.send(JSON.stringify({
-            type: 'error',
-            message: error.message
-        }));
-
-        this.securityAuditService.recordAlert(
-            'WS_CLIENT_ERROR',
-            'MEDIUM',
-            {
-                error: error.message,
-                clientId: client.id,
-                sessionId: client.sessionId
-            }
-        );
-    }
-
     private pingClients(): void {
-        this.clients.forEach(client => {
+        this.clients.forEach((client: any) => {
             if (!client.isAlive) {
                 client.terminate();
                 this.clients.delete(client);
-                if (client.sessionId) {
-                    this.sessionManager.removeClient(client.sessionId, client.id);
-                }
                 return;
             }
 
@@ -160,12 +76,31 @@ export class WebSocketServer {
         });
     }
 
-    async cleanup(): Promise<void> {
+    private async handleMessage(client: WebSocketClient, message: string): Promise<void> {
+        const data = JSON.parse(message);
+
+        switch (data.type) {
+            case 'join_session':
+                client.sessionId = data.sessionId;
+                await this.sessionManager.addClient(data.sessionId, client.id);
+                break;
+
+            case 'leave_session':
+                if (client.sessionId) {
+                    await this.sessionManager.removeClient(client.sessionId, client.id);
+                    client.sessionId = undefined;
+                }
+                break;
+
+            default:
+                if (client.sessionId) {
+                    await this.sessionManager.handleMessage(client.sessionId, client.id, data);
+                }
+        }
+    }
+
+    public close(): void {
         clearInterval(this.pingInterval);
-        this.clients.forEach(client => {
-            client.terminate();
-        });
-        this.clients.clear();
-        await new Promise<void>((resolve) => this.wss.close(() => resolve()));
+        this.wss.close();
     }
 }

@@ -1,4 +1,4 @@
-import { Tutorial, CaseStudy, SkillProgression } from "../types/education";
+import { Tutorial, CaseStudy, SkillProgression } from "@/types/education";
 interface UserBehavior {
     completedTutorials: Array<string>;
     viewedCaseStudies: Array<string>;
@@ -109,23 +109,23 @@ export class RecommendationEngine {
     }
     private static calculateSkillScore(tutorial: Tutorial, userBehavior: UserBehavior): number {
         const requiredSkills = tutorial.steps.flatMap(step => step.skills);
-        const skillScores = requiredSkills.map((skill ) => {
+        const skillScores = requiredSkills.map((skill: any ) => {
             const userLevel = userBehavior.skillLevels[skill] || 0;
             const tutorialLevel = this.getDifficultyLevel(tutorial.difficulty);
             return 1 - Math.abs(userLevel - tutorialLevel) / 10;
         });
-        return skillScores.reduce((acc, score) => acc + score, 0) / skillScores.length;
+        return skillScores.reduce((acc: any, score: any) => acc + score, 0) / skillScores.length;
     }
     private static calculateInterestScore(tutorial: Tutorial, userBehavior: UserBehavior): number {
-        const matchingInterests = tutorial.tags.filter(tag => userBehavior.interests.includes(tag));
+        const matchingInterests = tutorial.tags.filter((tag: any) => userBehavior.interests.includes(tag));
         return matchingInterests.length / tutorial.tags.length;
     }
     private static calculateLearningStyleScore(tutorial: Tutorial, userBehavior: UserBehavior): number {
-        const styleMatches = tutorial.steps.filter(step => this.matchesLearningStyle(step.type, userBehavior.learningStyle));
+        const styleMatches = tutorial.steps.filter((step: any) => this.matchesLearningStyle(step.type, userBehavior.learningStyle));
         return styleMatches.length / tutorial.steps.length;
     }
     private static calculateRelevanceScore(caseStudy: CaseStudy, userBehavior: UserBehavior): number {
-        const matchingIssues = caseStudy.clientProfile.presentingIssues.filter(issue => userBehavior.strugglingAreas.includes(issue));
+        const matchingIssues = caseStudy.clientProfile.presentingIssues.filter((issue: any) => userBehavior.strugglingAreas.includes(issue));
         return matchingIssues.length / caseStudy.clientProfile.presentingIssues.length;
     }
     private static calculateCaseInterestScore(caseStudy: CaseStudy, userBehavior: UserBehavior): number {
@@ -134,13 +134,13 @@ export class RecommendationEngine {
             caseStudy.therapeuticProcess.approach,
             ...caseStudy.therapeuticProcess.keyInterventions
         ];
-        const matchingInterests = allTopics.filter(topic => userBehavior.interests.includes(topic));
+        const matchingInterests = allTopics.filter((topic: any) => userBehavior.interests.includes(topic));
         return matchingInterests.length / allTopics.length;
     }
     private static calculateComplexityScore(caseStudy: CaseStudy, userBehavior: UserBehavior): number {
-        const relevantSkills = caseStudy.learningObjectives.filter(objective => Object.keys(userBehavior.skillLevels).includes(objective));
-        const skillLevels = relevantSkills.map(skill => userBehavior.skillLevels[skill] || 0);
-        const averageSkillLevel = skillLevels.reduce((acc, level) => acc + level, 0) / skillLevels.length;
+        const relevantSkills = caseStudy.learningObjectives.filter((objective: any) => Object.keys(userBehavior.skillLevels).includes(objective));
+        const skillLevels = relevantSkills.map((skill: any) => userBehavior.skillLevels[skill] || 0);
+        const averageSkillLevel = skillLevels.reduce((acc: any, level: any) => acc + level, 0) / skillLevels.length;
         return 1 - Math.abs(averageSkillLevel - 5) / 10; // Assuming ideal complexity is at skill level 5
     }
     private static getDifficultyLevel(difficulty: string): number {
@@ -182,8 +182,8 @@ export class RecommendationEngine {
             ]);
             // Score and sort tutorials
             const tutorialScores = tutorials
-                .filter(t => !userBehavior.completedTutorials.includes(t.id))
-                .map(tutorial => ({
+                .filter((t: any) => !userBehavior.completedTutorials.includes(t.id))
+                .map((tutorial: any) => ({
                 tutorial,
                 ...this.calculateTutorialScore(tutorial, userBehavior, popularityMetrics)
             }))
@@ -191,19 +191,19 @@ export class RecommendationEngine {
                 .slice(0, 5);
             // Score and sort case studies
             const caseStudyScores = caseStudies
-                .filter(c => !userBehavior.viewedCaseStudies.includes(c.id))
-                .map(caseStudy => ({
+                .filter((c: any) => !userBehavior.viewedCaseStudies.includes(c.id))
+                .map((caseStudy: any) => ({
                 caseStudy,
                 ...this.calculateCaseStudyScore(caseStudy, userBehavior, popularityMetrics)
             }))
                 .sort((a, b) => b.score - a.score)
                 .slice(0, 5);
             return {
-                recommendedTutorials: tutorialScores.map(({ tutorial, reasons }) => ({
+                recommendedTutorials: tutorialScores.map(({ tutorial, reasons }: any) => ({
                     ...tutorial,
                     reasons
                 })),
-                recommendedCaseStudies: caseStudyScores.map(({ caseStudy, reasons }) => ({
+                recommendedCaseStudies: caseStudyScores.map(({ caseStudy, reasons }: any) => ({
                     ...caseStudy,
                     reasons
                 }))

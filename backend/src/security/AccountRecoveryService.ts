@@ -1,4 +1,4 @@
-import { SecurityAuditService } from "../services/SecurityAuditService";
+import { SecurityAuditService } from "@/services/SecurityAuditService";
 import crypto from 'crypto';
 import bcrypt from 'bcrypt';
 interface SecurityQuestion {
@@ -24,7 +24,7 @@ export class AccountRecoveryService {
                 codes.push(this.generateSingleBackupCode());
             }
             // In a real implementation, store hashed versions in the database
-            const hashedCodes = await Promise.all(codes.map(async (code) => ({
+            const hashedCodes = await Promise.all(codes.map(async (code: any) => ({
                 code: await this.hashValue(code),
                 used: false,
                 createdAt: new Date()
@@ -69,7 +69,7 @@ export class AccountRecoveryService {
         answer: string;
     }[]): Promise<void> {
         try {
-            const securityQuestions: SecurityQuestion[] = await Promise.all(questions.map(async (q) => ({
+            const securityQuestions: SecurityQuestion[] = await Promise.all(questions.map(async (q: any) => ({
                 id: crypto.randomUUID(),
                 question: q.question,
                 hashedAnswer: await this.hashValue(q.answer.toLowerCase().trim())

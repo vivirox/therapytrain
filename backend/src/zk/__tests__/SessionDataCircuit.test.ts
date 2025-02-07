@@ -1,7 +1,7 @@
 import * as snarkjs from 'snarkjs';
 import path from 'path';
 import crypto from 'crypto';
-import { ZKUtils, SessionMetadata, TherapistCredential } from "../types";
+import { ZKUtils, SessionMetadata, TherapistCredential } from "@/types";
 import wasm_tester from 'wasm-tester';
 describe('SessionDataCircuit', () => {
     const circuitWasmPath = path.join(__dirname, '../build/SessionDataCircuit.wasm');
@@ -132,7 +132,7 @@ describe('SessionDataCircuit', () => {
             ],
         };
         const input = {
-            sessionData: testData.sessionData.map((d) => Array.from(d)),
+            sessionData: testData.sessionData.map((d: any) => Array.from(d)),
             timestamp: Date.now(),
             nonce: crypto.randomBytes(32),
         };

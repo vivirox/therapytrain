@@ -1,6 +1,6 @@
-import { ClientProfile } from '../types/ClientProfile';
+import { ClientProfile } from '@/types/ClientProfile';
 import { analyzeMessage } from "./models/therapeuticPatterns";
-import { Message } from '../ollama/process';
+import { Message } from '@/ollama/process';
 interface ProcessorOptions {
     temperature?: number;
     topP?: number;
@@ -126,9 +126,9 @@ export class TherapeuticAIProcessor {
             return {
                 content: adjustedResponse,
                 analysis: {
-                    patterns: analysis.patterns.map(p, unknown, unknown => p.type),
-                    defenses: analysis.defenses.map(d, unknown, unknown => d.name),
-                    emotions: analysis.emotions.map(e, unknown, unknown => e.emotion),
+                    patterns: analysis.patterns.map((p: any) => p.type),
+                    defenses: analysis.defenses.map((d: any) => d.name),
+                    emotions: analysis.emotions.map((e: any) => e.emotion),
                     intensity: this.emotionalState.intensity
                 }
             };

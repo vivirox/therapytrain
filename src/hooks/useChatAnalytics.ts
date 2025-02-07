@@ -1,7 +1,7 @@
 // src/hooks/useChatAnalytics.ts
 import { useChat } from 'ai/react';
 import { useState, useEffect } from 'react';
-import { supabase } from "../../lib/supabaseClient";
+import { supabase } from "@/../lib/supabaseClient";
 export const useChatAnalytics = () => {
     const analyticsData = {
         sessions: [

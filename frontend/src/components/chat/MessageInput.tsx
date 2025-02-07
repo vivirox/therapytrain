@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useChat } from "@/../contexts/ChatContext";
-import { Button } from "@/ui/button";
-import { Textarea } from "@/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { Send, Mic, StopCircle } from 'lucide-react';
 interface MessageInputProps {
     onSendMessage: (message: string) => void;

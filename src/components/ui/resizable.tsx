@@ -1,9 +1,9 @@
 import { GripVertical } from "./icons"
 import * as ResizablePrimitive from "react-resizable-panels"
 
-import { cn } from "../../lib/utils"
+import { cn } from "@/../lib/utils"
 
-const ResizablePanelGroup = ({
+const ResizablePanelGroup: React.FC = ({
   className,
   ...props
 }: React.ComponentProps<typeof ResizablePrimitive.PanelGroup>) => (
@@ -18,7 +18,7 @@ const ResizablePanelGroup = ({
 
 const ResizablePanel = ResizablePrimitive.Panel
 
-const ResizableHandle = ({
+const ResizableHandle: React.FC = ({
   withHandle,
   className,
   ...props

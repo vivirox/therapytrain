@@ -1,6 +1,6 @@
-import { AIService } from "../../src/services/AIService";
-import { SecurityAuditService } from "../../src/services/SecurityAuditService";
-import { RateLimiterService } from "../../src/services/RateLimiterService";
+import { AIService } from "@/../src/services/AIService";
+import { SecurityAuditService } from "@/../src/services/SecurityAuditService";
+import { RateLimiterService } from "@/../src/services/RateLimiterService";
 describe('Crisis Detection Verification', () => {
     let aiService: AIService;
     let securityAudit: SecurityAuditService;
@@ -41,7 +41,7 @@ describe('Crisis Detection Verification', () => {
             // Verify sentiment analysis
             expect(response.metadata?.sentiment).toBeLessThan(minSentimentScore);
             // Verify topic detection
-            expectedTopics.forEach(topic => {
+            expectedTopics.forEach((topic: any) => {
                 expect(response.metadata?.topics).toContain(topic);
             });
             // Verify follow-up questions
@@ -149,7 +149,7 @@ describe('Crisis Detection Verification', () => {
         it('should handle multiple crisis messages concurrently', async () => {
             const crisisMessages = Array(3).fill("I want to end it all");
             const start = performance.now();
-            await Promise.all(crisisMessages.map(msg => aiService.processMessage(userId, msg)));
+            await Promise.all(crisisMessages.map((msg: any) => aiService.processMessage(userId, msg)));
             const duration = performance.now() - start;
             // Should handle multiple crisis messages quickly
             expect(duration).toBeLessThan(1500); // 1.5s for 3 concurrent messages

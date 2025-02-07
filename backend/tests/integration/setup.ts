@@ -54,7 +54,7 @@ afterAll(() => {
     const measures = performance.getEntriesByType('measure');
     if (measures.length > 0) {
         console.log('\nIntegration Test Performance:');
-        measures.forEach(measure => {
+        measures.forEach((measure: any) => {
             console.log(`${measure.name}: ${measure.duration.toFixed(2)}ms`);
         });
     }

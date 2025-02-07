@@ -1,4 +1,4 @@
-import { Express } from 'express';
+import { Express, Request, Response, NextFunction } from 'express';
 import { setupSessionRoutes } from './session.routes';
 
 export const setupRoutes = (app: Express) => {

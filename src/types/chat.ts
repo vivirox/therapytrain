@@ -1,4 +1,4 @@
-import { User } from '@supabase/supabase-js';
+import { User, SupabaseClient, Session } from '@supabase/supabase-js';
 export interface Message {
     id: string;
     content: string;
@@ -53,4 +53,8 @@ export interface ChatContextType {
     startSession: (clientId: string) => Promise<void>;
     endSession: () => Promise<void>;
     clearChat: () => void;
+}
+
+export interface Database {
+    public: { Tables: { [key: string]: any } };
 }

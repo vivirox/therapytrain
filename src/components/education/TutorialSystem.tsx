@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Tutorial, TutorialStep, SkillProgression } from "../../types/education";
-import { Button } from "../ui/button";
-import { Progress } from "../ui/progress";
-import { Card } from "../ui/card";
+import { Tutorial, TutorialStep, SkillProgression } from "@/../types/education";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { Card } from "@/components/ui/card";
 import { MdMenuBook as BookOpen, MdOndemandVideo as Video, MdPsychology as Brain, MdCheckCircle as CheckCircle, MdArrowForward as ArrowRight, MdStar as Star, MdAccessTime as Clock } from 'react-icons/md';
 import { InteractiveElement } from "./tutorial/InteractiveElements";
 interface TutorialSystemProps {
@@ -117,7 +117,7 @@ export const TutorialSystem: React.FC = ({ userId }) => {
             <div className="prose prose-invert max-w-none mb-4">
               {step.content}
             </div>
-            {step.interactiveElements?.map((element, index) => (<InteractiveElement key={index} config={element} onComplete={async (results: unknown) => {
+            {step.interactiveElements?.map((element: any, index: any) => (<InteractiveElement key={index} config={element} onComplete={async (results: unknown) => {
                             await fetch('/api/quiz-submission', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
@@ -179,7 +179,7 @@ export const TutorialSystem: React.FC = ({ userId }) => {
               <div>
                 <div className="text-sm text-gray-400">Completed Tutorials</div>
                 <div className="text-2xl font-bold">
-                  {Object.values(skillProgression.skills).reduce((acc, skill) => acc + skill.completedTutorials.length, 0)}
+                  {Object.values(skillProgression.skills).reduce((acc: any, skill: any) => acc + skill.completedTutorials.length, 0)}
                 </div>
               </div>
             </div>
@@ -197,7 +197,7 @@ export const TutorialSystem: React.FC = ({ userId }) => {
               <div>
                 <div className="text-sm text-gray-400">Practice Hours</div>
                 <div className="text-2xl font-bold">
-                  {Object.values(skillProgression.skills).reduce((acc, skill) => acc + skill.practiceHours, 0)}
+                  {Object.values(skillProgression.skills).reduce((acc: any, skill: any) => acc + skill.practiceHours, 0)}
                 </div>
               </div>
             </div>
@@ -205,7 +205,7 @@ export const TutorialSystem: React.FC = ({ userId }) => {
         </Card>)}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {tutorials.map(tutorial => (<Card key={tutorial.id} className="p-6 hover:border-primary transition-colors cursor-pointer" onClick={() => startTutorial(tutorial)}>
+        {tutorials.map((tutorial: any) => (<Card key={tutorial.id} className="p-6 hover:border-primary transition-colors cursor-pointer" onClick={() => startTutorial(tutorial)}>
             <div className="flex items-start justify-between mb-4">
               <div>
                 <h3 className="text-xl font-semibold mb-2">{tutorial.title}</h3>

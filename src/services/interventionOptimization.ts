@@ -1,8 +1,8 @@
 import { SessionAnalytics } from "./sessionAnalytics";
 import { ContextualLearningSystem } from "./contextualLearning";
-import type { Intervention } from "../types/session";
+import type { Intervention } from "@/types/session";
 import type { SessionState } from "./sessionManager";
-import { InterventionMetrics } from '../types/metrics';
+import { InterventionMetrics } from '@/types/metrics';
 interface OptimizationMetrics {
     effectiveness: number;
     clientEngagement: number;
@@ -72,11 +72,11 @@ export class InterventionOptimizationSystem {
     }
     async getInterventionEffectiveness(clientId: string, interventionType: string): Promise<number> {
         const history = this.interventionHistory.get(clientId) || [];
-        const relevantInterventions = history.filter(h => h.type === interventionType);
+        const relevantInterventions = history.filter((h: any) => h.type === interventionType);
         if (relevantInterventions.length === 0) {
             return 0;
         }
-        const totalScore = relevantInterventions.reduce((sum, intervention) => {
+        const totalScore = relevantInterventions.reduce((sum: any, intervention: any) => {
             const weightedScore = intervention.metrics.effectiveness * 0.4 +
                 intervention.metrics.clientEngagement * this.ENGAGEMENT_WEIGHT +
                 intervention.metrics.emotionalImpact * this.EMOTIONAL_IMPACT_WEIGHT +
@@ -91,7 +91,7 @@ export class InterventionOptimizationSystem {
         recentTopics: Array<string>;
     }): Promise<Array<InterventionRecommendation>> {
         const history = this.interventionHistory.get(clientId) || [];
-        const interventionTypes = new Set(history.map(h => h.type));
+        const interventionTypes = new Set(history.map((h: any) => h.type));
         const recommendations: Array<InterventionRecommendation> = [];
         for (const type of interventionTypes) {
             const effectiveness = await this.getInterventionEffectiveness(clientId, type);
@@ -164,34 +164,34 @@ export class InterventionOptimizationSystem {
         return reasons;
     }
     private async predictOutcomes(interventionType: string, history: Array<InterventionMetrics>): Promise<Array<string>> {
-        const typeHistory = history.filter(h => h.type === interventionType);
+        const typeHistory = history.filter((h: any) => h.type === interventionType);
         const outcomes: Array<string> = [];
-        const avgEngagement = typeHistory.reduce((sum, h) => sum + h.metrics.clientEngagement, 0) / typeHistory.length;
+        const avgEngagement = typeHistory.reduce((sum: any, h: any) => sum + h.metrics.clientEngagement, 0) / typeHistory.length;
         if (avgEngagement > 0.5) {
             outcomes.push('Likely to maintain high client engagement');
         }
-        const avgEmotional = typeHistory.reduce((sum, h) => sum + h.metrics.emotionalImpact, 0) / typeHistory.length;
+        const avgEmotional = typeHistory.reduce((sum: any, h: any) => sum + h.metrics.emotionalImpact, 0) / typeHistory.length;
         if (avgEmotional > 0) {
             outcomes.push('Expected positive emotional impact');
         }
-        const avgProgress = typeHistory.reduce((sum, h) => sum + h.metrics.longTermProgress, 0) / typeHistory.length;
+        const avgProgress = typeHistory.reduce((sum: any, h: any) => sum + h.metrics.longTermProgress, 0) / typeHistory.length;
         if (avgProgress > 0.3) {
             outcomes.push('Contributes to long-term therapeutic progress');
         }
         return outcomes;
     }
     private async assessRisks(interventionType: string, history: Array<InterventionMetrics>): Promise<Array<string>> {
-        const typeHistory = history.filter(h => h.type === interventionType);
+        const typeHistory = history.filter((h: any) => h.type === interventionType);
         const risks: Array<string> = [];
-        const negativeEngagements = typeHistory.filter(h => h.metrics.clientEngagement < -0.2).length;
+        const negativeEngagements = typeHistory.filter((h: any) => h.metrics.clientEngagement < -0.2).length;
         if (negativeEngagements / typeHistory.length > 0.2) {
             risks.push('20% risk of reduced engagement');
         }
-        const negativeEmotional = typeHistory.filter(h => h.metrics.emotionalImpact < -0.3).length;
+        const negativeEmotional = typeHistory.filter((h: any) => h.metrics.emotionalImpact < -0.3).length;
         if (negativeEmotional / typeHistory.length > 0.1) {
             risks.push('Potential for temporary emotional discomfort');
         }
-        const lowProgress = typeHistory.filter(h => h.metrics.longTermProgress < 0.1).length;
+        const lowProgress = typeHistory.filter((h: any) => h.metrics.longTermProgress < 0.1).length;
         if (lowProgress / typeHistory.length > 0.3) {
             risks.push('May not contribute significantly to progress in 30% of cases');
         }

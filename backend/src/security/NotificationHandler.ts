@@ -1,5 +1,5 @@
 import { AlertHandler, Alert, NotificationConfig } from "./types";
-import { logger } from "../utils/logger";
+import { logger } from "@/utils/logger";
 import * as nodemailer from 'nodemailer';
 import axios from 'axios';
 export class NotificationHandler implements AlertHandler {

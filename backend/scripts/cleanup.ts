@@ -11,7 +11,7 @@ const scriptsDir = __dirname;
 try {
   const files = fs.readdirSync(scriptsDir);
   
-  files.forEach(file => {
+  files.forEach((file: any) => {
     if (file.endsWith('.ts') && !scriptsToKeep.includes(file)) {
       const filePath = path.join(scriptsDir, file);
       fs.unlinkSync(filePath);
@@ -21,7 +21,7 @@ try {
 
   console.log('\nCleanup completed successfully!');
   console.log('\nRemaining files:');
-  scriptsToKeep.forEach(file => console.log(`- ${file}`));
+  scriptsToKeep.forEach((file: any) => console.log(`- ${file}`));
 } catch (error) {
   console.error('Error during cleanup:', error);
 }

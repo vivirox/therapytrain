@@ -1,5 +1,5 @@
 import { api } from "./api";
-import { ApiResponse, PaginatedResponse, UserProfile, TherapySession, ClientProfile, AnalyticsData, ComplianceReport } from '../types/api';
+import { ApiResponse, PaginatedResponse, UserProfile, TherapySession, ClientProfile, AnalyticsData, ComplianceReport } from '@/types/api';
 export const endpoints = {
     auth: {
         login: (email: string, password: string) => api.post<{

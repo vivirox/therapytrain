@@ -1,60 +1,30 @@
-import { type FC } from 'react';
-import { MdPsychology } from 'react-icons/md';
-import { cn } from '@/lib/utils';
+import * as React from "react"
+import { cn } from "@/lib/utils"
 
-interface LoadingProps {
-    fullScreen?: boolean;
-    message?: string;
+interface LoadingProps extends React.HTMLAttributes<HTMLDivElement> {
+  size?: "sm" | "md" | "lg"
     className?: string;
-    size?: 'sm' | 'md' | 'lg';
-    showIcon?: boolean;
 }
 
-export const Loading: FC<LoadingProps> = ({
-    fullScreen = false,
-    message = 'Loading...',
-    className,
-    size = 'md',
-    showIcon = true
-}) => {
-    const containerClasses = cn(
-        'flex flex-col items-center justify-center space-y-4',
-        fullScreen && 'fixed inset-0 bg-background/80 backdrop-blur-sm',
-        className
-    );
-
-    const iconSizes = {
-        sm: 'w-6 h-6',
-        md: 'w-8 h-8',
-        lg: 'w-12 h-12'
-    };
-
-    const textSizes = {
-        sm: 'text-sm',
-        md: 'text-base',
-        lg: 'text-lg'
-    };
+const Loading = React.forwardRef<HTMLDivElement, LoadingProps>(
+  ({ className, size = "md", ...props }, ref) => {
+    const sizeClasses = {
+      sm: "h-4 w-4",
+      md: "h-6 w-6",
+      lg: "h-8 w-8",
+    }
 
     return (
-        <div className={containerClasses}>
-            {showIcon && (
-                <MdPsychology 
-                    className={cn(
-                        'animate-spin text-primary',
-                        iconSizes[size]
-                    )} 
-                />
-            )}
-            {message && (
-                <p className={cn(
-                    'text-muted-foreground',
-                    textSizes[size]
-                )}>
-                    {message}
-                </p>
-            )}
-        </div>
-    );
-};
+      <div
+        ref={ref}
+        className={cn("animate-spin", sizeClasses[size], className)}
+        {...props}
+      >
+        <div className="h-full w-full rounded-full border-2 border-current border-t-transparent" />
+      </div>
+    )
+  }
+)
+Loading.displayName = "Loading"
 
-export default Loading;
+export { Loading }

@@ -1,6 +1,6 @@
-import { ZKAuditService } from "../ZKAuditService";
-import { SecurityAuditService } from "../SecurityAuditService";
-import { SupabaseClient } from '@supabase/supabase-js';
+import { ZKAuditService } from "@/ZKAuditService";
+import { SecurityAuditService } from "@/SecurityAuditService";
+import { SupabaseClient, User, Session } from '@supabase/supabase-js';
 import { WebSocket } from 'ws';
 import { EventEmitter } from 'events';
 jest.mock('@supabase/supabase-js');
@@ -159,3 +159,7 @@ describe('ZKAuditService', () => {
         });
     });
 });
+
+export interface Database {
+    public: { Tables: { [key: string]: any } };
+}

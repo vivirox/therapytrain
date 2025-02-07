@@ -1,8 +1,8 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button } from "../components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle, } from "../components/ui/card";
-export const UnauthorizedPage = () => {
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle, } from "@/components/ui/card";
+export const UnauthorizedPage: React.FC = () => {
     const navigate = useNavigate();
     return (<div className="container flex items-center justify-center min-h-[80vh]">
       <Card className="w-full max-w-md">

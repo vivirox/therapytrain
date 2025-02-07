@@ -1,5 +1,5 @@
-import { Router, Request, Response } from 'express';
-import { createClient } from '@supabase/supabase-js';
+import { Router, Request, Response, NextFunction } from 'express';
+import { createClient, SupabaseClient, User, Session } from '@supabase/supabase-js';
 // Types for better type safety
 interface ChatMessage {
     content: string;
@@ -13,7 +13,7 @@ interface ChatRoom {
     createdAt: Date;
 }
 // Initialize Supabase client
-const supabase = createClient(process.env.SUPABASE_URL || '', process.env.SUPABASE_ANON_KEY || '');
+const supabase: SupabaseClient<Database> = createClient(process.env.SUPABASE_URL || '', process.env.SUPABASE_ANON_KEY || '');
 const router = Router();
 // Create a new chat room
 router.post('/rooms', async (req: Request, res: Response) => {
@@ -121,3 +121,7 @@ router.delete('/messages/:messageId', async (req: Request, res: Response) => {
     }
 });
 export default router;
+
+export interface Database {
+    public: { Tables: { [key: string]: any } };
+}

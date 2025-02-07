@@ -1,7 +1,11 @@
 import { createSupabaseClient } from "@supabase/auth-helpers-shared";
-import { SupabaseClient, SupabaseClientOptions } from "@supabase/supabase-js";
+import { SupabaseClient, SupabaseClientOptions, RealtimeChannel, User, Session } from "@supabase/supabase-js";
+import { supabase } from '@/../lib/supabaseClient';
+
 export class TherapyChat {
     private supabase: SupabaseClient;
+    private subscription: RealtimeChannel | null = null;
+
     constructor(supabaseUrl: string, supabaseKey: string, options?: SupabaseClientOptions<any>) {
         this.supabase = createSupabaseClient(supabaseUrl, supabaseKey, {
             ...options,
@@ -11,6 +15,7 @@ export class TherapyChat {
             },
         });
     }
+
     async initializeSession(sessionId: string, clientProfile: string) {
         return await this.supabase
             .from('therapy_sessions')
@@ -22,10 +27,29 @@ export class TherapyChat {
             emotional_state: 'baseline'
         });
     }
-    subscribeToSession(sessionId: string, callback: (payload: any) => void) {
-        return this.supabase
-            .channel(`therapy_messages:session_id=eq.${sessionId}`)
-            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'therapy_messages', filter: `session_id=eq.${sessionId}` }, payload, unknown, unknown => callback(payload))
+
+    async subscribeToMessages(sessionId: string, callback: (message: any) => void): Promise<void> {
+        this.subscription = supabase
+            .channel(`messages:${sessionId}`)
+            .on('postgres_changes', {
+                event: 'INSERT',
+                schema: 'public',
+                table: 'therapy_messages',
+                filter: `session_id=eq.${sessionId}`
+            }, (payload) => {
+                callback(payload.new);
+            })
             .subscribe();
     }
+
+    async unsubscribeFromMessages(): Promise<void> {
+        if (this.subscription) {
+            await this.subscription.unsubscribe();
+            this.subscription = null;
+        }
+    }
+}
+
+export interface Database {
+    public: { Tables: { [key: string]: any } };
 }

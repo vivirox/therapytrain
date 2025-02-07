@@ -170,3 +170,35 @@ export type FlagType = 'risk' | 'safety' | 'compliance' | 'technical' | 'quality
 export type FlagSeverity = 'low' | 'medium' | 'high' | 'critical';
 
 export type FlagStatus = 'active' | 'resolved' | 'dismissed';
+
+export interface ClientSession {
+  id: string;
+  clientId: string;
+  startTime: Date;
+  endTime?: Date;
+  status: SessionStatus;
+  mode: SessionMode;
+  type: SessionType;
+  notes: SessionNote[];
+  metrics: SessionMetrics;
+  flags: SessionFlag[];
+  interventions: Intervention[];
+}
+
+export interface SessionData {
+  id: string;
+  clientId: string;
+  therapistId: string;
+  startTime: Date;
+  endTime?: Date;
+  duration: number;
+  status: SessionStatus;
+  mode: SessionMode;
+  type: SessionType;
+  metrics: SessionMetrics;
+  notes: SessionNote[];
+  flags: SessionFlag[];
+  interventions: Intervention[];
+  summary?: SessionSummary;
+  config: SessionConfig;
+}

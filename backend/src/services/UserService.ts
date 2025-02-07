@@ -1,6 +1,6 @@
-import { User } from '@supabase/supabase-js';
-import { supabase } from '../config/supabase';
-import { UserProfile, UserSession } from '../config/supabase';
+import { User, SupabaseClient, Session } from '@supabase/supabase-js';
+import { supabase } from '@/config/supabase';
+import { UserProfile, UserSession } from '@/config/supabase';
 import { SecurityAuditService } from './SecurityAuditService';
 
 export class UserService {
@@ -227,4 +227,8 @@ export class UserService {
       throw error;
     }
   }
+}
+
+export interface Database {
+    public: { Tables: { [key: string]: any } };
 }

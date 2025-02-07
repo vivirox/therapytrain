@@ -1,6 +1,7 @@
-import { LearningAnalytics } from "../types/education";
-import { SessionMetrics, ClientProgress, TherapistStats } from '../types/api';
-import { supabase } from '../lib/supabase';
+import { LearningAnalytics, SkillGrowth } from "@/types/common";
+import { Tutorial, SkillProgression } from "@/types/education";
+import { SessionMetrics, ClientProgress, TherapistStats } from '@/types/api';
+import { supabase } from '@/lib/supabase';
 interface AnalyticsEvent {
     userId: string;
     eventType: string;
@@ -19,16 +20,22 @@ interface LearningMetrics {
         value: number;
     }>;
 }
-interface SkillGrowth {
-    skillId: string;
-    initialLevel: number;
-    currentLevel: number;
-    growthRate: number;
-    milestones: Array<{
-        date: Date;
-        level: number;
-        achievement: string;
+interface LearningAnalytics {
+    metrics: {
+        skillGrowth: SkillGrowth[];
+        completionRate: number;
+        averageScore: number;
+        timeInvested: number;
+        learningVelocity: number;
+    };
+    strengths: string[];
+    areasForImprovement: string[];
+    patterns: Array<{
+        pattern: string;
+        description: string;
+        significance: number;
     }>;
+    recommendations: string[];
 }
 export class AnalyticsService {
     private static readonly ANALYTICS_ENDPOINT = '/api/analytics';
@@ -97,7 +104,7 @@ export class AnalyticsService {
                 areasForImprovement: metrics.improvementAreas,
                 patterns,
                 recommendations,
-                skillGrowth: skillGrowthData.map(growth, unknown, unknown => ({
+                skillGrowth: skillGrowthData.map((growth: SkillGrowth) => ({
                     skillId: growth.skillId,
                     growth: growth.growthRate,
                     recentMilestones: growth.milestones.slice(-3)
@@ -116,7 +123,7 @@ export class AnalyticsService {
     }>): number {
         // Calculate the rate of improvement over time
         const sortedTrends = trends
-            .filter(t => t.metric === 'skillLevel')
+            .filter((t: any) => t.metric === 'skillLevel')
             .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
         if (sortedTrends.length < 2)
             return 0;
@@ -144,7 +151,7 @@ export class AnalyticsService {
         // Engagement patterns
         const engagementPatterns = this.analyzeEngagementPatterns(trends);
         patterns.push(...engagementPatterns);
-        return patterns.sort((a: unknown, b: unknown) => b.significance - a.significance);
+        return patterns.sort((a: { significance: number }, b: { significance: number }) => b.significance - a.significance);
     }
     private static analyzeTimingPatterns(trends: Array<{
         date: Date;
@@ -152,16 +159,16 @@ export class AnalyticsService {
         value: number;
     }>) {
         const patterns = [];
-        const timeOfDayData = trends.map(t => ({
+        const timeOfDayData = trends.map((t: any) => ({
             hour: new Date(t.date).getHours(),
             value: t.value
         }));
         // Find optimal learning times
-        const hourlyAverages = new Array(24).fill(0).map((_: unknown, hour) => {
-            const hourData = timeOfDayData.filter(d => d.hour === hour);
+        const hourlyAverages = new Array(24).fill(0).map((_: any, hour: any) => {
+            const hourData = timeOfDayData.filter((d: any) => d.hour === hour);
             return {
                 hour,
-                average: hourData.reduce((sum, d) => sum + d.value, 0) / (hourData.length || 1)
+                average: hourData.reduce((sum: any, d: any) => sum + d.value, 0) / (hourData.length || 1)
             };
         });
         const bestHours = hourlyAverages
@@ -170,7 +177,7 @@ export class AnalyticsService {
         patterns.push({
             pattern: 'Peak Learning Hours',
             description: `You show best performance during: ${bestHours
-                .map(h => `${h.hour}:00`)
+                .map((h: any) => `${h.hour}:00`)
                 .join(', ')}`,
             significance: 0.8
         });
@@ -182,7 +189,7 @@ export class AnalyticsService {
         value: number;
     }>) {
         const patterns = [];
-        const performanceTrends = trends.filter(t => t.metric === 'score');
+        const performanceTrends = trends.filter((t: any) => t.metric === 'score');
         if (performanceTrends.length < 2)
             return patterns;
         // Calculate overall trend
@@ -206,11 +213,11 @@ export class AnalyticsService {
         value: number;
     }>) {
         const patterns = [];
-        const engagementTrends = trends.filter(t => t.metric === 'timeSpent');
+        const engagementTrends = trends.filter((t: any) => t.metric === 'timeSpent');
         if (engagementTrends.length < 7)
             return patterns;
         // Calculate weekly engagement
-        const weeklyEngagement = engagementTrends.reduce((acc, curr) => {
+        const weeklyEngagement = engagementTrends.reduce((acc: any, curr: any) => {
             const day = new Date(curr.date).getDay();
             acc[day] = (acc[day] || 0) + curr.value;
             return acc;
@@ -254,7 +261,7 @@ export class AnalyticsService {
             recommendations.push(`Schedule important learning sessions during your peak hours: ${timePattern.description.split(':')[1]}`);
         }
         // Skill growth recommendations
-        const slowGrowthSkills = skillGrowth.filter(s => s.growthRate < 0.5);
+        const slowGrowthSkills = skillGrowth.filter((s: any) => s.growthRate < 0.5);
         if (slowGrowthSkills.length > 0) {
             recommendations.push('Consider seeking peer support or additional resources for challenging skills');
         }

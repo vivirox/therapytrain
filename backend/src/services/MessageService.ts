@@ -1,4 +1,4 @@
-import { supabase, Message, ChatSession } from "../config/supabase";
+import { supabase, Message, ChatSession } from "@/config/supabase";
 import { SecurityAuditService } from "./SecurityAuditService";
 import { v4 as uuidv4 } from 'uuid';
 export class MessageService {

@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient, User, Session } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -10,7 +10,7 @@ if (!supabaseUrl || !supabaseKey) {
   throw new Error('Missing Supabase configuration. Please check your environment variables.');
 }
 
-export const supabase = createClient(supabaseUrl, supabaseKey);
+export const supabase: SupabaseClient<Database> = createClient(supabaseUrl, supabaseKey);
 
 // Message table types
 export interface Message {
@@ -87,4 +87,8 @@ export interface UserSession {
       region?: string;
     };
   } | null;
+}
+
+export interface Database {
+    public: { Tables: { [key: string]: any } };
 }

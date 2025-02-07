@@ -1,6 +1,6 @@
-import { Request, Response } from 'express';
-import { AuditController } from "../audit.controller";
-import { SecurityAuditService } from "../../services/SecurityAuditService";
+import { Request, Response, NextFunction } from 'express';
+import { AuditController } from "@/audit.controller";
+import { SecurityAuditService } from "@/../services/SecurityAuditService";
 jest.mock('../../services/SecurityAuditService');
 describe('AuditController', () => {
     let auditController: AuditController;

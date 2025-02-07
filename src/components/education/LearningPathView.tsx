@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { Card, CardContent, CardHeader } from "../../components/ui/card";
-import { Button } from "../../components/ui/button";
-import { Badge } from "../../components/ui/badge";
-import { Progress } from "../../components/ui/progress";
-import { Alert, AlertDescription } from "../../components/ui/alert";
-import { ScrollArea } from "../../components/ui/scroll-area";
-import { Separator } from "../../components/ui/separator";
-import { LearningPathService } from "../../services/learningPath";
-import { AIAnalyticsService } from "../../services/aiAnalytics";
-import { Loading } from "../../components/ui/loading";
+import { Card, CardContent, CardHeader } from "@/../components/ui/card";
+import { Button } from "@/../components/ui/button";
+import { Badge } from "@/../components/ui/badge";
+import { Progress } from "@/../components/ui/progress";
+import { Alert, AlertDescription } from "@/../components/ui/alert";
+import { ScrollArea } from "@/../components/ui/scroll-area";
+import { Separator } from "@/../components/ui/separator";
+import { LearningPathService } from "@/../services/learningPath";
+import { AIAnalyticsService } from "@/../services/aiAnalytics";
+import { Loading } from "@/../components/ui/loading";
 interface LearningPathViewProps {
     userId: string;
     specialization: string;

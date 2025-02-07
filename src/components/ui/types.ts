@@ -1,118 +1,153 @@
-import { HTMLAttributes, ReactNode } from "react";
-import { VariantProps as RadixVariantProps } from "class-variance-authority";
-// Base component props
+import { HTMLAttributes, ReactNode } from 'react'
+
 export interface BaseProps extends HTMLAttributes<HTMLElement> {
-    className?: string;
-    children?: ReactNode;
+  className?: string
+  children?: ReactNode
 }
-// Variant props helper type
-export type VariantProps<T> = RadixVariantProps<T>;
-// Position props
+
 export interface PositionProps extends BaseProps {
-    position?: "top" | "bottom" | "left" | "right";
-    align?: "start" | "center" | "end";
-    sideOffset?: number;
-    alignOffset?: number;
+  position?: 'top' | 'bottom' | 'left' | 'right'
+  content?: string | ReactNode
 }
-// Checked props
+
 export interface CheckedProps extends BaseProps {
-    checked?: boolean;
-    defaultChecked?: boolean;
-    onCheckedChange?: (checked: boolean) => void;
+  checked?: boolean
+  defaultChecked?: boolean
+  onCheckedChange?: (checked: boolean) => void
 }
-// Progress props
+
 export interface ProgressProps extends BaseProps {
-    value?: number;
-    max?: number;
-    indicatorClassName?: string;
+  value?: number
+  max?: number
+  indeterminate?: boolean
 }
-// OTP props
+
 export interface OTPProps extends BaseProps {
-    value?: string;
-    onChange?: (value: string) => void;
-    maxLength?: number;
-    containerClassName?: string;
+  value?: string
+  length?: number
+  onChange?: (value: string) => void
 }
-// Button props
-export interface ButtonProps extends BaseProps {
-    variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
-    size?: "default" | "sm" | "lg" | "icon";
-    asChild?: boolean;
-}
-// Badge props
-export interface BadgeProps extends BaseProps {
-    variant?: "default" | "secondary" | "destructive" | "outline";
-}
-// Dialog props
+
 export interface DialogProps extends BaseProps {
-    open?: boolean;
-    onOpenChange?: (open: boolean) => void;
-    modal?: boolean;
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
+  modal?: boolean
 }
-// Form props
-export interface FormProps extends BaseProps {
-    onSubmit?: (event: React.FormEvent) => void;
-}
-// Input props
-export interface InputProps extends BaseProps {
-    type?: string;
-    value?: string | number;
-    onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
-    placeholder?: string;
-    disabled?: boolean;
-}
-// Select props
-export interface SelectProps extends BaseProps {
-    value?: string;
-    onValueChange?: (value: string) => void;
-    placeholder?: string;
-    disabled?: boolean;
-}
-// Tooltip props
-export interface TooltipProps extends PositionProps {
-    content: ReactNode;
-    delayDuration?: number;
-    skipDelayDuration?: number;
-}
-// Menu props
-export interface MenuProps extends BaseProps {
-    trigger?: ReactNode;
-    align?: "start" | "center" | "end";
-    side?: "top" | "right" | "bottom" | "left";
-}
-// Tabs props
-export interface TabsProps extends BaseProps {
-    defaultValue?: string;
-    value?: string;
-    onValueChange?: (value: string) => void;
-    orientation?: "horizontal" | "vertical";
-}
-// Accordion props
-export interface AccordionProps extends BaseProps {
-    type?: "single" | "multiple";
-    defaultValue?: string | string[];
-    value?: string | string[];
-    onValueChange?: (value: string | string[]) => void;
-    collapsible?: boolean;
-}
-// Drawer props
+
 export interface DrawerProps extends BaseProps {
-    open?: boolean;
-    onOpenChange?: (open: boolean) => void;
-    side?: "top" | "right" | "bottom" | "left";
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
+  side?: 'left' | 'right' | 'top' | 'bottom'
 }
-// HoverCard props
-export interface HoverCardProps extends BaseProps {
-    openDelay?: number;
-    closeDelay?: number;
+
+export interface MenuProps extends BaseProps {
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
+  trigger?: ReactNode
 }
-// Command props
+
+export interface MenubarProps extends MenuProps {
+  orientation?: 'horizontal' | 'vertical'
+}
+
+export interface TabsProps extends BaseProps {
+  value?: string
+  defaultValue?: string
+  onValueChange?: (value: string) => void
+}
+
+export interface ToastProps extends BaseProps {
+  title?: string
+  description?: string
+  action?: ReactNode
+  duration?: number
+  onOpenChange?: (open: boolean) => void
+}
+
+export interface BadgeProps extends BaseProps {
+  variant?: 'default' | 'secondary' | 'destructive' | 'outline' | 'success'
+}
+
+export interface ButtonProps extends BaseProps {
+  variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link'
+  size?: 'default' | 'sm' | 'lg'
+  asChild?: boolean
+}
+
+export interface InputProps extends BaseProps {
+  type?: string
+  value?: string
+  defaultValue?: string
+  onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void
+  placeholder?: string
+  disabled?: boolean
+  required?: boolean
+}
+
+export interface SelectProps extends BaseProps {
+  value?: string
+  defaultValue?: string
+  onValueChange?: (value: string) => void
+  placeholder?: string
+  disabled?: boolean
+}
+
+export interface TextareaProps extends BaseProps {
+  value?: string
+  defaultValue?: string
+  onChange?: (event: React.ChangeEvent<HTMLTextAreaElement>) => void
+  placeholder?: string
+  disabled?: boolean
+  required?: boolean
+  rows?: number
+}
+
+export interface AlertProps extends BaseProps {
+  variant?: 'default' | 'destructive'
+  title?: string
+  description?: string
+}
+
+export interface CardProps extends BaseProps {
+  variant?: 'default' | 'interactive'
+}
+
+export interface AvatarProps extends BaseProps {
+  src?: string
+  alt?: string
+  fallback?: ReactNode
+}
+
+export interface SkeletonProps extends BaseProps {
+  variant?: 'default' | 'circular' | 'rectangular'
+}
+
+export interface TooltipProps extends PositionProps {
+  content: ReactNode
+  delayDuration?: number
+  skipDelayDuration?: number
+}
+
+export interface PopoverProps extends PositionProps {
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
+  modal?: boolean
+}
+
 export interface CommandProps extends BaseProps {
-    value?: string;
-    onValueChange?: (value: string) => void;
-    filter?: (value: string, search: string) => number;
-    loop?: boolean;
+  value?: string
+  onValueChange?: (value: string) => void
+  filter?: (value: string, search: string) => boolean
 }
-export interface InsetProps extends BaseProps {
-    inset?: boolean;
+
+export interface ScrollAreaProps extends BaseProps {
+  orientation?: 'vertical' | 'horizontal' | 'both'
+}
+
+export interface AccordionProps extends BaseProps {
+  type?: 'single' | 'multiple'
+  value?: string | string[]
+  defaultValue?: string | string[]
+  onValueChange?: (value: string | string[]) => void
+  collapsible?: boolean
 }

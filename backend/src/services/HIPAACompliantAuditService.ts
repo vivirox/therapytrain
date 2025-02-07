@@ -3,6 +3,16 @@ import { VerificationKeyService } from "./VerificationKeyService";
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import crypto from 'crypto';
+import { SupabaseClient, User, Session } from '@supabase/supabase-js';
+import {
+    HIPAAEventType,
+    HIPAAActionType,
+    HIPAAAuditEvent,
+    HIPAAQueryFilters,
+    HIPAAComplianceReport,
+    HIPAAAlertConfig
+} from '@/types/hipaa';
+
 interface HIPAAAuditEvent {
     id: string;
     timestamp: Date;
@@ -38,6 +48,7 @@ interface HIPAAAuditEvent {
         previousEventHash: string;
     };
 }
+
 export enum HIPAAEventType {
     PHI_ACCESS = 'PHI_ACCESS',
     PHI_MODIFICATION = 'PHI_MODIFICATION',
@@ -46,6 +57,7 @@ export enum HIPAAEventType {
     SECURITY_EVENT = 'SECURITY_EVENT',
     ADMINISTRATIVE = 'ADMINISTRATIVE'
 }
+
 export enum HIPAAActionType {
     CREATE = 'CREATE',
     READ = 'READ',
@@ -177,8 +189,8 @@ export class HIPAACompliantAuditService {
             for (const logFile of logFiles) {
                 const content = await fs.readFile(path.join(this.auditLogPath, logFile), 'utf-8');
                 const entries = content.trim().split('\n')
-                    .map(line => this.decryptEvent(JSON.parse(line)))
-                    .filter(entry => {
+                    .map((line: any) => this.decryptEvent(JSON.parse(line)))
+                    .filter((entry: any) => {
                     const timestamp = new Date(entry.timestamp);
                     return timestamp >= startDate && timestamp <= endDate;
                 });
@@ -271,7 +283,7 @@ export class HIPAACompliantAuditService {
     }
     private async getLogFilesBetweenDates(startDate: Date, endDate: Date): Promise<Array<string>> {
         const files = await fs.readdir(this.auditLogPath);
-        return files.filter(file => {
+        return files.filter((file: any) => {
             const match = file.match(/hipaa-audit-(\d{4}-\d{2}-\d{2})/);
             if (!match)
                 return false;
@@ -288,7 +300,7 @@ export class HIPAACompliantAuditService {
     }): Array<HIPAAAuditEvent> {
         if (!filters)
             return events;
-        return events.filter(event => {
+        return events.filter((event: any) => {
             if (filters.eventType && event.eventType !== filters.eventType)
                 return false;
             if (filters.actionType && event.action.type !== filters.actionType)
@@ -306,7 +318,7 @@ export class HIPAACompliantAuditService {
         try {
             const files = await fs.readdir(this.auditLogPath);
             const logFiles = files
-                .filter(f => f.startsWith('hipaa-audit-'))
+                .filter((f: any) => f.startsWith('hipaa-audit-'))
                 .sort((a, b) => b.localeCompare(a));
             if (logFiles.length === 0) {
                 this.lastEventHash = crypto.createHash('sha256')
@@ -375,4 +387,8 @@ export class HIPAACompliantAuditService {
         return highRiskTypes.includes(event.eventType) ||
             highRiskActions.includes(event.action.type);
     }
+}
+
+export interface Database {
+    public: { Tables: { [key: string]: any } };
 }

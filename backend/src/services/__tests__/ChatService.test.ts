@@ -1,11 +1,11 @@
 import { Server } from 'http';
 import WebSocket from 'ws';
-import { ChatService, ChatClient } from "../ChatService";
-import { RateLimiterService } from "../RateLimiterService";
-import { SecurityAuditService } from "../SecurityAuditService";
-import { MessageService } from "../MessageService";
-import { AIService } from "../AIService";
-import { Request } from 'express';
+import { ChatService, ChatClient } from "@/ChatService";
+import { RateLimiterService } from "@/RateLimiterService";
+import { SecurityAuditService } from "@/SecurityAuditService";
+import { MessageService } from "@/MessageService";
+import { AIService } from "@/AIService";
+import { Request, Response, NextFunction } from 'express';
 jest.mock('../MessageService');
 jest.mock('../AIService');
 jest.mock('../RateLimiterService');
@@ -169,7 +169,7 @@ describe('ChatService', () => {
                 send: jest.fn(),
             };
             const calls = mockWs.send.mock.calls;
-            const sentMessages = calls.map((call) => JSON.parse(call[0] as string));
+            const sentMessages = calls.map((call: any) => JSON.parse(call[0] as string));
             expect(sentMessages).toBeDefined();
         });
     });
@@ -261,7 +261,7 @@ describe('ChatService', () => {
             expect(mockWs.send).toHaveBeenCalledTimes(4); // notification + 2 messages + summary
             // Verify message content
             const calls = (mockWs.send as jest.Mock).mock.calls;
-            const sentMessages = calls.map((call) => JSON.parse(call[0] as string));
+            const sentMessages = calls.map((call: any) => JSON.parse(call[0] as string));
             expect(sentMessages[0].type).toBe('status');
             expect(sentMessages[0].content).toBe('Reconnected to previous session');
             expect(sentMessages[1].content).toBe(mockMessages[0].content);

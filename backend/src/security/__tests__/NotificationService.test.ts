@@ -1,6 +1,6 @@
-import { NotificationService } from "../NotificationService";
-import { SecurityAuditService } from "../../services/SecurityAuditService";
-import { IncidentType, IncidentSeverity } from "../SecurityIncidentService";
+import { NotificationService } from "@/NotificationService";
+import { SecurityAuditService } from "@/../services/SecurityAuditService";
+import { IncidentType, IncidentSeverity } from "@/SecurityIncidentService";
 jest.mock('../../services/SecurityAuditService');
 describe('NotificationService', () => {
     let notificationService: NotificationService;

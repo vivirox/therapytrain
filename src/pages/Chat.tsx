@@ -1,20 +1,20 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
-import { analyzeMessageHistory, analyzeSentiment } from "../services/sentimentAnalysis";
-import { useToast } from "../components/ui/use-toast";
-import MessageList from "../components/MessageList";
-import ChatInput from "../components/ChatInput";
-import ChatSidebar from "../components/ChatSidebar";
-import SessionControls from "../components/SessionControls";
-import VideoChat from "../components/VideoChat";
-import { SentimentIndicator } from "../components/SentimentIndicator";
-import { sessionManager, type SessionMode } from "../services/sessionManager";
-import { ContextualLearningSystem } from "../services/contextualLearning";
-import ContextualHints from "../components/ContextualHints";
-import { InterventionOptimizationSystem } from "../services/interventionOptimization";
-import InterventionRecommendations from "../components/InterventionRecommendations";
-import { api } from "../services/api";
+import { useAuth } from "@/context/AuthContext";
+import { analyzeMessageHistory, analyzeSentiment } from "@/services/sentimentAnalysis";
+import { useToast } from "@/components/ui/use-toast";
+import MessageList from "@/components/MessageList";
+import ChatInput from "@/components/ChatInput";
+import ChatSidebar from "@/components/ChatSidebar";
+import SessionControls from "@/components/SessionControls";
+import VideoChat from "@/components/VideoChat";
+import { SentimentIndicator } from "@/components/SentimentIndicator";
+import { sessionManager, type SessionMode } from "@/services/sessionManager";
+import { ContextualLearningSystem } from "@/services/contextualLearning";
+import ContextualHints from "@/components/ContextualHints";
+import { InterventionOptimizationSystem } from "@/services/interventionOptimization";
+import InterventionRecommendations from "@/components/InterventionRecommendations";
+import { api } from "@/services/api";
 type Message = {
     role: 'user' | 'assistant';
     content: string;
@@ -25,7 +25,7 @@ interface Client {
     name: string;
     lastSession?: string;
 }
-const ChatPage = () => {
+const ChatPage: React.FC = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const { toast } = useToast();

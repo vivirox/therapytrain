@@ -3,7 +3,7 @@ import { SecurityAuditService } from "./SecurityAuditService";
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import os from 'os';
-import { SupabaseClient } from '@supabase/supabase-js';
+import { SupabaseClient, User, Session } from '@supabase/supabase-js';
 import WebSocket from 'ws';
 
 jest.mock('./SecurityAuditService');
@@ -128,7 +128,7 @@ describe('ZKAuditService', () => {
                 }
             ];
             // Log operations
-            await Promise.all(operations.map(op => zkAuditService.logOperation(op)));
+            await Promise.all(operations.map((op: any) => zkAuditService.logOperation(op)));
             // Retrieve with filters
             const history = await zkAuditService.getOperationHistory(new Date(Date.now() - 3600000), // 1 hour ago
             new Date(), {
@@ -171,7 +171,7 @@ describe('ZKAuditService', () => {
                 }
             ];
             // Log operations
-            await Promise.all(operations.map(op => zkAuditService.logOperation(op)));
+            await Promise.all(operations.map((op: any) => zkAuditService.logOperation(op)));
             const startDate = new Date(Date.now() - 3600000); // 1 hour ago
             const endDate = new Date();
             const report = await zkAuditService.generateReport(startDate, endDate);
@@ -308,3 +308,7 @@ describe('ZKAuditService', () => {
         });
     });
 });
+
+export interface Database {
+    public: { Tables: { [key: string]: any } };
+}

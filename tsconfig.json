@@ -15,9 +15,13 @@
     "tsBuildInfoFile": "./node_modules/.cache/.tsbuildinfo",
     "baseUrl": ".",
     "paths": {
-      "@/*": [
-        "src/*"
-      ]
+      "@/*": ["src/*"],
+      "@backend/*": ["backend/src/*"],
+      "@frontend/*": ["src/*"],
+      "@config/*": ["backend/src/config/*"],
+      "@services/*": ["backend/src/services/*"],
+      "@types/*": ["backend/src/types/*"],
+      "@utils/*": ["backend/src/utils/*"]
     },
     "allowImportingTsExtensions": true,
     "noImplicitAny": false,

@@ -1,6 +1,6 @@
-import { MessageService } from '../MessageService';
-import { SecurityAuditService } from '../SecurityAuditService';
-import { supabase } from '../../config/supabase';
+import { MessageService } from '@/MessageService';
+import { SecurityAuditService } from '@/SecurityAuditService';
+import { supabase } from '@/../config/supabase';
 
 jest.mock('../../config/supabase', () => ({
   supabase: {

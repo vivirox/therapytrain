@@ -1,5 +1,5 @@
-import { supabase } from "../config/supabase";
-import { AuditLog } from "../models/auditLog";
+import { supabase } from "@/config/supabase";
+import { AuditLog } from "@/models/auditLog";
 import { v4 as uuidv4 } from 'uuid';
 export class SecurityAuditService {
     private static instance: SecurityAuditService;
@@ -119,7 +119,7 @@ export class SecurityAuditService {
             .gte('createdAt', startTime.toISOString())
             .lte('createdAt', endTime.toISOString());
         // Apply filters
-        Object.entries(filters).forEach(([key, value]) => {
+        Object.entries(filters).forEach(([key, value]: any) => {
             if (value !== undefined) {
                 query = query.eq(key, value);
             }

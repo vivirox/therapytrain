@@ -1,5 +1,5 @@
-import { AlertManager } from '../AlertManager';
-import { AlertType, AlertSeverity, AlertHandler } from '../types';
+import { AlertManager } from '@/AlertManager';
+import { AlertType, AlertSeverity, AlertHandler } from '@/types';
 
 describe('AlertManager', () => {
   let alertManager: AlertManager;

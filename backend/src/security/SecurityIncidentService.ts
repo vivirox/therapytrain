@@ -1,4 +1,4 @@
-import { SecurityAuditService } from "../services/SecurityAuditService";
+import { SecurityAuditService } from "@/services/SecurityAuditService";
 import { WebAuthnService } from "./WebAuthnService";
 export enum IncidentSeverity {
     LOW = 'LOW',

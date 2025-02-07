@@ -1,19 +1,19 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../components/auth/AuthProvider";
+import { useAuth } from "@/components/auth/AuthProvider";
 import { MdChat, MdPsychology, MdSchool, MdGroup, MdMenuBook, MdDashboard, MdSettings, MdPeople } from "react-icons/md";
-import { Button } from "../components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ErrorBoundary, FallbackProps } from 'react-error-boundary';
-import { supabase } from "../lib/supabase";
-import { User } from '@supabase/supabase-js';
-import { cn } from "../lib/utils";
-import MetricCard from "../components/MetricCard";
-import MonthlyChart from "../components/MonthlyChart";
-import TherapyInsights from "../components/CustomerRequests";
+import { supabase } from "@/lib/supabase";
+import { User, SupabaseClient, Session } from '@supabase/supabase-js';
+import { cn } from "@/lib/utils";
+import MetricCard from "@/components/MetricCard";
+import MonthlyChart from "@/components/MonthlyChart";
+import TherapyInsights from "@/components/CustomerRequests";
 import React from "react";
 // Error Fallback Component
-const ErrorFallback = ({ error, resetErrorBoundary }: FallbackProps) => {
+const ErrorFallback: React.FC = ({ error, resetErrorBoundary }: FallbackProps) => {
     return (<div className="p-4 bg-red-50 text-red-800 rounded-md">
       <h2 className="text-lg font-semibold mb-2">Something went wrong:</h2>
       <pre className="text-sm">{error.message}</pre>
@@ -44,7 +44,7 @@ interface Feature {
     path: string;
     metrics: Record<string, string | number | boolean>;
 }
-const Dashboard = () => {
+const Dashboard: React.FC = () => {
     const navigate = useNavigate();
     const { user, isAuthenticated } = useAuth();
     const [activeTab, setActiveTab] = useState<string>("overview");
@@ -204,7 +204,7 @@ const Dashboard = () => {
 
             {/* Features Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {features.map((feature) => (<Card key={feature.title} className="bg-white/5 border-white/10">
+              {features.map((feature: any) => (<Card key={feature.title} className="bg-white/5 border-white/10">
                   <CardHeader>
                     <div className="flex items-center gap-4">
                       {React.createElement(feature.icon as React.ComponentType<{
@@ -221,7 +221,7 @@ const Dashboard = () => {
                   <CardContent>
                     <div className="flex justify-between items-center">
                       <div className="space-y-1">
-                        {Object.entries(feature.metrics).map(([key, value]) => (<p key={key} className="text-sm text-gray-400">
+                        {Object.entries(feature.metrics).map(([key, value]: any) => (<p key={key} className="text-sm text-gray-400">
                             {key}: <span className="text-white">{String(value)}</span>
                           </p>))}
                       </div>
@@ -274,7 +274,7 @@ const Dashboard = () => {
           <div className="p-6">
             <h2 className="text-xl font-medium mb-6 text-white">TherapyTrain</h2>
             <nav className="space-y-2">
-              {navItems.map((item) => (<Button key={item.id} variant="ghost" className={cn("w-full justify-start gap-2 text-white", activeTab === item.id && "bg-white/10")} onClick={() => {
+              {navItems.map((item: any) => (<Button key={item.id} variant="ghost" className={cn("w-full justify-start gap-2 text-white", activeTab === item.id && "bg-white/10")} onClick={() => {
                 if (item.id === "education") {
                     navigate("/education");
                 }
@@ -299,3 +299,7 @@ const Dashboard = () => {
     </ErrorBoundary>);
 };
 export default Dashboard;
+
+export interface Database {
+    public: { Tables: { [key: string]: any } };
+}

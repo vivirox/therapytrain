@@ -1,19 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from "../context/AuthContext"; // Updated import
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
-import { Card } from "../components/ui/card";
-import { Button } from "../components/ui/button";
-import { SkillProgressionTracker } from "../components/education/SkillProgressionTracker";
-import { LearningPathView } from "../components/education/LearningPathView";
-import { CaseStudyLibrary } from "../components/education/CaseStudyLibrary";
-import { PeerLearning } from "../components/education/PeerLearning";
-import { TutorialCard } from "../components/education/TutorialCard";
-import { RecommendationEngine } from "../services/recommendations";
-import { LearningPathService } from "../services/learningPath";
+import { useAuth } from "@/context/AuthContext"; // Updated import
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { SkillProgressionTracker } from "@/components/education/SkillProgressionTracker";
+import { LearningPathView } from "@/components/education/LearningPathView";
+import { CaseStudyLibrary } from "@/components/education/CaseStudyLibrary";
+import { PeerLearning } from "@/components/education/PeerLearning";
+import { TutorialCard } from "@/components/education/TutorialCard";
+import { RecommendationEngine } from "@/services/recommendations";
+import { LearningPathService } from "@/services/learningPath";
 import { MdMenuBook, MdGroups, MdSchool, MdAssessment, MdPeople } from 'react-icons/md';
-import type { Tutorial, CaseStudy, SkillProgression } from "../types/education";
-const Education = () => {
+import type { Tutorial, CaseStudy, SkillProgression } from "@/types/education";
+const Education: React.FC = () => {
     const navigate = useNavigate();
     const { user, loading } = useAuth(); // Updated to use useAuth
     const [activeTab, setActiveTab] = useState<string>('learning-path');
@@ -49,13 +49,13 @@ const Education = () => {
             case 'learning-path':
                 return (<div className="space-y-6">
             <SkillProgressionTracker userId={user?.id || ''}></SkillProgressionTracker>
-            <LearningPathView userId={user?.id || ''} specialization={userProgress?.learningPath?.customizedFocus?.[0] || 'general'} initialSkillLevels={Object.fromEntries(Object.entries(userProgress?.skills || {}).map(([key, value]) => [key, value.level]))}/>
+            <LearningPathView userId={user?.id || ''} specialization={userProgress?.learningPath?.customizedFocus?.[0] || 'general'} initialSkillLevels={Object.fromEntries(Object.entries(userProgress?.skills || {}).map(([key, value]: any) => [key, value.level]))}/>
           </div>);
             case 'tutorials':
                 return (<div className="space-y-6">
             <h2 className="text-2xl font-semibold mb-4">Recommended Tutorials</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {recommendations.recommendedTutorials.map(tutorial => (<TutorialCard key={tutorial.id} tutorial={tutorial} progress={userProgress?.skills?.[tutorial.category]?.completedTutorials?.includes(tutorial.id)} onClick={() => navigate(`/education/tutorial/${tutorial.id}`)}/>))}
+              {recommendations.recommendedTutorials.map((tutorial: any) => (<TutorialCard key={tutorial.id} tutorial={tutorial} progress={userProgress?.skills?.[tutorial.category]?.completedTutorials?.includes(tutorial.id)} onClick={() => navigate(`/education/tutorial/${tutorial.id}`)}/>))}
             </div>
           </div>);
             case 'case-studies':
@@ -83,7 +83,7 @@ const Education = () => {
             { id: 'tutorials', label: 'Tutorials' },
             { id: 'case-studies', label: 'Case Studies' },
             { id: 'peer-learning', label: 'Peer Learning' },
-        ].map(tab => (<button key={tab.id} className={`px-4 py-2 border-b-2 transition-colors ${activeTab === tab.id
+        ].map((tab: any) => (<button key={tab.id} className={`px-4 py-2 border-b-2 transition-colors ${activeTab === tab.id
                 ? 'border-primary-500 text-primary-600'
                 : 'border-transparent hover:border-gray-300'}`} onClick={() => setActiveTab(tab.id)}>
               {tab.label}

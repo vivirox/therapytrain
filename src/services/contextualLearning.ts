@@ -1,6 +1,6 @@
-import { Message } from "../types/chat.ts";
-import { SessionState } from "../types/session.ts";
-import { Client } from "../types/Client.ts"; // Ensure this import is correct
+import { Message } from "@/types/chat.ts";
+import { SessionState } from "@/types/session.ts";
+import { Client } from "@/types/Client.ts"; // Ensure this import is correct
 import { analyzeMessageHistory } from "./sentimentAnalysis";
 import { SessionAnalytics } from "./sessionAnalytics";
 interface ContextMemory {
@@ -56,14 +56,14 @@ export class ContextualLearningSystem {
         // Update short-term memory
         const recentMessages = messages.slice(-5);
         memory.shortTerm = {
-            recentTopics: SessionAnalytics.extractTopics(recentMessages.map(m => m.content)),
+            recentTopics: SessionAnalytics.extractTopics(recentMessages.map((m: any) => m.content)),
             emotionalState: analyzeMessageHistory(recentMessages),
             engagementLevel: memory.shortTerm.engagementLevel,
             lastResponses: recentMessages
-                .filter(m => m.role === 'assistant')
-                .map(m => m.content),
+                .filter((m: any) => m.role === 'assistant')
+                .map((m: any) => m.content),
         };
-        memory.longTerm.clientHistory.commonTopics = this.updateTopics(memory.longTerm.clientHistory.commonTopics, SessionAnalytics.extractTopics(messages.map(m => m.content)));
+        memory.longTerm.clientHistory.commonTopics = this.updateTopics(memory.longTerm.clientHistory.commonTopics, SessionAnalytics.extractTopics(messages.map((m: any) => m.content)));
         // Update therapeutic progress
         const sessionMetrics = await SessionAnalytics.getSessionMetrics(session.id);
         memory.longTerm.therapeuticProgress.adaptationHistory.push({
@@ -97,18 +97,18 @@ export class ContextualLearningSystem {
     private updateTopics(existing: Array<string>, new_topics: Array<string>): Array<string> {
         const topicFrequency = new Map<string, number>();
         // Count existing topics
-        existing.forEach(topic => {
+        existing.forEach((topic: any) => {
             topicFrequency.set(topic, (topicFrequency.get(topic) || 0) + 1);
         });
         // Add new topics
-        new_topics.forEach(topic => {
+        new_topics.forEach((topic: any) => {
             topicFrequency.set(topic, (topicFrequency.get(topic) || 0) + 1);
         });
         // Sort by frequency and take top 10
         return Array.from(topicFrequency.entries())
             .sort((a, b) => b[1] - a[1])
             .slice(0, 10)
-            .map(([topic]) => topic);
+            .map(([topic]: any) => topic);
     }
     async getContextualResponse(clientId: string, currentMessage: string): Promise<{
         contextualHints: Array<string>;
@@ -147,7 +147,7 @@ export class ContextualLearningSystem {
             hints.push('Low engagement detected');
         }
         // Add topic continuity hints
-        const topicOverlap = memory.shortTerm.recentTopics.filter(topic => memory.longTerm.clientHistory.commonTopics.includes(topic));
+        const topicOverlap = memory.shortTerm.recentTopics.filter((topic: any) => memory.longTerm.clientHistory.commonTopics.includes(topic));
         if (topicOverlap.length > 0) {
             hints.push(`Recurring topics: ${topicOverlap.join(', ')}`);
         }
@@ -157,24 +157,24 @@ export class ContextualLearningSystem {
         // Analyze adaptation history to find most effective approaches
         const approachEffectiveness = new Map<string, number>();
         let totalEntries = 0;
-        memory.longTerm.therapeuticProgress.adaptationHistory.forEach(entry => {
+        memory.longTerm.therapeuticProgress.adaptationHistory.forEach((entry: any) => {
             approachEffectiveness.set(entry.approach, (approachEffectiveness.get(entry.approach) || 0) + entry.effectiveness);
             totalEntries++;
         });
         // Convert to average effectiveness and sort
         return Array.from(approachEffectiveness.entries())
-            .map(([approach, total]) => ({
+            .map(([approach, total]: any) => ({
             approach,
             effectiveness: total / totalEntries,
         }))
             .sort((a, b) => b.effectiveness - a.effectiveness)
             .slice(0, 3)
-            .map(entry => entry.approach);
+            .map((entry: any) => entry.approach);
     }
     findRelevantHistory(memory: ContextMemory, currentMessage: string): Array<string> {
         // Simple keyword-based relevance for now
         // TODO: Implement more sophisticated semantic matching
         const keywords = currentMessage.toLowerCase().split(' ');
-        return memory.longTerm.clientHistory.commonTopics.filter(topic => keywords.some(keyword => topic.toLowerCase().includes(keyword)));
+        return memory.longTerm.clientHistory.commonTopics.filter((topic: any) => keywords.some(keyword => topic.toLowerCase().includes(keyword)));
     }
 }

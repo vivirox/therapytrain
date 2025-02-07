@@ -1,4 +1,4 @@
-import { User } from '@supabase/supabase-js';
+import { User, SupabaseClient, Session } from '@supabase/supabase-js';
 import { Message, ChatSession } from "./chat";
 import { SessionState } from "./session";
 export interface ApiService {
@@ -244,4 +244,8 @@ export interface TherapistStats {
         active: string[];
         pending: string[];
     };
+}
+
+export interface Database {
+    public: { Tables: { [key: string]: any } };
 }

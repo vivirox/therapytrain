@@ -1,8 +1,10 @@
-import { supabase } from "../../../config/database";
+import { supabase } from "@/../../config/database";
+import { SecurityAuditService } from '@/SecurityAuditService';
+
 export interface Session {
     id: string;
     userId: string;
-    status: 'active' | 'paused' | 'completed' | 'cancelled';
+    status: 'active' | 'paused' | 'completed';
     startTime: Date;
     endTime?: Date;
     metadata?: {
@@ -10,9 +12,90 @@ export interface Session {
         lastActivity: Date;
         duration: number;
     };
+    clients: Set<string>;
+    data: Record<string, any>;
 }
+
 export class SessionManager {
-    private activeSessions: Map<string, Session> = new Map();
+    private readonly activeSessions: Map<string, Session> = new Map();
+
+    constructor(private readonly securityAuditService: SecurityAuditService) {}
+
+    async addClient(sessionId: string, clientId: string): Promise<void> {
+        let session = this.activeSessions.get(sessionId);
+
+        if (!session) {
+            session = {
+                id: sessionId,
+                clients: new Set(),
+                data: {}
+            };
+            this.activeSessions.set(sessionId, session);
+        }
+
+        session.clients.add(clientId);
+
+        await this.securityAuditService.recordEvent('SESSION_JOIN', {
+            sessionId,
+            clientId
+        });
+    }
+
+    async removeClient(sessionId: string, clientId: string): Promise<void> {
+        const session = this.activeSessions.get(sessionId);
+        if (!session) return;
+
+        session.clients.delete(clientId);
+
+        if (session.clients.size === 0) {
+            this.activeSessions.delete(sessionId);
+        }
+
+        await this.securityAuditService.recordEvent('SESSION_LEAVE', {
+            sessionId,
+            clientId
+        });
+    }
+
+    async handleMessage(sessionId: string, clientId: string, message: any): Promise<void> {
+        const session = this.activeSessions.get(sessionId);
+        if (!session) {
+            throw new Error('Session not found');
+        }
+
+        await this.securityAuditService.recordEvent('SESSION_MESSAGE', {
+            sessionId,
+            clientId,
+            messageType: message.type
+        });
+
+        // Handle message based on type
+        switch (message.type) {
+            case 'update_data':
+                session.data = {
+                    ...session.data,
+                    ...message.data
+                };
+                break;
+
+            case 'clear_data':
+                session.data = {};
+                break;
+
+            default:
+                // Other message types can be handled here
+                break;
+        }
+    }
+
+    getSession(sessionId: string): Session | undefined {
+        return this.activeSessions.get(sessionId);
+    }
+
+    getActiveSessions(): Session[] {
+        return Array.from(this.activeSessions.values());
+    }
+
     async createSession(userId: string): Promise<Session> {
         try {
             const { data, error } = await supabase
@@ -33,10 +116,8 @@ export class SessionManager {
                 throw error;
             const session: Session = {
                 id: data.id,
-                userId: data.user_id,
-                status: data.status,
-                startTime: new Date(data.start_time),
-                metadata: data.metadata
+                clients: new Set(),
+                data: {}
             };
             this.activeSessions.set(session.id, session);
             return session;
@@ -46,6 +127,7 @@ export class SessionManager {
             throw error;
         }
     }
+
     async getSession(sessionId: string): Promise<Session | null> {
         // Check cache first
         if (this.activeSessions.has(sessionId)) {
@@ -64,11 +146,8 @@ export class SessionManager {
                 return null;
             const session: Session = {
                 id: data.id,
-                userId: data.user_id,
-                status: data.status,
-                startTime: new Date(data.start_time),
-                endTime: data.end_time ? new Date(data.end_time) : undefined,
-                metadata: data.metadata
+                clients: new Set(),
+                data: {}
             };
             // Cache active sessions
             if (session.status === 'active') {
@@ -81,6 +160,7 @@ export class SessionManager {
             return null;
         }
     }
+
     async updateSession(sessionId: string, updates: Partial<Session>): Promise<Session | null> {
         try {
             const { data, error } = await supabase
@@ -99,11 +179,8 @@ export class SessionManager {
                 return null;
             const session: Session = {
                 id: data.id,
-                userId: data.user_id,
-                status: data.status,
-                startTime: new Date(data.start_time),
-                endTime: data.end_time ? new Date(data.end_time) : undefined,
-                metadata: data.metadata
+                clients: new Set(),
+                data: {}
             };
             // Update cache if session is active
             if (session.status === 'active') {
@@ -119,6 +196,7 @@ export class SessionManager {
             return null;
         }
     }
+
     async endSession(sessionId: string): Promise<void> {
         try {
             const session = await this.getSession(sessionId);
@@ -142,6 +220,7 @@ export class SessionManager {
             throw error;
         }
     }
+
     async pauseSession(sessionId: string): Promise<void> {
         try {
             const session = await this.getSession(sessionId);
@@ -160,6 +239,7 @@ export class SessionManager {
             throw error;
         }
     }
+
     async resumeSession(sessionId: string): Promise<void> {
         try {
             const session = await this.getSession(sessionId);
@@ -178,6 +258,7 @@ export class SessionManager {
             throw error;
         }
     }
+
     async incrementMessageCount(sessionId: string): Promise<void> {
         try {
             const session = await this.getSession(sessionId);
@@ -196,29 +277,29 @@ export class SessionManager {
             throw error;
         }
     }
-    getActiveSessions(): Session[] {
-        return Array.from(this.activeSessions.values());
-    }
+
     async cleanupInactiveSessions(timeoutMinutes: number = 60): Promise<void> {
         const cutoff = new Date(Date.now() - timeoutMinutes * 60 * 1000);
         try {
             const { data, error } = await supabase
                 .from('sessions')
                 .update({
-                status: 'completed',
-                end_time: new Date().toISOString()
-            })
+                    status: 'completed',
+                    end_time: new Date().toISOString()
+                })
                 .eq('status', 'active')
                 .lt('metadata->lastActivity', cutoff.toISOString())
                 .select();
-            if (error)
-                throw error;
+
+            if (error) throw error;
+
             // Clear from cache
             if (data) {
-                data.forEach(session, unknown => this.activeSessions.delete(session.id));
+                data.forEach((session: Session) => {
+                    this.activeSessions.delete(session.id);
+                });
             }
-        }
-        catch (error) {
+        } catch (error) {
             console.error('Error cleaning up inactive sessions:', error);
             throw error;
         }

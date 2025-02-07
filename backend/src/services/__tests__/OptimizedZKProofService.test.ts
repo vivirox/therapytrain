@@ -1,7 +1,7 @@
-import { OptimizedZKProofService } from '../OptimizedZKProofService';
-import { VerificationKeyService } from '../VerificationKeyService';
-import { SecurityAuditService } from '../SecurityAuditService';
-import { ProofGenerationInput, SessionMetadata, TherapistCredential } from '../../zk/types';
+import { OptimizedZKProofService } from '@/OptimizedZKProofService';
+import { VerificationKeyService } from '@/VerificationKeyService';
+import { SecurityAuditService } from '@/SecurityAuditService';
+import { ProofGenerationInput, SessionMetadata, TherapistCredential } from '@/../zk/types';
 import crypto from 'crypto';
 
 jest.mock('../VerificationKeyService');
@@ -116,11 +116,11 @@ describe('OptimizedZKProofService', () => {
 
             // Generate proofs concurrently
             const results = await Promise.all(
-                inputs.map(input => zkService.generateProof(input))
+                inputs.map((input: any) => zkService.generateProof(input))
             );
 
             expect(results).toHaveLength(4);
-            results.forEach(result => {
+            results.forEach((result: any) => {
                 expect(result.proof).toBeDefined();
                 expect(result.publicSignals).toBeDefined();
             });
@@ -182,7 +182,7 @@ describe('OptimizedZKProofService', () => {
             const metrics = await zkService.getMetrics();
             expect(metrics.size).toBe(2); // We configured 2 workers
 
-            metrics.forEach((metric) => {
+            metrics.forEach((metric: any) => {
                 expect(metric.totalProofsGenerated).toBe(0);
                 expect(metric.errorRate).toBe(0);
                 expect(metric.currentLoad).toBe(0);

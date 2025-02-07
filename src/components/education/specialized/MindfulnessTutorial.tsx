@@ -1,21 +1,24 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Card } from "../../ui/card";
-import { Button } from "../../ui/button";
-import { Progress } from "../../ui/progress";
-import { Slider } from "../../ui/slider";
-import { Badge } from "../../ui/badge";
+import { Card } from "@/../ui/card";
+import { Button } from "@/../ui/button";
+import { Progress } from "@/../ui/progress";
+import { Slider } from "@/../ui/slider";
+import { Badge } from "@/../ui/badge";
 import { MdPlayArrow as Play, MdPause as Pause, MdVolumeUp as Volume2, MdVolumeOff as VolumeX, MdAir as Wind, MdNightlight as Moon, MdWbSunny as Sun, MdFavorite as Heart, MdMonitor as Activity, MdAccessTime as Clock, MdAutoAwesome as Sparkles } from 'react-icons/md';
-import { AnalyticsService } from "../../../services/analytics";
+import { AnalyticsService } from "@/../../services/analytics";
+
 interface Visualization {
     type: 'breath' | 'nature' | 'abstract';
     animation: string;
     colorScheme: string[];
 }
+
 interface AudioTrack {
     type: 'guidance' | 'ambient' | 'binaural';
     url: string;
     duration: number;
 }
+
 interface MeditationPhase {
     name: string;
     duration: number;
@@ -29,6 +32,7 @@ interface MeditationPhase {
         rest: number;
     };
 }
+
 interface MindfulnessExercise {
     id: string;
     title: string;
@@ -39,19 +43,27 @@ interface MindfulnessExercise {
     phases: MeditationPhase[];
     objectives: string[];
 }
+
 interface BiometricData {
     heartRate?: number;
     breathingRate?: number;
     calmness: number;
     focus: number;
 }
+
+interface MindfulnessNote {
+    time: number;
+    note: string;
+}
+
 interface MindfulnessTutorialProps {
     userId: string;
     exerciseId: string;
-    onComplete: (results: any) => void;
+    onComplete: () => void;
     className?: string;
 }
-export const MindfulnessTutorial: React.FC = ({ userId, exerciseId, onComplete }) => {
+
+export const MindfulnessTutorial: React.FC<MindfulnessTutorialProps> = ({ userId, exerciseId, onComplete }) => {
     const [exercise, setExercise] = useState<MindfulnessExercise | null>(null);
     const [currentPhase, setCurrentPhase] = useState<number>(0);
     const [isPlaying, setIsPlaying] = useState<boolean>(false);
@@ -66,9 +78,35 @@ export const MindfulnessTutorial: React.FC = ({ userId, exerciseId, onComplete }
     const [ambientSoundLevel, setAmbientSoundLevel] = useState<number>(0.3);
     const [guidanceVolume, setGuidanceVolume] = useState<number>(0.7);
     const [visualizationScale, setVisualizationScale] = useState<number>(1);
-    const [userNotes, setUserNotes] = useState<string[]>([]);
+    const [userNotes, setUserNotes] = useState<MindfulnessNote[]>([]);
+    const [progress, setProgress] = useState(0);
     const audioRefs = useRef<Record<string, HTMLAudioElement>>({});
     const animationRef = useRef<any>(null);
+    const [isBreathing, setIsBreathing] = useState(false);
+
+    const steps = [
+        {
+            title: 'Introduction to Mindful Breathing',
+            content: 'Welcome to the mindful breathing exercise. Find a comfortable position and prepare to focus on your breath.',
+        },
+        {
+            title: 'Basic Breathing Technique',
+            content: 'Inhale slowly through your nose for 4 counts, hold for 4, then exhale for 4. Click start when ready.',
+        },
+        {
+            title: 'Body Awareness',
+            content: 'As you breathe, notice any sensations in your body. Where do you feel the breath most prominently?',
+        },
+        {
+            title: 'Thought Observation',
+            content: 'If thoughts arise, acknowledge them without judgment and gently return focus to your breath.',
+        },
+        {
+            title: 'Completion',
+            content: 'Well done! You\'ve completed the mindful breathing exercise. Take a moment to reflect on your experience.',
+        },
+    ];
+
     useEffect(() => {
         const fetchExercise = async () => {
             try {
@@ -85,6 +123,7 @@ export const MindfulnessTutorial: React.FC = ({ userId, exerciseId, onComplete }
         };
         fetchExercise();
     }, [exerciseId]);
+
     useEffect(() => {
         if (!exercise || !isPlaying)
             return;
@@ -100,14 +139,37 @@ export const MindfulnessTutorial: React.FC = ({ userId, exerciseId, onComplete }
         }, 1000);
         return () => clearInterval(timer);
     }, [exercise, isPlaying, currentPhase]);
+
+    useEffect(() => {
+        if (isBreathing) {
+            const timer = setInterval(() => {
+                setBreathCount(prev => {
+                    const newCount = prev + 1;
+                    if (newCount >= 10) {
+                        setIsBreathing(false);
+                        return 0;
+                    }
+                    return newCount;
+                });
+            }, 12000); // Complete breath cycle (4s in, 4s hold, 4s out)
+
+            return () => clearInterval(timer);
+        }
+    }, [isBreathing]);
+
+    useEffect(() => {
+        setProgress((currentPhase / (exercise?.phases.length - 1 || 0)) * 100);
+    }, [currentPhase, exercise?.phases.length]);
+
     const initializeAudioTracks = (tracks: AudioTrack[]) => {
-        tracks.forEach(track => {
+        tracks.forEach((track: any) => {
             const audio = new Audio(track.url);
             audio.loop = true;
             audio.volume = track.type === 'guidance' ? guidanceVolume : ambientSoundLevel;
             audioRefs.current[track.type] = audio;
         });
     };
+
     const updateBiometrics = () => {
         // Simulate biometric data updates
         setBiometrics(prev => ({
@@ -118,6 +180,7 @@ export const MindfulnessTutorial: React.FC = ({ userId, exerciseId, onComplete }
             focus: Math.min(100, prev.focus + (Math.random() > 0.5 ? 1 : -1))
         }));
     };
+
     const moveToNextPhase = () => {
         if (!exercise)
             return;
@@ -130,11 +193,12 @@ export const MindfulnessTutorial: React.FC = ({ userId, exerciseId, onComplete }
             handleComplete();
         }
     };
+
     const updateAudioTracks = (newTracks: AudioTrack[]) => {
-        Object.values(audioRefs.current).forEach(audio => {
+        Object.values(audioRefs.current).forEach((audio: any) => {
             audio.pause();
         });
-        newTracks.forEach(track => {
+        newTracks.forEach((track: any) => {
             const audio = audioRefs.current[track.type];
             if (audio) {
                 audio.volume = track.type === 'guidance' ? guidanceVolume : ambientSoundLevel;
@@ -143,12 +207,13 @@ export const MindfulnessTutorial: React.FC = ({ userId, exerciseId, onComplete }
             }
         });
     };
+
     const togglePlayback = () => {
         setIsPlaying(!isPlaying);
         if (!exercise)
             return;
         const tracks = exercise.phases[currentPhase].audio;
-        tracks.forEach(track => {
+        tracks.forEach((track: any) => {
             const audio = audioRefs.current[track.type];
             if (audio) {
                 if (!isPlaying) {
@@ -160,6 +225,7 @@ export const MindfulnessTutorial: React.FC = ({ userId, exerciseId, onComplete }
             }
         });
     };
+
     const handleVolumeChange = (type: string, value: number) => {
         const audio = audioRefs.current[type];
         if (audio) {
@@ -172,18 +238,23 @@ export const MindfulnessTutorial: React.FC = ({ userId, exerciseId, onComplete }
             setAmbientSoundLevel(value);
         }
     };
+
     const handleBreathTracking = () => {
         setBreathCount(prev => prev + 1);
     };
+
     const handleVisualizationScale = (scale: number) => {
         setVisualizationScale(scale);
         if (animationRef.current) {
             animationRef.current.style.transform = `scale(${scale})`;
         }
     };
+
     const addUserNote = (note: string) => {
+        const currentTime = Math.floor(Date.now() / 1000);
         setUserNotes(prev => [...prev, { time: currentTime, note }]);
     };
+
     const handleComplete = () => {
         const results = {
             exerciseId,
@@ -198,141 +269,103 @@ export const MindfulnessTutorial: React.FC = ({ userId, exerciseId, onComplete }
         };
         // Track completion in analytics
         AnalyticsService.trackTutorialProgress(userId, exerciseId, 100);
-        onComplete(results);
+        onComplete();
     };
+
+    const handleNext = () => {
+        if (currentPhase < steps.length - 1) {
+            setCurrentPhase(prev => prev + 1);
+            AnalyticsService.trackEvent({
+                type: 'tutorial_progress',
+                userId,
+                timestamp: Date.now(),
+                data: {
+                    exerciseId,
+                    step: currentPhase + 1,
+                    totalSteps: steps.length
+                }
+            });
+        } else {
+            handleComplete();
+        }
+    };
+
+    const handleBreathingStart = () => {
+        setIsBreathing(true);
+        AnalyticsService.trackEvent({
+            type: 'breathing_exercise_start',
+            userId,
+            timestamp: Date.now(),
+            data: {
+                exerciseId
+            }
+        });
+    };
+
     if (!exercise) {
         return <div>Loading exercise...</div>;
     }
+
     const currentPhaseData = exercise.phases[currentPhase];
-    return (<div className="max-w-4xl mx-auto space-y-8">
-      {/* Exercise Header */}
-      <Card className="p-6">
-        <div className="flex items-start justify-between mb-4">
-          <div>
-            <h2 className="text-2xl font-bold mb-2">{exercise.title}</h2>
-            <p className="text-gray-400">{exercise.description}</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Badge variant="outline">{exercise.difficulty}</Badge>
-            <Badge variant="outline">
-              <Clock className="w-4 h-4 mr-1"></Clock>
-              {exercise.duration}m
-            </Badge>
-          </div>
+
+    return (
+        <div className="max-w-4xl mx-auto space-y-8">
+            <Progress value={progress} className="mb-6" />
+
+            <Card className="p-6">
+                <h2 className="text-2xl font-bold mb-4">{steps[currentPhase].title}</h2>
+                <p className="text-gray-600 mb-6">{steps[currentPhase].content}</p>
+                
+                {currentPhase === 1 && (
+                    <div className="mb-6">
+                        {isBreathing ? (
+                            <div className="text-center">
+                                <div className="text-3xl mb-4">Breath Count: {breathCount}</div>
+                                <div className="text-gray-600">Continue breathing...</div>
+                            </div>
+                        ) : (
+                            <Button onClick={handleBreathingStart}>
+                                Start Breathing Exercise
+                            </Button>
+                        )}
+                    </div>
+                )}
+
+                {currentPhase === 2 && (
+                    <div className="mb-6">
+                        <textarea
+                            className="w-full p-2 border rounded"
+                            placeholder="Note your physical sensations here..."
+                            onChange={(e) => addUserNote(e.target.value)}
+                        />
+                    </div>
+                )}
+
+                <Button 
+                    onClick={handleNext}
+                    disabled={currentPhase === 1 && breathCount < 10}
+                >
+                    {currentPhase < steps.length - 1 ? 'Next' : 'Complete'}
+                </Button>
+            </Card>
+
+            {userNotes.length > 0 && (
+                <Card className="p-6">
+                    <h3 className="text-xl font-bold mb-4">Your Notes</h3>
+                    <div className="space-y-2">
+                        {userNotes.map((note: any, index: any) => (
+                            <div key={index} className="p-2 bg-gray-100 rounded">
+                                <span className="text-sm text-gray-500">
+                                    {new Date(note.time * 1000).toLocaleTimeString()}: 
+                                </span>
+                                <p>{note.note}</p>
+                            </div>
+                        ))}
+                    </div>
+                </Card>
+            )}
         </div>
-
-        <div className="flex flex-wrap gap-2">
-          {exercise.focus.map(focus => (<Badge key={focus}>{focus}</Badge>))}
-        </div>
-      </Card>
-
-      {/* Main Content */}
-      <div className="grid grid-cols-3 gap-6">
-        {/* Visualization Area */}
-        <Card className="col-span-2 p-6 aspect-video relative overflow-hidden">
-          <div ref={animationRef} className="absolute inset-0 flex items-center justify-center" style={{
-            transform: `scale(${visualizationScale})`
-        }}>
-            {/* Visualization content based on current phase */}
-            <div className="w-64 h-64 rounded-full" style={{
-            background: `radial-gradient(circle at center, ${currentPhaseData.visualization.colorScheme.join(', ')})`,
-            animation: currentPhaseData.visualization.animation
-        }}/>
-          </div>
-
-          {/* Breathing Guide */}
-          {currentPhaseData.breathingPattern && (<div className="absolute bottom-4 left-4 right-4 bg-black/60 p-4 rounded-lg">
-              <div className="flex items-center justify-between text-sm">
-                <span>Inhale: {currentPhaseData.breathingPattern.inhale}s</span>
-                <span>Hold: {currentPhaseData.breathingPattern.hold}s</span>
-                <span>Exhale: {currentPhaseData.breathingPattern.exhale}s</span>
-                <span>Rest: {currentPhaseData.breathingPattern.rest}s</span>
-              </div>
-            </div>)}
-        </Card>
-
-        {/* Controls and Metrics */}
-        <Card className="p-6 space-y-6">
-          {/* Playback Controls */}
-          <div className="space-y-4">
-            <Button onClick={togglePlayback} className="w-full flex items-center justify-center gap-2">
-              {isPlaying ? (<>
-                  <Pause className="w-4 h-4"></Pause> Pause
-                </>) : (<>
-                  <Play className="w-4 h-4"></Play> Begin
-                </>)}
-            </Button>
-
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Guidance Volume</span>
-                <Volume2 className="w-4 h-4"></Volume2>
-              </div>
-              <Slider value={[guidanceVolume * 100]} min={0} max={100} step={1} onValueChange={([value]) => handleVolumeChange('guidance', value / 100)}/>
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Ambient Sound</span>
-                <Wind className="w-4 h-4"></Wind>
-              </div>
-              <Slider value={[ambientSoundLevel * 100]} min={0} max={100} step={1} onValueChange={([value]) => handleVolumeChange('ambient', value / 100)}/>
-            </div>
-          </div>
-
-          {/* Metrics */}
-          <div className="space-y-4">
-            <h3 className="font-medium">Current Metrics</h3>
-            
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span>Calmness</span>
-                <span>{biometrics.calmness}%</span>
-              </div>
-              <Progress value={biometrics.calmness} className="h-2"></Progress>
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span>Focus</span>
-                <span>{biometrics.focus}%</span>
-              </div>
-              <Progress value={biometrics.focus} className="h-2"></Progress>
-            </div>
-
-            {biometrics.heartRate && (<div className="flex items-center gap-2">
-                <Heart className="w-4 h-4 text-red-500"></Heart>
-                <span>{biometrics.heartRate} BPM</span>
-              </div>)}
-
-            {biometrics.breathingRate && (<div className="flex items-center gap-2">
-                <Activity className="w-4 h-4 text-blue-500"></Activity>
-                <span>{biometrics.breathingRate} breaths/min</span>
-              </div>)}
-          </div>
-
-          {/* Phase Progress */}
-          <div>
-            <div className="flex justify-between text-sm mb-2">
-              <span>Phase {currentPhase + 1} of {exercise.phases.length}</span>
-              <span>
-                {Math.floor(currentTime / 60)}:
-                {(currentTime % 60).toString().padStart(2, '0')}
-              </span>
-            </div>
-            <Progress value={(currentTime / currentPhaseData.duration) * 100} className="h-2"></Progress>
-          </div>
-        </Card>
-      </div>
-
-      {/* Guidance Text */}
-      <Card className="p-6">
-        <div className="flex items-center gap-2 mb-4">
-          <Sparkles className="w-5 h-5 text-primary"></Sparkles>
-          <h3 className="text-xl font-semibold">Current Guidance</h3>
-        </div>
-        <p className="text-lg leading-relaxed">{currentPhaseData.guidance}</p>
-      </Card>
-    </div>);
+    );
 };
+
 export default MindfulnessTutorial;

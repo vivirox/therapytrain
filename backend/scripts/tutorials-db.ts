@@ -3,7 +3,7 @@
 // Disable punycode warning
 process.removeAllListeners('warning');
 
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient, User, Session } from '@supabase/supabase-js';
 import * as dotenv from 'dotenv';
 import * as path from 'path';
 
@@ -128,3 +128,7 @@ async function main() {
 
 // Run the script
 main();
+
+export interface Database {
+    public: { Tables: { [key: string]: any } };
+}

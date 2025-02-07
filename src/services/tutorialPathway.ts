@@ -1,4 +1,4 @@
-import { Tutorial, SkillProgression, LearningAnalytics } from "../types/education";
+import { Tutorial, SkillProgression, LearningAnalytics } from "@/types/education";
 interface PathwayNode {
     tutorialId: string;
     requiredSkills: string[];
@@ -31,7 +31,7 @@ export class TutorialPathwayService {
     }
     private buildPathwayGraph(tutorials: Tutorial[]): Map<string, PathwayNode> {
         const graph = new Map<string, PathwayNode>();
-        tutorials.forEach(tutorial => {
+        tutorials.forEach((tutorial: any) => {
             const node: PathwayNode = {
                 tutorialId: tutorial.id,
                 requiredSkills: tutorial.steps.flatMap(step => step.skills || []),
@@ -45,7 +45,7 @@ export class TutorialPathwayService {
         return graph;
     }
     private calculateSkillGaps(currentSkills: Record<string, number>, requiredSkills: string[]): string[] {
-        return requiredSkills.filter(skill => !currentSkills[skill] || currentSkills[skill] < 1);
+        return requiredSkills.filter((skill: any) => !currentSkills[skill] || currentSkills[skill] < 1);
     }
     private async generateRecommendedPath(userId: string, currentSkills: Record<string, number>, targetSkills: string[]): Promise<string[]> {
         const tutorials = await this.getAvailableTutorials();
@@ -55,12 +55,12 @@ export class TutorialPathwayService {
         const skillGaps = this.calculateSkillGaps(currentSkills, targetSkills);
         // Find tutorials that help fill the skill gaps
         const relevantTutorials = Array.from(graph.entries())
-            .filter(([_, node]) => node.providedSkills.some(skill => skillGaps.includes(skill)) &&
+            .filter(([_, node]: any) => node.providedSkills.some(skill => skillGaps.includes(skill)) &&
             node.requiredSkills.every(skill => currentSkills[skill] !== undefined && currentSkills[skill] >= 1))
             .sort((a, b) => {
             // Sort by number of relevant skills provided
-            const aRelevance = a[1].providedSkills.filter(skill => skillGaps.includes(skill)).length;
-            const bRelevance = b[1].providedSkills.filter(skill => skillGaps.includes(skill)).length;
+            const aRelevance = a[1].providedSkills.filter((skill: any) => skillGaps.includes(skill)).length;
+            const bRelevance = b[1].providedSkills.filter((skill: any) => skillGaps.includes(skill)).length;
             if (aRelevance !== bRelevance) {
                 return bRelevance - aRelevance;
             }
@@ -68,7 +68,7 @@ export class TutorialPathwayService {
             const difficultyOrder = { 'beginner': 0, 'intermediate': 1, 'advanced': 2 };
             return difficultyOrder[a[1].difficulty] - difficultyOrder[b[1].difficulty];
         });
-        return relevantTutorials.map(([id]) => id);
+        return relevantTutorials.map(([id]: any) => id);
     }
     public async updateLearningPathway(userId: string, targetSkills: string[]): Promise<LearningPathway> {
         // Get current skill levels

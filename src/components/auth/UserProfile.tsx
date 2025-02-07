@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from "./AuthProvider";
 import { createBrowserClient } from '@supabase/ssr';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, } from "../components/ui/card";
-import { Badge } from "../components/ui/badge";
-import { Alert, AlertDescription } from "../components/ui/alert";
-import { Skeleton } from "../components/ui/skeleton";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Skeleton } from "@/components/ui/skeleton";
 interface Organization {
     id: string;
     name: string;
@@ -121,7 +121,7 @@ export const UserProfile: React.FC = ({ userId }) => {
                 if (error)
                     throw error;
                 if (response) {
-                    const formattedOrgs = response.map((org) => ({
+                    const formattedOrgs = response.map((org: any) => ({
                         id: org.organization_id,
                         name: org.organizations[0].name,
                         role: org.role,
@@ -172,7 +172,7 @@ export const UserProfile: React.FC = ({ userId }) => {
               <Skeleton className="h-6 w-20"></Skeleton>
               <Skeleton className="h-6 w-20"></Skeleton>
             </div>) : (<div className="flex flex-wrap gap-2">
-              {permissions.map((permission) => (<Badge key={permission} variant="secondary">
+              {permissions.map((permission: any) => (<Badge key={permission} variant="secondary">
                   {permission}
                 </Badge>))}
             </div>)}
@@ -184,7 +184,7 @@ export const UserProfile: React.FC = ({ userId }) => {
               <Skeleton className="h-12 w-full"></Skeleton>
               <Skeleton className="h-12 w-full"></Skeleton>
             </div>) : (<div className="space-y-2">
-              {userOrgs.map((org) => (<div key={org.id} className="p-3 border rounded-lg flex justify-between items-center">
+              {userOrgs.map((org: any) => (<div key={org.id} className="p-3 border rounded-lg flex justify-between items-center">
                   <span className="font-medium">{org.name}</span>
                   <Badge>{org.role}</Badge>
                 </div>))}

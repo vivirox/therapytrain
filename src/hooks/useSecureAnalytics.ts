@@ -1,12 +1,12 @@
 import * as React from 'react';
 import { useState, useEffect, useCallback } from 'react';
-import { RealTimeAnalyticsService } from "../services/realTimeAnalytics";
-import type { BehavioralPattern, SentimentAnalysis } from "../services/realTimeAnalytics";
-import { SecurityService } from "../services/security";
-import { Message } from "../types/chat";
-import { ClientProfile } from "../types/ClientProfile";
-import { EmotionalResponse } from "../../src/types/emotions";
-import type { EncryptedData } from "../services/security";
+import { RealTimeAnalyticsService } from "@/services/realTimeAnalytics";
+import type { BehavioralPattern, SentimentAnalysis } from "@/services/realTimeAnalytics";
+import { SecurityService } from "@/services/security";
+import { Message } from "@/types/chat";
+import { ClientProfile } from "@/types/ClientProfile";
+import { EmotionalResponse } from "@/../src/types/emotions";
+import type { EncryptedData } from "@/services/security";
 const useSecureAnalytics = (sessionId: string, clientProfile: ClientProfile) => {
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [error, setError] = useState<Error | null>(null);
@@ -77,15 +77,15 @@ const useSecureAnalytics = (sessionId: string, clientProfile: ClientProfile) => 
             }
             const analytics = await RealTimeAnalyticsService.getInstance().getSessionAnalytics(sessionId);
             return {
-                patterns: await Promise.all(analytics.patterns.map(async (p) => {
+                patterns: await Promise.all(analytics.patterns.map(async (p: any) => {
                     const encryptedPattern = await security.encryptData(p);
                     return security.decryptData(encryptedPattern);
                 })),
-                interventions: await Promise.all(analytics.interventions.map(async (i) => {
+                interventions: await Promise.all(analytics.interventions.map(async (i: any) => {
                     const encryptedIntervention = await security.encryptData(i);
                     return security.decryptData(encryptedIntervention);
                 })),
-                emotionalTrends: await Promise.all(analytics.emotionalTrends.map(e => security.decryptData(e as unknown as EncryptedData))),
+                emotionalTrends: await Promise.all(analytics.emotionalTrends.map((e: any) => security.decryptData(e as unknown as EncryptedData))),
             };
         }
         catch (err) {

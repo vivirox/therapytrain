@@ -1,5 +1,5 @@
-import { AccountRecoveryService } from '../AccountRecoveryService';
-import { SecurityAuditService } from '../../services/SecurityAuditService';
+import { AccountRecoveryService } from '@/AccountRecoveryService';
+import { SecurityAuditService } from '@/../services/SecurityAuditService';
 import bcrypt from 'bcrypt';
 
 jest.mock('../../services/SecurityAuditService');

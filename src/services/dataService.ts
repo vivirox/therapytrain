@@ -1,4 +1,4 @@
-import { supabase } from '../lib/supabase';
+import { supabase } from '@/lib/supabase';
 
 export interface StorageItem<T> {
   id: string; // Use string for Supabase IDs
