@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card } from '../components/ui/card';
+import { Button } from '../components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { Download, FileText, BarChart2, MessageCircle, Brain } from 'lucide-react';
 import { therapeuticApproaches, calculateWeightedScore, generateFeedback } from "./models/rubrics";
 interface SessionData {
@@ -32,6 +32,7 @@ interface SessionData {
 interface SessionAnalysisProps {
     sessionId: string;
     onGenerateReport: (report: any) => void;
+    className?: string;
 }
 const SessionAnalysis: React.FC = ({ sessionId, onGenerateReport }) => {
     const [sessionData, setSessionData] = useState<SessionData | null>(null);

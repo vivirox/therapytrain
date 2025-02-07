@@ -1,5 +1,5 @@
 import { useAuth } from "./AuthProvider";
-import { Button } from "@/ui/button";
+import { Button } from "../ui/button";
 interface AuthCredentials {
     email: string;
     password: string;

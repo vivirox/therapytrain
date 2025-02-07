@@ -1,4 +1,4 @@
-import { SecurityAuditService } from "@/services/SecurityAuditService";
+import { SecurityAuditService } from "../services/SecurityAuditService";
 import { Request, Response, NextFunction } from 'express';
 interface SecurityHeadersConfig {
     enableHSTS: boolean;

@@ -1,6 +1,6 @@
 import { HIPAAComplianceReportService } from "./HIPAAComplianceReportService";
 import { SecurityAuditService } from "./SecurityAuditService";
-import { HIPAACompliantAuditService } from "./HIPAACompliantAuditService";
+import { HIPAACompliantAuditService, HIPAAEventType, HIPAAActionType } from "./HIPAACompliantAuditService";
 import { DataRetentionService, DataType } from "./DataRetentionService";
 import * as fs from 'fs/promises';
 import * as path from 'path';
@@ -204,6 +204,77 @@ describe('HIPAAComplianceReportService', () => {
                 const report = await complianceReportService.generateComplianceReport(new Date(), new Date());
                 expect(report.summary.riskLevel).toBe(level);
             }
+        });
+    });
+    describe('generateComplianceReport', () => {
+        it('should generate a compliance report for a given time period', async () => {
+            const startTime = new Date('2024-01-01');
+            const endTime = new Date('2024-01-31');
+
+            // Mock audit events
+            const events = [
+                {
+                    eventType: HIPAAEventType.PHI_ACCESS,
+                    timestamp: new Date('2024-01-15'),
+                    actor: { id: 'user1', role: 'THERAPIST', ipAddress: '192.168.1.1' },
+                    action: { type: HIPAAActionType.READ },
+                    resource: { type: 'PHI', id: 'record1', description: 'Patient Record' },
+                    patient: { id: 'patient1', mrn: 'MRN123' },
+                    location: { facility: 'Main Clinic' }
+                },
+                {
+                    eventType: HIPAAEventType.PHI_MODIFICATION,
+                    timestamp: new Date('2024-01-16'),
+                    actor: { id: 'user1', role: 'THERAPIST', ipAddress: '192.168.1.1' },
+                    action: { type: HIPAAActionType.UPDATE },
+                    resource: { type: 'PHI', id: 'record1', description: 'Patient Record' },
+                    patient: { id: 'patient1', mrn: 'MRN123' },
+                    location: { facility: 'Main Clinic' }
+                },
+                {
+                    eventType: HIPAAEventType.USER_AUTHENTICATION,
+                    timestamp: new Date('2024-01-17'),
+                    actor: { id: 'user2', role: 'ADMIN', ipAddress: '192.168.1.2' },
+                    action: { type: HIPAAActionType.LOGIN },
+                    resource: { type: 'SYSTEM', id: 'auth', description: 'Authentication System' }
+                }
+            ];
+
+            // Mock the audit service to return these events
+            jest.spyOn(mockHipaaAuditService, 'queryEvents').mockResolvedValue(events);
+
+            const report = await complianceReportService.generateComplianceReport(startTime, endTime);
+
+            expect(report).toBeDefined();
+            expect(report.summary.totalEvents).toBe(3);
+            expect(report.summary.phiAccessEvents).toBe(1);
+            expect(report.summary.phiModificationEvents).toBe(1);
+            expect(report.summary.authenticationEvents).toBe(1);
+        });
+
+        it('should handle empty audit logs', async () => {
+            const startTime = new Date('2024-01-01');
+            const endTime = new Date('2024-01-31');
+
+            jest.spyOn(mockHipaaAuditService, 'queryEvents').mockResolvedValue([]);
+
+            const report = await complianceReportService.generateComplianceReport(startTime, endTime);
+
+            expect(report).toBeDefined();
+            expect(report.summary.totalEvents).toBe(0);
+            expect(report.summary.phiAccessEvents).toBe(0);
+            expect(report.summary.phiModificationEvents).toBe(0);
+            expect(report.summary.authenticationEvents).toBe(0);
+        });
+
+        it('should handle audit service errors', async () => {
+            const startTime = new Date('2024-01-01');
+            const endTime = new Date('2024-01-31');
+
+            jest.spyOn(mockHipaaAuditService, 'queryEvents').mockRejectedValue(new Error('Database error'));
+
+            await expect(complianceReportService.generateComplianceReport(startTime, endTime))
+                .rejects.toThrow('Failed to generate compliance report');
         });
     });
 });

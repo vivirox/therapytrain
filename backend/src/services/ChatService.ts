@@ -5,7 +5,7 @@ import { SecurityAuditService } from "./SecurityAuditService";
 import { AIService } from "./AIService";
 import { MessageService } from "./MessageService";
 import { Request } from 'express';
-import { ChatSession } from "@/config/supabase";
+import { ChatSession } from "../config/supabase";
 interface ChatMessage {
     type: 'message' | 'status' | 'error' | 'ai_response';
     userId: string;

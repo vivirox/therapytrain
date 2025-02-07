@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, } from '@/components/ui/dialog';
+import { Card } from '../components/ui/card';
+import { Button } from '../components/ui/button';
+import { Textarea } from '../components/ui/textarea';
+import { Badge } from '../components/ui/badge';
+import { Input } from '../components/ui/input';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, } from '../components/ui/dialog';
 import { MessageCircle, Users, Star, Flag } from 'lucide-react';
 interface PeerReviewComment {
     id: string;
@@ -20,6 +20,7 @@ interface PeerReviewProps {
     sessionId: string;
     therapistId: string;
     onSubmitReview: (review: Omit<PeerReviewComment, 'id' | 'timestamp'>) => void;
+    className?: string;
 }
 const PeerReview: React.FC = ({ sessionId, therapistId, onSubmitReview }) => {
     const [comments, setComments] = useState<PeerReviewComment[]>([]);

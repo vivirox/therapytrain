@@ -1,7 +1,7 @@
 import { type FC, createContext, useContext, type ReactNode, useEffect, useState, useMemo } from 'react';
 import { type User } from '@supabase/supabase-js';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { supabase } from "@/lib/supabase";
+import { supabase } from "../lib/supabase";
 interface Permission {
     id: string;
     name: string;
@@ -34,6 +34,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | null>(null);
 interface AuthProviderProps {
     children: ReactNode;
+    className?: string;
 }
 // Main Auth Provider component
 export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
@@ -210,6 +211,7 @@ interface ProtectedRouteProps {
     children: ReactNode;
     requiredPermission?: string;
     requireOrgAdmin?: boolean;
+    className?: string;
 }
 export const ProtectedRoute: FC<ProtectedRouteProps> = ({ children, requiredPermission, requireOrgAdmin }) => {
     const location = useLocation();

@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef, ChangeEvent } from 'react';
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Slider } from "@/components/ui/slider";
+import { Card } from "../components/ui/card";
+import { Button } from "../components/ui/button";
+import { Slider } from "../components/ui/slider";
 import { MdPlayArrow as Play, MdPause as Pause, MdRefresh as RotateCcw, MdFastForward as FastForward, MdFastRewind as Rewind, MdVolumeUp as Volume2, MdVolumeOff as VolumeX } from 'react-icons/md';
-import { AnalyticsService } from "@/services/analytics";
+import { AnalyticsService } from "../services/analytics";
 
 interface EmotionalResponse {
     emotion: string;
@@ -39,6 +39,7 @@ interface SimulationTutorialProps {
     userId: string;
     simulationId: string;
     onComplete: (results: any) => void;
+    className?: string;
 }
 
 export const SimulationTutorial = ({ userId, simulationId, onComplete }: SimulationTutorialProps) => {

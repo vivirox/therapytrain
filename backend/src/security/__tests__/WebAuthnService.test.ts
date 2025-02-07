@@ -1,6 +1,6 @@
-import { WebAuthnService } from "@/WebAuthnService";
-import { SecurityAuditService } from "@/../services/SecurityAuditService";
-import { webAuthnConfig } from "@/../config/security.config";
+import { WebAuthnService } from "../WebAuthnService";
+import { SecurityAuditService } from "../../services/SecurityAuditService";
+import { webAuthnConfig } from "../../config/security.config";
 import { generateRegistrationOptions, verifyRegistrationResponse, generateAuthenticationOptions, verifyAuthenticationResponse } from '@simplewebauthn/server';
 jest.mock('@simplewebauthn/server');
 jest.mock('../../services/SecurityAuditService');

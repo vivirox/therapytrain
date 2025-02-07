@@ -1,7 +1,7 @@
 import * as React from "react";
 import * as MenubarPrimitive from "@radix-ui/react-menubar";
 import { MdCheck, MdChevronRight, MdCircle } from "react-icons/md";
-import { cn } from "@/../lib/utils";
+import { cn } from "../../lib/utils";
 const MenubarMenu = MenubarPrimitive.Menu;
 const MenubarGroup = MenubarPrimitive.Group;
 const MenubarPortal = MenubarPrimitive.Portal;

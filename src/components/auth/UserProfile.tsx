@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from "./AuthProvider";
 import { createBrowserClient } from '@supabase/ssr';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, } from "../components/ui/card";
+import { Badge } from "../components/ui/badge";
+import { Alert, AlertDescription } from "../components/ui/alert";
+import { Skeleton } from "../components/ui/skeleton";
 interface Organization {
     id: string;
     name: string;
@@ -24,6 +24,7 @@ interface FetchError {
 }
 interface UserProfileProps {
     userId: string;
+    className?: string;
 }
 export const UserProfile: React.FC = ({ userId }) => {
     const { user, isAuthenticated } = useAuth();

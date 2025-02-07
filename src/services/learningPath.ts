@@ -1,5 +1,5 @@
 import { AIAnalyticsService } from "./aiAnalytics";
-import { Tutorial, SkillProgression, LearningAnalytics } from "@/types/education";
+import { Tutorial, SkillProgression, LearningAnalytics } from "../types/education";
 interface LearningPathNode {
     id: string;
     title: string;

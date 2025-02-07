@@ -1,6 +1,6 @@
 import * as React from "react";
 import * as DrawerPrimitive from "@vaul/react";
-import { cn } from "@/lib/utils";
+import { cn } from "../lib/utils";
 import { DrawerProps } from "./types";
 const Drawer = ({ shouldScaleBackground = true, ...props }: DrawerPrimitive.DrawerProps) => (<DrawerPrimitive.Root shouldScaleBackground={shouldScaleBackground} {...props}/>);
 Drawer.displayName = "Drawer";

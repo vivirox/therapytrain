@@ -1,10 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
-import { supabase } from "@/lib/supabase";
-import { Session } from "@/types/database.types";
+import { supabase } from "../lib/supabase";
+import { Session } from "../types/database.types";
 import { z } from 'zod';
 import { verifyProof } from 'snarkjs';
 import fs from 'fs';
-import { SecurityAuditService } from "@/services/SecurityAuditService";
+import { SecurityAuditService } from "../services/SecurityAuditService";
 const startSessionSchema = z.object({
     clientId: z.string(),
     mode: z.enum(['chat', 'voice', 'video'])

@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Tutorial, TutorialStep, SkillProgression } from "@/../types/education";
-import { Button } from "@/ui/button";
-import { Progress } from "@/ui/progress";
-import { Card } from "@/ui/card";
+import { Tutorial, TutorialStep, SkillProgression } from "../../types/education";
+import { Button } from "../ui/button";
+import { Progress } from "../ui/progress";
+import { Card } from "../ui/card";
 import { MdMenuBook as BookOpen, MdOndemandVideo as Video, MdPsychology as Brain, MdCheckCircle as CheckCircle, MdArrowForward as ArrowRight, MdStar as Star, MdAccessTime as Clock } from 'react-icons/md';
 import { InteractiveElement } from "./tutorial/InteractiveElements";
 interface TutorialSystemProps {
     userId: string;
+    className?: string;
 }
 export const TutorialSystem: React.FC = ({ userId }) => {
     const [tutorials, setTutorials] = useState<Array<Tutorial>>([]);

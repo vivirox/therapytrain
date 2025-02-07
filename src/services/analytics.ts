@@ -1,6 +1,6 @@
-import { LearningAnalytics } from "@/types/education";
-import { SessionMetrics, ClientProgress, TherapistStats } from '@/types/api';
-import { supabase } from '@/lib/supabase';
+import { LearningAnalytics } from "../types/education";
+import { SessionMetrics, ClientProgress, TherapistStats } from '../types/api';
+import { supabase } from '../lib/supabase';
 interface AnalyticsEvent {
     userId: string;
     eventType: string;

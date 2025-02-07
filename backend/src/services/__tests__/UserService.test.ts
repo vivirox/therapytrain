@@ -1,8 +1,8 @@
-import { UserService } from "@/UserService";
-import { SecurityAuditService } from "@/SecurityAuditService";
-import { supabase } from "@/../config/supabase";
+import { UserService } from "../UserService";
+import { SecurityAuditService } from "../SecurityAuditService";
+import { supabase } from "../../config/supabase";
 import { User } from '@supabase/supabase-js';
-import { UserProfile, UserSession } from "@/../config/supabase";
+import { UserProfile, UserSession } from "../../config/supabase";
 // Mock Supabase client
 jest.mock('../../config/supabase', () => ({
     supabase: {

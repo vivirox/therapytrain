@@ -1,5 +1,5 @@
-import { supabase } from "@/../../config/database";
-import { Message, Session, MessageType, SessionStatus } from "@/../types/chat";
+import { supabase } from "../../../config/database";
+import { Message, Session, MessageType, SessionStatus } from "../../types/chat";
 export class ChatService {
     async createSession(userId: string, title: string): Promise<Session> {
         const { data, error } = await supabase

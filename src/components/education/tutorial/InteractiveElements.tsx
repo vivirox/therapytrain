@@ -1,8 +1,8 @@
 import React from 'react';
-import { Card } from "@/../ui/card";
-import { RadioGroup, RadioGroupItem } from "@/../ui/radio-group";
-import { Label } from "@/../ui/label";
-import { Textarea } from "@/../ui/textarea";
+import { Card } from "../../ui/card";
+import { RadioGroup, RadioGroupItem } from "../../ui/radio-group";
+import { Label } from "../../ui/label";
+import { Textarea } from "../../ui/textarea";
 import { MdPsychology as Brain } from 'react-icons/md';
 interface DecisionTreeNode {
     id: string;
@@ -29,6 +29,7 @@ interface InteractiveElementProps {
     config: SimulationConfig;
     onComplete: (results: any) => void;
     onprogress: (event: React.ChangeEvent<HTMLElement>) => void;
+    className?: string;
 }
 const DecisionTreeElement: React.FC<{
     nodes: Array<DecisionTreeNode>;
@@ -127,10 +128,10 @@ export const InteractiveElement: React.FC = ({ config, onComplete, onProgress })
     }
 };
 
-import { Card } from "@/../ui/card";
-import { RadioGroup, RadioGroupItem } from "@/../ui/radio-group";
-import { Label } from "@/../ui/label";
-import { Textarea } from "@/../ui/textarea";
+import { Card } from "../../ui/card";
+import { RadioGroup, RadioGroupItem } from "../../ui/radio-group";
+import { Label } from "../../ui/label";
+import { Textarea } from "../../ui/textarea";
 import { MdPsychology as Brain } from 'react-icons/md';
 interface DecisionTreeNode {
     id: string;
@@ -157,6 +158,7 @@ interface InteractiveElementProps {
     config: SimulationConfig;
     onComplete: (results: any) => void;
     onProgress: (progress: number) => void;
+    className?: string;
 }
 const DecisionTreeElement: React.FC<{
     nodes: Array<DecisionTreeNode>;

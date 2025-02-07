@@ -1,5 +1,5 @@
-import type { ClientProfile } from '@/types/ClientProfile';
-import { ClientDocument } from '@/types/database.types';
+import type { ClientProfile } from '../types/ClientProfile';
+import { ClientDocument } from '../types/database.types';
 interface ClientProfile {
     id: string;
     age: number;

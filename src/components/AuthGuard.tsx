@@ -5,6 +5,7 @@ import { Loading } from './ui/loading';
 
 interface AuthGuardProps {
     children: React.ReactNode;
+    className?: string;
 }
 
 export const AuthGuard: FC<AuthGuardProps> = ({ children }) => {

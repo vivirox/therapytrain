@@ -1,4 +1,4 @@
-import { ClientProfile } from '@/types/ClientProfile';
+import { ClientProfile } from '../types/ClientProfile';
 export interface TherapeuticPattern {
     name: string;
     description: string;

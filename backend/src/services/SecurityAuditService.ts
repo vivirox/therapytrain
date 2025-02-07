@@ -1,5 +1,5 @@
-import { supabase } from "@/config/supabase";
-import { AuditLog } from "@/models/auditLog";
+import { supabase } from "../config/supabase";
+import { AuditLog } from "../models/auditLog";
 import { v4 as uuidv4 } from 'uuid';
 export class SecurityAuditService {
     private static instance: SecurityAuditService;
@@ -148,8 +148,8 @@ export class SecurityAuditService {
         }
     }
     private startBufferFlush(): void {
-        setInterval(() => {
-            this.flushBuffer().catch(error, unknown => {
+        this.flushInterval = setInterval(() => {
+            this.flushBuffer().catch((error: Error) => {
                 console.error('Error in flush interval:', error);
             });
         }, this.FLUSH_INTERVAL);

@@ -1,4 +1,4 @@
-import { SecurityAuditService } from "@/services/SecurityAuditService";
+import { SecurityAuditService } from "../services/SecurityAuditService";
 import crypto from 'crypto';
 import bcrypt from 'bcrypt';
 interface SecurityQuestion {

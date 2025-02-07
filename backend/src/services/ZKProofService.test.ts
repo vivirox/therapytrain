@@ -31,33 +31,32 @@ describe('ZKProofService', () => {
     };
     beforeEach(() => {
         mockSecurityAuditService = {
-            recordAlert: jest.fn().mockResolvedValue(undefined)
+            recordAlert: jest.fn()
         } as any;
         mockVerificationKeyService = {
-            initialize: jest.fn().mockResolvedValue(undefined),
-            getCurrentKey: jest.fn().mockResolvedValue({
-                protocol: 'groth16',
-                curve: 'bn128'
-            })
+            getCurrentKey: jest.fn()
         } as any;
         mockWorker = {
-            once: jest.fn(),
             postMessage: jest.fn(),
-            terminate: jest.fn().mockResolvedValue(undefined)
+            once: jest.fn(),
+            terminate: jest.fn()
         } as any;
         (Worker as jest.Mock).mockImplementation(() => mockWorker);
         zkProofService = new ZKProofService(mockSecurityAuditService, mockVerificationKeyService);
+    });
+    afterEach(() => {
+        jest.clearAllMocks();
     });
     describe('initialize', () => {
         it('should initialize workers and verification key service', async () => {
             await zkProofService.initialize();
             expect(Worker).toHaveBeenCalledTimes(4);
-            expect(mockVerificationKeyService.initialize).toHaveBeenCalled();
+            expect(mockVerificationKeyService.getCurrentKey).toHaveBeenCalled();
             expect(mockSecurityAuditService.recordAlert).not.toHaveBeenCalled();
         });
         it('should handle initialization errors', async () => {
             const error = new Error('Init failed');
-            mockVerificationKeyService.initialize.mockRejectedValue(error);
+            mockVerificationKeyService.getCurrentKey.mockRejectedValue(error);
             await expect(zkProofService.initialize()).rejects.toThrow(error);
             expect(mockSecurityAuditService.recordAlert).toHaveBeenCalledWith('ZK_SERVICE_INIT_ERROR', 'HIGH', expect.objectContaining({
                 error: error.message
@@ -68,16 +67,16 @@ describe('ZKProofService', () => {
         beforeEach(async () => {
             await zkProofService.initialize();
         });
-        it('should generate proof successfully', async () => {
-            const mockProof = {
-                proof: { a: 1, b: 2 },
-                publicSignals: ['1', '2']
-            };
-            mockWorker.once.mockImplementation((event, callback) => {
-                callback(mockProof);
+        it('should generate a proof successfully', async () => {
+            const mockProof = { proof: 'test-proof' };
+            mockWorker.once.mockImplementation((event: string, callback: (data: any) => void) => {
+                if (event === 'message') {
+                    callback(mockProof);
+                }
+                return mockWorker;
             });
             const result = await zkProofService.generateProof(mockInput);
-            expect(result).toEqual(mockProof);
+            expect(result).toBe(mockProof.proof);
             expect(mockWorker.postMessage).toHaveBeenCalledWith({
                 type: 'generate',
                 input: mockInput,
@@ -87,10 +86,13 @@ describe('ZKProofService', () => {
                 sessionId: mockInput.sessionId
             }));
         });
-        it('should handle proof generation errors', async () => {
-            const error = new Error('Proof generation failed');
-            mockWorker.once.mockImplementation((event, callback) => {
-                callback({ error: error.message });
+        it('should handle worker errors', async () => {
+            const error = new Error('Worker error');
+            mockWorker.once.mockImplementation((event: string, callback: (data: any) => void) => {
+                if (event === 'error') {
+                    callback(error);
+                }
+                return mockWorker;
             });
             await expect(zkProofService.generateProof(mockInput)).rejects.toThrow(error);
             expect(mockSecurityAuditService.recordAlert).toHaveBeenCalledWith('PROOF_GENERATION_ERROR', 'HIGH', expect.objectContaining({
@@ -134,7 +136,7 @@ describe('ZKProofService', () => {
         beforeEach(async () => {
             await zkProofService.initialize();
         });
-        it('should terminate all workers', async () => {
+        it('should terminate workers', async () => {
             await zkProofService.cleanup();
             expect(mockWorker.terminate).toHaveBeenCalledTimes(4);
             expect(mockSecurityAuditService.recordAlert).not.toHaveBeenCalled();

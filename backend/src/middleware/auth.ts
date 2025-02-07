@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { User } from '@supabase/supabase-js';
-import { supabase } from "@/config/supabase";
-import { SecurityAuditService } from "@/services/SecurityAuditService";
+import { supabase } from "../config/supabase";
+import { SecurityAuditService } from "../services/SecurityAuditService";
 /**
  * Middleware to authenticate requests using Supabase JWT
  */

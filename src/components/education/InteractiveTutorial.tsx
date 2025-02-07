@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Card } from "@/ui/card";
-import { Button } from "@/ui/button";
-import { Progress } from "@/ui/progress";
-import { Badge } from "@/ui/badge";
-import { Textarea } from "@/ui/textarea";
-import { RadioGroup, RadioGroupItem } from "@/ui/radio-group";
-import { Label } from "@/ui/label";
+import { Card } from "../ui/card";
+import { Button } from "../ui/button";
+import { Progress } from "../ui/progress";
+import { Badge } from "../ui/badge";
+import { Textarea } from "../ui/textarea";
+import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
+import { Label } from "../ui/label";
 import { MdPlayArrow as Play, MdPause as Pause, MdRefresh as RotateCcw, MdCheckCircle as CheckCircle, MdCancel as XCircle, MdHelpOutline as HelpCircle, MdMessage as MessageSquare } from 'react-icons/md';
 interface Choice {
     id: string;
@@ -35,6 +35,7 @@ interface RoleplayScenario {
 interface InteractiveTutorialProps {
     scenario: RoleplayScenario;
     onComplete: (results: unknown) => void;
+    className?: string;
 }
 export const InteractiveTutorial: React.FC = ({ scenario, onComplete }) => {
     const [currentStep, setCurrentStep] = useState<number>(0);

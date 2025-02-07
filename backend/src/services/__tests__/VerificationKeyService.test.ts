@@ -1,6 +1,6 @@
-import { VerificationKeyService } from "@/VerificationKeyService";
-import { SecurityAuditService } from "@/SecurityAuditService";
-import { RateLimiterService } from "@/RateLimiterService";
+import { VerificationKeyService } from "../VerificationKeyService";
+import { SecurityAuditService } from "../SecurityAuditService";
+import { RateLimiterService } from "../RateLimiterService";
 import fs from 'fs';
 import path from 'path';
 jest.mock('fs');

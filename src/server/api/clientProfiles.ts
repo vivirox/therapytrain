@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { type ClientProfile } from '@/types/ClientProfile';
+import { type ClientProfile } from '../types/ClientProfile';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { addPassiveEventListener, removePassiveEventListener } from '@/utils/eventUtils';
+import { addPassiveEventListener, removePassiveEventListener } from '../utils/eventUtils';
 export const VercelFeedbackWrapper: React.FC =    () => {
     const wrapperRef = useRef<HTMLDivElement>(null);
     useEffect(() => {

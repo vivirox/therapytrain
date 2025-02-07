@@ -1,5 +1,5 @@
 import { SecurityAuditService } from "./SecurityAuditService";
-import { HIPAACompliantAuditService } from "./HIPAACompliantAuditService";
+import { HIPAACompliantAuditService, HIPAAEventType, HIPAAActionType } from "./HIPAACompliantAuditService";
 import { EncryptionKeyRotationService, KeyPurpose } from "./EncryptionKeyRotationService";
 import * as fs from 'fs/promises';
 import * as path from 'path';
@@ -108,14 +108,15 @@ export class SecureBackupService {
             // Schedule backups
             this.scheduleBackups();
             await this.hipaaAuditService.logEvent({
-                eventType: 'SYSTEM_OPERATION',
+                eventType: HIPAAEventType.SYSTEM_OPERATION,
+                timestamp: new Date(),
                 actor: {
                     id: 'SYSTEM',
                     role: 'SYSTEM',
                     ipAddress: '127.0.0.1'
                 },
                 action: {
-                    type: 'CREATE',
+                    type: HIPAAActionType.CREATE,
                     status: 'SUCCESS',
                     details: {
                         operation: 'BACKUP_SERVICE_INIT'
@@ -197,14 +198,15 @@ export class SecureBackupService {
                 }
             }
             await this.hipaaAuditService.logEvent({
-                eventType: 'SYSTEM_OPERATION',
+                eventType: HIPAAEventType.SYSTEM_OPERATION,
+                timestamp: new Date(),
                 actor: {
                     id: 'SYSTEM',
                     role: 'SYSTEM',
                     ipAddress: '127.0.0.1'
                 },
                 action: {
-                    type: 'CREATE',
+                    type: HIPAAActionType.CREATE,
                     status: 'SUCCESS',
                     details: {
                         operation: 'CREATE_BACKUP',
@@ -297,14 +299,15 @@ export class SecureBackupService {
             metadata.lastVerified = new Date();
             await this.saveBackupMetadata(metadata);
             await this.hipaaAuditService.logEvent({
-                eventType: 'SYSTEM_OPERATION',
+                eventType: HIPAAEventType.SYSTEM_OPERATION,
+                timestamp: new Date(),
                 actor: {
                     id: 'SYSTEM',
                     role: 'SYSTEM',
                     ipAddress: '127.0.0.1'
                 },
                 action: {
-                    type: 'UPDATE',
+                    type: HIPAAActionType.UPDATE,
                     status: result.isValid ? 'SUCCESS' : 'FAILURE',
                     details: {
                         operation: 'VERIFY_BACKUP',
@@ -361,14 +364,15 @@ export class SecureBackupService {
             metadata.restorationTested = new Date();
             await this.saveBackupMetadata(metadata);
             await this.hipaaAuditService.logEvent({
-                eventType: 'SYSTEM_OPERATION',
+                eventType: HIPAAEventType.SYSTEM_OPERATION,
+                timestamp: new Date(),
                 actor: {
                     id: 'SYSTEM',
                     role: 'SYSTEM',
                     ipAddress: '127.0.0.1'
                 },
                 action: {
-                    type: 'UPDATE',
+                    type: HIPAAActionType.UPDATE,
                     status: 'SUCCESS',
                     details: {
                         operation: 'TEST_RESTORATION',

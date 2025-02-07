@@ -1,4 +1,4 @@
-import { supabase, Message, ChatSession } from "@/config/supabase";
+import { supabase, Message, ChatSession } from "../config/supabase";
 import { SecurityAuditService } from "./SecurityAuditService";
 import { v4 as uuidv4 } from 'uuid';
 export class MessageService {
@@ -173,7 +173,26 @@ export class MessageService {
         // Implementation
     }
     async getRecentMessages(sessionId: string, limit: number): Promise<any[]> {
-        // Implementation
+        try {
+            const messages = await supabase
+                .from(this.TABLE_MESSAGES)
+                .select('*')
+                .eq('session_id', sessionId)
+                .order('created_at', { ascending: false })
+                .limit(limit);
+
+            return messages.data || [];
+        } catch (error) {
+            await this.securityAudit.recordAlert(
+                'MESSAGE_FETCH_ERROR',
+                'MEDIUM',
+                {
+                    error: error instanceof Error ? error.message : 'Unknown error',
+                    sessionId
+                }
+            );
+            throw error;
+        }
     }
     async getSessionSummary(sessionId: string): Promise<any> {
         // Implementation

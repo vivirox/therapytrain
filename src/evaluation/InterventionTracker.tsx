@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Card } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { Card } from '../components/ui/card';
+import { Progress } from '../components/ui/progress';
+import { Badge } from '../components/ui/badge';
+import { Button } from '../components/ui/button';
 import { ThumbsUp, ThumbsDown, AlertTriangle, CheckCircle, XCircle } from 'lucide-react';
 import { therapeuticApproaches } from "./models/rubrics";
 interface Intervention {
@@ -20,6 +20,7 @@ interface Intervention {
 interface InterventionTrackerProps {
     sessionId: string;
     onEffectivenessUpdate: (interventionId: string, effectiveness: number) => void;
+    className?: string;
 }
 const InterventionTracker: React.FC = ({ sessionId, onEffectivenessUpdate }) => {
     const [interventions, setInterventions] = useState<Intervention[]>([]);

@@ -1,11 +1,12 @@
 import * as React from "react";
 import * as AlertDialogPrimitive from "@radix-ui/react-alert-dialog";
-import { cn } from "@/lib/utils";
+import { cn } from "../lib/utils";
 import { BaseProps } from "./types";
 
 interface AlertDialogProps extends BaseProps {
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
+    className?: string;
 }
 
 const AlertDialog = ({ children, ...props }: AlertDialogProps) => (

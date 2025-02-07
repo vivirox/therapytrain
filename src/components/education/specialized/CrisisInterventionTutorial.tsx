@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Card } from "@/../ui/card";
-import { Button } from "@/../ui/button";
-import { Badge } from "@/../ui/badge";
-import { Progress } from "@/../ui/progress";
-import { Alert, AlertDescription, AlertTitle } from "@/../ui/alert";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/../ui/tabs";
+import { Card } from "../../ui/card";
+import { Button } from "../../ui/button";
+import { Badge } from "../../ui/badge";
+import { Progress } from "../../ui/progress";
+import { Alert, AlertDescription, AlertTitle } from "../../ui/alert";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../ui/tabs";
 import { MdWarning as AlertTriangle, MdAccessTime as Clock, MdFavorite as Heart, MdSecurity as Shield, MdMonitor as Activity, MdCheckCircle as CheckCircle, MdCancel as XCircle, MdError as AlertCircle, MdTimer as Timer } from 'react-icons/md';
-import { AnalyticsService } from "@/../../services/analytics";
+import { AnalyticsService } from "../../../services/analytics";
 interface RiskFactor {
     type: string;
     level: number;
@@ -72,6 +72,7 @@ interface CrisisInterventionTutorialProps {
     userId: string;
     scenarioId: string;
     onComplete: (results: any) => void;
+    className?: string;
 }
 export const CrisisInterventionTutorial: React.FC = ({ userId, scenarioId, onComplete }) => {
     const [scenario, setScenario] = useState<CrisisScenario | null>(null);

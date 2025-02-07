@@ -1,4 +1,4 @@
-import { Tutorial, CaseStudy, SkillProgression } from "@/types/education";
+import { Tutorial, CaseStudy, SkillProgression } from "../types/education";
 interface UserBehavior {
     completedTutorials: Array<string>;
     viewedCaseStudies: Array<string>;

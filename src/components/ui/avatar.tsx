@@ -1,12 +1,13 @@
 import * as React from "react";
 import * as AvatarPrimitive from "@radix-ui/react-avatar";
-import { cn } from "@/lib/utils";
+import { cn } from "../lib/utils";
 import { BaseProps } from "./types";
 
 interface AvatarProps extends BaseProps {
   src?: string;
   alt?: string;
   fallback?: React.ReactNode;
+    className?: string;
 }
 
 const Avatar = React.forwardRef<HTMLSpanElement, AvatarProps>(

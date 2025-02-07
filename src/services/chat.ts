@@ -1,5 +1,5 @@
-import { supabase } from '@/integrations/supabase/client'
-import { Message, ChatSession } from '@/types/chat'
+import { supabase } from '../integrations/supabase/client'
+import { Message, ChatSession } from '../types/chat'
 
 export const chatService = {
   async createSession(userId: string): Promise<ChatSession> {

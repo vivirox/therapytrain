@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Card } from "@/../ui/card";
-import { Button } from "@/../ui/button";
-import { Progress } from "@/../ui/progress";
-import { Badge } from "@/../ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/../ui/tabs";
+import { Card } from "../../ui/card";
+import { Button } from "../../ui/button";
+import { Progress } from "../../ui/progress";
+import { Badge } from "../../ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../ui/tabs";
 import { MdPublic as Globe, MdGroups as Users, MdMenuBook as BookOpen, MdMessage as MessageCircle, MdFavorite as Heart, MdCheckCircle as Check, MdWarning as AlertTriangle, MdPsychology as Brain } from 'react-icons/md';
-import { AnalyticsService } from "@/../../services/analytics";
-import { AIAnalyticsService } from "@/../../services/aiAnalytics";
+import { AnalyticsService } from "../../../services/analytics";
+import { AIAnalyticsService } from "../../../services/aiAnalytics";
 interface CulturalContext {
     id: string;
     name: string;
@@ -53,6 +53,7 @@ interface CulturalCompetencyTutorialProps {
     userId: string;
     caseStudyId: string;
     onComplete: (results: any) => void;
+    className?: string;
 }
 export const CulturalCompetencyTutorial: React.FC = ({ userId, caseStudyId, onComplete }) => {
     const [caseStudy, setCaseStudy] = useState<CaseStudy | null>(null);

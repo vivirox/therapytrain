@@ -1,5 +1,5 @@
-import { SecurityHeadersService } from "@/SecurityHeadersService";
-import { SecurityAuditService } from "@/../services/SecurityAuditService";
+import { SecurityHeadersService } from "../SecurityHeadersService";
+import { SecurityAuditService } from "../../services/SecurityAuditService";
 import { Request, Response } from 'express';
 jest.mock('../../services/SecurityAuditService');
 describe('SecurityHeadersService', () => {

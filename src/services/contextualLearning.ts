@@ -1,6 +1,6 @@
-import { Message } from "@/types/chat.ts";
-import { SessionState } from "@/types/session.ts";
-import { Client } from "@/types/Client.ts"; // Ensure this import is correct
+import { Message } from "../types/chat.ts";
+import { SessionState } from "../types/session.ts";
+import { Client } from "../types/Client.ts"; // Ensure this import is correct
 import { analyzeMessageHistory } from "./sentimentAnalysis";
 import { SessionAnalytics } from "./sessionAnalytics";
 interface ContextMemory {

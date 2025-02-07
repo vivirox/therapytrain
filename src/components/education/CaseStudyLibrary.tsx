@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { CaseStudy } from "@/../types/education";
-import { Button } from "@/ui/button";
-import { Card } from "@/ui/card";
-import { Input } from "@/ui/input";
-import { Badge } from "@/ui/badge";
+import { CaseStudy } from "../../types/education";
+import { Button } from "../ui/button";
+import { Card } from "../ui/card";
+import { Input } from "../ui/input";
+import { Badge } from "../ui/badge";
 import { MdSearch as Search, MdMenuBook as BookOpen, MdGroups as Users, MdPsychology as Brain, MdMessage as MessageSquare, MdLightbulb as Lightbulb, MdLabel as Tag } from 'react-icons/md';
 interface CaseStudyLibraryProps {
     userId: string;
     recommendedCases?: Array<CaseStudy>;
+    className?: string;
 }
 export const CaseStudyLibrary: React.FC = ({ userId, recommendedCases = [] }) => {
     const [caseStudies, setCaseStudies] = useState<Array<CaseStudy>>([]);

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, ChangeEvent, MouseEvent } from 'react';
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,6 +7,18 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { MdGroups as Users, MdMessage as MessageSquare, MdShare as Share2, MdThumbUp as ThumbsUp, MdMenuBook as BookOpen, MdAdd as Plus, MdCalendarMonth as Calendar, MdSearch as Search } from 'react-icons/md';
+import { Loading } from "@/components/ui/loading";
+import { cn } from "@/lib/utils";
+
+interface Reply {
+    id: string;
+    content: string;
+    authorId: string;
+    authorName: string;
+    authorAvatar?: string;
+    createdAt: Date;
+}
+
 interface PeerDiscussion {
     id: string;
     title: string;
@@ -14,75 +26,103 @@ interface PeerDiscussion {
     authorId: string;
     authorName: string;
     authorAvatar?: string;
-    tags: Array<string>;
+    tags: string[];
     createdAt: Date;
     likes: number;
-    replies: Array<{
-        id: string;
-        content: string;
-        authorId: string;
-        authorName: string;
-        authorAvatar?: string;
-        createdAt: Date;
-    }>;
+    replies: Reply[];
 }
+
+interface Member {
+    id: string;
+    name: string;
+    avatar?: string;
+    role: 'leader' | 'member';
+}
+
+interface MeetingSchedule {
+    day: string;
+    time: string;
+    frequency: 'weekly' | 'biweekly' | 'monthly';
+}
+
+interface UpcomingSession {
+    date: Date;
+    topic: string;
+    materials: string[];
+}
+
 interface StudyGroup {
     id: string;
     name: string;
     description: string;
-    members: Array<{
-        id: string;
-        name: string;
-        avatar?: string;
-        role: 'leader' | 'member';
-    }>;
-    meetingSchedule?: {
-        day: string;
-        time: string;
-        frequency: 'weekly' | 'biweekly' | 'monthly';
-    };
-    topics: Array<string>;
-    upcomingSession?: {
-        date: Date;
-        topic: string;
-        materials: Array<string>;
-    };
+    members: Member[];
+    meetingSchedule?: MeetingSchedule;
+    topics: string[];
+    upcomingSession?: UpcomingSession;
 }
+
+interface NewDiscussion {
+    title: string;
+    content: string;
+    tags: string[];
+}
+
 interface PeerLearningProps {
     userId: string;
+    className?: string;
 }
-export const PeerLearning = ({ userId }: PeerLearningProps) => {
-    const [discussions, setDiscussions] = useState<Array<PeerDiscussion>>([]);
-    const [studyGroups, setStudyGroups] = useState<Array<StudyGroup>>([]);
-    const [newDiscussion, setNewDiscussion] = useState({ title: '', content: '', tags: [] });
+
+interface ApiError {
+    message: string;
+    code?: string;
+    details?: unknown;
+}
+
+export const PeerLearning: React.FC<PeerLearningProps> = ({ userId, className }) => {
+    const [discussions, setDiscussions] = useState<PeerDiscussion[]>([]);
+    const [studyGroups, setStudyGroups] = useState<StudyGroup[]>([]);
+    const [newDiscussion, setNewDiscussion] = useState<NewDiscussion>({ title: '', content: '', tags: [] });
     const [searchTerm, setSearchTerm] = useState<string>('');
     const [loading, setLoading] = useState<boolean>(true);
+    const [error, setError] = useState<string | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+
     useEffect(() => {
         const fetchPeerContent = async () => {
+            setError(null);
             try {
                 const [discussionsRes, groupsRes] = await Promise.all([
                     fetch('/api/peer-discussions'),
                     fetch('/api/study-groups')
                 ]);
-                if (discussionsRes.ok && groupsRes.ok) {
-                    const [discussionsData, groupsData] = await Promise.all([
-                        discussionsRes.json(),
-                        groupsRes.json()
-                    ]);
-                    setDiscussions(discussionsData);
-                    setStudyGroups(groupsData);
+
+                if (!discussionsRes.ok || !groupsRes.ok) {
+                    throw new Error('Failed to fetch content');
                 }
-            }
-            catch (error) {
-                console.error('Error fetching peer content:', error);
-            }
-            finally {
+
+                const [discussionsData, groupsData] = await Promise.all([
+                    discussionsRes.json(),
+                    groupsRes.json()
+                ]);
+
+                setDiscussions(discussionsData);
+                setStudyGroups(groupsData);
+            } catch (error) {
+                const apiError = error as ApiError;
+                console.error('Error fetching peer content:', apiError);
+                setError(apiError.message || 'Failed to load content');
+            } finally {
                 setLoading(false);
             }
         };
-        fetchPeerContent();
+        void fetchPeerContent();
     }, []);
-    const createDiscussion = async () => {
+
+    const createDiscussion = async (e: MouseEvent<HTMLButtonElement>) => {
+        e.preventDefault();
+        setIsSubmitting(true);
+        setError(null);
+
         try {
             const response = await fetch('/api/peer-discussions', {
                 method: 'POST',
@@ -93,38 +133,77 @@ export const PeerLearning = ({ userId }: PeerLearningProps) => {
                     createdAt: new Date().toISOString()
                 })
             });
-            if (response.ok) {
-                const data = await response.json();
-                setDiscussions(prev => [data, ...prev]);
-                setNewDiscussion({ title: '', content: '', tags: [] });
+
+            if (!response.ok) {
+                throw new Error('Failed to create discussion');
             }
-        }
-        catch (error) {
-            console.error('Error creating discussion:', error);
+
+            const data = await response.json();
+            setDiscussions(prev => [data, ...prev]);
+            setNewDiscussion({ title: '', content: '', tags: [] });
+        } catch (error) {
+            const apiError = error as ApiError;
+            console.error('Error creating discussion:', apiError);
+            setError(apiError.message || 'Failed to create discussion');
+        } finally {
+            setIsSubmitting(false);
         }
     };
+
     const joinStudyGroup = async (groupId: string) => {
+        setError(null);
         try {
-            await fetch(`/api/study-groups/${groupId}/join`, {
+            const response = await fetch(`/api/study-groups/${groupId}/join`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ userId })
             });
+
+            if (!response.ok) {
+                throw new Error('Failed to join group');
+            }
+
             setStudyGroups(prev => prev.map(group => group.id === groupId
                 ? {
                     ...group,
                     members: [...group.members, { id: userId, name: '', role: 'member' }]
                 }
                 : group));
-        }
-        catch (error) {
-            console.error('Error joining study group:', error);
+        } catch (error) {
+            const apiError = error as ApiError;
+            console.error('Error joining study group:', apiError);
+            setError(apiError.message || 'Failed to join group');
         }
     };
+
+    const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, field: keyof NewDiscussion) => {
+        if (field === 'tags') {
+            setNewDiscussion(prev => ({
+                ...prev,
+                tags: e.target.value.split(',').map(tag => tag.trim()).filter(Boolean)
+            }));
+        } else {
+            setNewDiscussion(prev => ({
+                ...prev,
+                [field]: e.target.value
+            }));
+        }
+    };
+
     if (loading) {
-        return <div>Loading...</div>;
+        return <Loading size="lg" />;
     }
-    return (<div className="max-w-6xl mx-auto p-6 space-y-8">
+
+    if (error) {
+        return (
+            <div className="text-center p-6">
+                <p className="text-destructive mb-4">{error}</p>
+                <Button onClick={() => window.location.reload()}>Retry</Button>
+            </div>
+        );
+    }
+
+    return (<div className={cn("max-w-6xl mx-auto p-6 space-y-8", className)}>
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-3xl font-bold">Peer Learning Hub</h1>
         <Dialog>
@@ -139,13 +218,27 @@ export const PeerLearning = ({ userId }: PeerLearningProps) => {
               <DialogTitle>Create New Discussion</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
-              <Input placeholder="Discussion title" value={newDiscussion.title} onChange={(e) => setNewDiscussion(prev => ({ ...prev, title: e.target.value }))}/>
-              <Textarea placeholder="Share your thoughts or questions..." value={newDiscussion.content} onChange={(e) => setNewDiscussion(prev => ({ ...prev, content: e.target.value }))}/>
-              <Input placeholder="Add tags (comma-separated)" onChange={(e) => setNewDiscussion(prev => ({
-            ...prev,
-            tags: e.target.value.split(',').map(tag => tag.trim())
-        }))}/>
-              <Button onClick={createDiscussion}>Post Discussion</Button>
+              <Input 
+                placeholder="Discussion title" 
+                value={newDiscussion.title} 
+                onChange={(e) => handleInputChange(e, 'title')}
+              />
+              <Textarea 
+                placeholder="Share your thoughts or questions..." 
+                value={newDiscussion.content} 
+                onChange={(e) => handleInputChange(e, 'content')}
+              />
+              <Input 
+                placeholder="Add tags (comma-separated)" 
+                onChange={(e) => handleInputChange(e, 'tags')}
+              />
+              <Button 
+                onClick={createDiscussion} 
+                isLoading={isSubmitting}
+                disabled={!newDiscussion.title || !newDiscussion.content}
+              >
+                Post Discussion
+              </Button>
             </div>
           </DialogContent>
         </Dialog>
@@ -253,4 +346,6 @@ export const PeerLearning = ({ userId }: PeerLearningProps) => {
       </div>
     </div>);
 };
+
 export default PeerLearning;
+

@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import config from "@/../tsconfig";
+import config from "../../tsconfig";
 export interface CustomRequest extends Request {
     user?: {
         id: string;

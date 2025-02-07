@@ -5,6 +5,7 @@ import { MdPsychology } from "react-icons/md";
 
 interface LayoutProps {
   children: ReactNode;
+    className?: string;
 }
 
 export const Layout: FC<LayoutProps> = ({ children }) => {

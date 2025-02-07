@@ -1,5 +1,5 @@
-import { ZKAuditService } from "@/ZKAuditService";
-import { SecurityAuditService } from "@/SecurityAuditService";
+import { ZKAuditService } from "../ZKAuditService";
+import { SecurityAuditService } from "../SecurityAuditService";
 import { SupabaseClient } from '@supabase/supabase-js';
 import { WebSocket } from 'ws';
 import { EventEmitter } from 'events';

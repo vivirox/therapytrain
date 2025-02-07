@@ -1,8 +1,8 @@
 import { Router, Request, Response, RequestHandler } from 'express';
-import { UserService } from "@/services/UserService";
-import { SecurityAuditService } from "@/services/SecurityAuditService";
+import { UserService } from "../services/UserService";
+import { SecurityAuditService } from "../services/SecurityAuditService";
 import { User } from '@supabase/supabase-js';
-import { UserProfile } from "@/config/supabase";
+import { UserProfile } from "../config/supabase";
 const router = Router();
 const securityAudit = new SecurityAuditService();
 const userService = new UserService(securityAudit);

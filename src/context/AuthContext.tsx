@@ -1,8 +1,8 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Session, User as SupabaseUser } from '@supabase/supabase-js';
-import { supabase } from '@/lib/supabaseClient';
-import { AuthContextType, User } from '@/types/auth';
-import { useToast } from '@/components/ui/use-toast';
+import { supabase } from '../lib/supabaseClient';
+import { AuthContextType, User } from '../types/auth';
+import { useToast } from '../components/ui/use-toast';
 const defaultContext: AuthContextType = {
     user: null,
     token: null,

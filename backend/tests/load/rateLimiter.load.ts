@@ -1,4 +1,4 @@
-import { RateLimiterService } from "@/../src/services/RateLimiterService";
+import { RateLimiterService } from "../../src/services/RateLimiterService";
 import cluster from 'cluster';
 import { cpus } from 'os';
 import { performance } from 'perf_hooks';

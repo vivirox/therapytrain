@@ -1,6 +1,6 @@
-import { AIService } from "@/../src/services/AIService";
-import { SecurityAuditService } from "@/../src/services/SecurityAuditService";
-import { RateLimiterService } from "@/../src/services/RateLimiterService";
+import { AIService } from "../../src/services/AIService";
+import { SecurityAuditService } from "../../src/services/SecurityAuditService";
+import { RateLimiterService } from "../../src/services/RateLimiterService";
 describe('Crisis Detection Verification', () => {
     let aiService: AIService;
     let securityAudit: SecurityAuditService;

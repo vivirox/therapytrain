@@ -1,16 +1,16 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/components/auth/AuthProvider";
+import { useAuth } from "../components/auth/AuthProvider";
 import { MdChat, MdPsychology, MdSchool, MdGroup, MdMenuBook, MdDashboard, MdSettings, MdPeople } from "react-icons/md";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "../components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
 import { ErrorBoundary, FallbackProps } from 'react-error-boundary';
-import { supabase } from "@/lib/supabase";
+import { supabase } from "../lib/supabase";
 import { User } from '@supabase/supabase-js';
-import { cn } from "@/lib/utils";
-import MetricCard from "@/components/MetricCard";
-import MonthlyChart from "@/components/MonthlyChart";
-import TherapyInsights from "@/components/CustomerRequests";
+import { cn } from "../lib/utils";
+import MetricCard from "../components/MetricCard";
+import MonthlyChart from "../components/MonthlyChart";
+import TherapyInsights from "../components/CustomerRequests";
 import React from "react";
 // Error Fallback Component
 const ErrorFallback = ({ error, resetErrorBoundary }: FallbackProps) => {

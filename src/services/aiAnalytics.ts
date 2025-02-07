@@ -1,4 +1,4 @@
-import { LearningAnalytics } from "@/types/education";
+import { LearningAnalytics } from "../types/education";
 import { AnalyticsService } from "./analytics";
 interface AIInsight {
     type: 'strength' | 'weakness' | 'pattern' | 'recommendation';

@@ -1,6 +1,6 @@
 import { parentPort, workerData } from 'worker_threads';
 import * as snarkjs from 'snarkjs';
-import { ProofOutput } from "@/zk/types";
+import { ProofOutput } from "../zk/types";
 interface WorkerMessage {
     type: 'generate' | 'verify';
     input?: any;

@@ -1,4 +1,4 @@
-import { Tutorial, SkillProgression, LearningAnalytics } from "@/types/education";
+import { Tutorial, SkillProgression, LearningAnalytics } from "../types/education";
 interface PathwayNode {
     tutorialId: string;
     requiredSkills: string[];

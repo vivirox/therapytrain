@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { Textarea } from "@/components/ui/textarea";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card } from "../components/ui/card";
+import { Button } from "../components/ui/button";
+import { Badge } from "../components/ui/badge";
+import { Progress } from "../components/ui/progress";
+import { Textarea } from "../components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
 import { MdGroups as Users, MdMessage as MessageSquare, MdError as AlertCircle, MdCheckCircle as CheckCircle, MdHelpOutline as HelpCircle, MdPersonAdd as UserPlus, MdPersonRemove as UserMinus, MdAutoAwesome as Sparkles } from 'react-icons/md';
-import { AnalyticsService } from "@/services/analytics";
+import { AnalyticsService } from "../services/analytics";
 
 interface GroupMember {
     id: string;
@@ -64,6 +64,7 @@ interface GroupTherapyTutorialProps {
     userId: string;
     scenarioId: string;
     onComplete: (results: any) => void;
+    className?: string;
 }
 
 export const GroupTherapyTutorial = ({ userId, scenarioId, onComplete }: GroupTherapyTutorialProps) => {

@@ -1,6 +1,6 @@
-import { AIService } from "@/../src/services/AIService";
-import { SecurityAuditService } from "@/../src/services/SecurityAuditService";
-import { RateLimiterService } from "@/../src/services/RateLimiterService";
+import { AIService } from "../../src/services/AIService";
+import { SecurityAuditService } from "../../src/services/SecurityAuditService";
+import { RateLimiterService } from "../../src/services/RateLimiterService";
 import { performance } from 'perf_hooks';
 describe('AIService Integration Tests', () => {
     let aiService: AIService;

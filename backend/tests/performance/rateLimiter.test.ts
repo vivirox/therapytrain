@@ -1,4 +1,4 @@
-import { RateLimiterService } from "@/../src/services/RateLimiterService";
+import { RateLimiterService } from "../../src/services/RateLimiterService";
 import { performance } from 'perf_hooks';
 import { Request, Response, NextFunction } from 'express';
 describe('RateLimiter Performance Tests', () => {

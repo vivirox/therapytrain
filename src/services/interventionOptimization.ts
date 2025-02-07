@@ -1,8 +1,8 @@
 import { SessionAnalytics } from "./sessionAnalytics";
 import { ContextualLearningSystem } from "./contextualLearning";
-import type { Intervention } from "@/types/session";
+import type { Intervention } from "../types/session";
 import type { SessionState } from "./sessionManager";
-import { InterventionMetrics } from '@/types/metrics';
+import { InterventionMetrics } from '../types/metrics';
 interface OptimizationMetrics {
     effectiveness: number;
     clientEngagement: number;

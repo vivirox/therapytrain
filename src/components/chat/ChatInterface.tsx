@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { Message } from '@/types/chat';
-import { Card } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { Message } from '../types/chat';
+import { Card } from '../components/ui/card';
+import { Input } from '../components/ui/input';
+import { Button } from '../components/ui/button';
+import { ScrollArea } from '../components/ui/scroll-area';
 export const ChatInterface: React.FC = () => {
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState<string>('');
@@ -92,11 +92,11 @@ export const ChatInterface: React.FC = () => {
     </Card>);
 }
 
-import { Message } from '@/types/chat';
-import { Card } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { Message } from '../types/chat';
+import { Card } from '../components/ui/card';
+import { Input } from '../components/ui/input';
+import { Button } from '../components/ui/button';
+import { ScrollArea } from '../components/ui/scroll-area';
 export const ChatInterface: React.FC = () => {
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState<string>('');

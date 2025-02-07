@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { Button } from '@/components/ui/button';
+import { Button } from '../components/ui/button';
 import { Plus } from 'lucide-react';
-import ClientProfileCard from '@/components/ClientProfileCard';
-import ClientProfileDialog from '@/components/ClientProfileDialog';
-import { useToast } from '@/components/ui/use-toast';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, } from '@/components/ui/alert-dialog';
-import type { ClientProfile } from '@/types/ClientProfile';
-import { supabase } from '@/integrations/supabase/client';
-import { ErrorBoundary } from '@/components/ErrorBoundary';
+import ClientProfileCard from '../components/ClientProfileCard';
+import ClientProfileDialog from '../components/ClientProfileDialog';
+import { useToast } from '../components/ui/use-toast';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, } from '../components/ui/alert-dialog';
+import type { ClientProfile } from '../types/ClientProfile';
+import { supabase } from '../integrations/supabase/client';
+import { ErrorBoundary } from '../components/ErrorBoundary';
 export default function ClientProfiles() {
     const [profiles, setProfiles] = useState<ClientProfile[]>([]);
     const [loading, setLoading] = useState<boolean>(true);

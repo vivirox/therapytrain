@@ -1,5 +1,5 @@
-import { webAuthnConfig } from "@/config/security.config";
-import { SecurityAuditService } from "@/services/SecurityAuditService";
+import { webAuthnConfig } from "../config/security.config";
+import { SecurityAuditService } from "../services/SecurityAuditService";
 import { generateRegistrationOptions, verifyRegistrationResponse, generateAuthenticationOptions, verifyAuthenticationResponse } from '@simplewebauthn/server';
 import type { GenerateRegistrationOptionsOpts, VerifyRegistrationResponseOpts, GenerateAuthenticationOptionsOpts, VerifyAuthenticationResponseOpts, VerifiedRegistrationResponse, VerifiedAuthenticationResponse } from '@simplewebauthn/server';
 interface UserDevice {

@@ -1,6 +1,6 @@
 import { SupabaseClient } from '@supabase/supabase-js';
-import { InterventionOptimizationSystem } from "@/../services/interventionOptimization";
-import { EncryptionService } from "@/../services/encryption";
+import { InterventionOptimizationSystem } from "../../services/interventionOptimization";
+import { EncryptionService } from "../../services/encryption";
 interface MessageMetadata {
     interventionType?: string;
     therapeuticApproach?: string;

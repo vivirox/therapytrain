@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { AuditController } from "@/controllers/audit.controller";
-import { authMiddleware } from "@/middleware/auth";
+import { AuditController } from "../controllers/audit.controller";
+import { authMiddleware } from "../middleware/auth";
 import { rateLimit } from 'express-rate-limit';
 const router = Router();
 const auditController = new AuditController();
