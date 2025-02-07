@@ -18,35 +18,38 @@ const Features: FC = () => {
   return (
     <div className="max-w-4xl mx-auto px-4 py-16">
       {/* Hero Section */}
-      <div className="relative h-[300px] mb-24 rounded-3xl overflow-hidden">
-        {/* Background Image */}
-        <img
-          src="https://images.unsplash.com/photo-1633613286991-611fe299c4be?q=80&w=2070&auto=format&fit=crop"
-          alt="Modern therapy training features"
-          className="absolute inset-0 w-full h-full object-cover opacity-70"
-        />
-
-        {/* Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-r from-[#0A0A0B]/60 to-[#0A0A0B]/60" />
-
-        {/* Content */}
-        <div className="relative z-20 h-full flex flex-col justify-center items-center text-center px-8">
-          <div className="max-w-3xl backdrop-blur-md bg-[#0A0A0B]/40 p-8 rounded-2xl border border-white/10">
+      <div className="relative h-[400px] mb-24 grid grid-cols-2 gap-8">
+        {/* Left Content - Top 2/3 */}
+        <div className="relative z-20 flex flex-col justify-start h-[267px] pt-12">
+          <div className="backdrop-blur-md bg-[#0A0A0B]/40 p-8 rounded-2xl border border-white/10">
             <div className="inline-block mb-4 px-4 py-1 bg-purple-500/20 backdrop-blur-sm rounded-full">
               <span className="text-purple-500 font-medium">Features</span>
             </div>
             <h1 className="text-5xl font-bold mb-6 bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">
               Powerful Features for Modern Therapy Training
             </h1>
-            <p className="text-xl text-gray-300 max-w-2xl mx-auto">
+            <p className="text-xl text-gray-300 max-w-2xl">
               Experience the next generation of therapeutic training with our cutting-edge AI-powered platform.
             </p>
           </div>
         </div>
 
+        {/* Right Image - Bottom 2/3 */}
+        <div className="relative h-[400px] mt-[133px]">
+          <div className="absolute inset-0 rounded-3xl overflow-hidden">
+            <img
+              src="https://images.unsplash.com/photo-1633613286991-611fe299c4be?q=80&w=2070&auto=format&fit=crop"
+              alt="Modern therapy training features"
+              className="absolute inset-0 w-full h-full object-cover opacity-70"
+            />
+            {/* Gradient Overlay */}
+            <div className="absolute inset-0 bg-gradient-to-r from-[#0A0A0B]/60 to-[#0A0A0B]/60" />
+          </div>
+        </div>
+
         {/* Decorative Elements */}
-        <div className="absolute -right-12 -bottom-12 w-64 h-64 bg-gradient-to-br from-purple-500/30 to-blue-500/30 rounded-full blur-3xl" />
-        <div className="absolute -left-12 -top-12 w-64 h-64 bg-gradient-to-br from-blue-500/30 to-purple-500/30 rounded-full blur-3xl" />
+        <div className="absolute right-0 bottom-0 w-64 h-64 bg-gradient-to-br from-purple-500/30 to-blue-500/30 rounded-full blur-3xl" />
+        <div className="absolute left-0 top-0 w-64 h-64 bg-gradient-to-br from-blue-500/30 to-purple-500/30 rounded-full blur-3xl" />
       </div>
 
       {/* Main Features */}
@@ -59,11 +62,10 @@ const Features: FC = () => {
               <div className="bg-blue-500/10 p-3 rounded-xl">
                 <MdSmartToy className="w-8 h-8 text-blue-500" />
               </div>
-              <h2 className="text-3xl font-bold">AI-Powered Training</h2>
+              <h2 className="text-3xl font-bold">Advanced Simulation & Feedback</h2>
             </div>
             <p className="text-gray-400 mb-8 text-lg">
-              Our advanced AI system provides personalized feedback and adapts to your learning style,
-              creating a truly unique training experience.
+              Experience realistic client interactions through our sophisticated training environment with real-time sentiment analysis and behavioral pattern detection.
             </p>
             <div className="grid grid-cols-2 gap-6">
               <div className="bg-[#1A1A1D] p-6 rounded-xl hover:bg-[#1A1A1D]/80 transition-colors">
@@ -72,16 +74,16 @@ const Features: FC = () => {
                   Real-time Analysis
                 </h3>
                 <p className="text-gray-400">
-                  Get instant feedback on your therapeutic approaches and communication style.
+                  Receive immediate feedback on therapeutic techniques and intervention strategies through advanced sentiment analysis.
                 </p>
               </div>
               <div className="bg-[#1A1A1D] p-6 rounded-xl hover:bg-[#1A1A1D]/80 transition-colors">
                 <h3 className="text-xl font-semibold mb-3 flex items-center gap-2">
                   <MdAnalytics className="text-purple-500" />
-                  Progress Tracking
+                  Comprehensive Tracking
                 </h3>
                 <p className="text-gray-400">
-                  Monitor your growth with detailed analytics and performance metrics.
+                  Monitor your progress with detailed analytics on therapeutic techniques and intervention effectiveness.
                 </p>
               </div>
             </div>
@@ -96,18 +98,18 @@ const Features: FC = () => {
               <div className="bg-purple-500/10 p-3 rounded-xl">
                 <MdPsychology className="w-8 h-8 text-purple-500" />
               </div>
-              <h2 className="text-3xl font-bold">Clinical Scenarios</h2>
+              <h2 className="text-3xl font-bold">Skill Development</h2>
             </div>
             <p className="text-gray-400 mb-8 text-lg">
-              Practice with diverse, realistic client scenarios that prepare you for real-world therapeutic situations.
+              Access our extensive case study library with branching pathways that adapt to your responses, creating dynamic learning experiences.
             </p>
             <div className="bg-[#1A1A1D] p-6 rounded-xl hover:bg-[#1A1A1D]/80 transition-colors">
               <h3 className="text-xl font-semibold mb-3 flex items-center gap-2">
                 <MdPeople className="text-green-500" />
-                Diverse Client Profiles
+                Adaptive Learning
               </h3>
               <p className="text-gray-400">
-                Work with a wide range of client backgrounds, conditions, and therapeutic needs.
+                Experience scenarios that evolve based on your responses, mirroring the complexity of real therapeutic relationships.
               </p>
             </div>
           </div>
@@ -121,18 +123,18 @@ const Features: FC = () => {
               <div className="bg-green-500/10 p-3 rounded-xl">
                 <MdSchool className="w-8 h-8 text-green-500" />
               </div>
-              <h2 className="text-3xl font-bold">Evidence-Based</h2>
+              <h2 className="text-3xl font-bold">Professional Growth</h2>
             </div>
             <p className="text-gray-400 mb-8 text-lg">
-              All scenarios are based on current research and best practices in psychotherapy.
+              Stay current with the latest therapeutic techniques while earning continuing education credits through our platform.
             </p>
             <div className="bg-[#1A1A1D] p-6 rounded-xl hover:bg-[#1A1A1D]/80 transition-colors">
               <h3 className="text-xl font-semibold mb-3 flex items-center gap-2">
                 <MdStar className="text-yellow-500" />
-                Research-Backed
+                Continuous Learning
               </h3>
               <p className="text-gray-400">
-                Stay current with the latest therapeutic techniques and methodologies.
+                Access expanded educational resources and earn CE credits while improving your therapeutic skills.
               </p>
             </div>
           </div>
@@ -146,28 +148,28 @@ const Features: FC = () => {
               <div className="bg-green-500/10 p-3 rounded-xl">
                 <MdSecurity className="w-8 h-8 text-green-500" />
               </div>
-              <h2 className="text-3xl font-bold">Security & Compliance</h2>
+              <h2 className="text-3xl font-bold">Privacy-First Architecture</h2>
             </div>
             <p className="text-gray-400 mb-8 text-lg">
-              Train with confidence knowing your data is protected by industry-leading security measures.
+              Train with confidence using our state-of-the-art security measures and HIPAA-compliant infrastructure.
             </p>
             <div className="grid grid-cols-3 gap-6">
               <div className="bg-[#1A1A1D] p-6 rounded-xl hover:bg-[#1A1A1D]/80 transition-colors">
                 <div className="flex items-start gap-3">
                   <MdStar className="w-5 h-5 text-yellow-500 mt-1 flex-shrink-0" />
-                  <span className="text-gray-400">HIPAA-compliant infrastructure</span>
+                  <span className="text-gray-400">End-to-end encryption for all communications</span>
                 </div>
               </div>
               <div className="bg-[#1A1A1D] p-6 rounded-xl hover:bg-[#1A1A1D]/80 transition-colors">
                 <div className="flex items-start gap-3">
                   <MdStar className="w-5 h-5 text-yellow-500 mt-1 flex-shrink-0" />
-                  <span className="text-gray-400">End-to-end encryption</span>
+                  <span className="text-gray-400">Zero-knowledge proofs for data verification</span>
                 </div>
               </div>
               <div className="bg-[#1A1A1D] p-6 rounded-xl hover:bg-[#1A1A1D]/80 transition-colors">
                 <div className="flex items-start gap-3">
                   <MdStar className="w-5 h-5 text-yellow-500 mt-1 flex-shrink-0" />
-                  <span className="text-gray-400">Regular security audits</span>
+                  <span className="text-gray-400">Role-based access control & audit trails</span>
                 </div>
               </div>
             </div>
