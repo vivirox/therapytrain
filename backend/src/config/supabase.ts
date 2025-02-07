@@ -33,6 +33,7 @@ export interface ChatSession {
   user_id: string;
   started_at: string;
   ended_at: string | null;
+  last_activity: string;
   metadata: {
     topics?: string[];
     sentiment_summary?: number;

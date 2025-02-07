@@ -43,11 +43,11 @@ const AppWithErrorBoundary = () => {
         <BrowserRouter>
           <ThemeProvider>
             <AuthProvider>
-              <DevTools />
-              <App />
-              <VercelFeedbackWrapper />
-              <Analytics debug={process.env.NODE_ENV === 'development'} />
-              <SpeedInsights />
+              <DevTools ></DevTools>
+              <App ></App>
+              <VercelFeedbackWrapper ></VercelFeedbackWrapper>
+              <Analytics debug={process.env.NODE_ENV === 'development'} ></Analytics>
+              <SpeedInsights ></SpeedInsights>
             </AuthProvider>
           </ThemeProvider>
         </BrowserRouter>
@@ -57,4 +57,4 @@ const AppWithErrorBoundary = () => {
 };
 
 // Render after everything is initialized
-root.render(<AppWithErrorBoundary />);
+root.render(<AppWithErrorBoundary ></AppWithErrorBoundary>);

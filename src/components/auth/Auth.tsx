@@ -22,6 +22,6 @@ export const Auth = () => {
     }
   }, [isAuthenticated, location.pathname, navigate]);
 
-  return <Loading fullScreen message="Processing authentication..." />;
+  return <Loading fullScreen message="Processing authentication..." ></Loading>;
 };
 

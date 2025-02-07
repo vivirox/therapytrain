@@ -1,35 +1,16 @@
-import { webAuthnConfig } from '../config/security.config';
-import { SecurityAuditService } from '../services/SecurityAuditService';
-import {
-    generateRegistrationOptions,
-    verifyRegistrationResponse,
-    generateAuthenticationOptions,
-    verifyAuthenticationResponse
-} from '@simplewebauthn/server';
-import type {
-    GenerateRegistrationOptionsOpts,
-    VerifyRegistrationResponseOpts,
-    GenerateAuthenticationOptionsOpts,
-    VerifyAuthenticationResponseOpts,
-    VerifiedRegistrationResponse,
-    VerifiedAuthenticationResponse
-} from '@simplewebauthn/server';
-
+import { webAuthnConfig } from "@/config/security.config";
+import { SecurityAuditService } from "@/services/SecurityAuditService";
+import { generateRegistrationOptions, verifyRegistrationResponse, generateAuthenticationOptions, verifyAuthenticationResponse } from '@simplewebauthn/server';
+import type { GenerateRegistrationOptionsOpts, VerifyRegistrationResponseOpts, GenerateAuthenticationOptionsOpts, VerifyAuthenticationResponseOpts, VerifiedRegistrationResponse, VerifiedAuthenticationResponse } from '@simplewebauthn/server';
 interface UserDevice {
     credentialID: Buffer;
     credentialPublicKey: Buffer;
     counter: number;
     transports?: AuthenticatorTransport[];
 }
-
 export class WebAuthnService {
     constructor(private readonly securityAuditService: SecurityAuditService) { }
-
-    async generateRegistrationOptions(
-        userId: string,
-        username: string,
-        existingDevices: UserDevice[] = []
-    ): Promise<GenerateRegistrationOptionsOpts> {
+    async generateRegistrationOptions(userId: string, username: string, existingDevices: UserDevice[] = []): Promise<GenerateRegistrationOptionsOpts> {
         try {
             const options = await generateRegistrationOptions({
                 rpName: webAuthnConfig.rpName,
@@ -50,33 +31,19 @@ export class WebAuthnService {
                     transports: device.transports || []
                 }))
             });
-
-            await this.securityAuditService.recordAlert(
-                'WEBAUTHN_REGISTRATION_STARTED',
-                'LOW',
-                { userId, username }
-            );
-
+            await this.securityAuditService.recordAlert('WEBAUTHN_REGISTRATION_STARTED', 'LOW', { userId, username });
             return options;
-        } catch (error) {
-            await this.securityAuditService.recordAlert(
-                'WEBAUTHN_REGISTRATION_ERROR',
-                'HIGH',
-                {
-                    userId,
-                    username,
-                    error: error instanceof Error ? error.message : 'Unknown error'
-                }
-            );
+        }
+        catch (error) {
+            await this.securityAuditService.recordAlert('WEBAUTHN_REGISTRATION_ERROR', 'HIGH', {
+                userId,
+                username,
+                error: error instanceof Error ? error.message : 'Unknown error'
+            });
             throw error;
         }
     }
-
-    async verifyRegistration(
-        userId: string,
-        username: string,
-        options: VerifyRegistrationResponseOpts
-    ): Promise<VerifiedRegistrationResponse> {
+    async verifyRegistration(userId: string, username: string, options: VerifyRegistrationResponseOpts): Promise<VerifiedRegistrationResponse> {
         try {
             const verification = await verifyRegistrationResponse({
                 response: options.response,
@@ -85,43 +52,28 @@ export class WebAuthnService {
                 expectedRPID: webAuthnConfig.rpID,
                 requireUserVerification: true
             });
-
             if (verification.verified) {
-                await this.securityAuditService.recordAlert(
-                    'WEBAUTHN_REGISTRATION_SUCCESS',
-                    'LOW',
-                    {
-                        userId,
-                        username,
-                        credentialId: verification.registrationInfo?.credentialID.toString('base64')
-                    }
-                );
-            } else {
-                await this.securityAuditService.recordAlert(
-                    'WEBAUTHN_REGISTRATION_FAILED',
-                    'HIGH',
-                    { userId, username }
-                );
-            }
-
-            return verification;
-        } catch (error) {
-            await this.securityAuditService.recordAlert(
-                'WEBAUTHN_REGISTRATION_ERROR',
-                'HIGH',
-                {
+                await this.securityAuditService.recordAlert('WEBAUTHN_REGISTRATION_SUCCESS', 'LOW', {
                     userId,
                     username,
-                    error: error instanceof Error ? error.message : 'Unknown error'
-                }
-            );
+                    credentialId: verification.registrationInfo?.credentialID.toString('base64')
+                });
+            }
+            else {
+                await this.securityAuditService.recordAlert('WEBAUTHN_REGISTRATION_FAILED', 'HIGH', { userId, username });
+            }
+            return verification;
+        }
+        catch (error) {
+            await this.securityAuditService.recordAlert('WEBAUTHN_REGISTRATION_ERROR', 'HIGH', {
+                userId,
+                username,
+                error: error instanceof Error ? error.message : 'Unknown error'
+            });
             throw error;
         }
     }
-
-    async generateAuthenticationOptions(
-        existingDevices: UserDevice[] = []
-    ): Promise<GenerateAuthenticationOptionsOpts> {
+    async generateAuthenticationOptions(existingDevices: UserDevice[] = []): Promise<GenerateAuthenticationOptionsOpts> {
         try {
             const options = await generateAuthenticationOptions({
                 timeout: webAuthnConfig.challengeTimeout,
@@ -133,30 +85,17 @@ export class WebAuthnService {
                 userVerification: 'preferred',
                 rpID: webAuthnConfig.rpID
             });
-
-            await this.securityAuditService.recordAlert(
-                'WEBAUTHN_AUTH_STARTED',
-                'LOW',
-                { deviceCount: existingDevices.length }
-            );
-
+            await this.securityAuditService.recordAlert('WEBAUTHN_AUTH_STARTED', 'LOW', { deviceCount: existingDevices.length });
             return options;
-        } catch (error) {
-            await this.securityAuditService.recordAlert(
-                'WEBAUTHN_AUTH_ERROR',
-                'HIGH',
-                {
-                    error: error instanceof Error ? error.message : 'Unknown error'
-                }
-            );
+        }
+        catch (error) {
+            await this.securityAuditService.recordAlert('WEBAUTHN_AUTH_ERROR', 'HIGH', {
+                error: error instanceof Error ? error.message : 'Unknown error'
+            });
             throw error;
         }
     }
-
-    async verifyAuthentication(
-        device: UserDevice,
-        options: VerifyAuthenticationResponseOpts
-    ): Promise<VerifiedAuthenticationResponse> {
+    async verifyAuthentication(device: UserDevice, options: VerifyAuthenticationResponseOpts): Promise<VerifiedAuthenticationResponse> {
         try {
             const verification = await verifyAuthenticationResponse({
                 response: options.response,
@@ -170,37 +109,25 @@ export class WebAuthnService {
                 },
                 requireUserVerification: true
             });
-
             if (verification.verified) {
-                await this.securityAuditService.recordAlert(
-                    'WEBAUTHN_AUTH_SUCCESS',
-                    'LOW',
-                    {
-                        credentialId: device.credentialID.toString('base64'),
-                        newCounter: verification.authenticationInfo.newCounter
-                    }
-                );
-            } else {
-                await this.securityAuditService.recordAlert(
-                    'WEBAUTHN_AUTH_FAILED',
-                    'HIGH',
-                    {
-                        credentialId: device.credentialID.toString('base64')
-                    }
-                );
-            }
-
-            return verification;
-        } catch (error) {
-            await this.securityAuditService.recordAlert(
-                'WEBAUTHN_AUTH_ERROR',
-                'HIGH',
-                {
+                await this.securityAuditService.recordAlert('WEBAUTHN_AUTH_SUCCESS', 'LOW', {
                     credentialId: device.credentialID.toString('base64'),
-                    error: error instanceof Error ? error.message : 'Unknown error'
-                }
-            );
+                    newCounter: verification.authenticationInfo.newCounter
+                });
+            }
+            else {
+                await this.securityAuditService.recordAlert('WEBAUTHN_AUTH_FAILED', 'HIGH', {
+                    credentialId: device.credentialID.toString('base64')
+                });
+            }
+            return verification;
+        }
+        catch (error) {
+            await this.securityAuditService.recordAlert('WEBAUTHN_AUTH_ERROR', 'HIGH', {
+                credentialId: device.credentialID.toString('base64'),
+                error: error instanceof Error ? error.message : 'Unknown error'
+            });
             throw error;
         }
     }
-} 
+}

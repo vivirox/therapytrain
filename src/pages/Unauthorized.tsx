@@ -1,20 +1,10 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button } from '../components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "../components/ui/card";
-
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle, } from "@/components/ui/card";
 export const UnauthorizedPage = () => {
-  const navigate = useNavigate();
-
-  return (
-    <div className="container flex items-center justify-center min-h-[80vh]">
+    const navigate = useNavigate();
+    return (<div className="container flex items-center justify-center min-h-[80vh]">
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle>Access Denied</CardTitle>
@@ -33,20 +23,13 @@ export const UnauthorizedPage = () => {
           </ul>
         </CardContent>
         <CardFooter className="flex justify-between">
-          <Button
-            variant="ghost"
-            onClick={() => navigate(-1)}
-          >
+          <Button variant="ghost" onClick={() => navigate(-1)}>
             Go Back
           </Button>
-          <Button
-            variant="default"
-            onClick={() => navigate('/')}
-          >
+          <Button variant="default" onClick={() => navigate('/')}>
             Go Home
           </Button>
         </CardFooter>
       </Card>
-    </div>
-  );
+    </div>);
 };

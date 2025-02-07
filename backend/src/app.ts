@@ -2,42 +2,27 @@ import express from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
 import rateLimit from 'express-rate-limit';
-import { SecurityHeadersService } from './security/SecurityHeadersService';
-import { SecurityAuditService } from './services/SecurityAuditService';
-import { WebAuthnService } from './security/WebAuthnService';
-import { SecurityIncidentService } from './security/SecurityIncidentService';
-import { AccountRecoveryService } from './security/AccountRecoveryService';
-import { NotificationService } from './security/NotificationService';
-import {
-    securityConfig,
-    corsConfig,
-    rateLimitConfig,
-    helmetConfig
-} from './config/security.config';
-
+import { SecurityHeadersService } from "./security/SecurityHeadersService";
+import { SecurityAuditService } from "./services/SecurityAuditService";
+import { WebAuthnService } from "./security/WebAuthnService";
+import { SecurityIncidentService } from "./security/SecurityIncidentService";
+import { AccountRecoveryService } from "./security/AccountRecoveryService";
+import { NotificationService } from "./security/NotificationService";
+import { securityConfig, corsConfig, rateLimitConfig, helmetConfig } from "./config/security.config";
 export async function createApp() {
     const app = express();
     const securityAuditService = new SecurityAuditService();
     const webAuthnService = new WebAuthnService(securityAuditService);
     const notificationService = new NotificationService(securityAuditService);
-    const securityIncidentService = new SecurityIncidentService(
-        securityAuditService,
-        webAuthnService
-    );
+    const securityIncidentService = new SecurityIncidentService(securityAuditService, webAuthnService);
     const accountRecoveryService = new AccountRecoveryService(securityAuditService);
-    const securityHeadersService = new SecurityHeadersService(
-        securityAuditService,
-        securityConfig
-    );
-
+    const securityHeadersService = new SecurityHeadersService(securityAuditService, securityConfig);
     // Basic middleware
     app.use(express.json());
     app.use(express.urlencoded({ extended: true }));
-
     // Security middleware
     app.use(helmet(helmetConfig));
     app.use(cors(corsConfig));
-
     // Custom rate limit middleware with incident tracking
     const rateLimitMiddleware = rateLimit({
         ...rateLimitConfig,
@@ -50,10 +35,8 @@ export async function createApp() {
         }
     });
     app.use(rateLimitMiddleware);
-
     // Security headers middleware
     app.use(securityHeadersService.middleware());
-
     // IP blocking middleware
     app.use((req: unknown, res: unknown, next: unknown) => {
         if (securityIncidentService.isIpBlocked(req.ip)) {
@@ -63,18 +46,14 @@ export async function createApp() {
         }
         next();
     });
-
     // WebAuthn endpoints
     app.post('/api/auth/webauthn/register', async (req: unknown, res: unknown) => {
         try {
             const { userId, username, devices } = req.body;
-            const options = await webAuthnService.generateRegistrationOptions(
-                userId,
-                username,
-                devices
-            );
+            const options = await webAuthnService.generateRegistrationOptions(userId, username, devices);
             res.json(options);
-        } catch (error) {
+        }
+        catch (error) {
             const incident = {
                 type: 'WEBAUTHN_VIOLATION',
                 severity: 'HIGH',
@@ -93,17 +72,13 @@ export async function createApp() {
             });
         }
     });
-
     app.post('/api/auth/webauthn/verify', async (req: unknown, res: unknown) => {
         try {
             const { userId, username, verification } = req.body;
-            const result = await webAuthnService.verifyRegistration(
-                userId,
-                username,
-                verification
-            );
+            const result = await webAuthnService.verifyRegistration(userId, username, verification);
             res.json(result);
-        } catch (error) {
+        }
+        catch (error) {
             const incident = {
                 type: 'WEBAUTHN_VIOLATION',
                 severity: 'HIGH',
@@ -122,14 +97,14 @@ export async function createApp() {
             });
         }
     });
-
     // Account recovery endpoints
     app.post('/api/auth/backup-codes/generate', async (req: unknown, res: unknown) => {
         try {
             const { userId } = req.body;
             const codes = await accountRecoveryService.generateBackupCodes(userId);
             res.json({ codes });
-        } catch (error) {
+        }
+        catch (error) {
             const incident = {
                 type: 'AUTHENTICATION_FAILURE',
                 severity: 'HIGH',
@@ -148,13 +123,13 @@ export async function createApp() {
             });
         }
     });
-
     app.post('/api/auth/backup-codes/verify', async (req: unknown, res: unknown) => {
         try {
             const { userId, code } = req.body;
             const isValid = await accountRecoveryService.verifyBackupCode(userId, code);
             res.json({ valid: isValid });
-        } catch (error) {
+        }
+        catch (error) {
             const incident = {
                 type: 'AUTHENTICATION_FAILURE',
                 severity: 'HIGH',
@@ -173,13 +148,13 @@ export async function createApp() {
             });
         }
     });
-
     app.post('/api/auth/security-questions/set', async (req: unknown, res: unknown) => {
         try {
             const { userId, questions } = req.body;
             await accountRecoveryService.setSecurityQuestions(userId, questions);
             res.status(204).end();
-        } catch (error) {
+        }
+        catch (error) {
             const incident = {
                 type: 'AUTHENTICATION_FAILURE',
                 severity: 'HIGH',
@@ -198,13 +173,13 @@ export async function createApp() {
             });
         }
     });
-
     app.post('/api/auth/security-questions/verify', async (req: unknown, res: unknown) => {
         try {
             const { userId, answers } = req.body;
             const isValid = await accountRecoveryService.verifySecurityQuestions(userId, answers);
             res.json({ valid: isValid });
-        } catch (error) {
+        }
+        catch (error) {
             const incident = {
                 type: 'AUTHENTICATION_FAILURE',
                 severity: 'HIGH',
@@ -223,7 +198,6 @@ export async function createApp() {
             });
         }
     });
-
     // CSP violation reporting endpoint
     app.post('/api/security/csp-report', express.json({
         type: 'application/csp-report'
@@ -240,7 +214,6 @@ export async function createApp() {
         await notificationService.notifyIncident(incident);
         res.status(204).end();
     });
-
     // Error handling middleware
     app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
         const incident = {
@@ -255,35 +228,26 @@ export async function createApp() {
                 method: req.method
             }
         };
-
-        securityAuditService.recordAlert(
-            'APP_ERROR',
-            'HIGH',
-            {
-                error: err.message,
-                stack: err.stack,
-                url: req.url,
-                method: req.method,
-                ip: req.ip
-            }
-        );
-
+        securityAuditService.recordAlert('APP_ERROR', 'HIGH', {
+            error: err.message,
+            stack: err.stack,
+            url: req.url,
+            method: req.method,
+            ip: req.ip
+        });
         // Check if it's a security-related error
         if (err.message.includes('security') || err.message.includes('auth')) {
             securityIncidentService.handleIncident(incident);
             notificationService.notifyIncident(incident);
         }
-
         res.status(500).json({
             error: process.env.NODE_ENV === 'production'
                 ? 'Internal Server Error'
                 : err.message
         });
     });
-
     return app;
 }
-
 if (require.main === module) {
     const port = process.env.PORT || 3000;
     createApp().then((app: Express) => {
@@ -291,4 +255,4 @@ if (require.main === module) {
             console.log(`Server running on port ${port}`);
         });
     });
-} 
+}
