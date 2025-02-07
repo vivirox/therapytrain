@@ -41,7 +41,7 @@ export async function createApp() {
     // Custom rate limit middleware with incident tracking
     const rateLimitMiddleware = rateLimit({
         ...rateLimitConfig,
-        handler: async (req, res) => {
+        handler: async (req: unknown, res: unknown) => {
             const ip = req.ip;
             await securityIncidentService.handleRateLimit(ip);
             res.status(429).json({
@@ -55,7 +55,7 @@ export async function createApp() {
     app.use(securityHeadersService.middleware());
 
     // IP blocking middleware
-    app.use((req, res, next) => {
+    app.use((req: unknown, res: unknown, next: unknown) => {
         if (securityIncidentService.isIpBlocked(req.ip)) {
             return res.status(403).json({
                 error: 'Access denied due to suspicious activity.'
@@ -65,7 +65,7 @@ export async function createApp() {
     });
 
     // WebAuthn endpoints
-    app.post('/api/auth/webauthn/register', async (req, res) => {
+    app.post('/api/auth/webauthn/register', async (req: unknown, res: unknown) => {
         try {
             const { userId, username, devices } = req.body;
             const options = await webAuthnService.generateRegistrationOptions(
@@ -94,7 +94,7 @@ export async function createApp() {
         }
     });
 
-    app.post('/api/auth/webauthn/verify', async (req, res) => {
+    app.post('/api/auth/webauthn/verify', async (req: unknown, res: unknown) => {
         try {
             const { userId, username, verification } = req.body;
             const result = await webAuthnService.verifyRegistration(
@@ -124,7 +124,7 @@ export async function createApp() {
     });
 
     // Account recovery endpoints
-    app.post('/api/auth/backup-codes/generate', async (req, res) => {
+    app.post('/api/auth/backup-codes/generate', async (req: unknown, res: unknown) => {
         try {
             const { userId } = req.body;
             const codes = await accountRecoveryService.generateBackupCodes(userId);
@@ -149,7 +149,7 @@ export async function createApp() {
         }
     });
 
-    app.post('/api/auth/backup-codes/verify', async (req, res) => {
+    app.post('/api/auth/backup-codes/verify', async (req: unknown, res: unknown) => {
         try {
             const { userId, code } = req.body;
             const isValid = await accountRecoveryService.verifyBackupCode(userId, code);
@@ -174,7 +174,7 @@ export async function createApp() {
         }
     });
 
-    app.post('/api/auth/security-questions/set', async (req, res) => {
+    app.post('/api/auth/security-questions/set', async (req: unknown, res: unknown) => {
         try {
             const { userId, questions } = req.body;
             await accountRecoveryService.setSecurityQuestions(userId, questions);
@@ -199,7 +199,7 @@ export async function createApp() {
         }
     });
 
-    app.post('/api/auth/security-questions/verify', async (req, res) => {
+    app.post('/api/auth/security-questions/verify', async (req: unknown, res: unknown) => {
         try {
             const { userId, answers } = req.body;
             const isValid = await accountRecoveryService.verifySecurityQuestions(userId, answers);
@@ -227,7 +227,7 @@ export async function createApp() {
     // CSP violation reporting endpoint
     app.post('/api/security/csp-report', express.json({
         type: 'application/csp-report'
-    }), async (req, res) => {
+    }), async (req: unknown, res: unknown) => {
         const incident = {
             type: 'CSP_VIOLATION',
             severity: 'MEDIUM',
@@ -286,7 +286,7 @@ export async function createApp() {
 
 if (require.main === module) {
     const port = process.env.PORT || 3000;
-    createApp().then(app => {
+    createApp().then(app: unknown => {
         app.listen(port, () => {
             console.log(`Server running on port ${port}`);
         });

@@ -18,8 +18,8 @@ describe('AccountRecoveryService', () => {
         accountRecoveryService = new AccountRecoveryService(mockSecurityAuditService);
 
         // Mock bcrypt functions
-        (bcrypt.hash as jest.Mock).mockImplementation((value) => Promise.resolve(`hashed_${value}`));
-        (bcrypt.compare as jest.Mock).mockImplementation((value, hash) =>
+        (bcrypt.hash as jest.Mock).mockImplementation((value: unknown) => Promise.resolve(`hashed_${value}`));
+        (bcrypt.compare as jest.Mock).mockImplementation((value: unknown, hash: unknown) =>
             Promise.resolve(hash === `hashed_${value}`)
         );
 

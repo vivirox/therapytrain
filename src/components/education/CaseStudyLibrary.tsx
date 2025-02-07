@@ -221,7 +221,7 @@ export const CaseStudyLibrary: React.FC<CaseStudyLibraryProps> = ({
             placeholder="Search case studies..."
             className="pl-10"
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e: unknown) => setSearchTerm(e.target.value)}
           />
         </div>
 

@@ -45,7 +45,7 @@ export class OptimizedZKProofService {
             max: maxCacheSize,
             ttl: cacheTTL,
             updateAgeOnGet: true,
-            dispose: (key, value) => {
+            dispose: (key: unknown, value: unknown) => {
                 this.handleCacheDisposal(key, value);
             }
         });
@@ -179,7 +179,7 @@ export class OptimizedZKProofService {
                     reject(new Error('Proof generation timeout'));
                 }, 30000); // 30 second timeout
 
-                worker.once('message', (result) => {
+                worker.once('message', (result: unknown) => {
                     clearTimeout(timeout);
                     if (result.error) {
                         reject(new Error(result.error));
@@ -258,7 +258,7 @@ export class OptimizedZKProofService {
                     reject(new Error('Proof verification timeout'));
                 }, 15000); // 15 second timeout
 
-                worker.once('message', (result) => {
+                worker.once('message', (result: unknown) => {
                     clearTimeout(timeout);
                     if (result.error) {
                         reject(new Error(result.error));

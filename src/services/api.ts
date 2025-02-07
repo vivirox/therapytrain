@@ -27,21 +27,21 @@ class ApiService {
   private setupInterceptors() {
     // Request interceptor
     this.client.interceptors.request.use(
-      (config) => {
+      (config: unknown) => {
         const token = localStorage.getItem('sb-auth-token');
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
         }
         return config;
       },
-      (error) => {
+      (error: unknown) => {
         return Promise.reject(error);
       }
     );
 
     // Response interceptor
     this.client.interceptors.response.use(
-      (response) => {
+      (response: unknown) => {
         return response;
       },
       (error: AxiosError<ErrorResponse>) => {

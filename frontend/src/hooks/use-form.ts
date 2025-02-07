@@ -70,7 +70,7 @@ export function useForm<T extends Record<string, any>>({
     } catch (error) {
       if (error instanceof z.ZodError) {
         const formErrors: FormErrors<T> = {};
-        error.errors.forEach((err) => {
+        error.errors.forEach((err: unknown) => {
           const path = err.path[0] as keyof T;
           formErrors[path] = { message: err.message };
         });

@@ -20,12 +20,12 @@ interface AuthState {
 
 export const useAuth = create<AuthState>()(
   persist(
-    (set) => ({
+    (set: unknown) => ({
       user: null,
       token: null,
       isAuthenticated: false,
-      setUser: (user) => set({ user, isAuthenticated: !!user }),
-      setToken: (token) => set({ token }),
+      setUser: (user: unknown) => set({ user, isAuthenticated: !!user }),
+      setToken: (token: unknown) => set({ token }),
       logout: () => set({ user: null, token: null, isAuthenticated: false }),
     }),
     {

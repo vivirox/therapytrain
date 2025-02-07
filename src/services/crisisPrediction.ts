@@ -160,7 +160,7 @@ class CrisisPrediction {
     if (assessment.overallRisk >= config.threshold) {
       // Trigger alerts through configured channels
       await Promise.all([
-        ...config.channels.map(channel =>
+        ...config.channels.map(channel: unknown =>
           this.sendAlert(channel, config, assessment)
         )
       ]);
@@ -218,7 +218,7 @@ class CrisisPrediction {
 
     // Analyze message content for behavioral indicators
     for (const indicator of this.riskIndicators.behavioral) {
-      const matches = messages.filter(m =>
+      const matches = messages.filter(m: unknown =>
         m.content.toLowerCase().includes(indicator)
       );
 
@@ -236,7 +236,7 @@ class CrisisPrediction {
     }
 
     // Analyze behavioral patterns
-    patterns.forEach(pattern => {
+    patterns.forEach(pattern: unknown => {
       if (pattern.risk_level > 0.6) {
         factors.push({
           id: `pattern_${pattern.id}`,
@@ -261,7 +261,7 @@ class CrisisPrediction {
 
     // Analyze emotional indicators in messages
     for (const indicator of this.riskIndicators.emotional) {
-      const matches = messages.filter(m =>
+      const matches = messages.filter(m: unknown =>
         m.content.toLowerCase().includes(indicator)
       );
 
@@ -281,7 +281,7 @@ class CrisisPrediction {
     // Analyze sentiment trends
     if (sessionData.sentiment_trends) {
       const recentSentiments = sessionData.sentiment_trends.slice(-5);
-      const avgSentiment = recentSentiments.reduce((a, b) => a + b, 0) /
+      const avgSentiment = recentSentiments.reduce((a: unknown, b: unknown) => a + b, 0) /
         recentSentiments.length;
 
       if (avgSentiment < -0.5) {

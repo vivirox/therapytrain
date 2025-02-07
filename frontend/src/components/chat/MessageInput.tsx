@@ -53,10 +53,10 @@ export function MessageInput({ disabled }: MessageInputProps) {
         recognition.continuous = true;
         recognition.interimResults = true;
         
-        recognition.onresult = (event) => {
+        recognition.onresult = (event: unknown) => {
           const transcript = Array.from(event.results)
             .map(result => result[0])
-            .map(result => result.transcript)
+            .map(result: unknown => result.transcript)
             .join('');
           
           setMessage(transcript);
@@ -82,7 +82,7 @@ export function MessageInput({ disabled }: MessageInputProps) {
         <Textarea
           ref={textareaRef}
           value={message}
-          onChange={(e) => setMessage(e.target.value)}
+          onChange={(e: unknown) => setMessage(e.target.value)}
           onKeyPress={handleKeyPress}
           placeholder="Type your message..."
           disabled={disabled}

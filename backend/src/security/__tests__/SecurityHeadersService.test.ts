@@ -81,7 +81,7 @@ describe('SecurityHeadersService', () => {
             );
 
             const cspCalls = (mockResponse.setHeader as jest.Mock).mock.calls
-                .filter(call => call[0] === 'Content-Security-Policy');
+                .filter(call: unknown => call[0] === 'Content-Security-Policy');
 
             expect(cspCalls.length).toBe(1);
             expect(cspCalls[0][1]).toMatch(/'nonce-[A-Za-z0-9+/]+=?'/);
@@ -108,7 +108,7 @@ describe('SecurityHeadersService', () => {
             );
 
             const cspCalls = (mockResponse.setHeader as jest.Mock).mock.calls
-                .filter(call => call[0] === 'Content-Security-Policy');
+                .filter(call: unknown => call[0] === 'Content-Security-Policy');
 
             expect(cspCalls[0][1]).toContain('https://trusted.com');
             expect(cspCalls[0][1]).toContain('wss://api.trusted.com');
@@ -126,7 +126,7 @@ describe('SecurityHeadersService', () => {
 
             // Trigger the 'finish' event handler
             const finishHandler = (mockResponse.on as jest.Mock).mock.calls
-                .find(call => call[0] === 'finish')[1];
+                .find(call: unknown => call[0] === 'finish')[1];
             finishHandler();
 
             expect(mockSecurityAuditService.recordAlert).toHaveBeenCalledWith(
@@ -178,14 +178,14 @@ describe('SecurityHeadersService', () => {
                 (securityHeadersService as any).generateNonce()
             );
 
-            nonces.forEach(nonce => securityHeadersService.addNonce(sessionId, nonce));
+            nonces.forEach(nonce: unknown => securityHeadersService.addNonce(sessionId, nonce));
 
             // Only the last 10 nonces should be valid
-            nonces.slice(0, 5).forEach(nonce => {
+            nonces.slice(0, 5).forEach(nonce: unknown => {
                 expect(securityHeadersService.validateNonce(sessionId, nonce)).toBe(false);
             });
 
-            nonces.slice(5).forEach(nonce => {
+            nonces.slice(5).forEach(nonce: unknown => {
                 expect(securityHeadersService.validateNonce(sessionId, nonce)).toBe(true);
             });
         });

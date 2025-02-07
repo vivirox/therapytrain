@@ -120,11 +120,11 @@ export const AuditDashboard: React.FC = () => {
                             <CartesianGrid strokeDasharray="3 3" />
                             <XAxis
                                 dataKey="time_bucket"
-                                tickFormatter={(time) => format(new Date(time), 'HH:mm')}
+                                tickFormatter={(time: unknown) => format(new Date(time), 'HH:mm')}
                             />
                             <YAxis />
                             <Tooltip
-                                labelFormatter={(time) => format(new Date(time), 'yyyy-MM-dd HH:mm')}
+                                labelFormatter={(time: unknown) => format(new Date(time), 'yyyy-MM-dd HH:mm')}
                             />
                             <Legend />
                             <Line

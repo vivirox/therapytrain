@@ -43,10 +43,10 @@ const DecisionTreeElement: React.FC<{
   const [selectedChoice, setSelectedChoice] = React.useState<string>('');
 
   const handleChoice = (choiceId: string) => {
-    const choice = currentNode.choices.find(c => c.id === choiceId);
+    const choice = currentNode.choices.find(c: unknown => c.id === choiceId);
     if (!choice) return;
 
-    const nextNode = nodes.find(n => n.id === choice.nextNodeId);
+    const nextNode = nodes.find(n: unknown => n.id === choice.nextNodeId);
     if (nextNode) {
       setPath([...path, nextNode.id]);
       setCurrentNode(nextNode);
@@ -126,7 +126,7 @@ const SimulationElement: React.FC<{
         <Textarea
           placeholder="Enter your action..."
           className="mt-4"
-          onKeyPress={(e) => {
+          onKeyPress={(e: unknown) => {
             if (e.key === 'Enter') {
               updateSimulation((e.target as HTMLTextAreaElement).value);
               (e.target as HTMLTextAreaElement).value = '';
@@ -148,7 +148,7 @@ export const InteractiveElement: React.FC<InteractiveElementProps> = ({
       return (
         <DecisionTreeElement
           nodes={config.data.nodes || []}
-          onComplete={(path) => onComplete({ type: 'decision-tree', path })}
+          onComplete={(path: unknown) => onComplete({ type: 'decision-tree', path })}
         />
       );
     case 'simulation':

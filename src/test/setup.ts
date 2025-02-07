@@ -28,7 +28,7 @@ if (typeof global.TextDecoder === 'undefined') {
 // Mock window.matchMedia
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
-  value: vi.fn().mockImplementation(query => ({
+  value: vi.fn().mockImplementation(query: unknown => ({
     matches: false,
     media: query,
     onchange: null,

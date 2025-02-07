@@ -118,7 +118,7 @@ export const TutorialSystem: React.FC<TutorialSystemProps> = ({ userId }) => {
                 type: 'simulation',
                 data: { scenario: { setup: step.content, variables: {}, successCriteria: [] } }
               }}
-              onComplete={async (results) => {
+              onComplete={async (results: unknown) => {
                 // Record the results
                 await fetch('/api/tutorial-progress', {
                   method: 'POST',
@@ -132,7 +132,7 @@ export const TutorialSystem: React.FC<TutorialSystemProps> = ({ userId }) => {
                 });
                 nextStep();
               }}
-              onProgress={(progress) => {
+              onProgress={(progress: unknown) => {
                 // Update progress indicator
               }}
             />
@@ -148,7 +148,7 @@ export const TutorialSystem: React.FC<TutorialSystemProps> = ({ userId }) => {
               <InteractiveElement
                 key={index}
                 config={element}
-                onComplete={async (results) => {
+                onComplete={async (results: unknown) => {
                   await fetch('/api/quiz-submission', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },

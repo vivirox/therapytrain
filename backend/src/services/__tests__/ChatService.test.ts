@@ -125,7 +125,7 @@ describe('ChatService', () => {
 
       (AIService.prototype.processMessage as jest.Mock).mockResolvedValueOnce(mockAiResponse);
       (MessageService.prototype.saveMessage as jest.Mock).mockImplementation(
-        async (sid, uid, content, type) => ({
+        async (sid: unknown, uid: unknown, content: unknown, type: unknown) => ({
           session_id: sid,
           user_id: uid,
           content,
@@ -159,7 +159,7 @@ describe('ChatService', () => {
 
       (AIService.prototype.processMessage as jest.Mock).mockRejectedValueOnce(mockError);
       (MessageService.prototype.saveMessage as jest.Mock).mockImplementation(
-        async (sid, uid, content, type) => ({
+        async (sid: unknown, uid: unknown, content: unknown, type: unknown) => ({
           session_id: sid,
           user_id: uid,
           content,
@@ -194,7 +194,7 @@ describe('ChatService', () => {
 
       (AIService.prototype.processMessage as jest.Mock).mockResolvedValueOnce(mockAiResponse);
       (MessageService.prototype.saveMessage as jest.Mock).mockImplementation(
-        async (sid, uid, content, type) => ({
+        async (sid: unknown, uid: unknown, content: unknown, type: unknown) => ({
           session_id: sid,
           user_id: uid,
           content,
@@ -217,7 +217,7 @@ describe('ChatService', () => {
       const userId = 'test-user';
       const sessionId = 'test-session';
       const mockCloseHandler = mockWs.on.mock.calls.find(
-        call => call[0] === 'close'
+        call: unknown => call[0] === 'close'
       )[1];
 
       chatService['clients'].set(userId, {
@@ -317,7 +317,7 @@ describe('ChatService', () => {
       
       // Verify message content
       const calls = (mockWs.send as jest.Mock).mock.calls;
-      const sentMessages = calls.map(call => JSON.parse(call[0]));
+      const sentMessages = calls.map(call: unknown => JSON.parse(call[0]));
       
       expect(sentMessages[0].type).toBe('status');
       expect(sentMessages[0].content).toBe('Reconnected to previous session');

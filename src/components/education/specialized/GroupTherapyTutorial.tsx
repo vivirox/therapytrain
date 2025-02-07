@@ -176,7 +176,7 @@ export const GroupTherapyTutorial: React.FC<GroupTherapyTutorialProps> = ({
     setMemberStates(prev =>
       prev.map(member => {
         const effect = option.impact.memberEffects.find(
-          e => e.memberId === member.id
+          e: unknown => e.memberId === member.id
         );
         if (effect) {
           return {
@@ -382,7 +382,7 @@ export const GroupTherapyTutorial: React.FC<GroupTherapyTutorialProps> = ({
           <Card className="p-4">
             <Textarea
               value={facilitatorNotes}
-              onChange={e => setFacilitatorNotes(e.target.value)}
+              onChange={e: unknown => setFacilitatorNotes(e.target.value)}
               placeholder="Record your observations and thoughts here..."
               className="min-h-[200px]"
             />

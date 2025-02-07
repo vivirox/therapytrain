@@ -83,12 +83,12 @@ export const UserProfile = () => {
           if (error) throw error;
 
           if (userOrgs) {
-            const formattedOrgs = userOrgs.map(org => ({
+            const formattedOrgs = userOrgs.map(org: unknown => ({
               id: org.organization_id,
               name: org.organizations[0].name,
               role: org.role,
               organization_id: org.organization_id,
-              organizations: org.organizations.map(o => ({
+              organizations: org.organizations.map(o: unknown => ({
                 id: o.id,
                 name: o.name
               }))

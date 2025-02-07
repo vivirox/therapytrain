@@ -1,10 +1,8 @@
-import tailwindcss from 'tailwindcss'
-import autoprefixer from 'autoprefixer'
-
-/** @type {import('postcss-load-config').Config} */
-export default {
-    plugins: [
-        tailwindcss,
-        autoprefixer
-    ]
+module.exports = {
+    plugins: {
+        'tailwindcss/nesting': {},
+        tailwindcss: {},
+        autoprefixer: {},
+        ...(process.env.NODE_ENV === 'production' ? { cssnano: {} } : {})
+    }
 } 

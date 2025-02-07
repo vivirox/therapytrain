@@ -313,7 +313,7 @@ export const SimulationTutorial: React.FC<SimulationTutorialProps> = ({
               <span className="text-sm text-white">Speed:</span>
               <select
                 value={playbackSpeed}
-                onChange={e => handlePlaybackSpeedChange(Number(e.target.value))}
+                onChange={e: unknown => handlePlaybackSpeedChange(Number(e.target.value))}
                 className="bg-transparent text-white border-none"
               >
                 <option value={0.5}>0.5x</option>

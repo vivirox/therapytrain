@@ -68,7 +68,7 @@ export const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({
   const currentSimulation = scenario.steps[currentStep];
 
   const handleChoiceSelection = (choiceId: string) => {
-    const choice = currentSimulation.choices.find(c => c.id === choiceId);
+    const choice = currentSimulation.choices.find(c: unknown => c.id === choiceId);
     if (!choice) return;
 
     setSelectedChoice(choiceId);
@@ -197,7 +197,7 @@ export const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({
               onValueChange={handleChoiceSelection}
               className="space-y-3"
             >
-              {currentSimulation.choices.map(choice => (
+              {currentSimulation.choices.map(choice: unknown => (
                 <div key={choice.id} className="flex items-start space-x-3">
                   <RadioGroupItem value={choice.id} id={choice.id} />
                   <Label
@@ -214,7 +214,7 @@ export const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({
               <p className="text-sm text-gray-400">Or provide your own response:</p>
               <Textarea
                 value={customResponse}
-                onChange={e => setCustomResponse(e.target.value)}
+                onChange={e: unknown => setCustomResponse(e.target.value)}
                 placeholder="Type your response here..."
                 className="min-h-[100px]"
               />
@@ -238,7 +238,7 @@ export const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({
                   className="flex items-start gap-2 p-4 rounded-lg bg-gray-800"
                 >
                   {selectedChoice && currentSimulation.choices.find(
-                    c => c.id === selectedChoice
+                    c: unknown => c.id === selectedChoice
                   )?.isCorrect ? (
                     <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
                   ) : (

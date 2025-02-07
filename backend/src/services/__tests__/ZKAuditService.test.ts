@@ -191,7 +191,7 @@ describe('ZKAuditService', () => {
 
             // Simulate client disconnection
             const closeHandler = (mockWebSocket.on as jest.Mock).mock.calls.find(
-                call => call[0] === 'close'
+                call: unknown => call[0] === 'close'
             )[1];
             closeHandler();
 

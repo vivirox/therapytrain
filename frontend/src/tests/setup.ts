@@ -7,7 +7,7 @@ global.TextDecoder = TextDecoder as any;
 
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
-  value: vi.fn().mockImplementation(query => ({
+  value: vi.fn().mockImplementation(query: unknown => ({
     matches: false,
     media: query,
     onchange: null,
@@ -19,7 +19,7 @@ Object.defineProperty(window, 'matchMedia', {
   })),
 });
 
-const mockIntersectionObserver = vi.fn().mockImplementation((callback) => ({
+const mockIntersectionObserver = vi.fn().mockImplementation((callback: unknown) => ({
   observe: vi.fn(),
   unobserve: vi.fn(),
   disconnect: vi.fn(),

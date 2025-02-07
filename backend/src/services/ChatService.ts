@@ -357,7 +357,7 @@ export class ChatService {
 
   private broadcast(message: ChatMessage) {
     const messageStr = JSON.stringify(message);
-    this.wss.clients.forEach(client => {
+    this.wss.clients.forEach(client: unknown => {
       if (client.readyState === WebSocket.OPEN) {
         client.send(messageStr);
       }

@@ -30,7 +30,7 @@ export function ChatInterface() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          messages: [...messages, newMessage].map(m => ({
+          messages: [...messages, newMessage].map(m: unknown => ({
             role: m.sender === 'user' ? 'user' : 'assistant',
             content: m.content
           }))
@@ -100,8 +100,8 @@ export function ChatInterface() {
       <div className="p-4 border-t flex gap-2">
         <Input
           value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyPress={(e) => e.key === 'Enter' && handleSend()}
+          onChange={(e: unknown) => setInput(e.target.value)}
+          onKeyPress={(e: unknown) => e.key === 'Enter' && handleSend()}
           placeholder="Type your message..."
           className="flex-1"
         />

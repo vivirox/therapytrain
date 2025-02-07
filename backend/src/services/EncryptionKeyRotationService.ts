@@ -381,7 +381,7 @@ export class EncryptionKeyRotationService {
             const timeUntilRotation = new Date(key.expiresAt).getTime() - Date.now();
             if (timeUntilRotation <= 0) {
                 // Rotate immediately if expired
-                this.rotateKey(purpose).catch(error => {
+                this.rotateKey(purpose).catch(error: unknown => {
                     this.securityAuditService.recordAlert(
                         'KEY_ROTATION_SCHEDULE_ERROR',
                         'HIGH',
@@ -394,7 +394,7 @@ export class EncryptionKeyRotationService {
             } else {
                 // Schedule future rotation
                 const timeout = setTimeout(() => {
-                    this.rotateKey(purpose).catch(error => {
+                    this.rotateKey(purpose).catch(error: unknown => {
                         this.securityAuditService.recordAlert(
                             'KEY_ROTATION_SCHEDULE_ERROR',
                             'HIGH',

@@ -73,7 +73,7 @@ export class SessionAnalytics {
       return 0;
     }
     
-    const totalEffectiveness = interventions.reduce((sum, intervention) => 
+    const totalEffectiveness = interventions.reduce((sum: unknown, intervention: unknown) => 
         sum + (intervention.effectiveness || 0), 0);
         
     return totalEffectiveness / interventions.length;
@@ -198,7 +198,7 @@ export class SessionAnalytics {
     }
 
     const effectiveInterventions = interventions
-      .filter(i => i.effectiveness > 0.7)
+      .filter(i: unknown => i.effectiveness > 0.7)
       .length;
 
     const effectiveness = effectiveInterventions / interventions.length;

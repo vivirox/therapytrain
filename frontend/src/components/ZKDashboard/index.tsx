@@ -114,11 +114,11 @@ export const ZKDashboard: React.FC = () => {
                                     <CartesianGrid strokeDasharray="3 3" />
                                     <XAxis
                                         dataKey="timestamp"
-                                        tickFormatter={(ts) => new Date(ts).toLocaleTimeString()}
+                                        tickFormatter={(ts: unknown) => new Date(ts).toLocaleTimeString()}
                                     />
                                     <YAxis />
                                     <Tooltip
-                                        labelFormatter={(ts) => new Date(ts).toLocaleString()}
+                                        labelFormatter={(ts: unknown) => new Date(ts).toLocaleString()}
                                         formatter={(value: number) => formatDuration(value)}
                                     />
                                     <Legend />
@@ -152,11 +152,11 @@ export const ZKDashboard: React.FC = () => {
                                     <CartesianGrid strokeDasharray="3 3" />
                                     <XAxis
                                         dataKey="timestamp"
-                                        tickFormatter={(ts) => new Date(ts).toLocaleTimeString()}
+                                        tickFormatter={(ts: unknown) => new Date(ts).toLocaleTimeString()}
                                     />
                                     <YAxis tickFormatter={formatPercentage} />
                                     <Tooltip
-                                        labelFormatter={(ts) => new Date(ts).toLocaleString()}
+                                        labelFormatter={(ts: unknown) => new Date(ts).toLocaleString()}
                                         formatter={(value: number) => formatPercentage(value)}
                                     />
                                     <Legend />

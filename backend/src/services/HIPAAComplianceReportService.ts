@@ -253,7 +253,7 @@ export class HIPAAComplianceReportService {
         const incompleteAudits = this.detectIncompleteAudits(auditEvents);
 
         const violations: ComplianceViolation[] = [
-            ...missingAudits.map(details => ({
+            ...missingAudits.map(details: unknown => ({
                 id: crypto.randomBytes(16).toString('hex'),
                 timestamp: new Date(),
                 type: ViolationType.MISSING_AUDIT,
@@ -262,7 +262,7 @@ export class HIPAAComplianceReportService {
                 details,
                 status: 'OPEN'
             })),
-            ...incompleteAudits.map(details => ({
+            ...incompleteAudits.map(details: unknown => ({
                 id: crypto.randomBytes(16).toString('hex'),
                 timestamp: new Date(),
                 type: ViolationType.INCOMPLETE_AUDIT,
@@ -341,7 +341,7 @@ export class HIPAAComplianceReportService {
         const emergencyAccesses = this.detectEmergencyAccesses(auditEvents);
 
         const violations: ComplianceViolation[] = [
-            ...unauthorizedAccesses.map(details => ({
+            ...unauthorizedAccesses.map(details: unknown => ({
                 id: crypto.randomBytes(16).toString('hex'),
                 timestamp: new Date(),
                 type: ViolationType.UNAUTHORIZED_ACCESS,
@@ -350,7 +350,7 @@ export class HIPAAComplianceReportService {
                 details,
                 status: 'OPEN'
             })),
-            ...emergencyAccesses.map(details => ({
+            ...emergencyAccesses.map(details: unknown => ({
                 id: crypto.randomBytes(16).toString('hex'),
                 timestamp: new Date(),
                 type: ViolationType.EMERGENCY_ACCESS,
@@ -362,7 +362,7 @@ export class HIPAAComplianceReportService {
         ];
 
         return {
-            totalAccesses: auditEvents.filter(e => e.action.type === 'READ').length,
+            totalAccesses: auditEvents.filter(e: unknown => e.action.type === 'READ').length,
             unauthorizedAccesses: unauthorizedAccesses.length,
             emergencyAccesses: emergencyAccesses.length,
             accessViolations: violations
@@ -503,7 +503,7 @@ export class HIPAAComplianceReportService {
     }
 
     private detectIncompleteAudits(auditEvents: any[]): any[] {
-        return auditEvents.filter(event => {
+        return auditEvents.filter(event: unknown => {
             return !this.assessmentCriteria.auditTrails.requiredFields.every(field => {
                 const parts = field.split('.');
                 let value = event;
@@ -517,7 +517,7 @@ export class HIPAAComplianceReportService {
     }
 
     private detectUnauthorizedAccesses(auditEvents: any[]): any[] {
-        return auditEvents.filter(event =>
+        return auditEvents.filter(event: unknown =>
             event.action.type === 'READ' &&
             event.action.status === 'FAILURE' &&
             event.action.details?.reason === 'UNAUTHORIZED'
@@ -525,7 +525,7 @@ export class HIPAAComplianceReportService {
     }
 
     private detectEmergencyAccesses(auditEvents: any[]): any[] {
-        return auditEvents.filter(event =>
+        return auditEvents.filter(event: unknown =>
             event.action.type === 'EMERGENCY_ACCESS'
         );
     }

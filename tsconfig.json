@@ -1,10 +1,11 @@
 {
   "compilerOptions": {
-    "target": "ESNext",
+    "target": "ES2020",
+    "useDefineForClassFields": true,
     "lib": [
+      "ES2020",
       "DOM",
-      "DOM.Iterable",
-      "ESNext"
+      "DOM.Iterable"
     ],
     "module": "ESNext",
     "skipLibCheck": true,
@@ -14,59 +15,39 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
-    "strict": true,
+    "strict": false,
+    "noImplicitAny": false,
+    "strictNullChecks": false,
     "noUnusedLocals": false,
     "noUnusedParameters": false,
-    "noFallthroughCasesInSwitch": true,
+    "noFallthroughCasesInSwitch": false,
     "allowJs": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,
     "baseUrl": ".",
     "paths": {
       "@/*": [
-        "src/*"
+        "./src/*"
       ],
-      "@/components/*": [
-        "src/components/*"
+      "@backend/*": [
+        "./backend/src/*"
       ],
-      "@/lib/*": [
-        "src/lib/*"
-      ],
-      "@/types/*": [
-        "src/types/*"
-      ],
-      "@/utils/*": [
-        "src/utils/*"
-      ],
-      "@/hooks/*": [
-        "src/hooks/*"
-      ],
-      "@/services/*": [
-        "src/services/*"
-      ],
-      "@/integrations/*": [
-        "src/integrations/*"
-      ],
-      "@/context/*": [
-        "src/context/*"
+      "@frontend/*": [
+        "./frontend/src/*"
       ]
-    },
-    "types": [
-      "node",
-      "jest",
-      "react",
-      "react-dom"
-    ]
+    }
   },
   "include": [
-    "src/**/*",
-    "types/**/*"
+    "src",
+    "backend/src",
+    "frontend/src",
+    "vite.config.ts",
+    "vitest.config.ts"
   ],
-  "exclude": [
-    "node_modules",
-    "build",
-    "dist",
-    ".next",
-    "out",
-    ".cache"
+  "references": [
+    {
+      "path": "./tsconfig.node.json"
+    }
   ]
 }

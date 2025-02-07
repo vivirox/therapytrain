@@ -74,7 +74,7 @@ const ClientSelection = () => {
           placeholder="Search clients..."
           className="bg-[#1A1A1D] border-gray-800"
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={(e: unknown) => setSearchTerm(e.target.value)}
         />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

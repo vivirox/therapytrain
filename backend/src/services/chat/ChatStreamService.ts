@@ -51,7 +51,7 @@ export class ChatStreamService {
           schema: 'public',
           table: 'messages',
           filter: `session_id=eq.${sessionId}`
-        }, async (payload) => {
+        }, async (payload: unknown) => {
           const message = payload.new as Message;
           this.sendEvent(res, {
             type: 'message',

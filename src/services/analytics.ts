@@ -111,7 +111,7 @@ export class AnalyticsService {
         areasForImprovement: metrics.improvementAreas,
         patterns,
         recommendations,
-        skillGrowth: skillGrowthData.map(growth => ({
+        skillGrowth: skillGrowthData.map(growth: unknown => ({
           skillId: growth.skillId,
           growth: growth.growthRate,
           recentMilestones: growth.milestones.slice(-3)
@@ -163,7 +163,7 @@ export class AnalyticsService {
     const engagementPatterns = this.analyzeEngagementPatterns(trends);
     patterns.push(...engagementPatterns);
 
-    return patterns.sort((a, b) => b.significance - a.significance);
+    return patterns.sort((a: unknown, b: unknown) => b.significance - a.significance);
   }
 
   private static analyzeTimingPatterns(
@@ -176,7 +176,7 @@ export class AnalyticsService {
     }));
 
     // Find optimal learning times
-    const hourlyAverages = new Array(24).fill(0).map((_, hour) => {
+    const hourlyAverages = new Array(24).fill(0).map((_: unknown, hour) => {
       const hourData = timeOfDayData.filter(d => d.hour === hour);
       return {
         hour,

@@ -47,7 +47,7 @@ export class AlertManager {
     logger.info('Processing alert', { alertId: alert.id, type: alert.type });
 
     const handlerPromises = this.handlers.map(handler =>
-      handler.handleAlert(alert).catch(error => {
+      handler.handleAlert(alert).catch(error: unknown => {
         logger.error('Handler failed to process alert', {
           alertId: alert.id,
           error

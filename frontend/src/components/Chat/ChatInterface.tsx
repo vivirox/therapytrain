@@ -174,7 +174,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ className }) => {
         <div className="flex gap-2">
           <textarea
             value={inputValue}
-            onChange={(e) => {
+            onChange={(e: unknown) => {
               setInputValue(e.target.value);
               setIsTyping(e.target.value.length > 0);
             }}

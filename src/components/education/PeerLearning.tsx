@@ -166,23 +166,23 @@ export const PeerLearning: React.FC<PeerLearningProps> = ({ userId }) => {
               <Input
                 placeholder="Discussion title"
                 value={newDiscussion.title}
-                onChange={e =>
+                onChange={e: unknown =>
                   setNewDiscussion(prev => ({ ...prev, title: e.target.value }))
                 }
               />
               <Textarea
                 placeholder="Share your thoughts or questions..."
                 value={newDiscussion.content}
-                onChange={e =>
+                onChange={e: unknown =>
                   setNewDiscussion(prev => ({ ...prev, content: e.target.value }))
                 }
               />
               <Input
                 placeholder="Add tags (comma-separated)"
-                onChange={e =>
+                onChange={e: unknown =>
                   setNewDiscussion(prev => ({
                     ...prev,
-                    tags: e.target.value.split(',').map(tag => tag.trim())
+                    tags: e.target.value.split(',').map(tag: unknown => tag.trim())
                   }))
                 }
               />
@@ -202,7 +202,7 @@ export const PeerLearning: React.FC<PeerLearningProps> = ({ userId }) => {
                 className="pl-10"
                 placeholder="Search discussions..."
                 value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
+                onChange={e: unknown => setSearchTerm(e.target.value)}
               />
             </div>
           </Card>

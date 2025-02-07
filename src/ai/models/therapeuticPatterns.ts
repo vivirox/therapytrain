@@ -156,7 +156,7 @@ export function analyzeMessage(message: string, clientProfile: ClientProfile): {
     );
     
     // Check if pattern relates to client goals
-    const isGoalRelated = clientGoals.some(goal =>
+    const isGoalRelated = clientGoals.some(goal: unknown =>
       pattern.responses.some(response => 
         response.toLowerCase().includes(goal.toLowerCase())
       )

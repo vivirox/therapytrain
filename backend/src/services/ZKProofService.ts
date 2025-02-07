@@ -77,7 +77,7 @@ export class ZKProofService {
 
             // Generate proof using worker
             const proof = await new Promise<ProofOutput>((resolve, reject) => {
-                worker.once('message', (result) => {
+                worker.once('message', (result: unknown) => {
                     if (result.error) {
                         reject(new Error(result.error));
                     } else {

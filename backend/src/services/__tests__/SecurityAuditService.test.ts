@@ -23,7 +23,7 @@ describe('SecurityAuditService', () => {
 
     describe('recordEvent', () => {
         it('should buffer events and flush when buffer is full', async () => {
-            const mockEvents = Array(51).fill(null).map((_, i) => ({
+            const mockEvents = Array(51).fill(null).map((_: unknown, i) => ({
                 eventType: 'TEST_EVENT',
                 details: { test: `event-${i}` }
             }));

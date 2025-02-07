@@ -111,7 +111,7 @@ export class SecurityService {
       if (typeof obj !== 'object' || obj === null) return obj;
 
       if (Array.isArray(obj)) {
-        return obj.map(item => anonymize(item));
+        return obj.map(item: unknown => anonymize(item));
       }
 
       const anonymized: any = {};

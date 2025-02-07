@@ -229,7 +229,7 @@ export class SessionManager {
 
       // Clear from cache
       if (data) {
-        data.forEach(session => this.activeSessions.delete(session.id));
+        data.forEach(session: unknown => this.activeSessions.delete(session.id));
       }
     } catch (error) {
       console.error('Error cleaning up inactive sessions:', error);

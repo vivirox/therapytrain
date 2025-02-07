@@ -11,7 +11,7 @@ async function main() {
     const buildDir = path.join(__dirname, '../build');
 
     // Create necessary directories
-    [keysDir, buildDir].forEach(dir => {
+    [keysDir, buildDir].forEach(dir: unknown => {
         if (!fs.existsSync(dir)) {
             fs.mkdirSync(dir, { recursive: true });
         }
@@ -150,7 +150,7 @@ async function main() {
 main().then(() => {
     console.log('Setup script completed');
     process.exit(0);
-}).catch(error => {
+}).catch(error: unknown => {
     console.error('Fatal error:', error);
     process.exit(1);
 });

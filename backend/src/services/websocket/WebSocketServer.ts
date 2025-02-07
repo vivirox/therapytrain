@@ -33,7 +33,7 @@ export class WebSocketServer {
   }
 
   private setupWebSocketServer() {
-    this.wss.on('connection', async (ws: WebSocket, request) => {
+    this.wss.on('connection', async (ws: WebSocket, request: unknown) => {
       try {
         // Extract and verify JWT token
         const token = this.extractToken(request);
@@ -97,7 +97,7 @@ export class WebSocketServer {
         });
 
         // Setup error handler
-        ws.on('error', (error) => {
+        ws.on('error', (error: unknown) => {
           console.error('WebSocket error:', error);
           this.handleError(client, error);
         });

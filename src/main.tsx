@@ -36,7 +36,7 @@ const AppWithErrorBoundary = () => {
     <React.StrictMode>
       <ErrorBoundary
         fallback={<div>Something went wrong</div>}
-        onError={(error, errorInfo) => {
+        onError={(error: unknown, errorInfo: unknown) => {
           console.error('Error caught by boundary:', error, errorInfo);
         }}
       >

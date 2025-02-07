@@ -63,12 +63,12 @@ export class LearningPathService {
     // Analyze potential challenges
     const challenges = await this.aiAnalytics.predictLearningChallenges(
       userId,
-      curriculum.map(module => module.resources).flat()
+      curriculum.map(module: unknown => module.resources).flat()
     );
 
     // Create learning path nodes from curriculum
-    const nodes = curriculum.flatMap(module => 
-      module.resources.map(resource => ({
+    const nodes = curriculum.flatMap(module: unknown => 
+      module.resources.map(resource: unknown => ({
         id: resource.id,
         title: resource.type === 'tutorial' ? `${module.module}: ${resource.id}` : resource.id,
         description: resource.rationale,
@@ -101,7 +101,7 @@ export class LearningPathService {
         assessmentScores: {}
       },
       aiRecommendations: {
-        nextBestNodes: nodes.slice(0, 3).map(n => n.id),
+        nextBestNodes: nodes.slice(0, 3).map(n: unknown => n.id),
         focusAreas: aiInsights.predictedGrowthAreas,
         supplementaryResources: []
       }
@@ -152,11 +152,11 @@ export class LearningPathService {
     path.aiRecommendations = {
       nextBestNodes: remainingNodes.slice(0, 3).map(n => n.id),
       focusAreas: feedback.areas
-        .filter(area => !area.strength)
-        .map(area => area.name),
+        .filter(area: unknown => !area.strength)
+        .map(area: unknown => area.name),
       paceAdjustment: this.calculatePaceAdjustment(performance),
       supplementaryResources: feedback.areas
-        .flatMap(area => area.suggestedResources)
+        .flatMap(area: unknown => area.suggestedResources)
     };
 
     // Save updated path

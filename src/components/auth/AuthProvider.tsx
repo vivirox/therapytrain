@@ -50,7 +50,7 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
 
   useEffect(() => {
     // Set up Supabase auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event: unknown, session: unknown) => {
       setUser(session?.user ?? null);
       if (event === 'SIGNED_IN') {
         navigate('/dashboard');
@@ -85,7 +85,7 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
       }
 
       if (data) {
-        setPermissions(data.map(p => ({
+        setPermissions(data.map(p: unknown => ({
           id: p.permission_id,
           name: p.permission_name
         })));
@@ -105,7 +105,7 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
       }
 
       if (data) {
-        setOrganizations(data.map(o => ({
+        setOrganizations(data.map(o: unknown => ({
           id: o.organizations?.[0]?.id ?? '',
           name: o.organizations?.[0]?.name ?? '',
           role: o.role
@@ -127,7 +127,7 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
 
       if (data) {
         const flagsRecord: Record<string, FeatureFlag> = {};
-        data.forEach(flag => {
+        data.forEach(flag: unknown => {
           flagsRecord[flag.key] = {
             key: flag.key,
             value: flag.value

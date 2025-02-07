@@ -100,7 +100,7 @@ const MetricsDashboard: React.FC = () => {
   return (
     <div className="space-y-8">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {metrics?.map((metric) => (
+        {metrics?.map((metric: unknown) => (
           <Card key={metric.id} className="p-4">
             <h3 className="text-sm font-medium text-gray-400">{metric.name}</h3>
             <div className="mt-2 flex items-baseline">
