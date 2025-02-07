@@ -155,10 +155,5 @@
             "source": "/:path*",
             "destination": "/index.html"
         }
-    ],
-    "env": {
-        "VITE_APP_TITLE": "TherapyTrain AI (Staging)",
-        "VITE_APP_ENV": "staging",
-        "NODE_ENV": "production"
-    }
+    ]
 } 
