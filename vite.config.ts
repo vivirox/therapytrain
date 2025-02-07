@@ -2,7 +2,6 @@
 import { defineConfig } from "vite";
 import react from '@vitejs/plugin-react';
 import path from 'path';
-import tailwindcss from '@tailwindcss/vite';
 import { visualizer } from 'rollup-plugin-visualizer';
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -12,7 +11,6 @@ export default defineConfig({
     },
     plugins: [
         react(),
-        tailwindcss(),
         visualizer({
             open: true,
             gzipSize: true,
@@ -31,12 +29,7 @@ export default defineConfig({
         'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
     },
     css: {
-        postcss: {
-            plugins: [
-                require('tailwindcss'),
-                require('autoprefixer'),
-            ],
-        },
+        postcss: './postcss.config.cjs'
     },
     build: {
         rollupOptions: {
