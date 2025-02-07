@@ -44,15 +44,14 @@ export class AlertManager {
       throw error;
     }
   }
-
   private async processAlert(alert: Alert): Promise<void> {
     logger.info('Processing alert', { alertId: alert.id, type: alert.type });
 
     const handlerPromises = this.handlers.map(handler =>
-      handler.handleAlert(alert).catch(error: unknown => {
+      handler.handleAlert(alert).catch((error: Error) => {
         logger.error('Handler failed to process alert', {
           alertId: alert.id,
-          error
+          error: error.message
         });
       })
     );

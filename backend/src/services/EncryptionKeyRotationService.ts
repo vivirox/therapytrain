@@ -1,5 +1,5 @@
 import { SecurityAuditService } from './SecurityAuditService';
-import { HIPAACompliantAuditService } from './HIPAACompliantAuditService';
+import { HIPAACompliantAuditService, HIPAAEventType, HIPAAActionType } from './HIPAACompliantAuditService';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import crypto from 'crypto';
@@ -141,14 +141,15 @@ export class EncryptionKeyRotationService {
             this.scheduleKeyRotations();
 
             await this.hipaaAuditService.logEvent({
-                eventType: 'SYSTEM_OPERATION',
+                eventType: HIPAAEventType.SYSTEM_OPERATION,
+                timestamp: new Date(),
                 actor: {
                     id: 'SYSTEM',
                     role: 'SYSTEM',
                     ipAddress: '127.0.0.1'
                 },
                 action: {
-                    type: 'CREATE',
+                    type: HIPAAActionType.CREATE,
                     status: 'SUCCESS',
                     details: {
                         operation: 'KEY_ROTATION_SERVICE_INIT'
@@ -381,7 +382,7 @@ export class EncryptionKeyRotationService {
             const timeUntilRotation = new Date(key.expiresAt).getTime() - Date.now();
             if (timeUntilRotation <= 0) {
                 // Rotate immediately if expired
-                this.rotateKey(purpose).catch(error: unknown => {
+                this.rotateKey(purpose).catch((error) => {
                     this.securityAuditService.recordAlert(
                         'KEY_ROTATION_SCHEDULE_ERROR',
                         'HIGH',
@@ -394,7 +395,7 @@ export class EncryptionKeyRotationService {
             } else {
                 // Schedule future rotation
                 const timeout = setTimeout(() => {
-                    this.rotateKey(purpose).catch(error: unknown => {
+                    this.rotateKey(purpose).catch((error) => {
                         this.securityAuditService.recordAlert(
                             'KEY_ROTATION_SCHEDULE_ERROR',
                             'HIGH',
@@ -417,14 +418,15 @@ export class EncryptionKeyRotationService {
 
     private async logKeyRotationEvent(event: KeyRotationEvent): Promise<void> {
         await this.hipaaAuditService.logEvent({
-            eventType: 'SYSTEM_OPERATION',
+            eventType: HIPAAEventType.SYSTEM_OPERATION,
+            timestamp: new Date(),
             actor: {
                 id: 'SYSTEM',
                 role: 'SYSTEM',
                 ipAddress: '127.0.0.1'
             },
             action: {
-                type: event.eventType === 'CREATION' ? 'CREATE' : 'UPDATE',
+                type: event.eventType === 'CREATION' ? HIPAAActionType.CREATE : HIPAAActionType.UPDATE,
                 status: event.status,
                 details: event.details
             },

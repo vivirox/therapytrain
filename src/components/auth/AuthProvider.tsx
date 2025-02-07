@@ -21,8 +21,8 @@ interface FeatureFlag {
 
 interface AuthContextType {
   user: User | null;
-  organizations: Organization[];
-  permissions: Permission[];
+  organizations: Array<Organization>;
+  permissions: Array<Permission>;
   featureFlags: Record<string, boolean>;
   loading: boolean;
   error: Error | null;
@@ -45,8 +45,8 @@ interface AuthProviderProps {
 // Main Auth Provider component
 export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [organizations, setOrganizations] = useState<Organization[]>([]);
-  const [permissions, setPermissions] = useState<Permission[]>([]);
+  const [organizations, setOrganizations] = useState<Array<Organization>>([]);
+  const [permissions, setPermissions] = useState<Array<Permission>>([]);
   const [featureFlags, setFeatureFlags] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);

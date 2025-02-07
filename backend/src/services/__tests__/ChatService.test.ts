@@ -1,18 +1,44 @@
 import { Server } from 'http';
 import WebSocket from 'ws';
-import { ChatService } from '../ChatService';
+import { ChatService, ChatClient } from '../ChatService';
 import { RateLimiterService } from '../RateLimiterService';
 import { SecurityAuditService } from '../SecurityAuditService';
 import { MessageService } from '../MessageService';
 import { AIService } from '../AIService';
+import { Request } from 'express';
 
 jest.mock('../MessageService');
 jest.mock('../AIService');
 jest.mock('../RateLimiterService');
 jest.mock('../SecurityAuditService');
 
+
+class TestChatService extends ChatService {
+  // Expose protected methods for testing
+  public async testSendSessionRecoveryData(client: ChatClient) {
+    return this.sendSessionRecoveryData(client);
+  }
+
+  public async testHandleMessage(userId: string, message: string, sessionId: string) {
+    return this.handleMessage(userId, message, sessionId);
+  }
+
+  public async testCreateOrRecoverSession(userId: string, request: Request) {
+    return this.createOrRecoverSession(userId, request);
+  }
+
+  public testHandleDisconnection(client: ChatClient) {
+    return this.handleDisconnection(client);
+  }
+
+  // Expose other protected methods for testing
+  public get testWss() { return this.wss; }
+  public get testClients() { return this.clients; }
+  public get testDisconnectedSessions() { return this.disconnectedSessions; }
+}
+
 describe('ChatService', () => {
-  let chatService: ChatService;
+  let chatService: TestChatService;
   let mockServer: Server;
   let mockRateLimiter: jest.Mocked<RateLimiterService>;
   let mockSecurityAudit: jest.Mocked<SecurityAuditService>;
@@ -48,7 +74,7 @@ describe('ChatService', () => {
       },
     };
 
-    chatService = new ChatService(
+    chatService = new TestChatService(
       mockServer,
       mockRateLimiter,
       mockSecurityAudit
@@ -62,7 +88,7 @@ describe('ChatService', () => {
   describe('connection handling', () => {
     it('should reject connection without authentication', () => {
       mockReq.headers.authorization = undefined;
-      chatService['wss'].emit('connection', mockWs, mockReq);
+      chatService.testWss.emit('connection', mockWs, mockReq);
 
       expect(mockWs.close).toHaveBeenCalledWith(
         1008,
@@ -72,7 +98,7 @@ describe('ChatService', () => {
 
     it('should reject connection when rate limited', () => {
       mockRateLimiter.isRateLimited.mockReturnValueOnce(true);
-      chatService['wss'].emit('connection', mockWs, mockReq);
+      chatService.testWss.emit('connection', mockWs, mockReq);
 
       expect(mockWs.close).toHaveBeenCalledWith(
         1008,
@@ -84,7 +110,7 @@ describe('ChatService', () => {
       const mockSessionId = 'test-session';
       (MessageService.prototype.createSession as jest.Mock).mockResolvedValueOnce(mockSessionId);
 
-      await chatService['wss'].emit('connection', mockWs, mockReq);
+      await chatService.testWss.emit('connection', mockWs, mockReq);
 
       expect(mockWs.on).toHaveBeenCalledWith('message', expect.any(Function));
       expect(mockWs.on).toHaveBeenCalledWith('close', expect.any(Function));
@@ -105,11 +131,12 @@ describe('ChatService', () => {
     };
 
     beforeEach(() => {
-      chatService['clients'].set(userId, {
+      chatService.testClients.set(userId, {
         userId,
         ws: mockWs,
         isAlive: true,
         sessionId,
+        lastActivity: Date.now()
       });
     });
 
@@ -134,7 +161,7 @@ describe('ChatService', () => {
         })
       );
 
-      await chatService['handleMessage'](userId, messageStr, sessionId);
+      await chatService.testHandleMessage(userId, messageStr, sessionId);
 
       expect(MessageService.prototype.saveMessage).toHaveBeenCalledTimes(2);
       expect(mockWs.send).toHaveBeenCalledTimes(2);
@@ -149,7 +176,7 @@ describe('ChatService', () => {
       const messageStr = JSON.stringify(validMessage);
 
       await expect(
-        chatService['handleMessage'](userId, messageStr, sessionId)
+        chatService.testHandleMessage(userId, messageStr, sessionId)
       ).rejects.toThrow('Message rate limit exceeded');
     });
 
@@ -168,7 +195,7 @@ describe('ChatService', () => {
         })
       );
 
-      await chatService['handleMessage'](userId, messageStr, sessionId);
+      await chatService.testHandleMessage(userId, messageStr, sessionId);
 
       expect(mockSecurityAudit.recordEvent).toHaveBeenCalledWith(
         'chat_error',
@@ -203,7 +230,7 @@ describe('ChatService', () => {
         })
       );
 
-      await chatService['handleMessage'](userId, messageStr, sessionId);
+      await chatService.testHandleMessage(userId, messageStr, sessionId);
 
       expect(mockSecurityAudit.recordEvent).toHaveBeenCalledWith(
         'crisis_alert',
@@ -217,7 +244,7 @@ describe('ChatService', () => {
       };
 
       const calls = mockWs.send.mock.calls;
-      const sentMessages = calls.map(call: unknown => JSON.parse(call[0]));
+      const sentMessages = calls.map((call) => JSON.parse(call[0] as string));
       expect(sentMessages).toBeDefined();
     });
   });
@@ -227,20 +254,24 @@ describe('ChatService', () => {
       const userId = 'test-user';
       const sessionId = 'test-session';
       const mockCloseHandler = mockWs.on.mock.calls.find(
-        call: unknown => call[0] === 'close'
-      )[1];
+        (call): call is [string, (...args: Array<any>) => void] =>
+          typeof call[0] === 'string' && call[0] === 'close'
+      )?.[1];
 
-      chatService['clients'].set(userId, {
+      chatService.testClients.set(userId, {
         userId,
         ws: mockWs,
         isAlive: true,
         sessionId,
+        lastActivity: Date.now()
       });
 
-      await mockCloseHandler();
+      if (mockCloseHandler) {
+        await mockCloseHandler();
+      }
 
       expect(MessageService.prototype.endSession).toHaveBeenCalledWith(sessionId);
-      expect(chatService['clients'].has(userId)).toBeFalsy();
+      expect(chatService.testClients.has(userId)).toBeFalsy();
     });
   });
 
@@ -281,7 +312,7 @@ describe('ChatService', () => {
     });
 
     it('should recover recent session', async () => {
-      await chatService['createOrRecoverSession'](userId, mockReq);
+      await chatService.testCreateOrRecoverSession(userId, mockReq);
 
       expect(MessageService.prototype.getUserSessions).toHaveBeenCalledWith(userId);
       expect(MessageService.prototype.updateSessionActivity).toHaveBeenCalledWith(sessionId);
@@ -296,7 +327,7 @@ describe('ChatService', () => {
         user_id: userId
       });
 
-      const result = await chatService['createOrRecoverSession'](userId, mockReq);
+      const result = await chatService.testCreateOrRecoverSession(userId, mockReq);
 
       expect(result).toBe(newSessionId);
       expect(MessageService.prototype.createSession).toHaveBeenCalledWith(
@@ -315,7 +346,7 @@ describe('ChatService', () => {
         lastActivity: Date.now()
       };
 
-      await chatService['sendSessionRecoveryData'](client);
+      await chatService.testSendSessionRecoveryData(client);
 
       // Should send recovery notification
       expect(mockWs.send).toHaveBeenCalledWith(
@@ -327,7 +358,7 @@ describe('ChatService', () => {
 
       // Verify message content
       const calls = (mockWs.send as jest.Mock).mock.calls;
-      const sentMessages = calls.map(call: unknown => JSON.parse(call[0]));
+      const sentMessages = calls.map((call) => JSON.parse(call[0] as string));
 
       expect(sentMessages[0].type).toBe('status');
       expect(sentMessages[0].content).toBe('Reconnected to previous session');
@@ -348,10 +379,10 @@ describe('ChatService', () => {
         lastActivity: Date.now()
       };
 
-      chatService['handleDisconnection'](client);
+      chatService.testHandleDisconnection(client);
 
-      expect(chatService['disconnectedSessions'].get(userId)).toBeDefined();
-      expect(chatService['clients'].has(userId)).toBeFalsy();
+      expect(chatService.testDisconnectedSessions.get(userId)).toBeDefined();
+      expect(chatService.testClients.has(userId)).toBeFalsy();
       expect(mockSecurityAudit.recordEvent).toHaveBeenCalledWith(
         'client_disconnected',
         expect.any(Object)
@@ -366,7 +397,9 @@ describe('ChatService', () => {
       };
 
       const calls = mockWs.on.mock.calls;
-      const closeHandler = calls.find((call: unknown) => call[0] === 'close');
+      const closeHandler = calls.find(
+        (call: [string, Function]) => typeof call[0] === 'string' && call[0] === 'close'
+      );
       expect(closeHandler).toBeDefined();
     });
   });

@@ -5,6 +5,7 @@ import { SecurityAuditService } from './SecurityAuditService';
 import { AIService } from './AIService';
 import { MessageService } from './MessageService';
 import { Request } from 'express';
+import { ChatSession } from '../config/supabase';
 
 interface ChatMessage {
   type: 'message' | 'status' | 'error' | 'ai_response';
@@ -15,7 +16,7 @@ interface ChatMessage {
   sessionId?: string;
 }
 
-interface ChatClient {
+export interface ChatClient {
   userId: string;
   ws: WebSocket;
   isAlive: boolean;
@@ -24,9 +25,9 @@ interface ChatClient {
 }
 
 export class ChatService {
-  private wss: WebSocket.Server;
-  private clients: Map<string, ChatClient> = new Map();
-  private disconnectedSessions: Map<string, unknown> = new Map();
+  protected wss: WebSocket.Server;
+  protected clients: Map<string, ChatClient> = new Map();
+  protected disconnectedSessions: Map<string, unknown> = new Map();
   private rateLimiter: RateLimiterService;
   private securityAudit: SecurityAuditService;
   private aiService: AIService;
@@ -136,10 +137,10 @@ export class ChatService {
           ws.ping();
         }
       });
-    }, 30000);
+    }, 30_000);
   }
 
-  private async handleMessage(userId: string, data: string, sessionId: string) {
+  protected async handleMessage(userId: string, data: string, sessionId: string) {
     try {
       const message = JSON.parse(data) as ChatMessage;
 
@@ -237,10 +238,8 @@ export class ChatService {
     }
   }
 
-  private async createOrRecoverSession(userId: string, request: Request): Promise<string> {
-    const ip = request.socket.remoteAddress || '';
-    const userAgent = request.headers['user-agent'] || '';
-
+  protected async createOrRecoverSession(userId: string, request: Request): Promise<string> {
+    
     try {
       // Check for existing active sessions
       const sessions = await this.messageService.getUserSessions(userId);
@@ -256,16 +255,14 @@ export class ChatService {
         return recentSession.id;
       }
 
-      // Create new session if no recent one found
-      const newSession = await this.messageService.createSession(userId, ip, userAgent);
-      return newSession.id;
+      return await this.messageService.createSession(userId);
     } catch (error) {
       console.error('Error creating/recovering session:', error);
       throw error;
     }
   }
 
-  private async sendSessionRecoveryData(client: ChatClient) {
+  protected async sendSessionRecoveryData(client: ChatClient) {
     try {
       // Get recent messages
       const messages = await this.messageService.getRecentMessages(client.sessionId, 50);
@@ -317,7 +314,7 @@ export class ChatService {
     }
   }
 
-  private handleDisconnection(client: ChatClient) {
+  protected handleDisconnection(client: ChatClient) {
     // Store last known state
     this.disconnectedSessions.set(client.userId, {
       sessionId: client.sessionId,

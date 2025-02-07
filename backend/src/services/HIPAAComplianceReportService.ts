@@ -5,6 +5,8 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import crypto from 'crypto';
 
+type Severity = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+
 interface ComplianceReport {
     id: string;
     timestamp: Date;
@@ -22,33 +24,33 @@ interface ComplianceReport {
         totalAudits: number;
         missingAudits: number;
         incompleteAudits: number;
-        auditViolations: ComplianceViolation[];
+        auditViolations: Array<ComplianceViolation>;
     };
     dataRetention: {
         totalRecords: number;
         pendingArchival: number;
         pendingDeletion: number;
-        retentionViolations: ComplianceViolation[];
+        retentionViolations: Array<ComplianceViolation>;
     };
     accessControl: {
         totalAccesses: number;
         unauthorizedAccesses: number;
         emergencyAccesses: number;
-        accessViolations: ComplianceViolation[];
+        accessViolations: Array<ComplianceViolation>;
     };
     encryption: {
         totalEncryptedRecords: number;
         unencryptedRecords: number;
-        encryptionViolations: ComplianceViolation[];
+        encryptionViolations: Array<ComplianceViolation>;
     };
-    recommendations: string[];
+    recommendations: Array<string>;
 }
 
 interface ComplianceViolation {
     id: string;
     timestamp: Date;
     type: ViolationType;
-    severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+    severity: Severity;
     description: string;
     details: Record<string, any>;
     status: 'OPEN' | 'IN_PROGRESS' | 'RESOLVED';
@@ -77,7 +79,7 @@ interface AssessmentCriteria {
     auditTrails: {
         maxMissingAudits: number;
         maxIncompleteAudits: number;
-        requiredFields: string[];
+        requiredFields: Array<string>;
     };
     dataRetention: {
         maxPendingArchival: number;
@@ -87,12 +89,12 @@ interface AssessmentCriteria {
     accessControl: {
         maxUnauthorizedAccesses: number;
         maxEmergencyAccesses: number;
-        requiredApprovals: string[];
+        requiredApprovals: Array<string>;
     };
     encryption: {
         maxUnencryptedRecords: number;
         keyRotationPeriod: number;
-        requiredEncryptionTypes: string[];
+        requiredEncryptionTypes: Array<string>;
     };
 }
 
@@ -209,7 +211,7 @@ export class HIPAAComplianceReportService {
             const report: ComplianceReport = {
                 id: crypto.randomBytes(16).toString('hex'),
                 timestamp: new Date(),
-                period: { startDate, endDate },
+                period: { start: startDate, end: endDate },
                 summary: {
                     totalEvents: auditEvents.length,
                     totalViolations: [
@@ -248,28 +250,28 @@ export class HIPAAComplianceReportService {
         }
     }
 
-    private async analyzeAuditTrails(auditEvents: any[]): Promise<ComplianceReport['auditTrails']> {
+    private async analyzeAuditTrails(auditEvents: Array<any>): Promise<ComplianceReport['auditTrails']> {
         const missingAudits = this.detectMissingAudits(auditEvents);
         const incompleteAudits = this.detectIncompleteAudits(auditEvents);
 
-        const violations: ComplianceViolation[] = [
-            ...missingAudits.map(details: unknown => ({
+        const violations: Array<ComplianceViolation> = [
+            ...missingAudits.map((details) => ({
                 id: crypto.randomBytes(16).toString('hex'),
                 timestamp: new Date(),
                 type: ViolationType.MISSING_AUDIT,
-                severity: 'HIGH',
+                severity: 'HIGH' as Severity,
                 description: 'Missing required audit trail',
                 details,
-                status: 'OPEN'
+                status: 'OPEN' as const
             })),
-            ...incompleteAudits.map(details: unknown => ({
+            ...incompleteAudits.map((details) => ({
                 id: crypto.randomBytes(16).toString('hex'),
                 timestamp: new Date(),
                 type: ViolationType.INCOMPLETE_AUDIT,
-                severity: 'MEDIUM',
+                severity: 'MEDIUM' as Severity,
                 description: 'Incomplete audit trail',
                 details,
-                status: 'OPEN'
+                status: 'OPEN' as const
             }))
         ];
 
@@ -282,9 +284,9 @@ export class HIPAAComplianceReportService {
     }
 
     private analyzeDataRetention(
-        retentionStatus: Awaited<ReturnType<DataRetentionService['getRetentionStatus']>>[]
+        retentionStatus: Array<Awaited<ReturnType<DataRetentionService['getRetentionStatus']>>>
     ): ComplianceReport['dataRetention'] {
-        const violations: ComplianceViolation[] = [];
+        const violations: Array<ComplianceViolation> = [];
         let totalRecords = 0;
         let pendingArchival = 0;
         let pendingDeletion = 0;
@@ -300,14 +302,14 @@ export class HIPAAComplianceReportService {
                     id: crypto.randomBytes(16).toString('hex'),
                     timestamp: new Date(),
                     type: ViolationType.RETENTION_VIOLATION,
-                    severity: 'MEDIUM',
+                    severity: 'MEDIUM' as Severity,
                     description: 'Excessive records pending archival',
                     details: {
                         dataType,
                         pendingArchival: status.pendingArchival,
                         threshold: this.assessmentCriteria.dataRetention.maxPendingArchival
                     },
-                    status: 'OPEN'
+                    status: 'OPEN' as const
                 });
             }
 
@@ -316,14 +318,14 @@ export class HIPAAComplianceReportService {
                     id: crypto.randomBytes(16).toString('hex'),
                     timestamp: new Date(),
                     type: ViolationType.RETENTION_VIOLATION,
-                    severity: 'HIGH',
+                    severity: 'HIGH' as Severity,
                     description: 'Excessive records pending deletion',
                     details: {
                         dataType,
                         pendingDeletion: status.pendingDeletion,
                         threshold: this.assessmentCriteria.dataRetention.maxPendingDeletion
                     },
-                    status: 'OPEN'
+                    status: 'OPEN' as const
                 });
             }
         });
@@ -336,33 +338,33 @@ export class HIPAAComplianceReportService {
         };
     }
 
-    private analyzeAccessControl(auditEvents: any[]): ComplianceReport['accessControl'] {
+    private analyzeAccessControl(auditEvents: Array<any>): ComplianceReport['accessControl'] {
         const unauthorizedAccesses = this.detectUnauthorizedAccesses(auditEvents);
         const emergencyAccesses = this.detectEmergencyAccesses(auditEvents);
 
-        const violations: ComplianceViolation[] = [
-            ...unauthorizedAccesses.map(details: unknown => ({
+        const violations: Array<ComplianceViolation> = [
+            ...unauthorizedAccesses.map((details) => ({
                 id: crypto.randomBytes(16).toString('hex'),
                 timestamp: new Date(),
                 type: ViolationType.UNAUTHORIZED_ACCESS,
-                severity: 'HIGH',
+                severity: 'HIGH' as Severity,
                 description: 'Unauthorized access detected',
                 details,
-                status: 'OPEN'
+                status: 'OPEN' as const
             })),
-            ...emergencyAccesses.map(details: unknown => ({
+            ...emergencyAccesses.map((details) => ({
                 id: crypto.randomBytes(16).toString('hex'),
                 timestamp: new Date(),
                 type: ViolationType.EMERGENCY_ACCESS,
-                severity: 'MEDIUM',
+                severity: 'MEDIUM' as Severity,
                 description: 'Emergency access detected',
                 details,
-                status: 'OPEN'
+                status: 'OPEN' as const
             }))
         ];
 
         return {
-            totalAccesses: auditEvents.filter(e: unknown => e.action.type === 'READ').length,
+            totalAccesses: auditEvents.filter((e) => e?.action?.type === 'READ').length,
             unauthorizedAccesses: unauthorizedAccesses.length,
             emergencyAccesses: emergencyAccesses.length,
             accessViolations: violations
@@ -421,8 +423,8 @@ export class HIPAAComplianceReportService {
         dataRetention: ComplianceReport['dataRetention'];
         accessControl: ComplianceReport['accessControl'];
         encryption: ComplianceReport['encryption'];
-    }): string[] {
-        const recommendations: string[] = [];
+    }): Array<string> {
+        const recommendations: Array<string> = [];
 
         // Audit recommendations
         if (report.auditTrails.missingAudits > 0) {
@@ -497,36 +499,40 @@ export class HIPAAComplianceReportService {
         }
     }
 
-    private detectMissingAudits(auditEvents: any[]): any[] {
+    private detectMissingAudits(auditEvents: Array<any>): Array<any> {
         // In a real implementation, this would detect gaps in audit trails
         return [];
     }
 
-    private detectIncompleteAudits(auditEvents: any[]): any[] {
-        return auditEvents.filter(event: unknown =>
-            !this.assessmentCriteria.auditTrails.requiredFields.every(field => {
+    private detectIncompleteAudits(auditEvents: Array<any>): Array<any> {
+        return auditEvents.filter((event) => {
+            if (!event) return false;
+            return !this.assessmentCriteria.auditTrails.requiredFields.every(field => {
                 const parts = field.split('.');
-                let value = event;
+                let value: any = event;
                 for (const part of parts) {
                     value = value?.[part];
                     if (value === undefined) return false;
                 }
                 return true;
             });
+        });
     }
 
-    private detectUnauthorizedAccesses(auditEvents: any[]): any[] {
-        return auditEvents.filter(event: unknown =>
-            event.action.type === 'READ' &&
-            event.action.status === 'FAILURE' &&
-            event.action.details?.reason === 'UNAUTHORIZED'
-        );
+    private detectUnauthorizedAccesses(auditEvents: Array<any>): Array<any> {
+        return auditEvents.filter((event) => {
+            if (!event?.action) return false;
+            return event.action.type === 'READ' &&
+                event.action.status === 'FAILURE' &&
+                event.action.details?.reason === 'UNAUTHORIZED';
+        });
     }
 
-    private detectEmergencyAccesses(auditEvents: any[]): any[] {
-        return auditEvents.filter(event: unknown =>
-            event.action.type === 'EMERGENCY_ACCESS'
-        );
+    private detectEmergencyAccesses(auditEvents: Array<any>): Array<any> {
+        return auditEvents.filter((event) => {
+            if (!event?.action) return false;
+            return event.action.type === 'EMERGENCY_ACCESS';
+        });
     }
 
     private calculateAuditScore(auditTrails: ComplianceReport['auditTrails']): number {

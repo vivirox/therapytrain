@@ -45,7 +45,7 @@ export class SecurityIncidentService {
         private readonly webAuthnService: WebAuthnService
     ) {
         // Clean up counters every hour
-        setInterval(() => this.cleanupCounters(), 3600000);
+        setInterval(() => this.cleanupCounters(), 3_600_000);
     }
 
     private cleanupCounters(): void {
@@ -228,7 +228,7 @@ export class SecurityIncidentService {
             'CRITICAL_INCIDENT_RESPONSE',
             'CRITICAL',
             {
-                incident: incident,
+                incident,
                 action: 'Blocking IP and notifying security team'
             }
         );

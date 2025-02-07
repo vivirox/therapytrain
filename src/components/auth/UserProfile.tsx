@@ -141,7 +141,11 @@ export const UserProfile: React.FC<UserProfileProps> = ({ userId }) => {
             id: org.organization_id,
             name: org.organizations[0].name,
             role: org.role,
-            members: org.organizations[0].members
+            organization_id: org.organization_id,
+            organizations: [{
+              id: org.organizations[0].id,
+              name: org.organizations[0].name
+            }]
           }));
           setOrganizations(formattedOrgs);
         }

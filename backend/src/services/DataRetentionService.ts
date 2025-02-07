@@ -13,7 +13,7 @@ interface RetentionRule {
     requiresAudit: boolean;
 }
 
-enum DataType {
+export enum DataType {
     PATIENT_RECORD = 'PATIENT_RECORD',
     THERAPY_NOTE = 'THERAPY_NOTE',
     PRESCRIPTION = 'PRESCRIPTION',

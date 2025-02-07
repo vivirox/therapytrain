@@ -207,4 +207,16 @@ export class MessageService {
 
     return count || 0;
   }
+
+  async updateSessionActivity(sessionId: string): Promise<void> {
+    // Implementation
+  }
+
+  async getRecentMessages(sessionId: string, limit: number): Promise<any[]> {
+    // Implementation
+  }
+
+  async getSessionSummary(sessionId: string): Promise<any> {
+    // Implementation
+  }
 }

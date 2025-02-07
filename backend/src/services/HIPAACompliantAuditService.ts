@@ -40,7 +40,7 @@ interface HIPAAAuditEvent {
     };
 }
 
-enum HIPAAEventType {
+export enum HIPAAEventType {
     PHI_ACCESS = 'PHI_ACCESS',
     PHI_MODIFICATION = 'PHI_MODIFICATION',
     USER_AUTHENTICATION = 'USER_AUTHENTICATION',
@@ -49,7 +49,7 @@ enum HIPAAEventType {
     ADMINISTRATIVE = 'ADMINISTRATIVE'
 }
 
-enum HIPAAActionType {
+export enum HIPAAActionType {
     CREATE = 'CREATE',
     READ = 'READ',
     UPDATE = 'UPDATE',
@@ -77,7 +77,7 @@ export class HIPAACompliantAuditService {
     private currentLogFile: string;
     private lastEventHash: string;
 
-    private readonly retentionPolicies: RetentionPolicy[] = [
+    private readonly retentionPolicies: Array<RetentionPolicy> = [
         {
             eventType: HIPAAEventType.PHI_ACCESS,
             retentionPeriod: 365 * 6, // 6 years
@@ -204,9 +204,9 @@ export class HIPAACompliantAuditService {
             patientId?: string;
             resourceId?: string;
         }
-    ): Promise<HIPAAAuditEvent[]> {
+    ): Promise<Array<HIPAAAuditEvent>> {
         try {
-            const events: HIPAAAuditEvent[] = [];
+            const events: Array<HIPAAAuditEvent> = [];
             const logFiles = await this.getLogFilesBetweenDates(startDate, endDate);
 
             for (const logFile of logFiles) {
@@ -333,7 +333,7 @@ export class HIPAACompliantAuditService {
         const logPath = path.join(this.auditLogPath, this.currentLogFile);
         await fs.appendFile(
             logPath,
-            JSON.stringify(encryptedEvent) + '\n',
+            `${JSON.stringify(encryptedEvent)}\n`,
             'utf-8'
         );
     }
@@ -341,7 +341,7 @@ export class HIPAACompliantAuditService {
     private async getLogFilesBetweenDates(
         startDate: Date,
         endDate: Date
-    ): Promise<string[]> {
+    ): Promise<Array<string>> {
         const files = await fs.readdir(this.auditLogPath);
         return files.filter(file => {
             const match = file.match(/hipaa-audit-(\d{4}-\d{2}-\d{2})/);
@@ -353,7 +353,7 @@ export class HIPAACompliantAuditService {
     }
 
     private filterEvents(
-        events: HIPAAAuditEvent[],
+        events: Array<HIPAAAuditEvent>,
         filters?: {
             eventType?: HIPAAEventType;
             actionType?: HIPAAActionType;
@@ -361,7 +361,7 @@ export class HIPAACompliantAuditService {
             patientId?: string;
             resourceId?: string;
         }
-    ): HIPAAAuditEvent[] {
+    ): Array<HIPAAAuditEvent> {
         if (!filters) return events;
 
         return events.filter(event => {
@@ -419,7 +419,7 @@ export class HIPAACompliantAuditService {
         return crypto.createHash('sha256').update(dataToHash).digest('hex');
     }
 
-    private async verifyEventChain(events: HIPAAAuditEvent[]): Promise<void> {
+    private async verifyEventChain(events: Array<HIPAAAuditEvent>): Promise<void> {
         for (let i = 1; i < events.length; i++) {
             const currentEvent = events[i];
             const previousEvent = events[i - 1];
