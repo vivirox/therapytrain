@@ -1,14 +1,14 @@
 import React, { useEffect } from 'react'
 import ReactDOM from 'react-dom/client'
-import App from '@/app'
+import App from './App'
 import './styles/globals.css'
 import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/react'
 import { inject } from '@vercel/analytics';
 import { ErrorBoundary } from 'react-error-boundary';
 import { VercelFeedbackWrapper } from '@/components/ui/vercel-feedback';
-import { DevTools } from '@/components/dev/devtools';
-import { AuthProvider } from '@/components/auth/authprovider';
+import { DevTools } from '@/components/dev/DevTools';
+import { AuthProvider } from '@/components/auth/AuthProvider';
 import { ThemeProvider } from '@/components/ui/theme-provider';
 import { BrowserRouter } from 'react-router-dom';
 

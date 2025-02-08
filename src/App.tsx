@@ -3,7 +3,7 @@ import { type FC } from 'react';
 import { Suspense, lazy } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { Loading } from '@/components/ui/loading';
-import { Layout } from '@/components/layout/layout';
+import { Layout } from '@/components/layout/Layout';
 
 // Lazy load components
 const Index = lazy(() => import("./pages/Index"));
