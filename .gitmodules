@@ -1,3 +1,6 @@
-[submodule "circom"]
-	path = circom
-	url = ./circom
+[submodule "liftoff"]
+	path = liftoff
+	url = https://github.com/Tameyer41/liftoff.git
+[submodule "pocket"]
+	path = pocket
+	url = https://github.com/pocketbase/pocketbase.git
