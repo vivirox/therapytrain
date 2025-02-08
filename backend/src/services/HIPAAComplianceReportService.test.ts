@@ -1,10 +1,16 @@
 import { HIPAAComplianceReportService } from "./HIPAAComplianceReportService";
 import { SecurityAuditService } from "./SecurityAuditService";
-import { HIPAACompliantAuditService, HIPAAEventType, HIPAAActionType } from "./HIPAACompliantAuditService";
+import { HIPAACompliantAuditService } from "./HIPAACompliantAuditService";
 import { DataRetentionService, DataType } from "./DataRetentionService";
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import os from 'os';
+import {
+    HIPAAEventType,
+    HIPAAActionType,
+    HIPAAAuditEvent,
+    HIPAAComplianceReport
+} from '@/types/hipaa';
 jest.mock('./SecurityAuditService');
 jest.mock('./HIPAACompliantAuditService');
 jest.mock('./DataRetentionService');
@@ -212,31 +218,84 @@ describe('HIPAAComplianceReportService', () => {
             const endTime = new Date('2024-01-31');
 
             // Mock audit events
-            const events = [
+            const events: HIPAAAuditEvent[] = [
                 {
+                    id: 'event1',
                     eventType: HIPAAEventType.PHI_ACCESS,
                     timestamp: new Date('2024-01-15'),
-                    actor: { id: 'user1', role: 'THERAPIST', ipAddress: '192.168.1.1' },
-                    action: { type: HIPAAActionType.READ },
-                    resource: { type: 'PHI', id: 'record1', description: 'Patient Record' },
-                    patient: { id: 'patient1', mrn: 'MRN123' },
-                    location: { facility: 'Main Clinic' }
+                    actor: {
+                        id: 'user1',
+                        role: 'THERAPIST',
+                        ipAddress: '192.168.1.1',
+                        userAgent: 'Mozilla/5.0'
+                    },
+                    action: {
+                        type: HIPAAActionType.READ,
+                        status: 'SUCCESS',
+                        details: {}
+                    },
+                    resource: {
+                        type: 'PHI',
+                        id: 'record1',
+                        description: 'Patient Record'
+                    },
+                    metadata: {
+                        encryptedAt: new Date(),
+                        hashValue: 'hash1',
+                        previousEventHash: ''
+                    }
                 },
                 {
+                    id: 'event2',
                     eventType: HIPAAEventType.PHI_MODIFICATION,
                     timestamp: new Date('2024-01-16'),
-                    actor: { id: 'user1', role: 'THERAPIST', ipAddress: '192.168.1.1' },
-                    action: { type: HIPAAActionType.UPDATE },
-                    resource: { type: 'PHI', id: 'record1', description: 'Patient Record' },
-                    patient: { id: 'patient1', mrn: 'MRN123' },
-                    location: { facility: 'Main Clinic' }
+                    actor: {
+                        id: 'user1',
+                        role: 'THERAPIST',
+                        ipAddress: '192.168.1.1',
+                        userAgent: 'Mozilla/5.0'
+                    },
+                    action: {
+                        type: HIPAAActionType.UPDATE,
+                        status: 'SUCCESS',
+                        details: {}
+                    },
+                    resource: {
+                        type: 'PHI',
+                        id: 'record1',
+                        description: 'Patient Record'
+                    },
+                    metadata: {
+                        encryptedAt: new Date(),
+                        hashValue: 'hash2',
+                        previousEventHash: 'hash1'
+                    }
                 },
                 {
-                    eventType: HIPAAEventType.USER_AUTHENTICATION,
+                    id: 'event3',
+                    eventType: HIPAAEventType.AUTHENTICATION,
                     timestamp: new Date('2024-01-17'),
-                    actor: { id: 'user2', role: 'ADMIN', ipAddress: '192.168.1.2' },
-                    action: { type: HIPAAActionType.LOGIN },
-                    resource: { type: 'SYSTEM', id: 'auth', description: 'Authentication System' }
+                    actor: {
+                        id: 'user2',
+                        role: 'ADMIN',
+                        ipAddress: '192.168.1.2',
+                        userAgent: 'Mozilla/5.0'
+                    },
+                    action: {
+                        type: HIPAAActionType.LOGIN,
+                        status: 'SUCCESS',
+                        details: {}
+                    },
+                    resource: {
+                        type: 'SYSTEM',
+                        id: 'auth',
+                        description: 'Authentication System'
+                    },
+                    metadata: {
+                        encryptedAt: new Date(),
+                        hashValue: 'hash3',
+                        previousEventHash: 'hash2'
+                    }
                 }
             ];
 

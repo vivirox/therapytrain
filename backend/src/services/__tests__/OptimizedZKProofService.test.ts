@@ -1,7 +1,7 @@
-import { OptimizedZKProofService } from '@/OptimizedZKProofService';
-import { VerificationKeyService } from '@/VerificationKeyService';
-import { SecurityAuditService } from '@/SecurityAuditService';
-import { ProofGenerationInput, SessionMetadata, TherapistCredential } from '@/../zk/types';
+import { OptimizedZKProofService } from '../OptimizedZKProofService';
+import { VerificationKeyService } from '../VerificationKeyService';
+import { SecurityAuditService } from '../SecurityAuditService';
+import { ProofGenerationInput, SessionMetadata, TherapistCredential } from '../../zk/types';
 import crypto from 'crypto';
 
 jest.mock('../VerificationKeyService');

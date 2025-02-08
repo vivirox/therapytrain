@@ -113,6 +113,131 @@ If needed, you can further use the `web_scraper.py` file to scrape the web page 
 
 # Scratchpad
 
+## Current Task: Systematic TypeScript Refactoring (March 2024)
+
+### Root Cause Analysis:
+1. Architecture Issues:
+   - Duplicate type definitions across frontend and backend
+   - Inconsistent module organization
+   - Circular dependencies in type definitions
+   - Mixed concerns in type definitions
+
+2. Type Definition Issues:
+   - Redundant type exports
+   - Inconsistent naming conventions
+   - Missing or incorrect type declarations
+   - Overly complex type hierarchies
+
+### Systematic Solution:
+
+1. Core Type System Architecture:
+   [ ] Create a shared types directory structure:
+   ```
+   src/
+   ├── types/
+   │   ├── core/           # Core type definitions
+   │   │   ├── auth.ts
+   │   │   ├── user.ts
+   │   │   └── common.ts
+   │   ├── api/            # API-related types
+   │   │   ├── requests.ts
+   │   │   └── responses.ts
+   │   ├── models/         # Data model types
+   │   │   ├── session.ts
+   │   │   ├── message.ts
+   │   │   └── profile.ts
+   │   ├── services/       # Service-related types
+   │   │   ├── analytics.ts
+   │   │   ├── audit.ts
+   │   │   └── encryption.ts
+   │   ├── ui/            # UI component types
+   │   │   ├── props.ts
+   │   │   └── events.ts
+   │   └── utils/         # Utility types
+   │       ├── helpers.ts
+   │       └── guards.ts
+   ```
+
+2. Type Definition Standards:
+   [ ] Implement consistent type definition patterns:
+   - Use interfaces for extendable types
+   - Use type aliases for unions and primitives
+   - Use enums for fixed sets of values
+   - Use generics for reusable type patterns
+
+3. Module Organization:
+   [ ] Establish clear module boundaries:
+   - Core types (shared between frontend/backend)
+   - Frontend-specific types
+   - Backend-specific types
+   - Service-specific types
+   - UI component types
+
+4. Type Export Strategy:
+   [ ] Create a systematic export strategy:
+   - Barrel exports for related types
+   - No circular dependencies
+   - Clear type hierarchies
+   - Consistent naming conventions
+
+5. Documentation and Validation:
+   [ ] Add comprehensive type documentation:
+   - TSDoc comments for all types
+   - Usage examples
+   - Type constraints and validations
+   - Migration guides for breaking changes
+
+### Implementation Plan:
+
+1. Setup Phase:
+   [ ] Create new type directory structure
+   [ ] Setup tsconfig paths
+   [ ] Create type definition templates
+   [ ] Setup type checking tools
+
+2. Migration Phase:
+   [ ] Move core types to shared location
+   [ ] Update import paths
+   [ ] Fix circular dependencies
+   [ ] Remove duplicate definitions
+
+3. Cleanup Phase:
+   [ ] Remove unused types
+   [ ] Consolidate similar types
+   [ ] Fix naming inconsistencies
+   [ ] Add missing type declarations
+
+4. Validation Phase:
+   [ ] Run type checks
+   [ ] Fix remaining errors
+   [ ] Add test cases
+   [ ] Document type system
+
+### Progress:
+[X] Initial analysis
+[X] Created systematic plan
+[ ] Setup phase
+[ ] Migration phase
+[ ] Cleanup phase
+[ ] Validation phase
+
+### Next Steps:
+1. Create the new type directory structure
+2. Setup proper tsconfig paths
+3. Begin migrating core types
+
+### Notes:
+- Need to maintain backward compatibility during migration
+- Should implement gradual migration to minimize disruption
+- Consider adding type validation tests
+- Plan for future type system maintenance
+
+### Lessons Learned:
+- Importance of systematic type organization
+- Need for clear type hierarchies
+- Value of consistent naming conventions
+- Benefits of shared type definitions
+
 ## Current Task: CI/CD Pipeline Compliance
 
 ### Required Checks from CI/CD Configuration:
@@ -153,177 +278,117 @@ Next Step: Run type checking
 ## Current Task: Fix TypeScript Errors (March 2024)
 
 ### Error Analysis:
-1. Import Path Issues:
-   - [ ] Fix relative imports to use @/ prefix
-   - [ ] Fix missing module declarations
-   - [ ] Fix case-sensitive import conflicts
+1. Module Resolution Issues (Most Critical):
+   - Missing module declarations for core modules:
+     - @/database.types
+     - @/common
+     - @/user
+     - @/auth
+     - @/chat
+     - @/metrics
+     - @/session
+     - @/hipaa
+     - @/security
 
-2. Interface Extension Issues:
-   - [ ] Fix OTPProps extending BaseProps (onChange type mismatch)
-   - [ ] Fix TooltipProps extending PositionProps (content type mismatch)
-   - [ ] Fix CalendarProps extending BaseProps (onSelect type mismatch)
-   - [ ] Fix SliderProps extending BaseProps (defaultValue type mismatch)
+2. Type Definition Issues:
+   - Duplicate type declarations:
+     - Database (3 occurrences)
+     - ClientProfile (2 occurrences)
+   - Incorrect type imports:
+     - Database import from @supabase/supabase-js
+     - SupabaseClientOptions type
+     - RealtimeClientOptions type
 
-3. Missing Type Declarations:
-   - [ ] Create types/ClientProfile.ts
-   - [ ] Create types/supabase.ts
-   - [ ] Create utils/eventUtils.ts
-   - [ ] Create lib/supabaseClient.ts
+3. Unused Import Issues:
+   - Unused imports in:
+     - src/types/common.ts
+     - src/types/security.ts
+     - src/types/services.ts
+     - src/utils/auth.ts
+     - src/components/ui/*
 
-4. Component Type Issues:
-   - [ ] Fix Badge variant type issues
-   - [ ] Fix Dialog component props
-   - [ ] Fix Toast state and action types
-   - [ ] Fix Auth component event handling
-
-5. Service Type Issues:
-   - [ ] Fix API service interceptor types
-   - [ ] Fix Crisis Prediction service method types
-   - [ ] Fix Intervention Metrics service method types
-   - [ ] Fix Learning Path service method types
+4. Event Handler Type Issues:
+   - Unknown type errors in event handlers:
+     - src/pages/Auth.tsx
+     - src/pages/Chat.tsx
+     - src/utils/eventUtils.ts
 
 ### Action Plan:
-1. Fix Import Path Issues
-   - [ ] Update tsconfig.json paths
-   - [ ] Create missing type declaration files
-   - [ ] Fix case sensitivity in imports
+1. Module Resolution:
+   [ ] Create missing module declaration files
+   [ ] Update tsconfig.json paths
+   [ ] Fix import paths
+   [ ] Add proper type exports
 
-2. Fix Interface Extensions
-   - [ ] Update base interfaces
-   - [ ] Fix property type mismatches
-   - [ ] Add proper type guards
+2. Type Definitions:
+   [ ] Consolidate duplicate types
+   [ ] Fix incorrect type imports
+   [ ] Update type declarations
+   [ ] Fix type conflicts
 
-3. Create Missing Type Files
-   - [ ] Add ClientProfile types
-   - [ ] Add Supabase types
-   - [ ] Add Event utility types
-   - [ ] Add Supabase client types
+3. Import Cleanup:
+   [ ] Remove unused imports
+   [ ] Fix circular dependencies
+   [ ] Update import statements
+   [ ] Add missing type imports
 
-4. Fix Component Types
-   - [ ] Update component prop types
-   - [ ] Fix event handler types
-   - [ ] Update state management types
-
-5. Fix Service Types
-   - [ ] Add proper method signatures
-   - [ ] Fix return types
-   - [ ] Add type guards for API responses
+4. Event Handlers:
+   [ ] Add proper type declarations
+   [ ] Fix unknown type assertions
+   [ ] Update event handler signatures
+   [ ] Add type guards
 
 ### Progress:
 [X] Initial error analysis
-[X] Created detailed plan
-[ ] Fixed import path issues
-[ ] Fixed interface extensions
-[ ] Created missing type files
-[ ] Fixed component types
-[ ] Fixed service types
+[X] Created systematic plan
+[ ] Fixed module resolution issues
+[ ] Fixed type definition issues
+[ ] Fixed import issues
+[ ] Fixed event handler issues
 
 ### Next Steps:
-1. First, let's fix the import path issues as they are the most common:
-   - Update tsconfig.json to properly configure path aliases
-   - Fix all relative imports to use @/ prefix
-   - Create missing type declaration files
+1. First, let's check the tsconfig.json to ensure proper module resolution setup:
+   ```typescript
+   {
+     "compilerOptions": {
+       "paths": {
+         "@/*": ["./src/*"],
+         "@/types/*": ["./src/types/*"],
+         "@/components/*": ["./src/components/*"]
+       }
+     }
+   }
+   ```
 
-2. Then move on to interface extension issues:
-   - Fix OTPProps onChange type
-   - Fix TooltipProps content type
-   - Fix CalendarProps onSelect type
-   - Fix SliderProps defaultValue type
+2. Then create the missing module declaration files:
+   ```typescript
+   // src/types/database.types.ts
+   export interface Database {
+     // Add database schema types
+   }
 
-### Notes:
-- Many errors stem from incorrect import paths
-- Need to ensure consistent use of @/ prefix for imports
-- Several interface extensions have type mismatches
-- Missing type declarations for key modules
-- Some components need proper prop type definitions
-- Service layer needs proper type definitions for methods
+   // src/types/common.ts
+   export interface Metadata {
+     // Add metadata types
+   }
 
-### Lessons Learned:
-- Always use @/ prefix for imports to maintain consistency
-- Ensure proper type declarations before extending interfaces
-- Add proper type guards for API responses
-- Use proper event handler types for form elements
-
-## Current Task: Fix TypeScript Errors
-
-### Error Categories:
-1. UI Component Type Issues
-   - [ ] Fix Drawer component type errors (Title and Description properties)
-   - [ ] Fix Form component type errors (className and props typing)
-   - [ ] Fix HoverCard content type errors
-   - [ ] Fix InputOTP type errors
-   - [ ] Fix component re-export conflicts in index.ts
-
-2. Service Type Issues
-   - [ ] Fix API service type errors
-   - [ ] Fix Audit Logger service type errors
-   - [ ] Fix Crisis Prediction service type errors
-   - [ ] Fix Intervention Metrics service type errors
-   - [ ] Fix Learning Path service type errors
-
-3. Type Definition Issues
-   - [ ] Fix missing type declarations
-   - [ ] Fix type conflicts in index.ts
-   - [ ] Fix incorrect type assignments
-   - [ ] Fix missing module declarations
-
-4. Authentication and Context Issues
-   - [ ] Fix Auth context type errors
-   - [ ] Fix Supabase client import issues
-   - [ ] Fix session and user type errors
-
-### Action Plan:
-1. UI Component Fixes
-   - [ ] Update @vaul/react types for Drawer component
-   - [ ] Fix form component type definitions
-   - [ ] Resolve component re-export conflicts
-   - [ ] Update component prop types
-
-2. Service Layer Fixes
-   - [ ] Create proper type definitions for services
-   - [ ] Fix service method signatures
-   - [ ] Update service imports and exports
-   - [ ] Add missing type declarations
-
-3. Type System Cleanup
-   - [ ] Organize and deduplicate type exports
-   - [ ] Fix circular dependencies
-   - [ ] Create missing type declaration files
-   - [ ] Update type imports
-
-4. Auth and Context Fixes
-   - [ ] Update auth context types
-   - [ ] Fix Supabase client setup
-   - [ ] Update session management types
-
-### Current Focus:
-Starting with UI component fixes, specifically the Drawer component issues, as they appear to be blocking the most immediate functionality.
-
-### Progress:
-[X] Initial error analysis
-[X] Categorized issues
-[X] Created action plan
-[ ] UI Component Fixes
-[ ] Service Layer Fixes
-[ ] Type System Cleanup
-[ ] Auth and Context Fixes
-
-### Next Steps:
-1. Fix Drawer component type issues:
-   - Update @vaul/react types
-   - Add proper type declarations for Title and Description
-   - Fix component prop types
-
-2. Then move on to form component issues:
-   - Fix className type errors
-   - Update prop type definitions
-   - Resolve rest parameter typing
+   // And so on for other missing modules...
+   ```
 
 ### Notes:
-- Many errors stem from missing or incorrect type declarations
-- Some issues are related to third-party library types (@vaul/react)
+- Many errors stem from missing module declarations
 - Need to ensure consistent type exports across the application
 - Should consider creating a central types directory for better organization
+- Need to handle circular dependencies carefully
+- Consider using barrel exports for related types
+
+### Lessons Learned:
+- Always create proper module declarations
+- Use consistent type naming across the application
+- Keep type definitions organized in proper modules
+- Clean up unused imports regularly
+- Use proper type guards for unknown types
+- Handle circular dependencies carefully
 
 ## Current Task: Fix TypeScript Errors in Backend
 

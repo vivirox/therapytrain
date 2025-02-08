@@ -2,25 +2,30 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from '@/components/auth/authprovider';
 import { MdChat, MdPsychology, MdSchool, MdGroup, MdMenuBook, MdDashboard, MdSettings, MdPeople } from "react-icons/md";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ErrorBoundary, FallbackProps } from 'react-error-boundary';
-import { supabase } from "@/lib/supabase";
+import { supabase } from '@/lib/supabase';
 import { User, SupabaseClient, Session } from '@supabase/supabase-js';
-import { cn } from "@/lib/utils";
+import { cn } from '@/lib/utils';
 import MetricCard from '@/components/metriccard';
 import MonthlyChart from '@/components/monthlychart';
 import TherapyInsights from '@/components/customerrequests';
 import React from "react";
 // Error Fallback Component
-const ErrorFallback: React.FC = ({ error, resetErrorBoundary }: FallbackProps) => {
-    return (<div className="p-4 bg-red-50 text-red-800 rounded-md">
-      <h2 className="text-lg font-semibold mb-2">Something went wrong:</h2>
-      <pre className="text-sm">{error.message}</pre>
-      <Button onClick={resetErrorBoundary} className="mt-4 bg-red-600 text-white hover:bg-red-700">
-        Try again
-      </Button>
-    </div>);
+const ErrorFallback: React.FC<FallbackProps> = ({ error, resetErrorBoundary }) => {
+    return (
+        <div role="alert" className="p-4 bg-red-100 border border-red-400 rounded">
+            <h2 className="text-lg font-semibold text-red-800">Something went wrong:</h2>
+            <pre className="mt-2 text-sm text-red-600">{error.message}</pre>
+            <button
+                onClick={resetErrorBoundary}
+                className="mt-4 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+            >
+                Try again
+            </button>
+        </div>
+    );
 };
 interface Permission {
     id: string;

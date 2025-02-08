@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { CaseStudy } from "@/types/education";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
+import { CaseStudy } from '@/types/education';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
 import { MdSearch as Search, MdMenuBook as BookOpen, MdGroups as Users, MdPsychology as Brain, MdMessage as MessageSquare, MdLightbulb as Lightbulb, MdLabel as Tag } from 'react-icons/md';
 
 interface CaseStudyLibraryProps {

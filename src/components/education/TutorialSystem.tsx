@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Tutorial, TutorialStep, SkillProgression } from "@/types/education";
-import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import { Card } from "@/components/ui/card";
+import { Tutorial, TutorialStep, SkillProgression } from '@/types/education';
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
+import { Card } from '@/components/ui/card';
 import { MdMenuBook as BookOpen, MdOndemandVideo as Video, MdPsychology as Brain, MdCheckCircle as CheckCircle, MdArrowForward as ArrowRight, MdStar as Star, MdAccessTime as Clock } from 'react-icons/md';
 import { InteractiveElement } from '@/tutorial/interactiveelements';
 

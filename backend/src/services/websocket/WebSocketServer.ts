@@ -1,6 +1,6 @@
-import { WebSocket, WebSocketServer } from 'ws';
+import WebSocket from 'ws';
 import { Server } from 'http';
-import { SecurityAuditService } from '@/SecurityAuditService';
+import { SecurityAuditService } from '../SecurityAuditService';
 import { SessionManager } from './SessionManager';
 
 interface WebSocketClient extends WebSocket {
@@ -10,7 +10,7 @@ interface WebSocketClient extends WebSocket {
 }
 
 export class WebSocketService {
-    private wss: WebSocketServer;
+    private wss: WebSocket.Server;
     private readonly clients: Set<WebSocketClient> = new Set();
     private readonly pingInterval: NodeJS.Timeout;
 
@@ -19,7 +19,7 @@ export class WebSocketService {
         private readonly sessionManager: SessionManager,
         private readonly securityAuditService: SecurityAuditService
     ) {
-        this.wss = new WebSocketServer({ server });
+        this.wss = new WebSocket.Server({ server });
         this.setupWebSocketServer();
         this.pingInterval = setInterval(() => this.pingClients(), 30000);
     }

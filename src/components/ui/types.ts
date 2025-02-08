@@ -1,256 +1,205 @@
-import { HTMLAttributes, ReactNode, FormEventHandler } from 'react'
+import * as React from 'react'
+import * as AccordionPrimitive from '@radix-ui/react-accordion'
+import * as AlertDialogPrimitive from '@radix-ui/react-alert-dialog'
+import * as AvatarPrimitive from '@radix-ui/react-avatar'
+import * as CheckboxPrimitive from '@radix-ui/react-checkbox'
+import * as DialogPrimitive from '@radix-ui/react-dialog'
+import * as DropdownMenuPrimitive from '@radix-ui/react-dropdown-menu'
+import * as LabelPrimitive from '@radix-ui/react-label'
+import * as MenubarPrimitive from '@radix-ui/react-menubar'
+import * as NavigationMenuPrimitive from '@radix-ui/react-navigation-menu'
+import * as PopoverPrimitive from '@radix-ui/react-popover'
+import * as RadioGroupPrimitive from '@radix-ui/react-radio-group'
+import * as SelectPrimitive from '@radix-ui/react-select'
+import * as SwitchPrimitive from '@radix-ui/react-switch'
+import * as TabsPrimitive from '@radix-ui/react-tabs'
+import * as TooltipPrimitive from '@radix-ui/react-tooltip'
 
-export interface BaseProps extends HTMLAttributes<HTMLElement> {
+// Common props
+export interface BaseProps {
   className?: string
-  children?: ReactNode
+  children?: React.ReactNode
 }
 
-export interface PositionProps extends BaseProps {
-  position?: 'top' | 'bottom' | 'left' | 'right'
-  content: string | ReactNode
+// Accordion
+export interface AccordionProps extends AccordionPrimitive.AccordionSingleProps, BaseProps {}
+
+// Alert
+export interface AlertProps extends BaseProps {
+  variant?: 'default' | 'destructive'
 }
 
-export interface CheckedProps extends BaseProps {
-  checked?: boolean
-  defaultChecked?: boolean
-  onCheckedChange?: (checked: boolean) => void
+// Alert Dialog
+export interface AlertDialogProps extends AlertDialogPrimitive.AlertDialogProps {}
+export interface AlertDialogContentProps extends AlertDialogPrimitive.AlertDialogContentProps, BaseProps {}
+export interface AlertDialogTitleProps extends AlertDialogPrimitive.AlertDialogTitleProps, BaseProps {}
+export interface AlertDialogDescriptionProps extends AlertDialogPrimitive.AlertDialogDescriptionProps, BaseProps {}
+
+// Aspect Ratio
+export interface AspectRatioProps extends BaseProps {
+  ratio?: number
 }
 
-export interface ProgressProps extends BaseProps {
-  value?: number
-  max?: number
-  indeterminate?: boolean
+// Avatar
+export interface AvatarProps extends AvatarPrimitive.AvatarProps, BaseProps {}
+export interface AvatarImageProps extends AvatarPrimitive.AvatarImageProps, BaseProps {}
+export interface AvatarFallbackProps extends AvatarPrimitive.AvatarFallbackProps, BaseProps {}
+
+// Badge
+export interface BadgeProps extends React.HTMLAttributes<HTMLDivElement>, BaseProps {
+  variant?: 'default' | 'secondary' | 'destructive' | 'outline'
 }
 
-export interface OTPProps extends BaseProps {
-  value?: string
-  length?: number
-  onChange?: (value: string) => void
-}
-
-export interface DialogProps extends BaseProps {
-  open?: boolean
-  onOpenChange?: (open: boolean) => void
-  modal?: boolean
-}
-
-export interface DrawerProps extends BaseProps {
-  open?: boolean
-  onOpenChange?: (open: boolean) => void
-  side?: 'left' | 'right' | 'top' | 'bottom'
-}
-
-export interface MenuProps extends BaseProps {
-  open?: boolean
-  onOpenChange?: (open: boolean) => void
-  trigger?: ReactNode
-}
-
-export interface MenubarProps extends MenuProps {
-  orientation?: 'horizontal' | 'vertical'
-}
-
-export interface TabsProps extends BaseProps {
-  value?: string
-  defaultValue?: string
-  onValueChange?: (value: string) => void
-}
-
-export interface ToastProps extends BaseProps {
-  title?: string
-  description?: string
-  action?: ReactNode
-  duration?: number
-  onOpenChange?: (open: boolean) => void
-}
-
-export interface BadgeProps extends BaseProps {
-  variant?: 'default' | 'secondary' | 'destructive' | 'outline' | 'success'
-}
-
-export interface ButtonProps extends BaseProps {
+// Button
+export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement>, BaseProps {
   variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link'
   size?: 'default' | 'sm' | 'lg'
   asChild?: boolean
 }
 
-export interface InputProps extends BaseProps {
-  type?: string
-  value?: string
-  defaultValue?: string
-  onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void
-  placeholder?: string
+// Calendar
+export interface CalendarProps extends BaseProps {
+  mode?: 'single' | 'multiple' | 'range'
+  selected?: Date | Date[] | { from: Date; to: Date }
+  onSelect?: (date: Date | undefined) => void
   disabled?: boolean
-  required?: boolean
+  initialFocus?: boolean
 }
 
-export interface SelectProps extends BaseProps {
-  value?: string
-  defaultValue?: string
-  onValueChange?: (value: string) => void
-  placeholder?: string
-  disabled?: boolean
+// Card
+export interface CardProps extends React.HTMLAttributes<HTMLDivElement>, BaseProps {}
+
+// Carousel
+export interface CarouselProps extends BaseProps {
+  orientation?: 'horizontal' | 'vertical'
+  opts?: any
 }
 
-export interface TextareaProps extends BaseProps {
-  value?: string
-  defaultValue?: string
-  onChange?: (event: React.ChangeEvent<HTMLTextAreaElement>) => void
-  placeholder?: string
-  disabled?: boolean
-  required?: boolean
-  rows?: number
-}
+// Checkbox
+export interface CheckboxProps extends CheckboxPrimitive.CheckboxProps, BaseProps {}
 
-export interface AlertProps extends BaseProps {
-  variant?: 'default' | 'destructive'
-  title?: string
-  description?: string
-}
-
-export interface CardProps extends BaseProps {
-  variant?: 'default' | 'interactive'
-}
-
-export interface AvatarProps extends BaseProps {
-  src?: string
-  alt?: string
-  fallback?: ReactNode
-}
-
-export interface SkeletonProps extends BaseProps {
-  variant?: 'default' | 'circular' | 'rectangular'
-}
-
-export interface TooltipProps extends PositionProps {
-  content: ReactNode
-  delayDuration?: number
-  skipDelayDuration?: number
-}
-
-export interface PopoverProps extends PositionProps {
+// Collapsible
+export interface CollapsibleProps extends BaseProps {
   open?: boolean
   onOpenChange?: (open: boolean) => void
-  modal?: boolean
 }
 
+// Command
 export interface CommandProps extends BaseProps {
+  shouldFilter?: boolean
+  filter?: (value: string, search: string) => number
   value?: string
   onValueChange?: (value: string) => void
-  filter?: (value: string, search: string) => boolean
 }
 
-export interface ScrollAreaProps extends BaseProps {
-  orientation?: 'vertical' | 'horizontal' | 'both'
+// Dialog
+export interface DialogProps extends DialogPrimitive.DialogProps {}
+export interface DialogContentProps extends DialogPrimitive.DialogContentProps, BaseProps {}
+export interface DialogHeaderProps extends BaseProps {}
+export interface DialogFooterProps extends BaseProps {}
+export interface DialogTitleProps extends DialogPrimitive.DialogTitleProps, BaseProps {}
+export interface DialogDescriptionProps extends DialogPrimitive.DialogDescriptionProps, BaseProps {}
+
+// Drawer
+export interface DrawerProps extends BaseProps {
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
 }
 
-export interface AccordionProps extends BaseProps {
-  type?: 'single' | 'multiple'
-  value?: string | string[]
-  defaultValue?: string | string[]
-  onValueChange?: (value: string | string[]) => void
-  collapsible?: boolean
+// Dropdown Menu
+export interface DropdownMenuProps extends DropdownMenuPrimitive.DropdownMenuProps {}
+
+// Form
+export interface FormProps<T> extends BaseProps {
+  onSubmit?: (data: T) => void
 }
 
+// Hover Card
 export interface HoverCardProps extends BaseProps {
-  content: ReactNode
-  trigger: ReactNode
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
 }
 
-export interface LabelProps extends BaseProps {
-  htmlFor?: string
+// Input
+export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement>, BaseProps {}
+
+// Label
+export interface LabelProps extends LabelPrimitive.LabelProps, BaseProps {}
+
+// Menubar
+export interface MenubarProps extends MenubarPrimitive.MenubarProps, BaseProps {}
+
+// Navigation Menu
+export interface NavigationMenuProps extends NavigationMenuPrimitive.NavigationMenuProps, BaseProps {}
+
+// Popover
+export interface PopoverProps extends PopoverPrimitive.PopoverProps {}
+
+// Progress
+export interface ProgressProps extends React.ProgressHTMLAttributes<HTMLProgressElement>, BaseProps {
+  value?: number
 }
 
-export interface NavigationMenuProps extends BaseProps {
-  items: Array<{
-    label: string
-    href: string
-  }>
+// Radio Group
+export interface RadioGroupProps extends RadioGroupPrimitive.RadioGroupProps, BaseProps {}
+
+// Scroll Area
+export interface ScrollAreaProps extends BaseProps {
+  orientation?: 'horizontal' | 'vertical' | 'both'
 }
 
-export interface RadioGroupProps extends BaseProps {
-  value?: string
-  onValueChange?: (value: string) => void
-}
+// Select
+export interface SelectProps extends SelectPrimitive.SelectProps {}
 
-export interface SeparatorProps extends BaseProps {
+// Separator
+export interface SeparatorProps extends React.HTMLAttributes<HTMLHRElement>, BaseProps {
   orientation?: 'horizontal' | 'vertical'
+  decorative?: boolean
 }
 
+// Sheet
 export interface SheetProps extends BaseProps {
   open?: boolean
   onOpenChange?: (open: boolean) => void
 }
 
-export interface SliderProps extends BaseProps {
-  value?: number[]
+// Slider
+export interface SliderProps extends React.HTMLAttributes<HTMLDivElement>, BaseProps {
   defaultValue?: number[]
+  value?: number[]
+  onValueChange?: (value: number[]) => void
   min?: number
   max?: number
   step?: number
-  onValueChange?: (value: number[]) => void
+  orientation?: 'horizontal' | 'vertical'
 }
 
-export interface SwitchProps extends BaseProps {
-  checked?: boolean
-  onCheckedChange?: (checked: boolean) => void
+// Switch
+export interface SwitchProps extends SwitchPrimitive.SwitchProps, BaseProps {}
+
+// Table
+export interface TableProps extends React.TableHTMLAttributes<HTMLTableElement>, BaseProps {}
+
+// Tabs
+export interface TabsProps extends TabsPrimitive.TabsProps, BaseProps {}
+
+// Textarea
+export interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement>, BaseProps {}
+
+// Toast
+export interface ToastProps extends BaseProps {
+  variant?: 'default' | 'destructive'
+  title?: string
+  description?: string
+  action?: React.ReactNode
+  duration?: number
 }
 
-export interface TableProps extends BaseProps {
-  data: any[]
-  columns: Array<{
-    header: string
-    accessor: string
-  }>
-}
-
-export interface ToggleProps extends BaseProps {
+// Toggle
+export interface ToggleProps extends React.ButtonHTMLAttributes<HTMLButtonElement>, BaseProps {
   pressed?: boolean
   onPressedChange?: (pressed: boolean) => void
 }
 
-export interface AspectRatioProps extends BaseProps {
-  ratio?: number
-}
-
-export interface CalendarProps extends BaseProps {
-  mode?: 'single' | 'multiple' | 'range'
-  selected?: Date | Date[]
-  onSelect?: (date: Date | Date[] | undefined) => void
-  disabled?: (date: Date) => boolean
-  fromDate?: Date
-  toDate?: Date
-}
-
-export interface CarouselProps extends BaseProps {
-  orientation?: 'horizontal' | 'vertical'
-  opts?: Record<string, unknown>
-  plugins?: unknown[]
-  setApi?: (api: unknown) => void
-}
-
-export interface CheckboxProps extends BaseProps {
-  checked?: boolean
-  defaultChecked?: boolean
-  onCheckedChange?: (checked: boolean) => void
-  disabled?: boolean
-  required?: boolean
-}
-
-export interface CollapsibleProps extends BaseProps {
-  open?: boolean
-  onOpenChange?: (open: boolean) => void
-  disabled?: boolean
-}
-
-export interface DropdownMenuProps extends BaseProps {
-  trigger?: ReactNode
-  open?: boolean
-  onOpenChange?: (open: boolean) => void
-  modal?: boolean
-}
-
-export interface FormProps extends BaseProps {
-  onSubmit?: (event: React.FormEvent) => void
-  disabled?: boolean
-}
+// Tooltip
+export interface TooltipProps extends TooltipPrimitive.TooltipProps {}

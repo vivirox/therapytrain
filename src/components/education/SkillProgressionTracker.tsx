@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { SkillProgression } from "@/types/education";
-import { Card } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
+import { SkillProgression } from '@/types/education';
+import { Card } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
 import { MdEmojiEvents as Trophy, MdTrackChanges as Target, MdTrendingUp as TrendingUp, MdAccessTime as Clock, MdMilitaryTech as Award, MdMenuBook as BookOpen, MdGroups as Users, MdPsychology as Brain, MdStar as Star } from 'react-icons/md';
 
 interface SkillProgressionTrackerProps {

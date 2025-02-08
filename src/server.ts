@@ -75,7 +75,7 @@ const processWithOllama = async (message: Uint8Array, clientContext: ClientConte
         }
     }
     catch (error) {
-        if (error.name === 'AbortError') {
+        if (error instanceof Error && error.name === 'AbortError') {
             console.error('Request timed out:', error);
             throw new TimeoutError('The request took too long and was aborted.');
         }

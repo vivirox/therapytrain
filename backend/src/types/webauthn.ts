@@ -1,76 +1,77 @@
-import type {
-  GenerateRegistrationOptionsOpts,
-  VerifyRegistrationResponseOpts,
-  GenerateAuthenticationOptionsOpts,
-  VerifyAuthenticationResponseOpts,
-  VerifiedRegistrationResponse,
-  VerifiedAuthenticationResponse
+import {
+    GenerateRegistrationOptionsOpts,
+    VerifyRegistrationResponseOpts,
+    VerifyAuthenticationResponseOpts,
+    RegistrationResponseJSON,
+    AuthenticationResponseJSON
 } from '@simplewebauthn/server';
 
-export interface WebAuthnCredential {
-  id: string;
-  userId: string;
-  credentialId: Uint8Array;
-  publicKey: Uint8Array;
-  counter: number;
-  transports?: AuthenticatorTransport[];
-  createdAt: Date;
-  lastUsed?: Date;
+export type AttestationConveyancePreference = 'none' | 'direct' | 'enterprise' | 'indirect';
+
+export interface WebAuthnRegistrationOptions extends Omit<GenerateRegistrationOptionsOpts, 'attestationType'> {
+    attestationType?: AttestationConveyancePreference;
 }
 
-export interface WebAuthnUser {
-  id: string;
-  name: string;
-  displayName: string;
-  credentials: WebAuthnCredential[];
+export interface WebAuthnRegistrationResult {
+    verified: boolean;
+    registrationInfo?: {
+        credentialID: string;
+        credentialPublicKey: string;
+        counter: number;
+        credentialDeviceType: string;
+        credentialBackedUp: boolean;
+    };
 }
 
-export interface WebAuthnConfig {
-  rpName: string;
-  rpID: string;
-  origin: string;
-  timeout: number;
-  challengeSize: number;
-  attestationType: AttestationConveyancePreference;
-  authenticatorAttachment?: AuthenticatorAttachment;
-  userVerification: UserVerificationRequirement;
-  debug?: boolean;
-}
-
-export interface WebAuthnRegistrationOptions extends GenerateRegistrationOptionsOpts {
-  userId: string;
-  userName: string;
-  userDisplayName: string;
-  attestationType?: AttestationConveyancePreference;
-  authenticatorAttachment?: AuthenticatorAttachment;
-  requireResidentKey?: boolean;
-  userVerification?: UserVerificationRequirement;
-}
-
-export interface WebAuthnAuthenticationOptions extends GenerateAuthenticationOptionsOpts {
-  userVerification?: UserVerificationRequirement;
-  timeout?: number;
-}
-
-export interface WebAuthnRegistrationResult extends VerifiedRegistrationResponse {
-  credentialId: string;
-  userId: string;
-}
-
-export interface WebAuthnAuthenticationResult extends VerifiedAuthenticationResponse {
-  credentialId: string;
-  userId: string;
-  counter: number;
+export interface WebAuthnAuthenticationResult {
+    verified: boolean;
+    authenticationInfo?: {
+        credentialID: string;
+        newCounter: number;
+    };
 }
 
 export interface WebAuthnService {
-  generateRegistrationOptions(opts: WebAuthnRegistrationOptions): Promise<PublicKeyCredentialCreationOptionsJSON>;
-  verifyRegistrationResponse(body: RegistrationResponseJSON, opts: VerifyRegistrationResponseOpts): Promise<WebAuthnRegistrationResult>;
-  generateAuthenticationOptions(opts: WebAuthnAuthenticationOptions): Promise<PublicKeyCredentialRequestOptionsJSON>;
-  verifyAuthenticationResponse(body: AuthenticationResponseJSON, opts: VerifyAuthenticationResponseOpts): Promise<WebAuthnAuthenticationResult>;
+    generateRegistrationOptions(userId: string, username: string): Promise<WebAuthnRegistrationOptions>;
+    verifyRegistrationResponse(body: RegistrationResponseJSON, opts: VerifyRegistrationResponseOpts): Promise<WebAuthnRegistrationResult>;
+    generateAuthenticationOptions(userId: string): Promise<any>;
+    verifyAuthenticationResponse(body: AuthenticationResponseJSON, opts: VerifyAuthenticationResponseOpts): Promise<WebAuthnAuthenticationResult>;
+}
+
+export interface WebAuthnCredential {
+    id: string;
+    userId: string;
+    credentialId: string;
+    publicKey: string;
+    counter: number;
+    deviceType: string;
+    backedUp: boolean;
+    transports?: string[];
+    createdAt: Date;
+    lastUsed?: Date;
+}
+
+export interface WebAuthnUser {
+    id: string;
+    username: string;
+    credentials: WebAuthnCredential[];
+    registrationChallenge?: string;
+    authenticationChallenge?: string;
+}
+
+export interface WebAuthnConfig {
+    rpName: string;
+    rpID: string;
+    origin: string;
+    timeout: number;
+    attestation: AttestationConveyancePreference;
+    authenticatorSelection: {
+        authenticatorAttachment?: 'platform' | 'cross-platform';
+        residentKey?: 'required' | 'preferred' | 'discouraged';
+        userVerification?: 'required' | 'preferred' | 'discouraged';
+    };
 }
 
 export type AuthenticatorTransport = 'usb' | 'nfc' | 'ble' | 'internal';
-export type AttestationConveyancePreference = 'none' | 'indirect' | 'direct' | 'enterprise';
 export type AuthenticatorAttachment = 'platform' | 'cross-platform';
 export type UserVerificationRequirement = 'required' | 'preferred' | 'discouraged'; 

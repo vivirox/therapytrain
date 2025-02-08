@@ -1,41 +1,39 @@
-// Analytics services
-export * from './analytics';
-export * from './realTimeAnalytics';
-export * from './sessionAnalytics';
-export * from './aiAnalytics';
-export * from './sentimentAnalysis';
+// Analytics Services
+export * from '../types/services/analytics';
+export * from '../types/services/realtimeanalytics';
+export * from '../types/services/sessionanalytics';
+export * from '../types/services/aianalytics';
+export * from '../types/services/sentimentanalysis';
 
-// Chat services
-export * from './chat';
-export * from './chat/messageHandler';
-export * from './chat/emotionalState';
-export * from './chat/supabaseChat';
+// Chat Services
+export * from '../types/services/chat';
+export * from '../types/services/chat/messagehandler';
+export * from '../types/services/chat/emotionalstate';
+export * from '../types/services/chat/supabasechat';
 
-// Learning services
-export * from './contextualLearning';
-export * from './learningPath';
-export * from './tutorialPathway';
-export * from './recommendations';
+// Learning Services
+export * from '../types/services/contextuallearning';
+export * from '../types/services/learningpath';
+export * from '../types/services/tutorialpathway';
+export * from '../types/services/recommendations';
 
-// Security services
-export * from './encryption';
-export * from './security';
-export * from './zkProof';
-export * from './zkService';
-export * from './auditLogger';
+// Security Services
+export * from '../types/services/encryption';
+export * from '../types/services/security';
+export * from '../types/services/zkproof';
+export * from '../types/services/zkservice';
+export * from '../types/services/auditlogger';
 
-// Core services
-export * from './api';
-export * from './dataService';
-export * from './userService';
+// API and Data Services
+export * from '../types/services/api';
+export * from '../types/services/dataservice';
+export * from '../types/services/userservice';
 
-// Intervention services
-export * from './crisisPrediction';
-export * from './interventionMetrics';
-export * from './interventionOptimization';
-
-// Session management
-export * from './sessionManager';
+// Intervention Services
+export * from '../types/services/crisisprediction';
+export * from '../types/services/interventionmetrics';
+export * from '../types/services/interventionoptimization';
+export * from '../types/services/sessionmanager';
 
 // Types
 export * from '@/types/services'; 

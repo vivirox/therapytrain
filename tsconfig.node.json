@@ -8,6 +8,7 @@
 
     /* Bundler mode */
     "moduleResolution": "bundler",
+    "allowSyntheticDefaultImports": true,
     "isolatedModules": true,
     "moduleDetection": "force",
 
@@ -18,13 +19,7 @@
     "noFallthroughCasesInSwitch": true,
 
     /* Type Definitions */
-    "types": [
-      "node",
-      "jest",
-      "express",
-      "cors",
-      "body-parser"
-    ]
+    "types": ["node"]
   },
   "include": ["vite.config.ts"]
 }

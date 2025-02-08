@@ -1,7 +1,59 @@
-import { SessionState, SessionMode, SessionMetrics, SessionConfig } from "./session";
-import { EmotionalMetrics, EngagementMetrics, TherapeuticMetrics, RiskMetrics } from "./metrics";
-import { HIPAAAuditEvent, HIPAAComplianceReport, HIPAAQueryFilters } from "./hipaa";
-import { SecurityIncident } from "./security";
+import type { SessionStatus, SessionMode, SessionMetrics, SessionConfig } from './session';
+import type { AnalyticsEvent, AnalyticsConfig } from './analytics';
+import type { HIPAAEvent, HIPAAComplianceReport, HIPAAQueryFilters } from './hipaa';
+import type { SecurityIncident, SecurityConfig } from './security';
+import type { WebSocketMessage, WebSocketError } from './common';
+
+// Service status
+export type ServiceStatus = 'active' | 'inactive' | 'error' | 'initializing';
+
+// Service event
+export interface ServiceEvent<T = unknown> {
+    type: string;
+    data: T;
+    timestamp: string;
+    service: string;
+}
+
+// Base service configuration
+export interface ServiceConfig {
+    enabled: boolean;
+    settings: Record<string, unknown>;
+}
+
+// Service interfaces
+export interface AnalyticsService {
+    trackEvent(event: AnalyticsEvent): Promise<void>;
+    getConfig(): Promise<AnalyticsConfig>;
+    generateReport(startDate: string, endDate: string): Promise<unknown>;
+}
+
+export interface SecurityService {
+    reportIncident(incident: SecurityIncident): Promise<void>;
+    getConfig(): Promise<SecurityConfig>;
+    audit(startDate: string, endDate: string): Promise<unknown>;
+}
+
+export interface HIPAAService {
+    logEvent(event: HIPAAEvent): Promise<void>;
+    generateReport(): Promise<HIPAAComplianceReport>;
+    query(filters: HIPAAQueryFilters): Promise<unknown>;
+}
+
+export interface SessionService {
+    getStatus(sessionId: string): Promise<SessionStatus>;
+    getMode(sessionId: string): Promise<SessionMode>;
+    getMetrics(sessionId: string): Promise<SessionMetrics>;
+    getConfig(sessionId: string): Promise<SessionConfig>;
+}
+
+export interface WebSocketService {
+    send<T>(message: WebSocketMessage<T>): Promise<void>;
+    onError(handler: (error: WebSocketError) => void): void;
+    onMessage<T>(handler: (message: WebSocketMessage<T>) => void): void;
+    connect(): Promise<void>;
+    disconnect(): void;
+}
 
 // Common types used across services
 export interface BaseResponse {
@@ -18,32 +70,11 @@ export interface PaginatedResponse<T> extends BaseResponse {
 }
 
 // Analytics Service Types
-export interface AnalyticsEvent {
-  type: string;
-  timestamp: number;
-  userId: string;
-  data: Record<string, unknown>;
-}
-
 export interface AnalyticsMetrics {
   totalSessions: number;
   averageSessionDuration: number;
   userEngagement: number;
   learningProgress: number;
-}
-
-export interface AnalyticsService {
-  trackEvent(event: string, data: Record<string, unknown>): Promise<void>;
-  getMetrics(timeframe: string): Promise<Record<string, number>>;
-  generateReport(filters: Record<string, unknown>): Promise<unknown>;
-}
-
-// Session Analytics Types
-export interface SessionMetrics {
-  duration: number;
-  engagement: number;
-  progress: number;
-  completedObjectives: string[];
 }
 
 export interface SessionAnalyticsService {
@@ -177,13 +208,6 @@ export interface AIAnalyticsService {
   generateAIInsights(data: unknown): Promise<unknown>;
   generatePersonalizedCurriculum(userId: string): Promise<unknown>;
   predictLearningChallenges(userId: string): Promise<unknown>;
-}
-
-// Security Service
-export interface SecurityService {
-  validateAccess(userId: string, resource: string): Promise<boolean>;
-  logSecurityEvent(incident: SecurityIncident): Promise<void>;
-  generateSecurityReport(): Promise<unknown>;
 }
 
 // Session Manager

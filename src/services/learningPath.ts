@@ -1,5 +1,5 @@
 import { AIAnalyticsService } from '@/aianalytics';
-import { Tutorial, SkillProgression, LearningAnalytics } from "@/types/education";
+import { Tutorial, SkillProgression, LearningAnalytics } from '@/types/education';
 
 interface AIAnalyticsService {
     generateAIInsights: (userId: string) => Promise<any>;

@@ -1,10 +1,10 @@
 import { Server } from 'http';
 import WebSocket from 'ws';
-import { ChatService, ChatClient } from "@/ChatService";
-import { RateLimiterService } from "@/RateLimiterService";
-import { SecurityAuditService } from "@/SecurityAuditService";
-import { MessageService } from "@/MessageService";
-import { AIService } from "@/AIService";
+import { ChatService, ChatClient } from "../chat/ChatService";
+import { RateLimiterService } from "../RateLimiterService";
+import { SecurityAuditService } from "../SecurityAuditService";
+import { MessageService } from "../MessageService";
+import { AIService } from "../ai/AIService";
 import { Request, Response, NextFunction } from 'express';
 jest.mock('../MessageService');
 jest.mock('../AIService');

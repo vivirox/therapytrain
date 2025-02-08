@@ -1,18 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/authcontext'; // Updated import
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { SkillProgressionTracker } from '@/components/education/skillprogressiontracker';
 import { LearningPathView } from '@/components/education/learningpathview';
 import { CaseStudyLibrary } from '@/components/education/casestudylibrary';
 import { PeerLearning } from '@/components/education/peerlearning';
 import { TutorialCard } from '@/components/education/tutorialcard';
-import { RecommendationEngine } from "@/services/recommendations";
+import { RecommendationEngine } from '@/services/recommendations';
 import { LearningPathService } from '@/services/learningpath';
 import { MdMenuBook, MdGroups, MdSchool, MdAssessment, MdPeople } from 'react-icons/md';
-import type { Tutorial, CaseStudy, SkillProgression } from "@/types/education";
+import type { Tutorial, CaseStudy, SkillProgression } from '@/types/education';
 const Education: React.FC = () => {
     const navigate = useNavigate();
     const { user, loading } = useAuth(); // Updated to use useAuth

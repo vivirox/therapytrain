@@ -17,11 +17,10 @@ interface VerificationResult {
 }
 
 interface WorkerPoolMetrics {
-    totalProofs: number;
-    successfulProofs: number;
-    failedProofs: number;
+    currentLoad: number;
+    totalProofsGenerated: number;
     averageProofTime: number;
-    lastProofTime: number;
+    errorRate: number;
 }
 
 interface CacheEntry {
@@ -32,37 +31,49 @@ interface CacheEntry {
 
 export class OptimizedZKProofService {
     private readonly proofCache: LRUCache<string, CacheEntry>;
-    private readonly workerPool: Worker[] = [];
-    private readonly workerMetrics: Map<number, WorkerPoolMetrics>;
-    private readonly maxWorkers: number;
-    private currentWorker = 0;
+    private readonly workerPool: Worker[];
+    private readonly metrics: WorkerPoolMetrics;
+    private nextWorkerId: number = 0;
     private isInitialized = false;
     private proofWorker: Worker;
     private verificationWorker: Worker;
 
-    constructor(private readonly verificationKeyService: VerificationKeyService, private readonly securityAuditService: SecurityAuditService, maxWorkers = 4, maxCacheSize = 1000, private readonly cacheTTL = 3600000 // 1 hour
+    constructor(
+        private readonly securityAuditService: SecurityAuditService,
+        private readonly verificationKeyService: VerificationKeyService,
+        maxWorkers: number = 4,
+        maxCacheSize: number = 1000
     ) {
-        this.maxWorkers = maxWorkers;
-        this.workerMetrics = new Map();
-        this.proofCache = new LRUCache({
+        this.proofCache = new LRUCache<string, CacheEntry>({
             max: maxCacheSize,
-            ttl: cacheTTL,
+            ttl: 1000 * 60 * 60, // 1 hour
             updateAgeOnGet: true,
-            dispose: (key: string, value: CacheEntry) => {
-                this.handleCacheDisposal(key, value);
-            }
+            updateAgeOnHas: true
         });
+
+        this.workerPool = Array.from({ length: maxWorkers }, () =>
+            new Worker(path.join(__dirname, '../workers/zkProofWorker.js'))
+        );
+
+        this.metrics = {
+            currentLoad: 0,
+            totalProofsGenerated: 0,
+            averageProofTime: 0,
+            errorRate: 0
+        };
+
         this.proofWorker = new Worker(path.join(__dirname, '../workers/proof.worker.js'));
         this.verificationWorker = new Worker(path.join(__dirname, '../workers/verify.worker.js'));
+
+        this.setupWorkerErrorHandling();
     }
 
     async initialize(): Promise<void> {
         if (this.isInitialized)
             return;
         try {
-            await this.initializeWorkerPool();
+            await this.securityAuditService.recordAlert('ZK_SERVICE_INITIALIZED', 'LOW', { maxWorkers: this.workerPool.length });
             this.isInitialized = true;
-            await this.securityAuditService.recordAlert('ZK_SERVICE_INITIALIZED', 'LOW', { maxWorkers: this.maxWorkers });
         }
         catch (error) {
             await this.securityAuditService.recordAlert('ZK_SERVICE_INIT_ERROR', 'HIGH', { error: error instanceof Error ? error.message : 'Unknown error' });
@@ -70,32 +81,17 @@ export class OptimizedZKProofService {
         }
     }
 
-    private async initializeWorkerPool(): Promise<void> {
-        const workerScript = path.join(__dirname, '../workers/proof.worker.js');
-        for (let i = 0; i < this.maxWorkers; i++) {
-            const worker = new Worker(workerScript);
-            worker.on('error', this.handleWorkerError.bind(this));
-            this.workerPool.push(worker);
-            this.workerMetrics.set(i, {
-                totalProofs: 0,
-                successfulProofs: 0,
-                failedProofs: 0,
-                averageProofTime: 0,
-                lastProofTime: 0
+    private setupWorkerErrorHandling(): void {
+        this.workerPool.forEach((worker, workerId) => {
+            worker.on('error', (error) => {
+                this.metrics.errorRate = (this.metrics.errorRate * this.metrics.totalProofsGenerated + 1) /
+                    (this.metrics.totalProofsGenerated + 1);
+                this.securityAuditService.recordAlert('WORKER_ERROR', 'HIGH', {
+                    error: error.message,
+                    workerId,
+                    metrics: this.metrics
+                });
             });
-        }
-    }
-
-    private async handleWorkerError(error: Error, workerId: number): Promise<void> {
-        const metrics = this.workerMetrics.get(workerId);
-        if (metrics) {
-            metrics.errorRate = (metrics.errorRate * metrics.totalProofsGenerated + 1) /
-                (metrics.totalProofsGenerated + 1);
-        }
-        await this.securityAuditService.recordAlert('WORKER_ERROR', 'HIGH', {
-            error: error.message,
-            workerId,
-            metrics: metrics || 'No metrics available'
         });
     }
 
@@ -104,9 +100,9 @@ export class OptimizedZKProofService {
         workerId: number;
     } {
         // Simple round-robin for now, but can be enhanced with load balancing
-        const workerId = this.currentWorker;
+        const workerId = this.nextWorkerId;
         const worker = this.workerPool[workerId];
-        this.currentWorker = (this.currentWorker + 1) % this.maxWorkers;
+        this.nextWorkerId = (this.nextWorkerId + 1) % this.workerPool.length;
         return { worker, workerId };
     }
 
@@ -155,8 +151,7 @@ export class OptimizedZKProofService {
             const circuitInput = await ZKUtils.prepareCircuitInput(input);
             // Get optimal worker
             const { worker, workerId } = this.getOptimalWorker();
-            const metrics = this.workerMetrics.get(workerId)!;
-            metrics.currentLoad++;
+            this.metrics.currentLoad++;
             // Generate proof in parallel
             const proof = await new Promise<ProofOutput>((resolve, reject) => {
                 const timeout = setTimeout(() => {
@@ -193,15 +188,15 @@ export class OptimizedZKProofService {
                 });
             });
             // Update metrics
-            metrics.currentLoad--;
-            metrics.totalProofsGenerated++;
-            metrics.averageProofTime = (metrics.averageProofTime * (metrics.totalProofsGenerated - 1) +
-                (Date.now() - startTime)) / metrics.totalProofsGenerated;
+            this.metrics.currentLoad--;
+            this.metrics.totalProofsGenerated++;
+            this.metrics.averageProofTime = (this.metrics.averageProofTime * (this.metrics.totalProofsGenerated - 1) +
+                (Date.now() - startTime)) / this.metrics.totalProofsGenerated;
             await this.securityAuditService.recordAlert('PROOF_GENERATED', 'LOW', {
                 inputHash,
                 duration: Date.now() - startTime,
                 workerId,
-                metrics
+                metrics: this.metrics
             });
             return proof;
         }
@@ -276,15 +271,18 @@ export class OptimizedZKProofService {
         }
     }
 
-    async getMetrics(): Promise<Map<number, WorkerPoolMetrics>> {
-        return new Map(this.workerMetrics);
+    async getMetrics(): Promise<WorkerPoolMetrics> {
+        return this.metrics;
     }
 
     async cleanup(): Promise<void> {
         // Cleanup worker pool
         await Promise.all(this.workerPool.map((worker: any) => worker.terminate()));
         this.workerPool.length = 0;
-        this.workerMetrics.clear();
+        this.metrics.currentLoad = 0;
+        this.metrics.totalProofsGenerated = 0;
+        this.metrics.averageProofTime = 0;
+        this.metrics.errorRate = 0;
         // Clear cache
         this.proofCache.clear();
         this.isInitialized = false;

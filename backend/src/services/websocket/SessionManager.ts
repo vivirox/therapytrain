@@ -1,28 +1,67 @@
-import { supabase } from "@/../../config/database";
-import { SecurityAuditService } from '@/SecurityAuditService';
-
-export interface Session {
-    id: string;
-    userId: string;
-    status: 'active' | 'paused' | 'completed';
-    startTime: Date;
-    endTime?: Date;
-    metadata?: {
-        messageCount: number;
-        lastActivity: Date;
-        duration: number;
-    };
-    clients: Set<string>;
-    data: Record<string, any>;
-}
+import { supabase } from "../../config/database";
+import { SecurityAuditService } from '../SecurityAuditService';
+import { Session, SessionStatus } from "../../types/session";
 
 export class SessionManager {
-    private readonly activeSessions: Map<string, Session> = new Map();
+    private readonly sessions: Map<string, Session> = new Map();
+    private readonly securityAuditService: SecurityAuditService;
 
-    constructor(private readonly securityAuditService: SecurityAuditService) {}
+    constructor(securityAuditService: SecurityAuditService) {
+        this.securityAuditService = securityAuditService;
+    }
+
+    async createSession(userId: string): Promise<Session> {
+        const sessionId = crypto.randomBytes(16).toString('hex');
+        const session: Session = {
+            id: sessionId,
+            userId,
+            clients: new Set<string>(),
+            status: SessionStatus.ACTIVE,
+            startTime: new Date(),
+            data: {}
+        };
+        this.sessions.set(sessionId, session);
+        return session;
+    }
+
+    getSession(sessionId: string): Session | undefined {
+        return this.sessions.get(sessionId);
+    }
+
+    async loadSession(sessionId: string): Promise<Session | null> {
+        try {
+            const { data: sessionData, error } = await supabase
+                .from('sessions')
+                .select('*')
+                .eq('id', sessionId)
+                .single();
+
+            if (error || !sessionData) {
+                return null;
+            }
+
+            const session: Session = {
+                id: sessionData.id,
+                userId: sessionData.userId,
+                clients: new Set<string>(),
+                status: sessionData.status,
+                startTime: new Date(sessionData.startTime),
+                data: sessionData.data || {}
+            };
+
+            this.sessions.set(sessionId, session);
+            return session;
+        } catch (error) {
+            await this.securityAuditService.recordAlert('SESSION_LOAD_ERROR', 'HIGH', {
+                error: error instanceof Error ? error.message : 'Unknown error',
+                sessionId
+            });
+            return null;
+        }
+    }
 
     async addClient(sessionId: string, clientId: string): Promise<void> {
-        let session = this.activeSessions.get(sessionId);
+        let session = this.sessions.get(sessionId);
 
         if (!session) {
             session = {
@@ -30,7 +69,7 @@ export class SessionManager {
                 clients: new Set(),
                 data: {}
             };
-            this.activeSessions.set(sessionId, session);
+            this.sessions.set(sessionId, session);
         }
 
         session.clients.add(clientId);
@@ -42,13 +81,13 @@ export class SessionManager {
     }
 
     async removeClient(sessionId: string, clientId: string): Promise<void> {
-        const session = this.activeSessions.get(sessionId);
+        const session = this.sessions.get(sessionId);
         if (!session) return;
 
         session.clients.delete(clientId);
 
         if (session.clients.size === 0) {
-            this.activeSessions.delete(sessionId);
+            this.sessions.delete(sessionId);
         }
 
         await this.securityAuditService.recordEvent('SESSION_LEAVE', {
@@ -58,7 +97,7 @@ export class SessionManager {
     }
 
     async handleMessage(sessionId: string, clientId: string, message: any): Promise<void> {
-        const session = this.activeSessions.get(sessionId);
+        const session = this.sessions.get(sessionId);
         if (!session) {
             throw new Error('Session not found');
         }
@@ -88,77 +127,8 @@ export class SessionManager {
         }
     }
 
-    getSession(sessionId: string): Session | undefined {
-        return this.activeSessions.get(sessionId);
-    }
-
     getActiveSessions(): Session[] {
-        return Array.from(this.activeSessions.values());
-    }
-
-    async createSession(userId: string): Promise<Session> {
-        try {
-            const { data, error } = await supabase
-                .from('sessions')
-                .insert({
-                user_id: userId,
-                status: 'active',
-                start_time: new Date().toISOString(),
-                metadata: {
-                    messageCount: 0,
-                    lastActivity: new Date().toISOString(),
-                    duration: 0
-                }
-            })
-                .select()
-                .single();
-            if (error)
-                throw error;
-            const session: Session = {
-                id: data.id,
-                clients: new Set(),
-                data: {}
-            };
-            this.activeSessions.set(session.id, session);
-            return session;
-        }
-        catch (error) {
-            console.error('Error creating session:', error);
-            throw error;
-        }
-    }
-
-    async getSession(sessionId: string): Promise<Session | null> {
-        // Check cache first
-        if (this.activeSessions.has(sessionId)) {
-            return this.activeSessions.get(sessionId)!;
-        }
-        // If not in cache, check database
-        try {
-            const { data, error } = await supabase
-                .from('sessions')
-                .select('*')
-                .eq('id', sessionId)
-                .single();
-            if (error)
-                throw error;
-            if (!data)
-                return null;
-            const session: Session = {
-                id: data.id,
-                clients: new Set(),
-                data: {}
-            };
-            // Cache active sessions
-            if (session.status === 'active') {
-                this.activeSessions.set(session.id, session);
-            }
-            return session;
-        }
-        catch (error) {
-            console.error('Error getting session:', error);
-            return null;
-        }
+        return Array.from(this.sessions.values());
     }
 
     async updateSession(sessionId: string, updates: Partial<Session>): Promise<Session | null> {
@@ -184,10 +154,10 @@ export class SessionManager {
             };
             // Update cache if session is active
             if (session.status === 'active') {
-                this.activeSessions.set(session.id, session);
+                this.sessions.set(session.id, session);
             }
             else {
-                this.activeSessions.delete(session.id);
+                this.sessions.delete(session.id);
             }
             return session;
         }
@@ -213,7 +183,7 @@ export class SessionManager {
                     lastActivity: endTime
                 }
             });
-            this.activeSessions.delete(sessionId);
+            this.sessions.delete(sessionId);
         }
         catch (error) {
             console.error('Error ending session:', error);
@@ -296,7 +266,7 @@ export class SessionManager {
             // Clear from cache
             if (data) {
                 data.forEach((session: Session) => {
-                    this.activeSessions.delete(session.id);
+                    this.sessions.delete(session.id);
                 });
             }
         } catch (error) {

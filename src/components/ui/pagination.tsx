@@ -1,8 +1,8 @@
 import React from 'react';
 import { ChevronLeft, ChevronRight, MoreHorizontal } from 'lucide-react';
 import { Button } from '@/button';
-import { cn } from "@/lib/utils";
-import { ButtonProps, buttonVariants } from "@/components/ui/button";
+import { cn } from '@/lib/utils';
+import { ButtonProps, buttonVariants } from '@/components/ui/button';
 
 interface PaginationProps {
     className?: string;

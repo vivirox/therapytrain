@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loading } from "@/components/ui/loading";
-import { AnalyticsService } from "@/services/analytics";
-import type { CrisisInterventionTutorialProps } from "@/types";
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Loading } from '@/components/ui/loading';
+import { AnalyticsService } from '@/services/analytics';
+import type { CrisisInterventionTutorialProps } from '@/types';
 
 interface RiskFactor {
     type: string;

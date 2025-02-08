@@ -1,204 +1,118 @@
-export enum SessionStatus {
-  ACTIVE = 'active',
-  PAUSED = 'paused',
-  COMPLETED = 'completed',
-  CANCELLED = 'cancelled'
-}
+import { BaseEntity, Metadata } from './common';
+import { UserProfile } from './user';
+import { Message } from './chat';
 
-export enum SessionMode {
-  CHAT = 'chat',
-  VOICE = 'voice',
-  VIDEO = 'video'
-}
-
-export interface SessionState {
-  id: string;
-  clientId: string;
-  therapistId: string;
+export interface Session extends BaseEntity {
+  user_id: string;
+  client_id: string;
   status: SessionStatus;
   mode: SessionMode;
-  startTime: string;
-  endTime?: string;
+  metrics: SessionMetrics | null;
+  metadata?: Metadata;
+}
+
+export type SessionStatus = 'active' | 'completed' | 'cancelled';
+
+export type SessionMode = 'chat' | 'video' | 'audio' | 'in-person';
+
+export interface SessionMetrics {
   duration: number;
-  metrics: {
-    engagement: number;
-    progress: number;
-    riskLevel: number;
+  message_count: number;
+  response_time_avg: number;
+  sentiment_scores: {
+    positive: number;
+    negative: number;
+    neutral: number;
   };
-  notes: {
-    therapist?: string;
-    system?: string;
-  };
-  goals: Array<{
-    id: string;
-    description: string;
-    status: 'pending' | 'in-progress' | 'completed';
-    progress: number;
-  }>;
-  interventions: Array<{
-    id: string;
-    type: string;
-    timestamp: string;
-    description: string;
-    outcome?: string;
-  }>;
-  flags: {
-    needsAttention?: boolean;
-    riskAssessment?: boolean;
-    followUpRequired?: boolean;
-  };
-  privacy: {
-    recordingConsent: boolean;
-    dataSharing: boolean;
-    restrictions?: string[];
-  };
-  metadata: {
-    platform: string;
-    version: string;
-    features: string[];
-    settings: Record<string, any>;
-  };
+  engagement_score: number;
+  therapeutic_progress: number;
+  risk_level: 'low' | 'medium' | 'high';
+  metadata?: Metadata;
 }
 
 export interface SessionConfig {
   mode: SessionMode;
   duration?: number;
-  features?: string[];
   preferences?: {
-    language?: string;
-    notifications?: boolean;
-    accessibility?: Record<string, boolean>;
+    language: string;
+    timezone: string;
+    notifications: boolean;
+    recording: boolean;
   };
-  privacy?: {
-    recordingConsent?: boolean;
-    dataSharing?: boolean;
-    restrictions?: string[];
+  security?: {
+    encryption: boolean;
+    privacy_level: 'standard' | 'high';
   };
+  metadata?: Metadata;
 }
+
+export interface SessionParticipant {
+  user: UserProfile;
+  role: 'therapist' | 'client';
+  joined_at: string;
+  left_at?: string;
+  metadata?: Metadata;
+}
+
+export interface SessionEvent {
+  id: string;
+  session_id: string;
+  type: SessionEventType;
+  data: Record<string, unknown>;
+  created_at: string;
+  metadata?: Metadata;
+}
+
+export type SessionEventType =
+  | 'session_started'
+  | 'session_ended'
+  | 'participant_joined'
+  | 'participant_left'
+  | 'message_sent'
+  | 'intervention_applied'
+  | 'risk_level_changed'
+  | 'mode_changed';
 
 export interface SessionSummary {
   id: string;
-  clientId: string;
-  therapistId: string;
-  status: SessionStatus;
-  mode: SessionMode;
-  startTime: string;
-  endTime?: string;
-  duration: number;
-  progress: number;
-  mainTopics: string[];
-  keyInsights: string[];
-  nextSteps: string[];
+  session_id: string;
+  summary: string;
+  key_points: string[];
+  action_items: string[];
+  risk_factors: string[];
+  next_steps: string[];
+  created_at: string;
+  metadata?: Metadata;
 }
 
-export interface SessionError extends Error {
-  code: string;
-  details?: Record<string, any>;
-  retry?: boolean;
-}
-
-export interface SessionControls {
-  startSession: (clientId: string, mode: SessionMode) => Promise<void>;
-  endSession: (sessionId: string) => Promise<void>;
-  pauseSession: (sessionId: string) => Promise<void>;
-  resumeSession: (sessionId: string) => Promise<void>;
-  switchMode: (sessionId: string, newMode: SessionMode) => Promise<void>;
-}
-
-export interface SessionMetrics {
-  sentiment: number;
-  engagement: number;
-  progress: number;
-  duration: number;
-  interventions: number;
-  goals: {
-    set: number;
-    achieved: number;
-  };
-}
-
-export type SessionType = 'initial' | 'follow-up' | 'crisis' | 'group' | 'assessment';
-
-export interface Intervention {
+export interface SessionFeedback {
   id: string;
-  sessionId: string;
-  type: InterventionType;
-  timestamp: Date;
-  description: string;
-  effectiveness?: number;
-  clientResponse?: string;
-  followUp?: string;
+  session_id: string;
+  user_id: string;
+  rating: number;
+  comments: string;
+  areas_of_improvement: string[];
+  created_at: string;
+  metadata?: Metadata;
 }
 
-export type InterventionType =
-  | 'cognitive-restructuring'
-  | 'behavioral-activation'
-  | 'exposure'
-  | 'mindfulness'
-  | 'skills-training'
-  | 'psychoeducation'
-  | 'crisis-intervention'
-  | 'other';
-
-export interface SessionNote {
-  id: string;
-  sessionId: string;
-  timestamp: Date;
-  content: string;
-  type: NoteType;
-  visibility: NoteVisibility;
-  tags?: string[];
-}
-
-export type NoteType = 'observation' | 'assessment' | 'plan' | 'homework' | 'alert';
-
-export type NoteVisibility = 'private' | 'shared' | 'supervisor-only';
-
-export interface SessionFlag {
-  id: string;
-  sessionId: string;
-  type: FlagType;
-  severity: FlagSeverity;
-  timestamp: Date;
-  description: string;
-  status: FlagStatus;
-  resolution?: string;
-}
-
-export type FlagType = 'risk' | 'safety' | 'compliance' | 'technical' | 'quality';
-
-export type FlagSeverity = 'low' | 'medium' | 'high' | 'critical';
-
-export type FlagStatus = 'active' | 'resolved' | 'dismissed';
-
-export interface ClientSession {
-  id: string;
-  clientId: string;
-  startTime: Date;
-  endTime?: Date;
-  status: SessionStatus;
-  mode: SessionMode;
-  type: SessionType;
-  notes: SessionNote[];
+export interface SessionAnalytics {
+  session_id: string;
   metrics: SessionMetrics;
-  flags: SessionFlag[];
-  interventions: Intervention[];
-}
-
-export interface SessionData {
-  id: string;
-  clientId: string;
-  therapistId: string;
-  startTime: Date;
-  endTime?: Date;
-  duration: number;
-  status: SessionStatus;
-  mode: SessionMode;
-  type: SessionType;
-  metrics: SessionMetrics;
-  notes: SessionNote[];
-  flags: SessionFlag[];
-  interventions: Intervention[];
+  events: SessionEvent[];
+  feedback?: SessionFeedback[];
   summary?: SessionSummary;
-  config: SessionConfig;
+  metadata?: Metadata;
+}
+
+export interface SessionManager {
+  createSession: (config: SessionConfig) => Promise<Session>;
+  endSession: (session_id: string) => Promise<void>;
+  getSession: (session_id: string) => Promise<Session>;
+  updateSession: (session_id: string, updates: Partial<Session>) => Promise<Session>;
+  getSessionMetrics: (session_id: string) => Promise<SessionMetrics>;
+  getSessionEvents: (session_id: string) => Promise<SessionEvent[]>;
+  getSessionSummary: (session_id: string) => Promise<SessionSummary>;
+  getSessionFeedback: (session_id: string) => Promise<SessionFeedback[]>;
+  getSessionAnalytics: (session_id: string) => Promise<SessionAnalytics>;
 }

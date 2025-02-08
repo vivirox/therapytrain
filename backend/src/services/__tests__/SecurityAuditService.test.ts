@@ -1,5 +1,5 @@
-import { SecurityAuditService } from "@/SecurityAuditService";
-import { supabase } from "@/../config/supabase";
+import { SecurityAuditService } from "../SecurityAuditService";
+import { supabase } from "../../config/supabase";
 jest.mock('../../config/supabase', () => ({
     supabase: {
         from: jest.fn().mockReturnThis(),

@@ -1,4 +1,6 @@
-import { WebSocket } from 'ws';
+import { WebSocket, Server as WSServer } from 'ws';
+import { IncomingMessage } from 'http';
+import { AuditEvent } from './audit';
 
 export interface WebSocketConfig {
   port: number;
@@ -72,14 +74,36 @@ export interface WebSocketMetrics {
   timestamp: Date;
 }
 
-export interface WebSocketServer {
-  clients: Set<WebSocket>;
-  options: WebSocketConfig;
-  metrics: WebSocketMetrics;
-  broadcast(message: WebSocketMessage): void;
-  handleConnection(socket: WebSocket): void;
-  handleMessage(socket: WebSocket, message: WebSocketMessage): void;
-  handleError(socket: WebSocket, error: WebSocketError): void;
-  handleClose(socket: WebSocket): void;
-  getMetrics(): WebSocketMetrics;
+export interface ExtendedWebSocketServer extends WSServer {
+    clients: Set<WebSocket>;
+    options: WebSocketConfig;
+    metrics: WebSocketMetrics;
+    broadcast(message: WebSocketMessage): void;
+    handleConnection(socket: WebSocket, request: IncomingMessage): void;
+    handleMessage(socket: WebSocket, message: WebSocketMessage): void;
+    handleError(socket: WebSocket, error: WebSocketError): void;
+    handleClose(socket: WebSocket, code: number, reason: string): void;
+    getMetrics(): WebSocketMetrics;
+}
+
+export interface WebSocketClientManager {
+    registerClient(client: WebSocket, userId: string): ChatClient;
+    removeClient(clientId: string): void;
+    getClient(clientId: string): ChatClient | undefined;
+    getClientsByUserId(userId: string): ChatClient[];
+    getActiveClients(): ChatClient[];
+    updateClientActivity(clientId: string): void;
+    validateClient(client: WebSocket): boolean;
+}
+
+export interface WebSocketEventHandler {
+    handleMessage(client: ChatClient, message: WebSocketMessage): Promise<void>;
+    handleError(client: ChatClient, error: WebSocketError): Promise<void>;
+    handleDisconnect(client: ChatClient): Promise<void>;
+    handleReconnect(client: ChatClient): Promise<void>;
+}
+
+export interface WebSocketServer extends ExtendedWebSocketServer {
+    clientManager: WebSocketClientManager;
+    eventHandler: WebSocketEventHandler;
 } 

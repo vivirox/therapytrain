@@ -1,7 +1,7 @@
 import { type FC, createContext, useContext, type ReactNode, useEffect, useState, useMemo } from 'react';
 import { type User, type Session, type AuthChangeEvent, SupabaseClient } from '@supabase/supabase-js';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { supabase } from "@/lib/supabase";
+import { supabase } from '@/lib/supabase';
 
 interface Permission {
     id: string;

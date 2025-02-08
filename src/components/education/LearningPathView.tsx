@@ -6,8 +6,8 @@ import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { LearningPathService } from '@/services/learningPath';
-import { AIAnalyticsService } from '@/services/aiAnalytics';
+import { LearningPathService } from '@/services/learningpath';
+import { AIAnalyticsService } from '@/services/aianalytics';
 import { Loading } from '@/components/ui/loading';
 import type { LearningPathViewProps } from '@/types';
 

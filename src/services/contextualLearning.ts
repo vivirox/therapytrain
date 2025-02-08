@@ -1,5 +1,5 @@
-import { Message } from "@/types/chat.ts";
-import { SessionState } from "@/types/session.ts";
+import { Message } from '@/types/chat.ts';
+import { SessionState } from '@/types/session.ts';
 import { Client } from '@/types/client.ts'; // Ensure this import is correct
 import { analyzeMessageHistory } from '@/sentimentanalysis';
 import { SessionAnalytics } from '@/sessionanalytics';

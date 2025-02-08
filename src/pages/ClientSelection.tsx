@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from '@/context/authcontext'; // Updated import
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { MdGroups as Users, MdPersonAdd as UserPlus, MdArrowBack as ArrowLeft } from "react-icons/md";
 interface Client {
     id: string;
@@ -49,7 +49,13 @@ const ClientSelection: React.FC = () => {
           <p className="text-gray-400 mt-2">Select a client to start a session or manage their profile</p>
         </div>
 
-        <Input type="search" placeholder="Search clients..." className="bg-[#1A1A1D] border-gray-800" value={searchTerm} onChange={(e: unknown) => setSearchTerm(e.target.value)}/>
+        <Input 
+          type="search" 
+          placeholder="Search clients..." 
+          className="bg-[#1A1A1D] border-gray-800" 
+          value={searchTerm} 
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
+        />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {filteredClients.map((client: any) => (<Card key={client.id} className="bg-[#1A1A1D] border-gray-800 hover:border-blue-500 transition-colors cursor-pointer" onClick={() => navigate("/chat", { state: { clientId: client.id } })}>

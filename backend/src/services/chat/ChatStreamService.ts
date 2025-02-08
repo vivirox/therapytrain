@@ -1,10 +1,12 @@
 import { Request, Response, NextFunction } from 'express';
-import { supabase } from "@/../../config/database";
+import { supabase } from "../../config/database";
 import { ChatService } from "./ChatService";
-import { Message, ChatStreamResponse, ChatEvent } from "@/../types/chat";
-import { OpenAIService } from "@/ai/OpenAIService";
-import { AnthropicService } from "@/ai/AnthropicService";
-import { GoogleAIService } from "@/ai/GoogleAIService";
+import { Message, ChatStreamResponse, ChatEvent } from "../../types/chat";
+import { OpenAIService } from "../ai/OpenAIService";
+import { AnthropicService } from "../ai/AnthropicService";
+import { GoogleAIService } from "../ai/GoogleAIService";
+import { EventEmitter } from 'events';
+
 export class ChatStreamService {
     private chatService: ChatService;
     private openAI: OpenAIService;
