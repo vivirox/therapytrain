@@ -54,22 +54,17 @@
       "@/mocks": ["src/types/mocks"],
       "@/clientprofile": ["src/types/clientprofile"]
     },
-    "typeRoots": [
-      "./node_modules/@types",
-      "./src/types"
-    ]
+    "typeRoots": ["./node_modules/@types", "./src/types"]
   },
   "include": [
     "src/**/*.ts",
     "src/**/*.tsx",
     "src/**/*.js",
     "src/**/*.jsx",
+    "src/**/*.mdx",
+    "*.mdx",
     "src/types/**/*.d.ts",
-    "src/types/vite-env.d.ts",
-    "src/**/*.test.ts",
-    "src/**/*.test.tsx",
-    "src/**/*.spec.ts",
-    "src/**/*.spec.tsx"
+    "src/types/custom.d.ts"
   ],
   "exclude": [
     "node_modules",

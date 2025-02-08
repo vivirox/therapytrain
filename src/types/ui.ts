@@ -107,8 +107,8 @@ export interface BadgeProps extends BaseProps {
 }
 
 // Card props
-export interface CardProps extends BaseProps {
-    variant?: 'default' | 'secondary';
+export interface CardProps extends HTMLAttributes<HTMLDivElement> {
+    className?: string;
 }
 
 // Toast props
