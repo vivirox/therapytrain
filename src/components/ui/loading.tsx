@@ -1,36 +1,36 @@
-import { type FC } from 'react';
-import { MdPsychology } from 'react-icons/md';
+import * as React from "react"
+import { cn } from '@/lib/utils'
 
-interface LoadingProps {
-  fullScreen?: boolean;
-  message?: string;
+interface LoadingProps extends React.HTMLAttributes<HTMLDivElement> {
+  size?: "sm" | "md" | "lg"
+    className?: string;
 }
 
-export const Loading: FC<LoadingProps> = ({ 
-  fullScreen = false,
-  message = 'Loading...'
-}) => {
-  const content = (
-    <div className="flex flex-col items-center justify-center space-y-4">
-      <div className="relative">
-        <MdPsychology className="w-12 h-12 text-blue-500 animate-pulse" ></MdPsychology>
-        <div className="absolute inset-0 border-t-2 border-blue-500 rounded-full animate-spin" />
-      </div>
-      <p className="text-gray-600 animate-pulse">{message}</p>
-    </div>
-  );
+const Loading = React.forwardRef<HTMLDivElement, LoadingProps>(
+  ({ className, size = "md", ...props }, ref) => {
+    const sizeClasses = {
+      sm: "h-4 w-4",
+      md: "h-6 w-6",
+      lg: "h-8 w-8",
+    }
 
-  if (fullScreen) {
     return (
-      <div className="fixed inset-0 flex items-center justify-center bg-white dark:bg-gray-900">
-        {content}
+      <div
+        ref={ref}
+        className={cn("animate-spin", sizeClasses[size], className)}
+        {...props}
+      >
+        <div className="h-full w-full rounded-full border-2 border-current border-t-transparent" />
       </div>
-    );
+    )
   }
+)
+Loading.displayName = "Loading"
 
-  return (
-    <div className="flex items-center justify-center p-8">
-      {content}
-    </div>
-  );
-};
+export { Loading }
+
+export const LoadingComponent: React.FC = () => (
+  <div className="flex items-center justify-center min-h-screen">
+    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-900 dark:border-gray-50"></div>
+  </div>
+)

@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient, User, Session } from '@supabase/supabase-js';
 const OLLAMA_BASE_URL = process.env.NEXT_PUBLIC_OLLAMA_URL || 'http://localhost:11434';
 export const generateResponse = async (prompt: string, clientContext: any) => {
     const response = await fetch(`${OLLAMA_BASE_URL}/api/generate`, {
@@ -14,3 +14,7 @@ export const generateResponse = async (prompt: string, clientContext: any) => {
     });
     return response.json();
 };
+
+export interface Database {
+    public: { Tables: { [key: string]: any } };
+}

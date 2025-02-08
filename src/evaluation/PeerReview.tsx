@@ -1,197 +1,177 @@
-import React, { useState, useEffect } from 'react';
-import { Card } from '@/components/ui/card';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
+import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, } from '@/components/ui/dialog';
-import { MessageCircle, Users, Star, Flag } from 'lucide-react';
-interface PeerReviewComment {
-    id: string;
-    reviewerId: string;
-    reviewerName: string;
-    timestamp: Date;
-    comment: string;
-    category: 'technique' | 'approach' | 'effectiveness' | 'suggestion';
-    rating?: number;
-    interventionId?: string;
-}
-interface PeerReviewProps {
-    sessionId: string;
-    therapistId: string;
-    onSubmitReview: (review: Omit<PeerReviewComment, 'id' | 'timestamp'>) => void;
-}
-const PeerReview: React.FC = ({ sessionId, therapistId, onSubmitReview }) => {
-    const [comments, setComments] = useState<PeerReviewComment[]>([]);
-    const [newComment, setNewComment] = useState<string>('');
-    const [selectedCategory, setSelectedCategory] = useState<PeerReviewComment['category']>('technique');
-    const [rating, setRating] = useState<number>(0);
-    const [reviewers, setReviewers] = useState<Set<string>>(new Set());
-    const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-    useEffect(() => {
-        const loadComments = async () => {
-            try {
-                const response = await fetch(`/api/sessions/${sessionId}/peer-reviews`);
-                if (response.ok) {
-                    const data = await response.json();
-                    setComments(data.comments);
-                    setReviewers(new Set(data.comments.map((c: PeerReviewComment) => c.reviewerId)));
-                }
-            }
-            catch (error) {
-                console.error('Error loading peer reviews:', error);
-            }
-        };
-        loadComments();
-    }, [sessionId]);
-    const handleSubmitComment = async () => {
-        if (!newComment.trim())
-            return;
-        setIsSubmitting(true);
-        try {
-            const review = {
-                reviewerId: 'current-user-id', // Replace with actual user ID
-                reviewerName: 'Current User', // Replace with actual user name
-                comment: newComment,
-                category: selectedCategory,
-                rating: rating
-            };
-            await onSubmitReview(review);
-            setNewComment('');
-            setSelectedCategory('technique');
-            setRating(0);
-        }
-        catch (error) {
-            console.error('Error submitting review:', error);
-        }
-        finally {
-            setIsSubmitting(false);
-        }
-    };
-    const getCategoryIcon = (category: PeerReviewComment['category']) => {
-        switch (category) {
-            case 'technique':
-                return <MessageCircle className="h-4 w-4"></MessageCircle>;
-            case 'approach':
-                return <Users className="h-4 w-4"></Users>;
-            case 'effectiveness':
-                return <Star className="h-4 w-4"></Star>;
-            case 'suggestion':
-                return <Flag className="h-4 w-4"></Flag>;
-        }
-    };
-    const getCategoryColor = (category: PeerReviewComment['category']) => {
-        switch (category) {
-            case 'technique':
-                return 'bg-purple-100 text-purple-800';
-            case 'approach':
-                return 'bg-blue-100 text-blue-800';
-            case 'effectiveness':
-                return 'bg-yellow-100 text-yellow-800';
-            case 'suggestion':
-                return 'bg-green-100 text-green-800';
-        }
-    };
-    return (<div className="space-y-4">
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { PeerReviewProps } from '@/types/componentprops';
+
+const PeerReview: React.FC<PeerReviewProps> = ({ sessionId, therapistId, onSubmitReview }) => {
+  const [rating, setRating] = useState(5);
+  const [feedback, setFeedback] = useState('');
+  const [selectedAreas, setSelectedAreas] = useState<string[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  const areas = [
+    'Therapeutic Alliance',
+    'Intervention Choice',
+    'Timing',
+    'Cultural Competence',
+    'Goal Alignment',
+    'Crisis Management',
+    'Documentation',
+    'Ethics',
+  ];
+
+  const toggleArea = (area: string) => {
+    setSelectedAreas(prev =>
+      prev.includes(area)
+        ? prev.filter((a: any) => a !== area)
+        : [...prev, area]
+    );
+  };
+
+  const handleSubmit = async () => {
+    if (!feedback.trim()) {
+      setError(new Error('Please provide feedback'));
+      return;
+    }
+
+    if (selectedAreas.length === 0) {
+      setError(new Error('Please select at least one area'));
+      return;
+    }
+
+    setIsSubmitting(true);
+    setError(null);
+
+    try {
+      const review = {
+        rating,
+        feedback,
+        areas: selectedAreas,
+      };
+
+      await onSubmitReview(review);
+      setIsDialogOpen(false);
+      resetForm();
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error('Failed to submit review'));
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const resetForm = () => {
+    setRating(5);
+    setFeedback('');
+    setSelectedAreas([]);
+    setError(null);
+  };
+
+  return (
+    <div className="space-y-4">
       <Card className="p-4">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-semibold">Peer Reviews</h3>
-          <Badge variant="outline">
-            {reviewers.size} Reviewer{reviewers.size !== 1 ? 's' : ''}
-          </Badge>
-        </div>
-
-        <div className="space-y-4 mb-6">
-          {comments.map((comment) => (<div key={comment.id} className="border-b last:border-0 pb-4">
-              <div className="flex justify-between items-start mb-2">
-                <div className="flex items-center gap-2">
-                  <span className="font-medium">{comment.reviewerName}</span>
-                  <Badge className={getCategoryColor(comment.category)}>
-                    <span className="flex items-center gap-1">
-                      {getCategoryIcon(comment.category)}
-                      {comment.category}
-                    </span>
-                  </Badge>
-                </div>
-                <span className="text-sm text-gray-500">
-                  {new Date(comment.timestamp).toLocaleString()}
-                </span>
-              </div>
-              
-              <p className="text-sm text-gray-700 mb-2">{comment.comment}</p>
-              
-              {comment.rating && (<div className="flex items-center gap-1">
-                  {[...Array(5)].map((_: unknown, i) => (<Star key={i} className={`h-4 w-4 ${i < comment.rating! ? 'text-yellow-400 fill-current' : 'text-gray-300'}`}></Star>))}
-                </div>)}
-            </div>))}
-        </div>
-
+        <h2 className="text-2xl font-bold mb-4">Peer Review</h2>
+        
         <div className="space-y-4">
-          <div className="flex gap-2">
-            {(['technique', 'approach', 'effectiveness', 'suggestion'] as const).map((category) => (<Button key={category} variant={selectedCategory === category ? 'default' : 'outline'} size="sm" onClick={() => setSelectedCategory(category)} className="flex items-center gap-1">
-                {getCategoryIcon(category)}
-                {category}
-              </Button>))}
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              Overall Rating: {rating}/10
+            </label>
+            <Slider
+              value={[rating]}
+              onValueChange={([value]) => setRating(value)}
+              max={10}
+              step={1}
+              className="w-full"
+            />
           </div>
 
-          <Textarea placeholder="Share your professional feedback..." value={newComment} onChange={(e: unknown) => setNewComment(e.target.value)} className="min-h-[100px]"/>
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              Areas of Focus
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {areas.map((area: any) => (
+                <Badge
+                  key={area}
+                  variant={selectedAreas.includes(area) ? 'default' : 'outline'}
+                  className="cursor-pointer"
+                  onClick={() => toggleArea(area)}
+                >
+                  {area}
+                </Badge>
+              ))}
+            </div>
+          </div>
 
-          {selectedCategory === 'effectiveness' && (<div className="flex items-center gap-2">
-              <span className="text-sm">Rating:</span>
-              <div className="flex gap-1">
-                {[1, 2, 3, 4, 5].map((value) => (<Button key={value} variant="ghost" size="sm" onClick={() => setRating(value)} className={value <= rating ? 'text-yellow-400' : 'text-gray-300'}>
-                    <Star className="h-4 w-4 fill-current"></Star>
-                  </Button>))}
-              </div>
-            </div>)}
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              Detailed Feedback
+            </label>
+            <Textarea
+              placeholder="Share your professional feedback..."
+              value={feedback}
+              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setFeedback(e.target.value)}
+              className="min-h-[100px]"
+            />
+          </div>
 
-          <Button onClick={handleSubmitComment} disabled={isSubmitting || !newComment.trim()} className="w-full">
+          {error && (
+            <div className="text-red-500 text-sm">
+              {error.message}
+            </div>
+          )}
+
+          <Button
+            onClick={() => setIsDialogOpen(true)}
+            disabled={isSubmitting}
+            className="w-full"
+          >
             Submit Review
           </Button>
         </div>
       </Card>
 
-      <Dialog>
-        <DialogTrigger asChild>
-          <Button variant="outline" className="w-full">
-            View Review Guidelines
-          </Button>
-        </DialogTrigger>
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Peer Review Guidelines</DialogTitle>
-            <DialogDescription>
-              Follow these guidelines to provide constructive feedback:
-            </DialogDescription>
+            <DialogTitle>Confirm Review Submission</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <h4 className="font-medium mb-2">Technique Reviews</h4>
-              <p className="text-sm text-gray-600">
-                Focus on specific therapeutic techniques used, their application, and timing.
-              </p>
-            </div>
-            <div>
-              <h4 className="font-medium mb-2">Approach Reviews</h4>
-              <p className="text-sm text-gray-600">
-                Evaluate the overall therapeutic approach and its alignment with client needs.
-              </p>
-            </div>
-            <div>
-              <h4 className="font-medium mb-2">Effectiveness Reviews</h4>
-              <p className="text-sm text-gray-600">
-                Assess the impact and outcomes of specific interventions or the session as a whole.
-              </p>
-            </div>
-            <div>
-              <h4 className="font-medium mb-2">Suggestions</h4>
-              <p className="text-sm text-gray-600">
-                Provide constructive suggestions for improvement or alternative approaches.
-              </p>
+          
+          <div className="py-4">
+            <p>Are you sure you want to submit this peer review? This action cannot be undone.</p>
+            
+            <div className="mt-4 space-y-2">
+              <p><strong>Rating:</strong> {rating}/10</p>
+              <p><strong>Areas:</strong> {selectedAreas.join(', ')}</p>
+              <p><strong>Feedback:</strong> {feedback}</p>
             </div>
           </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsDialogOpen(false)}
+              disabled={isSubmitting}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSubmit}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Submitting...' : 'Confirm'}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>);
+    </div>
+  );
 };
+
 export default PeerReview;

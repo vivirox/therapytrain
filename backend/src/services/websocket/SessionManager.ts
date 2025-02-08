@@ -1,86 +1,136 @@
-import { supabase } from "@/../../config/database";
-export interface Session {
-    id: string;
-    userId: string;
-    status: 'active' | 'paused' | 'completed' | 'cancelled';
-    startTime: Date;
-    endTime?: Date;
-    metadata?: {
-        messageCount: number;
-        lastActivity: Date;
-        duration: number;
-    };
-}
+import { supabase } from "../../config/database";
+import { SecurityAuditService } from '../SecurityAuditService';
+import { Session, SessionStatus } from "../../types/session";
+
 export class SessionManager {
-    private activeSessions: Map<string, Session> = new Map();
-    async createSession(userId: string): Promise<Session> {
-        try {
-            const { data, error } = await supabase
-                .from('sessions')
-                .insert({
-                user_id: userId,
-                status: 'active',
-                start_time: new Date().toISOString(),
-                metadata: {
-                    messageCount: 0,
-                    lastActivity: new Date().toISOString(),
-                    duration: 0
-                }
-            })
-                .select()
-                .single();
-            if (error)
-                throw error;
-            const session: Session = {
-                id: data.id,
-                userId: data.user_id,
-                status: data.status,
-                startTime: new Date(data.start_time),
-                metadata: data.metadata
-            };
-            this.activeSessions.set(session.id, session);
-            return session;
-        }
-        catch (error) {
-            console.error('Error creating session:', error);
-            throw error;
-        }
+    private readonly sessions: Map<string, Session> = new Map();
+    private readonly securityAuditService: SecurityAuditService;
+
+    constructor(securityAuditService: SecurityAuditService) {
+        this.securityAuditService = securityAuditService;
     }
-    async getSession(sessionId: string): Promise<Session | null> {
-        // Check cache first
-        if (this.activeSessions.has(sessionId)) {
-            return this.activeSessions.get(sessionId)!;
-        }
-        // If not in cache, check database
+
+    async createSession(userId: string): Promise<Session> {
+        const sessionId = crypto.randomBytes(16).toString('hex');
+        const session: Session = {
+            id: sessionId,
+            userId,
+            clients: new Set<string>(),
+            status: SessionStatus.ACTIVE,
+            startTime: new Date(),
+            data: {}
+        };
+        this.sessions.set(sessionId, session);
+        return session;
+    }
+
+    getSession(sessionId: string): Session | undefined {
+        return this.sessions.get(sessionId);
+    }
+
+    async loadSession(sessionId: string): Promise<Session | null> {
         try {
-            const { data, error } = await supabase
+            const { data: sessionData, error } = await supabase
                 .from('sessions')
                 .select('*')
                 .eq('id', sessionId)
                 .single();
-            if (error)
-                throw error;
-            if (!data)
+
+            if (error || !sessionData) {
                 return null;
-            const session: Session = {
-                id: data.id,
-                userId: data.user_id,
-                status: data.status,
-                startTime: new Date(data.start_time),
-                endTime: data.end_time ? new Date(data.end_time) : undefined,
-                metadata: data.metadata
-            };
-            // Cache active sessions
-            if (session.status === 'active') {
-                this.activeSessions.set(session.id, session);
             }
+
+            const session: Session = {
+                id: sessionData.id,
+                userId: sessionData.userId,
+                clients: new Set<string>(),
+                status: sessionData.status,
+                startTime: new Date(sessionData.startTime),
+                data: sessionData.data || {}
+            };
+
+            this.sessions.set(sessionId, session);
             return session;
-        }
-        catch (error) {
-            console.error('Error getting session:', error);
+        } catch (error) {
+            await this.securityAuditService.recordAlert('SESSION_LOAD_ERROR', 'HIGH', {
+                error: error instanceof Error ? error.message : 'Unknown error',
+                sessionId
+            });
             return null;
         }
     }
+
+    async addClient(sessionId: string, clientId: string): Promise<void> {
+        let session = this.sessions.get(sessionId);
+
+        if (!session) {
+            session = {
+                id: sessionId,
+                clients: new Set(),
+                data: {}
+            };
+            this.sessions.set(sessionId, session);
+        }
+
+        session.clients.add(clientId);
+
+        await this.securityAuditService.recordEvent('SESSION_JOIN', {
+            sessionId,
+            clientId
+        });
+    }
+
+    async removeClient(sessionId: string, clientId: string): Promise<void> {
+        const session = this.sessions.get(sessionId);
+        if (!session) return;
+
+        session.clients.delete(clientId);
+
+        if (session.clients.size === 0) {
+            this.sessions.delete(sessionId);
+        }
+
+        await this.securityAuditService.recordEvent('SESSION_LEAVE', {
+            sessionId,
+            clientId
+        });
+    }
+
+    async handleMessage(sessionId: string, clientId: string, message: any): Promise<void> {
+        const session = this.sessions.get(sessionId);
+        if (!session) {
+            throw new Error('Session not found');
+        }
+
+        await this.securityAuditService.recordEvent('SESSION_MESSAGE', {
+            sessionId,
+            clientId,
+            messageType: message.type
+        });
+
+        // Handle message based on type
+        switch (message.type) {
+            case 'update_data':
+                session.data = {
+                    ...session.data,
+                    ...message.data
+                };
+                break;
+
+            case 'clear_data':
+                session.data = {};
+                break;
+
+            default:
+                // Other message types can be handled here
+                break;
+        }
+    }
+
+    getActiveSessions(): Session[] {
+        return Array.from(this.sessions.values());
+    }
+
     async updateSession(sessionId: string, updates: Partial<Session>): Promise<Session | null> {
         try {
             const { data, error } = await supabase
@@ -99,18 +149,15 @@ export class SessionManager {
                 return null;
             const session: Session = {
                 id: data.id,
-                userId: data.user_id,
-                status: data.status,
-                startTime: new Date(data.start_time),
-                endTime: data.end_time ? new Date(data.end_time) : undefined,
-                metadata: data.metadata
+                clients: new Set(),
+                data: {}
             };
             // Update cache if session is active
             if (session.status === 'active') {
-                this.activeSessions.set(session.id, session);
+                this.sessions.set(session.id, session);
             }
             else {
-                this.activeSessions.delete(session.id);
+                this.sessions.delete(session.id);
             }
             return session;
         }
@@ -119,6 +166,7 @@ export class SessionManager {
             return null;
         }
     }
+
     async endSession(sessionId: string): Promise<void> {
         try {
             const session = await this.getSession(sessionId);
@@ -135,13 +183,14 @@ export class SessionManager {
                     lastActivity: endTime
                 }
             });
-            this.activeSessions.delete(sessionId);
+            this.sessions.delete(sessionId);
         }
         catch (error) {
             console.error('Error ending session:', error);
             throw error;
         }
     }
+
     async pauseSession(sessionId: string): Promise<void> {
         try {
             const session = await this.getSession(sessionId);
@@ -160,6 +209,7 @@ export class SessionManager {
             throw error;
         }
     }
+
     async resumeSession(sessionId: string): Promise<void> {
         try {
             const session = await this.getSession(sessionId);
@@ -178,6 +228,7 @@ export class SessionManager {
             throw error;
         }
     }
+
     async incrementMessageCount(sessionId: string): Promise<void> {
         try {
             const session = await this.getSession(sessionId);
@@ -196,29 +247,29 @@ export class SessionManager {
             throw error;
         }
     }
-    getActiveSessions(): Session[] {
-        return Array.from(this.activeSessions.values());
-    }
+
     async cleanupInactiveSessions(timeoutMinutes: number = 60): Promise<void> {
         const cutoff = new Date(Date.now() - timeoutMinutes * 60 * 1000);
         try {
             const { data, error } = await supabase
                 .from('sessions')
                 .update({
-                status: 'completed',
-                end_time: new Date().toISOString()
-            })
+                    status: 'completed',
+                    end_time: new Date().toISOString()
+                })
                 .eq('status', 'active')
                 .lt('metadata->lastActivity', cutoff.toISOString())
                 .select();
-            if (error)
-                throw error;
+
+            if (error) throw error;
+
             // Clear from cache
             if (data) {
-                data.forEach(session, unknown => this.activeSessions.delete(session.id));
+                data.forEach((session: Session) => {
+                    this.sessions.delete(session.id);
+                });
             }
-        }
-        catch (error) {
+        } catch (error) {
             console.error('Error cleaning up inactive sessions:', error);
             throw error;
         }

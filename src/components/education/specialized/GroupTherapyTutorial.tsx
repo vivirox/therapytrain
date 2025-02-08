@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { Textarea } from "@/components/ui/textarea";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { Textarea } from '@/components/ui/textarea';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { MdGroups as Users, MdMessage as MessageSquare, MdError as AlertCircle, MdCheckCircle as CheckCircle, MdHelpOutline as HelpCircle, MdPersonAdd as UserPlus, MdPersonRemove as UserMinus, MdAutoAwesome as Sparkles } from 'react-icons/md';
-import { AnalyticsService } from "@/services/analytics";
+import { AnalyticsService } from '@/services/analytics';
 
 interface GroupMember {
     id: string;
@@ -64,9 +64,10 @@ interface GroupTherapyTutorialProps {
     userId: string;
     scenarioId: string;
     onComplete: (results: any) => void;
+    className?: string;
 }
 
-export const GroupTherapyTutorial = ({ userId, scenarioId, onComplete }: GroupTherapyTutorialProps) => {
+export const GroupTherapyTutorial: React.FC = ({ userId, scenarioId, onComplete }: GroupTherapyTutorialProps) => {
     const [scenario, setScenario] = useState<GroupTherapyScenario | null>(null);
     const [currentTime, setCurrentTime] = useState<number>(0);
     const [groupDynamics, setGroupDynamics] = useState<GroupDynamic>({
@@ -118,7 +119,7 @@ export const GroupTherapyTutorial = ({ userId, scenarioId, onComplete }: GroupTh
     }, [scenario, currentTime]);
 
     const updateGroupDynamics = () => {
-        const averageEngagement = memberStates.reduce((sum, member) => sum + member.engagement, 0) /
+        const averageEngagement = memberStates.reduce((sum: any, member: any) => sum + member.engagement, 0) /
             memberStates.length;
         setGroupDynamics(prev => ({
             ...prev,
@@ -150,7 +151,7 @@ export const GroupTherapyTutorial = ({ userId, scenarioId, onComplete }: GroupTh
             ...option.impact.groupDynamic
         }));
         // Update member states
-        setMemberStates(prev => prev.map(member => {
+        setMemberStates(prev => prev.map((member: any) => {
             const effect = option.impact.memberEffects.find(e => e.memberId === member.id);
             if (effect) {
                 return {
@@ -196,7 +197,7 @@ export const GroupTherapyTutorial = ({ userId, scenarioId, onComplete }: GroupTh
             finalGroupDynamics: groupDynamics,
             interventions,
             duration: currentTime,
-            memberOutcomes: memberStates.map(member => ({
+            memberOutcomes: memberStates.map((member: any) => ({
                 memberId: member.id,
                 finalEngagement: member.engagement,
                 finalMood: member.currentMood
@@ -231,7 +232,7 @@ export const GroupTherapyTutorial = ({ userId, scenarioId, onComplete }: GroupTh
                 </div>
 
                 <div className="flex flex-wrap gap-2 mt-4">
-                    {scenario.therapeuticGoals.map((goal) => (
+                    {scenario.therapeuticGoals.map((goal: any) => (
                         <Badge key={goal} variant="outline">
                             {goal}
                         </Badge>
@@ -248,7 +249,7 @@ export const GroupTherapyTutorial = ({ userId, scenarioId, onComplete }: GroupTh
                         Group Members
                     </h3>
                     <div className="space-y-4">
-                        {memberStates.map((member) => (
+                        {memberStates.map((member: any) => (
                             <Card key={member.id} className="p-4">
                                 <div className="flex items-start justify-between">
                                     <div>
@@ -261,7 +262,7 @@ export const GroupTherapyTutorial = ({ userId, scenarioId, onComplete }: GroupTh
                                 </div>
                                 <Progress value={member.engagement} className="h-1 mt-2" />
                                 <div className="flex flex-wrap gap-2 mt-2">
-                                    {member.presentingIssues.map((issue) => (
+                                    {member.presentingIssues.map((issue: any) => (
                                         <Badge key={issue} variant="outline" className="text-xs">
                                             {issue}
                                         </Badge>
@@ -318,7 +319,7 @@ export const GroupTherapyTutorial = ({ userId, scenarioId, onComplete }: GroupTh
                 </div>
                 <p className="mb-4">{currentEvent.description}</p>
                 <div className="space-y-2">
-                    {currentEvent.options.map(option => (<Button key={option.text} variant="outline" className="w-full text-left justify-start" onClick={() => handleIntervention(option)}>
+                    {currentEvent.options.map((option: any) => (<Button key={option.text} variant="outline" className="w-full text-left justify-start" onClick={() => handleIntervention(option)}>
                         {option.text}
                     </Button>))}
                 </div>
@@ -343,7 +344,7 @@ export const GroupTherapyTutorial = ({ userId, scenarioId, onComplete }: GroupTh
                 <TabsContent value="interventions">
                     <Card className="p-4">
                         <div className="space-y-2">
-                            {interventions.map((intervention, index) => (<div key={index} className="p-3 bg-gray-800 rounded-lg">
+                            {interventions.map((intervention: any, index: any) => (<div key={index} className="p-3 bg-gray-800 rounded-lg">
                                 <div className="flex items-center justify-between mb-1">
                                     <Badge variant="outline">{intervention.type}</Badge>
                                     <span className="text-sm text-gray-400">

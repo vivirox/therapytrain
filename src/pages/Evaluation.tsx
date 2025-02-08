@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from '@/lib/supabase';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import type { ClientProfile } from '@/types/ClientProfile';
+import type { ClientProfile } from '@/types/common';
+
 interface EvaluationCriteria {
     category: string;
     criteria: Array<{
@@ -16,6 +17,7 @@ interface EvaluationCriteria {
         feedback: string;
     }>;
 }
+
 interface SessionData {
     clientId: string;
     sessionStartTime: string;
@@ -24,6 +26,7 @@ interface SessionData {
         content: string;
     }>;
 }
+
 const evaluationCriteria: EvaluationCriteria[] = [
     {
         category: "Therapeutic Alliance",
@@ -95,7 +98,15 @@ const evaluationCriteria: EvaluationCriteria[] = [
         ]
     }
 ];
-const EvaluationPage = () => {
+
+interface ClientProfile {
+  id: string;
+  primary_issue: string;
+  key_traits: string[];
+  // Add other properties as needed
+}
+
+const EvaluationPage: React.FC = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const [sessionData, setSessionData] = useState<SessionData | null>(null);
@@ -148,8 +159,8 @@ const EvaluationPage = () => {
     const calculateOverallScore = () => {
         let total = 0;
         let count = 0;
-        evaluation.forEach(category => {
-            category.criteria.forEach(criterion => {
+        evaluation.forEach((category: any) => {
+            category.criteria.forEach((criterion: any) => {
                 total += criterion.score;
                 count++;
             });
@@ -200,10 +211,10 @@ const EvaluationPage = () => {
 
             <TabsContent value="evaluation">
               <div className="space-y-6">
-                {evaluation.map((category, idx) => (<Card key={idx} className="p-6">
+                {evaluation.map((category: any, idx: any) => (<Card key={idx} className="p-6">
                     <h3 className="text-xl font-semibold mb-4">{category.category}</h3>
                     <div className="space-y-4">
-                      {category.criteria.map((criterion, cIdx) => (<div key={cIdx} className="border-b pb-4">
+                      {category.criteria.map((criterion: any, cIdx: any) => (<div key={cIdx} className="border-b pb-4">
                           <div className="flex justify-between items-start mb-2">
                             <div>
                               <h4 className="font-medium">{criterion.name}</h4>
@@ -224,7 +235,7 @@ const EvaluationPage = () => {
               <Card className="p-6">
                 <h3 className="text-xl font-semibold mb-4">Session Transcript</h3>
                 <div className="space-y-4">
-                  {sessionData?.messages.map((message, idx) => (<div key={idx} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                  {sessionData?.messages.map((message: any, idx: any) => (<div key={idx} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                       <div className={`max-w-[80%] p-3 rounded-lg ${message.role === 'user'
                 ? 'bg-primary text-primary-foreground'
                 : 'bg-muted'}`}>
@@ -242,7 +253,7 @@ const EvaluationPage = () => {
               <Card className="p-6">
                 <h3 className="text-xl font-semibold mb-4">AI Analysis</h3>
                 <div className="prose max-w-none">
-                  {aiAnalysis.split('\n').map((paragraph, idx) => (<p key={idx}>{paragraph}</p>))}
+                  {aiAnalysis.split('\n').map((paragraph: any, idx: any) => (<p key={idx}>{paragraph}</p>))}
                 </div>
               </Card>
             </TabsContent>
@@ -264,9 +275,11 @@ const EvaluationPage = () => {
               <div>
                 <p className="text-sm font-medium">Key Traits</p>
                 <div className="flex flex-wrap gap-2 mt-1">
-                  {client.key_traits.map((trait: unknown, idx: unknown) => (<Badge key={idx} variant="outline">
+                  {client.key_traits.map((trait: string, idx: number) => (
+                    <Badge key={idx} variant="outline">
                       {trait}
-                    </Badge>))}
+                    </Badge>
+                  ))}
                 </div>
               </div>
             </div>

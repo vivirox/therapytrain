@@ -1,6 +1,6 @@
-import { SupabaseClient } from '@supabase/supabase-js';
-import { InterventionOptimizationSystem } from "@/../services/interventionOptimization";
-import { EncryptionService } from "@/../services/encryption";
+import { SupabaseClient, User, Session } from '@supabase/supabase-js';
+import { InterventionOptimizationSystem } from '@/services/interventionoptimization';
+import { EncryptionService } from '@/services/encryption';
 interface MessageMetadata {
     interventionType?: string;
     therapeuticApproach?: string;
@@ -36,4 +36,8 @@ export class TherapyMessageHandler {
         }
         const recommendations = this.optimizer.getRecommendations(content);
     }
+}
+
+export interface Database {
+    public: { Tables: { [key: string]: any } };
 }

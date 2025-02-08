@@ -1,6 +1,6 @@
-import express from 'express';
-import { getAllTutorials } from '../models/education';
-import { Request, Response, Router } from 'express';
+import express, { Request, Response, NextFunction } from 'express';
+import { getAllTutorials } from '@/models/education';
+import { Request, Response, Router, NextFunction } from 'express';
 
 const router: Router = express.Router();
 

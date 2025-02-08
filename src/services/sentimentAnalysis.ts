@@ -75,7 +75,7 @@ export const analyzeSentiment = (text: string): SentimentAnalysis => {
 export const analyzeMessageHistory = (messages: { content: string; timestamp?: number }[]): number => {
   if (messages.length === 0) return 0;
   
-  const scores = messages.map(msg => analyzeSentiment(msg.content).score);
-  const average = scores.reduce((a, b) => a + b, 0) / scores.length;
+  const scores = messages.map((msg: any) => analyzeSentiment(msg.content).score);
+  const average = scores.reduce((a: any, b: any) => a + b, 0) / scores.length;
   return normalizeScore(average);
 };

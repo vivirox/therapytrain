@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
-import { supabase } from '../lib/supabase';
-import { User } from '@supabase/supabase-js';
+import { supabase } from '@/lib/supabase';
+import { User, SupabaseClient, Session } from '@supabase/supabase-js';
 
 export const supabaseAuthMiddleware = async (
   req: Request,
@@ -38,4 +38,8 @@ declare global {
       user?: User;
     }
   }
+}
+
+export interface Database {
+    public: { Tables: { [key: string]: any } };
 }

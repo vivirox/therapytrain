@@ -1,5 +1,5 @@
-import { SecurityAuditService } from "@/SecurityAuditService";
-import { supabase } from "@/../config/supabase";
+import { SecurityAuditService } from "../SecurityAuditService";
+import { supabase } from "../../config/supabase";
 jest.mock('../../config/supabase', () => ({
     supabase: {
         from: jest.fn().mockReturnThis(),
@@ -19,7 +19,7 @@ describe('SecurityAuditService', () => {
     });
     describe('recordEvent', () => {
         it('should buffer events and flush when buffer is full', async () => {
-            const mockEvents = Array(51).fill(null).map((_: unknown, i) => ({
+            const mockEvents = Array(51).fill(null).map((_: unknown, i: any) => ({
                 eventType: 'TEST_EVENT',
                 details: { test: `event-${i}` }
             }));

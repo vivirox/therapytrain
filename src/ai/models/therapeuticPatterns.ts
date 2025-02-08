@@ -1,4 +1,4 @@
-import { ClientProfile } from '@/types/ClientProfile';
+import { ClientProfile } from '@/types/clientprofile';
 export interface TherapeuticPattern {
     name: string;
     description: string;
@@ -158,7 +158,7 @@ export const emotionalResponses: Array<EmotionalResponse> = [
 ];
 export function analyzeMessage(message: string, context: MessageContext): TherapeuticPattern[] {
     const patterns = getTherapeuticPatterns();
-    return patterns.filter(pattern => pattern.isApplicable(message, context));
+    return patterns.filter((pattern: any) => pattern.isApplicable(message, context));
 }
 function getTherapeuticPatterns(): TherapeuticPattern[] {
     return [

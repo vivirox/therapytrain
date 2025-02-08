@@ -1,320 +1,243 @@
-import React, { useState, useEffect, useRef, ChangeEvent } from 'react';
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Slider } from "@/components/ui/slider";
-import { MdPlayArrow as Play, MdPause as Pause, MdRefresh as RotateCcw, MdFastForward as FastForward, MdFastRewind as Rewind, MdVolumeUp as Volume2, MdVolumeOff as VolumeX } from 'react-icons/md';
-import { AnalyticsService } from "@/services/analytics";
+import React, { useState, useEffect } from 'react';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Slider } from '@/components/ui/slider';
+import { AnalyticsService } from '@/services/analytics';
 
-interface EmotionalResponse {
-    emotion: string;
-    intensity: number;
-    timestamp: number;
-}
-
-interface ClientBehavior {
-    behavior: string;
-    context: string;
-    timestamp: number;
-}
-
-interface SimulationScene {
-    id: string;
-    videoUrl: string;
-    duration: number;
-    emotionalResponses: EmotionalResponse[];
-    clientBehaviors: ClientBehavior[];
-    decisionPoints: Array<{
-        timestamp: number;
-        scenario: string;
-        options: Array<{
-            text: string;
-            outcome: string;
-            feedback: string;
-            score: number;
-        }>;
-    }>;
+interface SimulationInsight {
+  timestamp: number;
+  insight: string;
+  type: 'observation' | 'feedback' | 'suggestion';
 }
 
 interface SimulationTutorialProps {
-    userId: string;
-    simulationId: string;
-    onComplete: (results: any) => void;
+  userId: string;
+  scenarioId: string;
+  onComplete: () => void;
+    className?: string;
 }
 
-export const SimulationTutorial = ({ userId, simulationId, onComplete }: SimulationTutorialProps) => {
-    const [simulation, setSimulation] = useState<SimulationScene | null>(null);
-    const [isPlaying, setIsPlaying] = useState<boolean>(false);
-    const [currentTime, setCurrentTime] = useState<number>(0);
-    const [volume, setVolume] = useState<number>(1);
-    const [isMuted, setIsMuted] = useState<boolean>(false);
-    const [playbackSpeed, setPlaybackSpeed] = useState<number>(1);
-    const [currentDecision, setCurrentDecision] = useState<SimulationScene['decisionPoints'][0] | null>(null);
-    const [userResponses, setUserResponses] = useState<Array<{
-        timestamp: number;
-        response: string;
-        score: number;
-    }>>([]);
-    const [emotionalInsights, setEmotionalInsights] = useState<Array<{
-        timestamp: number;
-        insight: string;
-    }>>([]);
-    const videoRef = useRef<HTMLVideoElement>(null);
+export const SimulationTutorial: React.FC<SimulationTutorialProps> = ({
+  userId,
+  scenarioId,
+  onComplete
+}) => {
+  const [currentStep, setCurrentStep] = useState(0);
+  const [userChoices, setUserChoices] = useState<string[]>([]);
+  const [insights, setInsights] = useState<SimulationInsight[]>([]);
+  const [empathyScore, setEmpathyScore] = useState(0);
+  const [progress, setProgress] = useState(0);
 
-    useEffect(() => {
-        const fetchSimulation = async () => {
-            try {
-                const response = await fetch(`/api/simulations/${simulationId}`);
-                if (response.ok) {
-                    const data = await response.json();
-                    setSimulation(data);
-                }
-            }
-            catch (error) {
-                console.error('Error fetching simulation:', error);
-            }
-        };
-        fetchSimulation();
-    }, [simulationId]);
+  const scenario = {
+    title: 'Client Crisis Intervention',
+    description: 'Practice handling a crisis situation with a simulated client.',
+    steps: [
+      {
+        title: 'Initial Assessment',
+        content: 'A client calls expressing severe anxiety and suicidal thoughts. How do you respond?',
+        options: [
+          'Immediately ask about specific suicide plans',
+          'Calmly acknowledge their feelings and establish rapport',
+          'Direct them to emergency services',
+          'Schedule an urgent in-person session'
+        ]
+      },
+      {
+        title: 'Safety Planning',
+        content: 'The client indicates no immediate suicide plan but feels overwhelmed. What\'s your next step?',
+        options: [
+          'Create a detailed safety plan together',
+          'Explore their support system',
+          'Teach grounding techniques',
+          'Assess their current coping mechanisms'
+        ]
+      },
+      {
+        title: 'Resource Connection',
+        content: 'The client needs additional support. How do you proceed?',
+        options: [
+          'Provide crisis hotline numbers',
+          'Connect with family members',
+          'Arrange follow-up care',
+          'Recommend support groups'
+        ]
+      }
+    ]
+  };
 
-    useEffect(() => {
-        if (!videoRef.current || !simulation)
-            return;
-        const video = videoRef.current;
-        const handleTimeUpdate = () => {
-            setCurrentTime(video.currentTime);
-            checkDecisionPoints(video.currentTime);
-            updateEmotionalInsights(video.currentTime);
-        };
-        video.addEventListener('timeupdate', handleTimeUpdate);
-        return () => video.removeEventListener('timeupdate', handleTimeUpdate);
-    }, [simulation]);
+  useEffect(() => {
+    setProgress((currentStep / (scenario.steps.length - 1)) * 100);
+  }, [currentStep]);
 
-    const checkDecisionPoints = (time: number) => {
-        if (!simulation)
-            return;
-        const currentDecisionPoint = simulation.decisionPoints.find(point => Math.abs(point.timestamp - time) < 0.5 && // Within half a second
-            !userResponses.some(response => response.timestamp === point.timestamp));
-        if (currentDecisionPoint) {
-            setIsPlaying(false);
-            setCurrentDecision(currentDecisionPoint);
-        }
+  const handleChoice = (choice: string) => {
+    setUserChoices(prev => [...prev, choice]);
+    
+    // Simulate AI analysis of choice
+    const newInsight: SimulationInsight = {
+      timestamp: Date.now(),
+      insight: generateInsight(choice),
+      type: 'feedback'
     };
+    
+    setInsights(prev => [...prev, newInsight]);
+    
+    // Track choice in analytics
+    AnalyticsService.trackEvent({
+      type: 'simulation_choice',
+      userId,
+      timestamp: Date.now(),
+      data: {
+        scenarioId,
+        step: currentStep,
+        choice
+      }
+    });
 
-    const updateEmotionalInsights = (time: number) => {
-        if (!simulation)
-            return;
-        const currentEmotions = simulation.emotionalResponses.filter(response => Math.abs(response.timestamp - time) < 1);
-        const currentBehaviors = simulation.clientBehaviors.filter(behavior => Math.abs(behavior.timestamp - time) < 1);
-        if (currentEmotions.length > 0 || currentBehaviors.length > 0) {
-            setEmotionalInsights(prev => [
-                ...prev,
-                {
-                    timestamp: time,
-                    insight: generateInsight(currentEmotions, currentBehaviors)
-                }
-            ]);
-        }
-    };
-
-    const generateInsight = (emotions: EmotionalResponse[], behaviors: ClientBehavior[]): string => {
-        let insight = '';
-        if (emotions.length > 0) {
-            const primaryEmotion = emotions.sort((a, b) => b.intensity - a.intensity)[0];
-            insight += `Client is showing ${primaryEmotion.emotion} (intensity: ${primaryEmotion.intensity}/10). `;
-        }
-        if (behaviors.length > 0) {
-            insight += behaviors
-                .map(b => `Observed behavior: ${b.behavior} in context of ${b.context}`)
-                .join('. ');
-        }
-        return insight;
-    };
-
-    const handleDecisionResponse = (option: SimulationScene['decisionPoints'][0]['options'][0]) => {
-        if (!currentDecision) return;
-        
-        setUserResponses(prev => [
-            ...prev,
-            {
-                timestamp: currentDecision.timestamp,
-                response: option.text,
-                score: option.score
-            }
-        ]);
-        // Track the decision in analytics
-        AnalyticsService.trackResourceEngagement(userId, simulationId, 'simulation_decision', {
-            timestamp: currentDecision.timestamp,
-            decision: option.text,
-            score: option.score
-        });
-        setCurrentDecision(null);
-        setIsPlaying(true);
-    };
-
-    const togglePlayback = () => {
-        if (!videoRef.current)
-            return;
-        if (isPlaying) {
-            videoRef.current.pause();
-        }
-        else {
-            videoRef.current.play();
-        }
-        setIsPlaying(!isPlaying);
-    };
-
-    const handleSeek = (time: number) => {
-        if (!videoRef.current)
-            return;
-        videoRef.current.currentTime = time;
-        setCurrentTime(time);
-    };
-
-    const toggleMute = () => {
-        if (!videoRef.current)
-            return;
-        videoRef.current.muted = !isMuted;
-        setIsMuted(!isMuted);
-    };
-
-    const handleVolumeChange = (value: number) => {
-        if (!videoRef.current)
-            return;
-        videoRef.current.volume = value;
-        setVolume(value);
-    };
-
-    const handlePlaybackSpeedChange = (speed: number) => {
-        if (!videoRef.current)
-            return;
-        videoRef.current.playbackRate = speed;
-        setPlaybackSpeed(speed);
-    };
-
-    const handleSimulationComplete = () => {
-        const results = {
-            simulationId,
-            userId,
-            responses: userResponses,
-            emotionalInsights,
-            averageScore: userResponses.reduce((acc, curr) => acc + curr.score, 0) /
-                userResponses.length,
-            completedAt: new Date()
-        };
-        // Track completion in analytics
-        AnalyticsService.trackTutorialProgress(userId, simulationId, 100);
-        onComplete(results);
-    };
-
-    if (!simulation) {
-        return <div>Loading simulation...</div>;
+    if (currentStep < scenario.steps.length - 1) {
+      setCurrentStep(prev => prev + 1);
+    } else {
+      handleComplete();
     }
+  };
 
-    return (
-        <div className="max-w-4xl mx-auto space-y-8">
-            {/* Video Player */}
-            <Card className="relative">
-                <video ref={videoRef} src={simulation.videoUrl} className="w-full rounded-lg" />
+  const generateInsight = (choice: string): string => {
+    // Simplified insight generation based on choice
+    const insights = {
+      'Immediately ask about specific suicide plans': 
+        'While assessment is important, building rapport first can help the client feel more comfortable sharing.',
+      'Calmly acknowledge their feelings and establish rapport':
+        'Excellent choice. Building trust and showing empathy helps create a safe space for the client.',
+      'Direct them to emergency services':
+        'Consider if immediate escalation is necessary. Sometimes clients need someone to listen first.',
+      'Schedule an urgent in-person session':
+        'Good thinking about face-to-face support, but ensure immediate safety first.',
+      'Create a detailed safety plan together':
+        'Collaborative safety planning empowers the client and provides clear steps for crisis moments.',
+      'Explore their support system':
+        'Understanding their support network is crucial for comprehensive care.',
+      'Teach grounding techniques':
+        'Practical coping strategies can help manage immediate distress.',
+      'Assess their current coping mechanisms':
+        'Building on existing strengths is an effective approach.',
+      'Provide crisis hotline numbers':
+        'Ensuring the client has emergency resources is important for ongoing support.',
+      'Connect with family members':
+        'Remember to maintain confidentiality while involving support systems.',
+      'Arrange follow-up care':
+        'Continuity of care is essential for long-term stability.',
+      'Recommend support groups':
+        'Peer support can be valuable, but ensure immediate needs are addressed first.'
+    };
+    
+    return insights[choice as keyof typeof insights] || 'Consider the impact of your choice on the client\'s wellbeing.';
+  };
 
-                {/* Video Controls */}
-                <div className="absolute bottom-0 left-0 right-0 bg-black/60 p-4 space-y-2">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                            <Button variant="ghost" size="sm" onClick={togglePlayback} className="w-8 h-8 p-0">
-                                {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-                            </Button>
-                            <Button variant="ghost" size="sm" onClick={toggleMute} className="w-8 h-8 p-0">
-                                {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-                            </Button>
-                            <Slider 
-                                value={[volume]} 
-                                min={0} 
-                                max={1} 
-                                step={0.1} 
-                                onValueChange={([value]) => handleVolumeChange(value)} 
-                                className="w-24"
-                            />
-                        </div>
+  const handleComplete = () => {
+    // Calculate final empathy score based on choices
+    const finalScore = calculateEmpathyScore(userChoices);
+    setEmpathyScore(finalScore);
 
-                        <div className="flex items-center gap-2">
-                            <Button variant="ghost" size="sm" onClick={() => handleSeek(currentTime - 10)} className="w-8 h-8 p-0">
-                                <Rewind className="w-4 h-4" />
-                            </Button>
-                            <span className="text-sm text-white">
-                                {Math.floor(currentTime)}/{Math.floor(simulation.duration)}s
-                            </span>
-                            <Button variant="ghost" size="sm" onClick={() => handleSeek(currentTime + 10)} className="w-8 h-8 p-0">
-                                <FastForward className="w-4 h-4" />
-                            </Button>
-                        </div>
+    // Track completion in analytics
+    AnalyticsService.trackEvent({
+      type: 'simulation_complete',
+      userId,
+      timestamp: Date.now(),
+      data: {
+        scenarioId,
+        score: finalScore,
+        choices: userChoices
+      }
+    });
 
-                        <div className="flex items-center gap-2">
-                            <span className="text-sm text-white">Speed:</span>
-                            <select 
-                                value={playbackSpeed} 
-                                onChange={(e: ChangeEvent<HTMLSelectElement>) => handlePlaybackSpeedChange(Number(e.target.value))}
-                                className="bg-transparent text-white border-none"
-                            >
-                                <option value={0.5}>0.5x</option>
-                                <option value={1}>1x</option>
-                                <option value={1.5}>1.5x</option>
-                                <option value={2}>2x</option>
-                            </select>
-                        </div>
-                    </div>
+    onComplete();
+  };
 
-                    <Slider 
-                        value={[currentTime]} 
-                        min={0} 
-                        max={simulation.duration} 
-                        step={1} 
-                        onValueChange={([value]) => handleSeek(value)} 
-                        className="w-full"
-                    />
-                </div>
-            </Card>
+  const calculateEmpathyScore = (choices: string[]): number => {
+    // Simplified scoring based on optimal choices
+    const optimalChoices = [
+      'Calmly acknowledge their feelings and establish rapport',
+      'Create a detailed safety plan together',
+      'Arrange follow-up care'
+    ];
 
-            {/* Decision Point */}
-            {currentDecision && (
-                <Card className="p-6 space-y-4">
-                    <h3 className="text-xl font-semibold">Decision Point</h3>
-                    <p>{currentDecision.scenario}</p>
-                    <div className="space-y-2">
-                        {currentDecision.options.map((option) => (
-                            <Button 
-                                key={option.text} 
-                                variant="outline" 
-                                className="w-full text-left justify-start" 
-                                onClick={() => handleDecisionResponse(option)}
-                            >
-                                {option.text}
-                            </Button>
-                        ))}
-                    </div>
-                </Card>
-            )}
+    const matchCount = choices.filter((choice: any, index: any) => 
+      choice === optimalChoices[index]
+    ).length;
 
-            {/* Emotional Insights */}
-            <Card className="p-6">
-                <h3 className="text-xl font-semibold mb-4">Emotional Insights</h3>
-                <div className="space-y-2">
-                    {emotionalInsights.slice(-3).map((insight: unknown, index: unknown) => (
-                        <div key={index} className="p-3 bg-gray-800 rounded-lg text-sm">
-                            <span className="text-gray-400">
-                                {Math.floor(insight.timestamp)}s:{" "}
-                            </span>
-                            {insight.insight}
-                        </div>
-                    ))}
-                </div>
-            </Card>
+    return (matchCount / optimalChoices.length) * 100;
+  };
 
-            {/* Complete Button */}
-            <Button className="w-full" onClick={handleSimulationComplete} disabled={userResponses.length < simulation.decisionPoints.length}>
-                Complete Simulation
-            </Button>
+  return (
+    <div className="max-w-4xl mx-auto p-6 space-y-6">
+      <Card className="p-6">
+        <h2 className="text-2xl font-bold mb-4">{scenario.title}</h2>
+        <p className="text-gray-600 mb-6">{scenario.description}</p>
+        
+        <div className="mb-6">
+          <div className="h-2 bg-gray-200 rounded-full">
+            <div 
+              className="h-2 bg-blue-600 rounded-full transition-all duration-300"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
         </div>
-    );
-};
 
-export default SimulationTutorial;
+        <div className="mb-6">
+          <h3 className="text-xl font-semibold mb-4">
+            {scenario.steps[currentStep].title}
+          </h3>
+          <p className="text-gray-600 mb-6">
+            {scenario.steps[currentStep].content}
+          </p>
+
+          <div className="space-y-4">
+            {scenario.steps[currentStep].options.map((option: any, index: any) => (
+              <Button
+                key={index}
+                variant="outline"
+                className="w-full text-left justify-start"
+                onClick={() => handleChoice(option)}
+              >
+                {option}
+              </Button>
+            ))}
+          </div>
+        </div>
+      </Card>
+
+      {insights.length > 0 && (
+        <Card className="p-6">
+          <h3 className="text-xl font-bold mb-4">Feedback & Insights</h3>
+          <div className="space-y-4">
+            {insights.map((insight: any, index: any) => (
+              <div key={index} className="p-3 bg-gray-800 rounded-lg text-sm">
+                <span className="text-gray-400">
+                  {Math.floor((insight.timestamp - Date.now()) / 1000)}s:{" "}
+                </span>
+                {insight.insight}
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
+
+      {empathyScore > 0 && (
+        <Card className="p-6">
+          <h3 className="text-xl font-bold mb-4">Performance Summary</h3>
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm text-gray-600">Empathy Score</label>
+              <Slider
+                value={[empathyScore]}
+                max={100}
+                step={1}
+                disabled
+              />
+              <span className="text-sm text-gray-600">{Math.round(empathyScore)}%</span>
+            </div>
+          </div>
+        </Card>
+      )}
+    </div>
+  );
+};

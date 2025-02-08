@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
-import ClientProfileCard from '@/components/ClientProfileCard';
-import ClientProfileDialog from '@/components/ClientProfileDialog';
+import ClientProfileCard from '@/components/clientprofilecard';
+import ClientProfileDialog from '@/components/clientprofiledialog';
 import { useToast } from '@/components/ui/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, } from '@/components/ui/alert-dialog';
-import type { ClientProfile } from '@/types/ClientProfile';
+import type { ClientProfile } from '@/types/clientprofile';
 import { supabase } from '@/integrations/supabase/client';
-import { ErrorBoundary } from '@/components/ErrorBoundary';
-export default function ClientProfiles() {
+import { ErrorBoundary } from '@/components/errorboundary';
+export default function ClientProfiles(): JSX.Element {
     const [profiles, setProfiles] = useState<ClientProfile[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [selectedProfile, setSelectedProfile] = useState<ClientProfile | null>(null);
@@ -71,7 +71,7 @@ export default function ClientProfiles() {
                     .single();
                 if (error)
                     throw error;
-                setProfiles(profiles.map(p => p.id === editingProfile.id ? updatedProfile : p));
+                setProfiles(profiles.map((p: any) => p.id === editingProfile.id ? updatedProfile : p));
                 toast({
                     title: 'Success',
                     description: 'Profile updated successfully',
@@ -112,7 +112,7 @@ export default function ClientProfiles() {
                 .eq('id', profileToDelete.id);
             if (error)
                 throw error;
-            setProfiles(profiles.filter(p => p.id !== profileToDelete.id));
+            setProfiles(profiles.filter((p: any) => p.id !== profileToDelete.id));
             toast({
                 title: 'Success',
                 description: 'Profile deleted successfully',
@@ -143,7 +143,7 @@ export default function ClientProfiles() {
         {loading ? (<div className="flex justify-center items-center h-64">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
           </div>) : (<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {profiles.map((profile) => (<ClientProfileCard key={profile.id} profile={profile} onSelect={handleProfileSelect} onEdit={handleProfileEdit} onDelete={() => handleProfileDelete(profile.id)} isSelected={selectedProfile?.id === profile.id}/>))}
+            {profiles.map((profile: any) => (<ClientProfileCard key={profile.id} profile={profile} onSelect={handleProfileSelect} onEdit={handleProfileEdit} onDelete={() => handleProfileDelete(profile.id)} isSelected={selectedProfile?.id === profile.id}/>))}
             {profiles.length === 0 && (<div className="col-span-full text-center py-12 text-muted-foreground">
                 No client profiles found. Click "Add New Profile" to create one.
               </div>)}

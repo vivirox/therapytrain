@@ -9,7 +9,7 @@ async function setupDirectories() {
     const keysDir = path.join(__dirname, '../keys');
     const buildDir = path.join(__dirname, '../build');
     // Create directories if they don't exist
-    [keysDir, buildDir].forEach((dir) => {
+    [keysDir, buildDir].forEach((dir: any) => {
         fs.mkdir(dir, { recursive: true }).catch((error: unknown) => {
             console.error(`Failed to create directory ${dir}:`, error);
         });

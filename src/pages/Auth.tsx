@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { MdPsychology as Brain } from "react-icons/md";
-import { Button } from "@/components/ui/button";
-import { supabase } from "@/lib/supabase"; // Import Supabase client
-const AuthPage = () => {
+import { Button } from '@/components/ui/button';
+import { supabase } from '@/lib/supabase'; // Import Supabase client
+const AuthPage: React.FC = () => {
     const navigate = useNavigate();
     const [email, setEmail] = useState<string>("");
     const [password, setPassword] = useState<string>("");
@@ -50,8 +50,20 @@ const AuthPage = () => {
         </div>
         
         <div className="space-y-4 mt-8">
-          <input type="email" placeholder="Email" value={email} onChange={(e: unknown) => setEmail(e.target.value)} className="w-full p-2 border border-gray-300 rounded"/>
-          <input type="password" placeholder="Password" value={password} onChange={(e: unknown) => setPassword(e.target.value)} className="w-full p-2 border border-gray-300 rounded"/>
+          <input 
+            type="email" 
+            placeholder="Email" 
+            value={email} 
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)} 
+            className="w-full p-2 border border-gray-300 rounded"
+          />
+          <input 
+            type="password" 
+            placeholder="Password" 
+            value={password} 
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)} 
+            className="w-full p-2 border border-gray-300 rounded"
+          />
           <Button onClick={handleLogin} className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3">
             Sign in with Supabase
           </Button>

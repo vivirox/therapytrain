@@ -1,4 +1,4 @@
-import { Router, Request, Response } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import { ChatService } from "@/services/chat/ChatService";
 import { ChatStreamService } from "@/services/chat/ChatStreamService";
 import { SecurityAuditService } from "@/services/SecurityAuditService";

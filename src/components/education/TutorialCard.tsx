@@ -1,17 +1,18 @@
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
 import { MdAccessTime, MdMenuBook, MdGroups, MdStar } from 'react-icons/md';
-import type { Tutorial as FullTutorial } from "@/../types/education";
+import type { Tutorial as FullTutorial } from '@/types/education';
 
 interface TutorialCardProps {
     tutorial: FullTutorial;
     progress?: boolean;
     onClick?: () => void;
+    className?: string;
 }
 
-export const TutorialCard = ({ tutorial, progress, onClick }: TutorialCardProps) => {
+export const TutorialCard: React.FC = ({ tutorial, progress, onClick }: TutorialCardProps) => {
     const getDifficultyColor = (difficulty: string) => {
         switch (difficulty) {
             case 'beginner':
@@ -61,7 +62,7 @@ export const TutorialCard = ({ tutorial, progress, onClick }: TutorialCardProps)
                 </div>
 
                 <div className="flex flex-wrap gap-2 mb-4">
-                    {tutorial.tags.map((tag) => (
+                    {tutorial.tags.map((tag: any) => (
                         <Badge key={tag} variant="secondary" className="text-xs">
                             {tag}
                         </Badge>

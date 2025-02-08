@@ -3,6 +3,19 @@ import { VerificationKeyService } from "./VerificationKeyService";
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import crypto from 'crypto';
+import { SupabaseClient, User, Session } from '@supabase/supabase-js';
+import {
+    HIPAAEventType,
+    HIPAAActionType,
+    HIPAAAuditEvent,
+    HIPAAQueryFilters,
+    HIPAAComplianceReport,
+    HIPAAAlertConfig,
+    HIPAAAction,
+    HIPAAActor,
+    HIPAAResource
+} from '@/types/hipaa';
+
 interface HIPAAAuditEvent {
     id: string;
     timestamp: Date;
@@ -38,33 +51,14 @@ interface HIPAAAuditEvent {
         previousEventHash: string;
     };
 }
-export enum HIPAAEventType {
-    PHI_ACCESS = 'PHI_ACCESS',
-    PHI_MODIFICATION = 'PHI_MODIFICATION',
-    USER_AUTHENTICATION = 'USER_AUTHENTICATION',
-    SYSTEM_OPERATION = 'SYSTEM_OPERATION',
-    SECURITY_EVENT = 'SECURITY_EVENT',
-    ADMINISTRATIVE = 'ADMINISTRATIVE'
-}
-export enum HIPAAActionType {
-    CREATE = 'CREATE',
-    READ = 'READ',
-    UPDATE = 'UPDATE',
-    DELETE = 'DELETE',
-    QUERY = 'QUERY',
-    PRINT = 'PRINT',
-    EXPORT = 'EXPORT',
-    TRANSMIT = 'TRANSMIT',
-    LOGIN = 'LOGIN',
-    LOGOUT = 'LOGOUT',
-    EMERGENCY_ACCESS = 'EMERGENCY_ACCESS'
-}
+
 interface RetentionPolicy {
     eventType: HIPAAEventType;
     retentionPeriod: number; // in days
     archiveAfter: number; // in days
     deleteAfter: number; // in days
 }
+
 export class HIPAACompliantAuditService {
     private readonly auditLogPath: string;
     private readonly archivePath: string;
@@ -164,24 +158,19 @@ export class HIPAACompliantAuditService {
             throw error;
         }
     }
-    async queryEvents(startDate: Date, endDate: Date, filters?: {
-        eventType?: HIPAAEventType;
-        actionType?: HIPAAActionType;
-        actorId?: string;
-        patientId?: string;
-        resourceId?: string;
-    }): Promise<Array<HIPAAAuditEvent>> {
+    async queryEvents(filters: HIPAAQueryFilters): Promise<Array<HIPAAAuditEvent>> {
         try {
             const events: Array<HIPAAAuditEvent> = [];
-            const logFiles = await this.getLogFilesBetweenDates(startDate, endDate);
+            const logFiles = await this.getLogFilesBetweenDates(filters.startDate || new Date(0), filters.endDate || new Date());
             for (const logFile of logFiles) {
                 const content = await fs.readFile(path.join(this.auditLogPath, logFile), 'utf-8');
                 const entries = content.trim().split('\n')
                     .map(line => this.decryptEvent(JSON.parse(line)))
                     .filter(entry => {
-                    const timestamp = new Date(entry.timestamp);
-                    return timestamp >= startDate && timestamp <= endDate;
-                });
+                        const timestamp = new Date(entry.timestamp);
+                        return (!filters.startDate || timestamp >= filters.startDate) && 
+                               (!filters.endDate || timestamp <= filters.endDate);
+                    });
                 events.push(...this.filterEvents(entries, filters));
             }
             // Verify event chain integrity
@@ -191,7 +180,7 @@ export class HIPAACompliantAuditService {
         catch (error) {
             await this.securityAuditService.recordAlert('HIPAA_AUDIT_QUERY_ERROR', 'HIGH', {
                 error: error instanceof Error ? error.message : 'Unknown error',
-                dateRange: `${startDate.toISOString()} - ${endDate.toISOString()}`
+                dateRange: `${filters.startDate?.toISOString() || 'beginning'} - ${filters.endDate?.toISOString() || 'now'}`
             });
             throw error;
         }
@@ -271,7 +260,7 @@ export class HIPAACompliantAuditService {
     }
     private async getLogFilesBetweenDates(startDate: Date, endDate: Date): Promise<Array<string>> {
         const files = await fs.readdir(this.auditLogPath);
-        return files.filter(file => {
+        return files.filter((file: any) => {
             const match = file.match(/hipaa-audit-(\d{4}-\d{2}-\d{2})/);
             if (!match)
                 return false;
@@ -279,34 +268,28 @@ export class HIPAACompliantAuditService {
             return fileDate >= startDate && fileDate <= endDate;
         });
     }
-    private filterEvents(events: Array<HIPAAAuditEvent>, filters?: {
-        eventType?: HIPAAEventType;
-        actionType?: HIPAAActionType;
-        actorId?: string;
-        patientId?: string;
-        resourceId?: string;
-    }): Array<HIPAAAuditEvent> {
-        if (!filters)
-            return events;
+    private filterEvents(events: Array<HIPAAAuditEvent>, filters: HIPAAQueryFilters): Array<HIPAAAuditEvent> {
         return events.filter(event => {
-            if (filters.eventType && event.eventType !== filters.eventType)
+            if (filters.eventTypes && filters.eventTypes.length > 0 && !filters.eventTypes.includes(event.eventType)) {
                 return false;
-            if (filters.actionType && event.action.type !== filters.actionType)
+            }
+            if (filters.actionTypes && filters.actionTypes.length > 0 && !filters.actionTypes.includes(event.action.type)) {
                 return false;
-            if (filters.actorId && event.actor.id !== filters.actorId)
+            }
+            if (filters.actorIds && filters.actorIds.length > 0 && !filters.actorIds.includes(event.actor.id)) {
                 return false;
-            if (filters.patientId && event.patient?.id !== filters.patientId)
+            }
+            if (filters.resourceTypes && filters.resourceTypes.length > 0 && !filters.resourceTypes.includes(event.resource.type)) {
                 return false;
-            if (filters.resourceId && event.resource.id !== filters.resourceId)
-                return false;
+            }
             return true;
-        });
+        }).slice(filters.offset || 0, filters.limit ? (filters.offset || 0) + filters.limit : undefined);
     }
     private async initializeLastEventHash(): Promise<void> {
         try {
             const files = await fs.readdir(this.auditLogPath);
             const logFiles = files
-                .filter(f => f.startsWith('hipaa-audit-'))
+                .filter((f: any) => f.startsWith('hipaa-audit-'))
                 .sort((a, b) => b.localeCompare(a));
             if (logFiles.length === 0) {
                 this.lastEventHash = crypto.createHash('sha256')
@@ -361,18 +344,21 @@ export class HIPAACompliantAuditService {
         return JSON.parse(encryptedEvent);
     }
     private isHighRiskEvent(event: HIPAAAuditEvent): boolean {
-        // Define high-risk events
         const highRiskTypes = [
-            HIPAAEventType.PHI_ACCESS,
             HIPAAEventType.PHI_MODIFICATION,
+            HIPAAEventType.AUTHENTICATION,
             HIPAAEventType.SECURITY_EVENT
         ];
         const highRiskActions = [
+            HIPAAActionType.DELETE,
             HIPAAActionType.EMERGENCY_ACCESS,
-            HIPAAActionType.EXPORT,
-            HIPAAActionType.DELETE
+            HIPAAActionType.EXPORT
         ];
         return highRiskTypes.includes(event.eventType) ||
             highRiskActions.includes(event.action.type);
     }
+}
+
+export interface Database {
+    public: { Tables: { [key: string]: any } };
 }

@@ -118,7 +118,7 @@ describe('AIService Integration Tests', () => {
         it('should handle concurrent message processing efficiently', async () => {
             const messages = Array(5).fill("Test concurrent processing");
             const start = performance.now();
-            await Promise.all(messages.map(msg => aiService.processMessage(userId, msg)));
+            await Promise.all(messages.map((msg: any) => aiService.processMessage(userId, msg)));
             const duration = performance.now() - start;
             expect(duration).toBeLessThan(3000); // Should handle 5 concurrent messages within 3 seconds
         });

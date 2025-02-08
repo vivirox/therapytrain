@@ -291,7 +291,7 @@ export class DataRetentionService {
                 fs.readdir(archivePath)
             ]);
             const now = Date.now();
-            const activeStats = await Promise.all(activeFiles.map(async (file) => {
+            const activeStats = await Promise.all(activeFiles.map(async (file: any) => {
                 const stats = await fs.stat(path.join(activePath, file));
                 const ageInDays = (now - stats.mtime.getTime()) / (1000 * 60 * 60 * 24);
                 return {
@@ -303,8 +303,8 @@ export class DataRetentionService {
                 total: activeFiles.length + archivedFiles.length,
                 active: activeFiles.length,
                 archived: archivedFiles.length,
-                pendingArchival: activeStats.filter(s => s.pendingArchival).length,
-                pendingDeletion: activeStats.filter(s => s.pendingDeletion).length
+                pendingArchival: activeStats.filter((s: any) => s.pendingArchival).length,
+                pendingDeletion: activeStats.filter((s: any) => s.pendingDeletion).length
             };
         }
         catch (error) {

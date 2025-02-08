@@ -132,7 +132,7 @@ describe('SessionDataCircuit', () => {
             ],
         };
         const input = {
-            sessionData: testData.sessionData.map((d) => Array.from(d)),
+            sessionData: testData.sessionData.map((d: any) => Array.from(d)),
             timestamp: Date.now(),
             nonce: crypto.randomBytes(32),
         };

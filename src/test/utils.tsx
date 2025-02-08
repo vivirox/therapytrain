@@ -2,7 +2,7 @@ import React from 'react';
 import { render as rtlRender } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 
-function render(ui: React.ReactElement, { route = '/' } = {}) {
+function render(ui: React.ReactElement, { route = '/' }: any = {}) {
   window.history.pushState({}, 'Test page', route);
 
   return rtlRender(

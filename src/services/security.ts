@@ -89,7 +89,7 @@ export class SecurityService {
             if (typeof obj !== 'object' || obj === null)
                 return obj;
             if (Array.isArray(obj)) {
-                return obj.map(item, unknown => anonymize(item));
+                return obj.map((item: any) => anonymize(item));
             }
             const anonymized: any = {};
             for (const [key, value] of Object.entries(obj)) {
@@ -132,13 +132,13 @@ export class SecurityService {
     getAuditLogs(userId?: string, startDate?: Date, endDate?: Date): Array<AuditLog> {
         let filteredLogs = [...this.auditLogs];
         if (userId) {
-            filteredLogs = filteredLogs.filter(log => log.userId === userId);
+            filteredLogs = filteredLogs.filter((log: any) => log.userId === userId);
         }
         if (startDate) {
-            filteredLogs = filteredLogs.filter(log => log.timestamp >= startDate);
+            filteredLogs = filteredLogs.filter((log: any) => log.timestamp >= startDate);
         }
         if (endDate) {
-            return filteredLogs.filter(log => log.timestamp <= endDate);
+            return filteredLogs.filter((log: any) => log.timestamp <= endDate);
         }
         return filteredLogs;
     }

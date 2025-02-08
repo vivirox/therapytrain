@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { supabase } from './lib/supabase'
+import { supabase } from '@/lib/supabase'
 
 interface Todo {
     id: number;
@@ -34,7 +34,7 @@ const Page: React.FC = () => {
             {loading ? (
                 <p>Loading...</p>
             ) : (
-                todos.map((todo) => (
+                todos.map((todo: any) => (
                     <li key={todo.id}>{todo.title}</li>
                 ))
             )}
@@ -43,7 +43,7 @@ const Page: React.FC = () => {
 }
 export default Page
 
-import { supabase } from './lib/supabase'
+import { supabase } from '@/lib/supabase'
 
 interface Todo {
     id: number;
@@ -78,7 +78,7 @@ const Page: React.FC = () => {
             {loading ? (
                 <p>Loading...</p>
             ) : (
-                todos.map((todo) => (
+                todos.map((todo: any) => (
                     <li key={todo.id}>{todo.title}</li>
                 ))
             )}

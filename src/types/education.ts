@@ -146,3 +146,80 @@ export interface LearningAnalytics {
   areasForImprovement: string[];
   recommendations: string[];
 }
+
+export interface LearningPath {
+  id: string;
+  userId: string;
+  currentGoals: string[];
+  completedGoals: string[];
+  recommendedTutorials: string[];
+  recommendedCaseStudies: string[];
+  focusAreas: string[];
+  customizedFocus?: string[];
+  progress: number;
+  lastUpdated: Date;
+}
+
+export type SkillLevel = 'beginner' | 'intermediate' | 'advanced' | 'expert';
+
+export interface Reply {
+    id: string;
+    content: string;
+    authorId: string;
+    authorName: string;
+    authorAvatar?: string;
+    createdAt: Date;
+}
+
+export interface PeerDiscussion {
+    id: string;
+    title: string;
+    content: string;
+    authorId: string;
+    authorName: string;
+    authorAvatar?: string;
+    tags: string[];
+    createdAt: Date;
+    likes: number;
+    replies: Reply[];
+}
+
+export interface Member {
+    id: string;
+    name: string;
+    avatar?: string;
+    role: 'leader' | 'member';
+}
+
+export interface MeetingSchedule {
+    day: string;
+    time: string;
+    frequency: 'weekly' | 'biweekly' | 'monthly';
+}
+
+export interface UpcomingSession {
+    date: Date;
+    topic: string;
+    materials: string[];
+}
+
+export interface StudyGroup {
+    id: string;
+    name: string;
+    description: string;
+    members: Member[];
+    meetingSchedule?: MeetingSchedule;
+    topics: string[];
+    upcomingSession?: UpcomingSession;
+}
+
+export interface NewDiscussion {
+    title: string;
+    content: string;
+    tags: string[];
+}
+
+export interface PeerLearningProps {
+    userId: string;
+    className?: string;
+}

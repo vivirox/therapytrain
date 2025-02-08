@@ -1,4 +1,4 @@
-import { AuditEventType } from "./auditEventType.enum";
+import { AuditEventType } from '@/auditeventtype.enum';
 export interface AuditEvent {
     eventType: AuditEventType;
     userId?: string;
@@ -158,7 +158,7 @@ export class AuditLogger {
      */
     private startBufferFlush(): void {
         setInterval(() => {
-            this.flushBuffer().catch(error, unknown, unknown => {
+            this.flushBuffer().catch((error: Error) => {
                 console.error('Error in flush interval:', error);
             });
         }, this.FLUSH_INTERVAL);
@@ -170,7 +170,7 @@ export class AuditLogger {
         const array = new Uint8Array(16);
         window.crypto.getRandomValues(array);
         return Array.from(array)
-            .map(b => b.toString(16).padStart(2, '0'))
+            .map((b: any) => b.toString(16).padStart(2, '0'))
             .join('');
     }
     /**

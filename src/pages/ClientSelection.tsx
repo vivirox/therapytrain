@@ -1,16 +1,16 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/context/AuthContext"; // Updated import
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useAuth } from '@/context/authcontext'; // Updated import
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { MdGroups as Users, MdPersonAdd as UserPlus, MdArrowBack as ArrowLeft } from "react-icons/md";
 interface Client {
     id: string;
     name: string;
     lastSession?: string;
 }
-const ClientSelection = () => {
+const ClientSelection: React.FC = () => {
     const navigate = useNavigate();
     const { isAuthenticated } = useAuth(); // Updated to use useAuth
     const [clients, setClients] = useState<Array<Client>>([]);
@@ -27,7 +27,7 @@ const ClientSelection = () => {
             { id: "2", name: "Jane Smith", lastSession: "2024-01-25" },
         ]);
     }, [isAuthenticated, navigate]);
-    const filteredClients = clients.filter(client => client.name.toLowerCase().includes(searchTerm.toLowerCase()));
+    const filteredClients = clients.filter((client: any) => client.name.toLowerCase().includes(searchTerm.toLowerCase()));
     return (<div className="min-h-screen bg-[#0A0A0B] text-white p-8">
       <div className="max-w-4xl mx-auto space-y-8">
         <div className="flex items-center justify-between">
@@ -49,10 +49,16 @@ const ClientSelection = () => {
           <p className="text-gray-400 mt-2">Select a client to start a session or manage their profile</p>
         </div>
 
-        <Input type="search" placeholder="Search clients..." className="bg-[#1A1A1D] border-gray-800" value={searchTerm} onChange={(e: unknown) => setSearchTerm(e.target.value)}/>
+        <Input 
+          type="search" 
+          placeholder="Search clients..." 
+          className="bg-[#1A1A1D] border-gray-800" 
+          value={searchTerm} 
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
+        />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {filteredClients.map(client => (<Card key={client.id} className="bg-[#1A1A1D] border-gray-800 hover:border-blue-500 transition-colors cursor-pointer" onClick={() => navigate("/chat", { state: { clientId: client.id } })}>
+          {filteredClients.map((client: any) => (<Card key={client.id} className="bg-[#1A1A1D] border-gray-800 hover:border-blue-500 transition-colors cursor-pointer" onClick={() => navigate("/chat", { state: { clientId: client.id } })}>
               <CardHeader>
                 <CardTitle>{client.name}</CardTitle>
                 {client.lastSession && (<CardDescription className="text-gray-400">

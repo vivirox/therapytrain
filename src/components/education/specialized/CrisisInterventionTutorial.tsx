@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Card } from "@/../ui/card";
-import { Button } from "@/../ui/button";
-import { Badge } from "@/../ui/badge";
-import { Progress } from "@/../ui/progress";
-import { Alert, AlertDescription, AlertTitle } from "@/../ui/alert";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/../ui/tabs";
-import { MdWarning as AlertTriangle, MdAccessTime as Clock, MdFavorite as Heart, MdSecurity as Shield, MdMonitor as Activity, MdCheckCircle as CheckCircle, MdCancel as XCircle, MdError as AlertCircle, MdTimer as Timer } from 'react-icons/md';
-import { AnalyticsService } from "@/../../services/analytics";
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Loading } from '@/components/ui/loading';
+import { AnalyticsService } from '@/services/analytics';
+import type { CrisisInterventionTutorialProps } from '@/types';
+
 interface RiskFactor {
     type: string;
     level: number;
@@ -68,11 +70,7 @@ interface CrisisScenario {
         criticalDecision: boolean;
     }>;
 }
-interface CrisisInterventionTutorialProps {
-    userId: string;
-    scenarioId: string;
-    onComplete: (results: any) => void;
-}
+
 export const CrisisInterventionTutorial: React.FC = ({ userId, scenarioId, onComplete }) => {
     const [scenario, setScenario] = useState<CrisisScenario | null>(null);
     const [currentTime, setCurrentTime] = useState<number>(0);
@@ -147,7 +145,7 @@ export const CrisisInterventionTutorial: React.FC = ({ userId, scenarioId, onCom
     const updateAssessment = () => {
         if (!currentAssessment)
             return;
-        const newVitals = currentAssessment.vitalSigns.map(vital => ({
+        const newVitals = currentAssessment.vitalSigns.map((vital: any) => ({
             ...vital,
             value: adjustVitalSign(vital, clientState.stability)
         }));
@@ -202,7 +200,7 @@ export const CrisisInterventionTutorial: React.FC = ({ userId, scenarioId, onCom
             }
         ]);
         // Mark critical point as handled if applicable
-        setCriticalPoints(prev => prev.map(point => point.timestamp === currentTime ? { ...point, handled: true } : point));
+        setCriticalPoints(prev => prev.map((point: any) => point.timestamp === currentTime ? { ...point, handled: true } : point));
         // Track in analytics
         AnalyticsService.trackResourceEngagement(userId, scenarioId, 'crisis_intervention', {
             interventionType: option.type,
@@ -220,7 +218,7 @@ export const CrisisInterventionTutorial: React.FC = ({ userId, scenarioId, onCom
             duration: currentTime,
             finalClientState: clientState,
             interventions,
-            criticalPointsHandled: criticalPoints.filter(point => point.handled).length,
+            criticalPointsHandled: criticalPoints.filter((point: any) => point.handled).length,
             resourcesUtilized: activeResources,
             safetyScore: clientState.safety,
             completedAt: new Date()
@@ -304,7 +302,7 @@ export const CrisisInterventionTutorial: React.FC = ({ userId, scenarioId, onCom
           <div className="mt-6">
             <h4 className="font-medium mb-3">Vital Signs</h4>
             <div className="grid grid-cols-2 gap-4">
-              {currentAssessment.vitalSigns.map(vital => (<div key={vital.type} className="flex items-center gap-3">
+              {currentAssessment.vitalSigns.map((vital: any) => (<div key={vital.type} className="flex items-center gap-3">
                   <Activity className="w-5 h-5 text-gray-400"></Activity>
                   <div>
                     <div className="text-sm">{vital.type}</div>
@@ -325,7 +323,7 @@ export const CrisisInterventionTutorial: React.FC = ({ userId, scenarioId, onCom
         <Card className="p-6">
           <h3 className="text-xl font-semibold mb-4">Active Resources</h3>
           <div className="space-y-2">
-            {scenario.availableResources.map(resource => (<div key={resource} className={`p-3 rounded-lg flex items-center justify-between ${activeResources.includes(resource)
+            {scenario.availableResources.map((resource: any) => (<div key={resource} className={`p-3 rounded-lg flex items-center justify-between ${activeResources.includes(resource)
                 ? 'bg-primary/20'
                 : 'bg-gray-800'}`}>
                 <span>{resource}</span>
@@ -340,8 +338,8 @@ export const CrisisInterventionTutorial: React.FC = ({ userId, scenarioId, onCom
         <h3 className="text-xl font-semibold mb-4">Available Interventions</h3>
         <div className="grid grid-cols-2 gap-4">
           {scenario.interventionOptions
-            .filter(option => !option.requiresAssistance || activeResources.includes(option.type))
-            .map(option => (<Button key={option.id} variant={option.type === 'immediate' ? 'default' : 'outline'} className="w-full text-left justify-start" onClick={() => handleIntervention(option)}>
+            .filter((option: any) => !option.requiresAssistance || activeResources.includes(option.type))
+            .map((option: any) => (<Button key={option.id} variant={option.type === 'immediate' ? 'default' : 'outline'} className="w-full text-left justify-start" onClick={() => handleIntervention(option)}>
                 <div>
                   <div className="flex items-center gap-2">
                     <Badge variant="outline">{option.type}</Badge>
@@ -359,7 +357,7 @@ export const CrisisInterventionTutorial: React.FC = ({ userId, scenarioId, onCom
       <Card className="p-6">
         <h3 className="text-xl font-semibold mb-4">Intervention History</h3>
         <div className="space-y-3">
-          {interventions.map((intervention, index) => (<div key={index} className="p-4 bg-gray-800 rounded-lg">
+          {interventions.map((intervention: any, index: any) => (<div key={index} className="p-4 bg-gray-800 rounded-lg">
               <div className="flex items-center justify-between mb-2">
                 <Badge variant="outline">{intervention.intervention.type}</Badge>
                 <span className="text-sm text-gray-400">

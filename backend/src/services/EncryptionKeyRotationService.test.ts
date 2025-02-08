@@ -42,7 +42,7 @@ describe('EncryptionKeyRotationService', () => {
         });
         it('should generate initial keys for all purposes', async () => {
             const files = await fs.readdir(tempDir);
-            const keyFiles = files.filter(f => f.startsWith('key-') && f.endsWith('.json'));
+            const keyFiles = files.filter((f: any) => f.startsWith('key-') && f.endsWith('.json'));
             // Should have one key for each purpose
             expect(keyFiles.length).toBe(Object.keys(KeyPurpose).length);
             // Verify each key file

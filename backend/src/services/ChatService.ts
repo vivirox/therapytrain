@@ -1,334 +1,200 @@
+import { WebSocket, WebSocketServer } from 'ws';
 import { Server } from 'http';
-import WebSocket from 'ws';
 import { RateLimiterService } from "./RateLimiterService";
 import { SecurityAuditService } from "./SecurityAuditService";
 import { AIService } from "./AIService";
 import { MessageService } from "./MessageService";
-import { Request } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { ChatSession } from "@/config/supabase";
-interface ChatMessage {
-    type: 'message' | 'status' | 'error' | 'ai_response';
-    userId: string;
-    content: string;
-    timestamp: number;
-    metadata?: unknown;
-    sessionId?: string;
-}
+import { ChatClient, ChatMessage, SessionRecoveryData, WebSocketConfig } from '@/types/websocket';
+
 export interface ChatClient {
     userId: string;
-    ws: WebSocket;
+    ws: WebSocketServer;
     isAlive: boolean;
     sessionId: string;
     lastActivity: number;
 }
+
 export class ChatService {
-    protected wss: WebSocket.Server;
-    protected clients: Map<string, ChatClient> = new Map();
-    protected disconnectedSessions: Map<string, unknown> = new Map();
+    private wss: WebSocketServer;
+    private clients: Map<string, ChatClient>;
+    private messageHistory: Map<string, ChatMessage[]>;
+    private readonly securityAudit: SecurityAuditService;
+    private readonly config: WebSocketConfig;
     private rateLimiter: RateLimiterService;
-    private securityAudit: SecurityAuditService;
     private aiService: AIService;
     private messageService: MessageService;
-    constructor(server: Server, rateLimiter: RateLimiterService, securityAudit: SecurityAuditService) {
-        this.wss = new WebSocket.Server({ server });
+
+    constructor(server: Server, rateLimiter: RateLimiterService, securityAudit: SecurityAuditService, config: WebSocketConfig = {}) {
+        this.wss = new WebSocketServer({ noServer: true });
+        this.clients = new Map();
+        this.messageHistory = new Map();
         this.rateLimiter = rateLimiter;
         this.securityAudit = securityAudit;
+        this.config = {
+            maxClients: 1000,
+            pingInterval: 30000,
+            pongTimeout: 10000,
+            closeTimeout: 5000,
+            ...config
+        };
         this.aiService = new AIService(securityAudit, rateLimiter);
         this.messageService = new MessageService(securityAudit);
-        this.initialize();
+
+        this.setupWebSocketServer();
+        this.startHeartbeat();
     }
-    private async initialize() {
-        this.wss.on('connection', async (ws: WebSocket, req: Request) => {
-            const userId = this.getUserIdFromRequest(req);
+
+    private setupWebSocketServer(): void {
+        this.wss.on('connection', (ws: WebSocket, req: any) => {
+            const userId = req.session?.userId;
             if (!userId) {
                 ws.close(1008, 'Authentication required');
                 return;
             }
-            // Rate limiting check
-            if (this.rateLimiter.isRateLimited(userId)) {
+
+            if (this.clients.size >= this.config.maxClients!) {
                 ws.close(1008, 'Too many connections');
                 return;
             }
-            // Create or recover session
-            const sessionId = await this.createOrRecoverSession(userId, req);
+
             const client: ChatClient = {
                 userId,
                 ws,
                 isAlive: true,
-                sessionId,
+                sessionId: Math.random().toString(36).substring(7),
                 lastActivity: Date.now()
             };
+
             this.clients.set(userId, client);
-            // Log connection
-            await this.securityAudit.recordEvent('chat_connection', {
-                userId,
-                sessionId,
-                timestamp: Date.now(),
-                ip: req.ip
-            });
-            // Send session recovery data if available
-            await this.sendSessionRecoveryData(client);
-            ws.on('message', async (data: WebSocket.Data) => {
-                try {
-                    await this.handleMessage(userId, data.toString(), sessionId);
-                }
-                catch (error) {
-                    this.handleError(ws, error as Error);
-                }
-            });
-            ws.on('close', async () => {
-                try {
-                    await this.messageService.endSession(sessionId);
-                    this.clients.delete(userId);
-                    this.broadcastStatus(userId, 'offline', sessionId);
-                }
-                catch (error) {
-                    console.error('Error ending session:', error);
-                }
-            });
+
             ws.on('pong', () => {
                 const client = this.clients.get(userId);
                 if (client) {
                     client.isAlive = true;
                 }
             });
-            // Send welcome message
-            this.sendToClient(ws, {
-                type: 'status',
-                userId: 'system',
-                content: 'Connected to chat server',
-                timestamp: Date.now(),
-                sessionId
-            });
-            // Broadcast user online status
-            this.broadcastStatus(userId, 'online', sessionId);
-        });
-        // Setup heartbeat
-        setInterval(() => {
-            this.wss.clients.forEach((ws: WebSocket) => {
-                const client = Array.from(this.clients.values()).find(c => c.ws === ws);
-                if (client && !client.isAlive) {
-                    ws.terminate();
-                    this.clients.delete(client.userId);
-                    return;
-                }
-                if (client) {
-                    client.isAlive = false;
-                    ws.ping();
-                }
-            });
-        }, 30000);
-    }
-    protected async handleMessage(userId: string, data: string, sessionId: string) {
-        try {
-            const message = JSON.parse(data) as ChatMessage;
-            // Rate limiting check for messages
-            if (this.rateLimiter.isRateLimited(userId, 'message')) {
-                throw new Error('Message rate limit exceeded');
-            }
-            // Validate message
-            if (!this.isValidMessage(message)) {
-                throw new Error('Invalid message format');
-            }
-            // Save and broadcast user message
-            const savedMessage = await this.messageService.saveMessage(sessionId, userId, message.content, 'message');
-            this.broadcast({
-                type: 'message',
-                userId,
-                content: message.content,
-                timestamp: Date.now(),
-                sessionId,
-                metadata: savedMessage.metadata
-            });
-            // Process message with AI
-            try {
-                const aiResponse = await this.aiService.processMessage(userId, message.content);
-                // Save and broadcast AI response
-                const savedAiResponse = await this.messageService.saveMessage(sessionId, 'ai_assistant', aiResponse.content, 'ai_response', aiResponse.metadata);
-                this.broadcast({
-                    type: 'ai_response',
-                    userId: 'ai_assistant',
-                    content: aiResponse.content,
-                    timestamp: Date.now(),
-                    sessionId,
-                    metadata: savedAiResponse.metadata
-                });
-                // If crisis is detected (sentiment below threshold)
-                if (aiResponse.metadata?.sentiment && aiResponse.metadata.sentiment < -0.7) {
-                    await this.securityAudit.recordEvent('crisis_alert', {
+
+            ws.on('message', async (data: WebSocket.Data) => {
+                try {
+                    const message = JSON.parse(data.toString()) as ChatMessage;
+                    await this.handleMessage(userId, message);
+                } catch (error) {
+                    console.error('Error handling message:', error);
+                    this.securityAudit.recordAlert('MESSAGE_HANDLING_ERROR', 'MEDIUM', {
                         userId,
-                        sessionId,
-                        timestamp: Date.now(),
-                        message: message.content,
-                        sentiment: aiResponse.metadata.sentiment
+                        error: error instanceof Error ? error.message : 'Unknown error'
                     });
                 }
-            }
-            catch (error) {
-                console.error('Error processing message with AI:', error);
-                // Send error message only to the user who sent the message
-                const client = this.clients.get(userId);
-                if (client) {
-                    const errorMessage = {
-                        type: 'error' as const,
-                        userId: 'system',
-                        content: 'Unable to process message with AI assistant',
-                        timestamp: Date.now(),
-                        sessionId
-                    };
-                    await this.messageService.saveMessage(sessionId, 'system', errorMessage.content, 'error');
-                    this.sendToClient(client.ws, errorMessage);
-                }
-            }
-            // Log message for security audit
-            await this.securityAudit.recordEvent('chat_message', {
-                userId,
-                sessionId,
-                timestamp: Date.now(),
-                messageLength: message.content.length
             });
-        }
-        catch (error) {
-            throw error;
-        }
-    }
-    protected async createOrRecoverSession(userId: string, request: Request): Promise<string> {
-        try {
-            // Check for existing active sessions
-            const sessions = await this.messageService.getUserSessions(userId);
-            const recentSession = sessions.find(s => {
-                const lastActive = new Date(s.last_activity).getTime();
-                const now = Date.now();
-                // Session is considered recent if last active within 30 minutes
-                return (now - lastActive) <= 30 * 60 * 1000;
+
+            ws.on('close', () => {
+                this.handleDisconnection(client);
             });
-            if (recentSession) {
-                await this.messageService.updateSessionActivity(recentSession.id);
-                return recentSession.id;
-            }
-            return await this.messageService.createSession(userId);
-        }
-        catch (error) {
-            console.error('Error creating/recovering session:', error);
-            throw error;
-        }
-    }
-    protected async sendSessionRecoveryData(client: ChatClient) {
-        try {
-            // Get recent messages
-            const messages = await this.messageService.getRecentMessages(client.sessionId, 50);
-            if (messages.length > 0) {
-                // Send session recovery notification
-                const recoveryNotification = {
-                    type: 'status',
-                    userId: 'system',
-                    content: 'Reconnected to previous session',
-                    timestamp: Date.now(),
-                    sessionId: client.sessionId,
-                    metadata: {
-                        messageCount: messages.length,
-                        sessionId: client.sessionId
-                    }
-                };
-                client.ws.send(JSON.stringify(recoveryNotification));
-                // Send recent messages
-                for (const message of messages) {
-                    client.ws.send(JSON.stringify({
-                        type: 'message',
-                        userId: message.user_id,
-                        content: message.content,
-                        timestamp: new Date(message.created_at).getTime(),
-                        metadata: message.metadata,
-                        sessionId: message.session_id
-                    }));
-                }
-                // Send session summary if available
-                const sessionSummary = await this.messageService.getSessionSummary(client.sessionId);
-                if (sessionSummary) {
-                    client.ws.send(JSON.stringify({
-                        type: 'status',
-                        userId: 'system',
-                        content: 'Session Summary',
-                        timestamp: Date.now(),
-                        sessionId: client.sessionId,
-                        metadata: sessionSummary
-                    }));
-                }
-            }
-        }
-        catch (error) {
-            console.error('Error sending recovery data:', error);
-            // Don't throw - we want to continue even if recovery data can't be sent
-        }
-    }
-    protected handleDisconnection(client: ChatClient) {
-        // Store last known state
-        this.disconnectedSessions.set(client.userId, {
-            sessionId: client.sessionId,
-            lastActivity: client.lastActivity,
-            disconnectedAt: Date.now()
+
+            ws.on('error', (error: Error) => {
+                console.error('WebSocket error:', error);
+                this.securityAudit.recordAlert('WEBSOCKET_ERROR', 'HIGH', {
+                    userId,
+                    error: error.message
+                });
+            });
+
+            // Send session recovery data if available
+            this.sendSessionRecoveryData(client);
         });
+    }
+
+    private startHeartbeat(): void {
+        setInterval(() => {
+            this.clients.forEach((client: any) => {
+                if (!client.isAlive) {
+                    client.ws.terminate();
+                    return;
+                }
+
+                client.isAlive = false;
+                client.ws.ping();
+            });
+        }, this.config.pingInterval);
+    }
+
+    private async handleMessage(userId: string, message: ChatMessage): Promise<void> {
+        const client = this.clients.get(userId);
+        if (!client) {
+            return;
+        }
+
+        client.lastActivity = Date.now();
+
+        // Store message in history
+        const sessionHistory = this.messageHistory.get(client.sessionId) || [];
+        sessionHistory.push(message);
+        this.messageHistory.set(client.sessionId, sessionHistory);
+
+        // Broadcast message to all clients
+        const messageStr = JSON.stringify(message);
+        this.broadcast(messageStr);
+
+        // Audit message
+        await this.securityAudit.recordEvent('CHAT_MESSAGE', {
+            userId,
+            messageType: message.type,
+            timestamp: message.timestamp
+        });
+    }
+
+    private handleDisconnection(client: ChatClient): void {
         this.clients.delete(client.userId);
-        this.securityAudit.recordEvent('client_disconnected', {
+
+        // Clean up message history after a delay
+        setTimeout(() => {
+            if (!this.clients.has(client.userId)) {
+                this.messageHistory.delete(client.sessionId);
+            }
+        }, this.config.closeTimeout);
+
+        this.securityAudit.recordEvent('USER_DISCONNECTED', {
+            userId: client.userId,
+            sessionId: client.sessionId
+        });
+    }
+
+    private async sendSessionRecoveryData(client: ChatClient): Promise<void> {
+        const history = this.messageHistory.get(client.sessionId);
+        if (!history) {
+            return;
+        }
+
+        const recoveryNotification: SessionRecoveryData = {
+            sessionId: client.sessionId,
+            messages: history,
+            participants: Array.from(this.clients.keys()),
+            lastActivity: client.lastActivity
+        };
+
+        client.ws.send(JSON.stringify(recoveryNotification));
+
+        await this.securityAudit.recordEvent('SESSION_RECOVERED', {
             userId: client.userId,
             sessionId: client.sessionId,
-            timestamp: Date.now()
+            messageCount: history.length
         });
     }
-    private isValidMessage(message: any): message is ChatMessage {
-        return (typeof message === 'object' &&
-            typeof message.content === 'string' &&
-            message.content.length <= 2000 // Maximum message length
-        );
-    }
-    private getUserIdFromRequest(req: Request): string | null {
-        // Implementation depends on your authentication system
-        // This is a placeholder - replace with actual auth logic
-        const authHeader = req.headers.authorization;
-        if (!authHeader)
-            return null;
-        try {
-            // Parse JWT or session token to get userId
-            return 'user-id'; // Replace with actual userId extraction
-        }
-        catch (error) {
-            return null;
-        }
-    }
-    private broadcast(message: ChatMessage) {
-        const messageStr = JSON.stringify(message);
-        this.wss.clients.forEach((client: WebSocket) => {
-            if (client.readyState === WebSocket.OPEN) {
-                client.send(messageStr);
+
+    public broadcast(message: string): void {
+        this.clients.forEach((client: any) => {
+            if (client.ws.readyState === WebSocket.OPEN) {
+                client.ws.send(message);
             }
         });
     }
-    private broadcastStatus(userId: string, status: 'online' | 'offline', sessionId: string) {
-        this.broadcast({
-            type: 'status',
-            userId,
-            content: status,
-            timestamp: Date.now(),
-            sessionId,
-        });
-    }
-    private sendToClient(ws: WebSocket, message: ChatMessage) {
-        if (ws.readyState === WebSocket.OPEN) {
-            ws.send(JSON.stringify(message));
+
+    public sendToUser(userId: string, message: ChatMessage): void {
+        const client = this.clients.get(userId);
+        if (client && client.ws.readyState === WebSocket.OPEN) {
+            client.ws.send(JSON.stringify(message));
         }
-    }
-    private handleError(ws: WebSocket, error: Error) {
-        const errorMessage: ChatMessage = {
-            type: 'error',
-            userId: 'system',
-            content: 'An error occurred while processing your message',
-            timestamp: Date.now(),
-        };
-        this.sendToClient(ws, errorMessage);
-        // Log error
-        this.securityAudit.recordEvent('chat_error', {
-            error: error.message,
-            timestamp: Date.now(),
-        });
     }
 }

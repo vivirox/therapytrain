@@ -1,11 +1,11 @@
-import { Router } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import { AuditController } from "@/controllers/audit.controller";
 import { authMiddleware } from "@/middleware/auth";
 import { rateLimit } from 'express-rate-limit';
 const router = Router();
 const auditController = new AuditController();
 // Rate limiting specifically for audit endpoints
-const auditRateLimiter = rateLimit({
+const auditRateLimiter: RequestHandler = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
     max: 100, // limit each IP to 100 requests per windowMs
     message: 'Too many audit log requests from this IP, please try again later.'

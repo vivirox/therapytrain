@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { SkillProgression } from "@/../types/education";
-import { Card } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
+import { SkillProgression } from '@/types/education';
+import { Card } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
 import { MdEmojiEvents as Trophy, MdTrackChanges as Target, MdTrendingUp as TrendingUp, MdAccessTime as Clock, MdMilitaryTech as Award, MdMenuBook as BookOpen, MdGroups as Users, MdPsychology as Brain, MdStar as Star } from 'react-icons/md';
 
 interface SkillProgressionTrackerProps {
     userId: string;
+    className?: string;
 }
 
-export const SkillProgressionTracker = ({ userId }: SkillProgressionTrackerProps) => {
+export const SkillProgressionTracker: React.FC<SkillProgressionTrackerProps> = ({ userId }) => {
     const [progression, setProgression] = useState<SkillProgression | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
     useEffect(() => {
@@ -41,13 +42,13 @@ export const SkillProgressionTracker = ({ userId }: SkillProgressionTrackerProps
         if (skills.length === 0) {
             return 0;
         }
-        const totalLevels = skills.reduce((acc, skill) => acc + skill.level, 0);
+        const totalLevels = skills.reduce((acc: any, skill: any) => acc + skill.level, 0);
         const maxPossibleLevel = skills.length * 10; // Assuming max level is 10
         return (totalLevels / maxPossibleLevel) * 100;
     };
     const getNextMilestone = () => {
         const skills = Object.values(progression.skills);
-        const lowestSkill = skills.reduce((min, skill) => skill.level < min.level ? skill : min, skills[0]);
+        const lowestSkill = skills.reduce((min: any, skill: any) => skill.level < min.level ? skill : min, skills[0]);
         return lowestSkill?.areasForImprovement[0] || 'All skills are at maximum level';
     };
     return (<div className="max-w-6xl mx-auto p-6 space-y-8">
@@ -78,7 +79,7 @@ export const SkillProgressionTracker = ({ userId }: SkillProgressionTrackerProps
             <div>
               <div className="text-sm text-gray-400">Practice Hours</div>
               <div className="font-medium">
-                {Object.values(progression.skills).reduce((acc, skill) => acc + skill.practiceHours, 0)} hours
+                {Object.values(progression.skills).reduce((acc: any, skill: any) => acc + skill.practiceHours, 0)} hours
               </div>
             </div>
           </div>
@@ -94,7 +95,7 @@ export const SkillProgressionTracker = ({ userId }: SkillProgressionTrackerProps
 
       {/* Skill Breakdown */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {Object.entries(progression.skills).map(([skillId, skill]) => (<Card key={skillId} className="p-6">
+        {Object.entries(progression.skills).map(([skillId, skill]: any) => (<Card key={skillId} className="p-6">
             <div className="flex items-start justify-between mb-4">
               <div>
                 <h3 className="text-xl font-semibold mb-1">{skillId}</h3>
@@ -128,7 +129,7 @@ export const SkillProgressionTracker = ({ userId }: SkillProgressionTrackerProps
             <div className="space-y-2">
               <h4 className="font-medium text-sm text-gray-400">Strengths</h4>
               <div className="flex flex-wrap gap-2">
-                {skill.strengths.map(strength => (<Badge key={strength} variant="outline">
+                {skill.strengths.map((strength: any) => (<Badge key={strength} variant="outline">
                     {strength}
                   </Badge>))}
               </div>
@@ -137,7 +138,7 @@ export const SkillProgressionTracker = ({ userId }: SkillProgressionTrackerProps
             <div className="mt-4 space-y-2">
               <h4 className="font-medium text-sm text-gray-400">Next Steps</h4>
               <ul className="space-y-1">
-                {skill.nextSteps.map(step => (<li key={step} className="text-sm flex items-center gap-2">
+                {skill.nextSteps.map((step: any) => (<li key={step} className="text-sm flex items-center gap-2">
                     <TrendingUp className="w-4 h-4 text-primary"></TrendingUp>
                     {step}
                   </li>))}
@@ -151,7 +152,7 @@ export const SkillProgressionTracker = ({ userId }: SkillProgressionTrackerProps
         <Card className="p-6">
           <h2 className="text-2xl font-bold mb-6">Certifications</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {progression.certifications.map((cert) => (
+            {progression.certifications.map((cert: any) => (
               <Card key={cert.id} className="p-4 border-2 border-primary">
                 <div className="flex items-start gap-4">
                   <Award className="w-8 h-8 text-primary" />
@@ -166,7 +167,7 @@ export const SkillProgressionTracker = ({ userId }: SkillProgressionTrackerProps
                       </p>
                     )}
                     <div className="flex flex-wrap gap-2 mt-2">
-                      {cert.skills.map((skill) => (
+                      {cert.skills.map((skill: any) => (
                         <Badge key={skill} variant="secondary">
                           {skill}
                         </Badge>
@@ -194,7 +195,7 @@ export const SkillProgressionTracker = ({ userId }: SkillProgressionTrackerProps
           <div>
             <h3 className="font-semibold mb-3">Current Goals</h3>
             <div className="flex flex-wrap gap-2">
-              {progression.learningPath.currentGoals.map((goal) => (
+              {progression.learningPath.currentGoals.map((goal: any) => (
                 <Badge key={goal} variant="default">
                   {goal}
                 </Badge>
@@ -211,7 +212,7 @@ export const SkillProgressionTracker = ({ userId }: SkillProgressionTrackerProps
                   Tutorials
                 </h4>
                 <ul className="space-y-1">
-                  {progression.learningPath.recommendedTutorials.map((tutorial) => (
+                  {progression.learningPath.recommendedTutorials.map((tutorial: any) => (
                     <li key={tutorial} className="text-sm">
                       {tutorial}
                     </li>
@@ -224,7 +225,7 @@ export const SkillProgressionTracker = ({ userId }: SkillProgressionTrackerProps
                   Case Studies
                 </h4>
                 <ul className="space-y-1">
-                  {progression.learningPath.recommendedCaseStudies.map((study) => (
+                  {progression.learningPath.recommendedCaseStudies.map((study: any) => (
                     <li key={study} className="text-sm">
                       {study}
                     </li>
@@ -237,7 +238,7 @@ export const SkillProgressionTracker = ({ userId }: SkillProgressionTrackerProps
           <div>
             <h3 className="font-semibold mb-3">Focus Areas</h3>
             <div className="flex flex-wrap gap-2">
-              {progression.learningPath.customizedFocus.map((focus) => (
+              {progression.learningPath.customizedFocus.map((focus: any) => (
                 <Badge key={focus} variant="outline">
                   {focus}
                 </Badge>

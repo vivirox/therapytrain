@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { User } from '@supabase/supabase-js';
+import { User, SupabaseClient, Session } from '@supabase/supabase-js';
 import { supabase } from "@/config/supabase";
 import { SecurityAuditService } from "@/services/SecurityAuditService";
 /**
@@ -72,4 +72,8 @@ declare global {
             user?: User;
         }
     }
+}
+
+export interface Database {
+    public: { Tables: { [key: string]: any } };
 }

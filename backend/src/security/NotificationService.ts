@@ -1,4 +1,4 @@
-import { SecurityAuditService } from '../services/SecurityAuditService';
+import { SecurityAuditService } from '@/services/SecurityAuditService';
 import { IncidentType, IncidentSeverity, SecurityIncident } from './SecurityIncidentService';
 
 interface NotificationChannel {
@@ -84,8 +84,8 @@ export class NotificationService {
 
             const message = this.formatMessage(template, incident);
             const notificationPromises = channels
-                .filter(channel => channel.enabled)
-                .map(channel => this.sendNotification(channel, message));
+                .filter((channel: any) => channel.enabled)
+                .map((channel: any) => this.sendNotification(channel, message));
 
             await Promise.all(notificationPromises);
 
@@ -146,7 +146,7 @@ export class NotificationService {
             '{details}': JSON.stringify(incident.details, null, 2)
         };
 
-        Object.entries(replacements).forEach(([key, value]) => {
+        Object.entries(replacements).forEach(([key, value]: any) => {
             subject = subject.replace(key, value);
             body = body.replace(key, value);
         });

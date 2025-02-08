@@ -155,7 +155,7 @@ export class ZKProofService {
     async cleanup(): Promise<void> {
         try {
             // Terminate all workers
-            await Promise.all(this.workerPool.map(worker => worker.terminate()));
+            await Promise.all(this.workerPool.map((worker: any) => worker.terminate()));
             this.workerPool.length = 0;
         }
         catch (error) {

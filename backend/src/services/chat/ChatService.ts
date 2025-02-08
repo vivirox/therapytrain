@@ -1,5 +1,5 @@
-import { supabase } from "@/../../config/database";
-import { Message, Session, MessageType, SessionStatus } from "@/../types/chat";
+import { supabase } from "../../config/database";
+import { Message, Session, MessageType, SessionStatus } from "../../types/chat";
 export class ChatService {
     async createSession(userId: string, title: string): Promise<Session> {
         const { data, error } = await supabase
@@ -151,17 +151,17 @@ export class ChatService {
             throw error;
         const messages = data as Message[];
         const totalMessages = messages.length;
-        const aiMessages = messages.filter(m => m.type === 'ai').length;
-        const userMessages = messages.filter(m => m.type === 'text').length;
-        const totalTokens = messages.reduce((sum, m) => sum + (m.metadata?.tokens || 0), 0);
+        const aiMessages = messages.filter((m: any) => m.type === 'ai').length;
+        const userMessages = messages.filter((m: any) => m.type === 'text').length;
+        const totalTokens = messages.reduce((sum: any, m: any) => sum + (m.metadata?.tokens || 0), 0);
         return {
             totalMessages,
             aiMessages,
             userMessages,
             totalTokens,
             averageResponseTime: messages
-                .filter(m => m.metadata?.processingTime)
-                .reduce((sum, m) => sum + (m.metadata?.processingTime || 0), 0) /
+                .filter((m: any) => m.metadata?.processingTime)
+                .reduce((sum: any, m: any) => sum + (m.metadata?.processingTime || 0), 0) /
                 aiMessages
         };
     }

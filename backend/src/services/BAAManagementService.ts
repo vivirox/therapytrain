@@ -1,9 +1,9 @@
 import { SecurityAuditService } from "./SecurityAuditService";
-import { HIPAACompliantAuditService } from "./HIPAACompliantAuditService";
+import { HIPAACompliantAuditService, HIPAAEventType, HIPAAActionType } from "./HIPAACompliantAuditService";
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import crypto from 'crypto';
-interface BusinessAssociate {
+export interface BusinessAssociate {
     id: string;
     name: string;
     type: BAType;
@@ -19,7 +19,7 @@ interface BusinessAssociate {
     createdAt: Date;
     updatedAt: Date;
 }
-interface BAA {
+export interface BAA {
     id: string;
     businessAssociateId: string;
     version: string;
@@ -38,7 +38,7 @@ interface BAA {
     createdAt: Date;
     updatedAt: Date;
 }
-interface BAADocument {
+export interface BAADocument {
     id: string;
     type: BAADocumentType;
     filename: string;
@@ -46,9 +46,9 @@ interface BAADocument {
     hash: string;
     uploadedBy: string;
     uploadedAt: Date;
-    metadata: Record<string, any>;
+    metadata: Record<string, unknown>;
 }
-interface BAASignature {
+export interface BAASignature {
     id: string;
     signerId: string;
     signerRole: string;
@@ -56,9 +56,9 @@ interface BAASignature {
     signatureType: SignatureType;
     signatureData: string;
     ipAddress: string;
-    metadata: Record<string, any>;
+    metadata: Record<string, unknown>;
 }
-interface BAAAmendment {
+export interface BAAAmendment {
     id: string;
     version: string;
     description: string;
@@ -67,7 +67,7 @@ interface BAAAmendment {
     signatures: BAASignature[];
     createdAt: Date;
 }
-interface DataHandlingRequirement {
+export interface DataHandlingRequirement {
     id: string;
     dataType: string;
     accessLevel: DataAccessType;
@@ -76,53 +76,53 @@ interface DataHandlingRequirement {
     disposalMethod: string;
     specialHandlingNotes?: string;
 }
-interface SecurityRequirement {
+export interface SecurityRequirement {
     id: string;
-    category: SecurityCategory;
+    category: string;
     description: string;
     minimumStandard: string;
     verificationMethod: string;
-    verificationFrequency: number;
+    verificationFrequency: string;
     lastVerified?: Date;
     nextVerificationDue?: Date;
 }
-interface BreachNotificationRequirement {
+export interface BreachNotificationRequirement {
     id: string;
     timeframe: number;
-    notificationMethod: string[];
-    requiredInformation: string[];
+    notificationMethod: string;
+    requiredInformation: string;
     escalationProcedure: string;
 }
-interface TerminationRequirement {
+export interface TerminationRequirement {
     id: string;
     condition: string;
     noticePeriod: number;
     dataReturnMethod: string;
     dataDestructionMethod: string;
-    verificationRequired: boolean;
+    verificationRequired: string;
 }
-enum BAType {
+export enum BAType {
     SERVICE_PROVIDER = 'SERVICE_PROVIDER',
     TECHNOLOGY_VENDOR = 'TECHNOLOGY_VENDOR',
     CONSULTANT = 'CONSULTANT',
     CONTRACTOR = 'CONTRACTOR',
     SUBCONTRACTOR = 'SUBCONTRACTOR'
 }
-enum BAStatus {
+export enum BAStatus {
     ACTIVE = 'ACTIVE',
     PENDING_REVIEW = 'PENDING_REVIEW',
     UNDER_REVIEW = 'UNDER_REVIEW',
     INACTIVE = 'INACTIVE',
     TERMINATED = 'TERMINATED'
 }
-enum BAAStatus {
+export enum BAAStatus {
     DRAFT = 'DRAFT',
     PENDING_SIGNATURE = 'PENDING_SIGNATURE',
     ACTIVE = 'ACTIVE',
     EXPIRED = 'EXPIRED',
     TERMINATED = 'TERMINATED'
 }
-enum BAADocumentType {
+export enum BAADocumentType {
     AGREEMENT = 'AGREEMENT',
     AMENDMENT = 'AMENDMENT',
     SECURITY_ASSESSMENT = 'SECURITY_ASSESSMENT',
@@ -130,7 +130,7 @@ enum BAADocumentType {
     INSURANCE_CERTIFICATE = 'INSURANCE_CERTIFICATE',
     TERMINATION_NOTICE = 'TERMINATION_NOTICE'
 }
-enum DataAccessType {
+export enum DataAccessType {
     VIEW = 'VIEW',
     CREATE = 'CREATE',
     UPDATE = 'UPDATE',
@@ -138,7 +138,7 @@ enum DataAccessType {
     EXPORT = 'EXPORT',
     FULL = 'FULL'
 }
-enum SecurityCategory {
+export enum SecurityCategory {
     ENCRYPTION = 'ENCRYPTION',
     ACCESS_CONTROL = 'ACCESS_CONTROL',
     AUDIT_LOGGING = 'AUDIT_LOGGING',
@@ -147,7 +147,7 @@ enum SecurityCategory {
     NETWORK = 'NETWORK',
     PHYSICAL = 'PHYSICAL'
 }
-enum SignatureType {
+export enum SignatureType {
     ELECTRONIC = 'ELECTRONIC',
     DIGITAL = 'DIGITAL',
     WET = 'WET'
@@ -186,14 +186,15 @@ export class BAAManagementService {
             };
             await this.saveBusinessAssociate(businessAssociate);
             await this.hipaaAuditService.logEvent({
-                eventType: 'ADMINISTRATIVE',
+                eventType: HIPAAEventType.ADMINISTRATIVE,
+                timestamp: new Date(),
                 actor: {
                     id: 'SYSTEM',
                     role: 'SYSTEM',
                     ipAddress: '127.0.0.1'
                 },
                 action: {
-                    type: 'CREATE',
+                    type: HIPAAActionType.CREATE,
                     status: 'SUCCESS',
                     details: {
                         businessAssociateId: businessAssociate.id,
@@ -227,14 +228,15 @@ export class BAAManagementService {
             };
             await this.saveBAA(baa);
             await this.hipaaAuditService.logEvent({
-                eventType: 'ADMINISTRATIVE',
+                eventType: HIPAAEventType.ADMINISTRATIVE,
+                timestamp: new Date(),
                 actor: {
                     id: 'SYSTEM',
                     role: 'SYSTEM',
                     ipAddress: '127.0.0.1'
                 },
                 action: {
-                    type: 'CREATE',
+                    type: HIPAAActionType.CREATE,
                     status: 'SUCCESS',
                     details: {
                         baaId: baa.id,
@@ -279,14 +281,15 @@ export class BAAManagementService {
             baa.updatedAt = new Date();
             await this.saveBAA(baa);
             await this.hipaaAuditService.logEvent({
-                eventType: 'ADMINISTRATIVE',
+                eventType: HIPAAEventType.ADMINISTRATIVE,
+                timestamp: new Date(),
                 actor: {
                     id: document.uploadedBy,
                     role: 'USER',
                     ipAddress: '127.0.0.1'
                 },
                 action: {
-                    type: 'CREATE',
+                    type: HIPAAActionType.CREATE,
                     status: 'SUCCESS',
                     details: {
                         baaId,
@@ -329,14 +332,15 @@ export class BAAManagementService {
             }
             await this.saveBAA(baa);
             await this.hipaaAuditService.logEvent({
-                eventType: 'ADMINISTRATIVE',
+                eventType: HIPAAEventType.ADMINISTRATIVE,
+                timestamp: new Date(),
                 actor: {
                     id: signature.signerId,
                     role: signature.signerRole,
                     ipAddress: signature.ipAddress
                 },
                 action: {
-                    type: 'UPDATE',
+                    type: HIPAAActionType.UPDATE,
                     status: 'SUCCESS',
                     details: {
                         baaId,
@@ -375,14 +379,15 @@ export class BAAManagementService {
             baa.updatedAt = new Date();
             await this.saveBAA(baa);
             await this.hipaaAuditService.logEvent({
-                eventType: 'ADMINISTRATIVE',
+                eventType: HIPAAEventType.ADMINISTRATIVE,
+                timestamp: new Date(),
                 actor: {
                     id: 'SYSTEM',
                     role: 'SYSTEM',
                     ipAddress: '127.0.0.1'
                 },
                 action: {
-                    type: 'UPDATE',
+                    type: HIPAAActionType.UPDATE,
                     status: 'SUCCESS',
                     details: {
                         baaId,
@@ -420,14 +425,15 @@ export class BAAManagementService {
             baa.updatedAt = new Date();
             await this.saveBAA(baa);
             await this.hipaaAuditService.logEvent({
-                eventType: 'ADMINISTRATIVE',
+                eventType: HIPAAEventType.ADMINISTRATIVE,
+                timestamp: new Date(),
                 actor: {
                     id: terminationNotice.uploadedBy,
                     role: 'USER',
                     ipAddress: '127.0.0.1'
                 },
                 action: {
-                    type: 'UPDATE',
+                    type: HIPAAActionType.UPDATE,
                     status: 'SUCCESS',
                     details: {
                         baaId,
@@ -468,14 +474,15 @@ export class BAAManagementService {
                 requirement.nextVerificationDue = new Date(verification.verificationDate.getTime() +
                     requirement.verificationFrequency * 24 * 60 * 60 * 1000);
                 await this.hipaaAuditService.logEvent({
-                    eventType: 'ADMINISTRATIVE',
+                    eventType: HIPAAEventType.ADMINISTRATIVE,
+                    timestamp: new Date(),
                     actor: {
                         id: 'SYSTEM',
                         role: 'SYSTEM',
                         ipAddress: '127.0.0.1'
                     },
                     action: {
-                        type: 'UPDATE',
+                        type: HIPAAActionType.UPDATE,
                         status: verification.verified ? 'SUCCESS' : 'FAILURE',
                         details: {
                             baaId,

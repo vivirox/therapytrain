@@ -1,31 +1,41 @@
-import { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useAuth } from "@/context/AuthContext";
-import { analyzeMessageHistory, analyzeSentiment } from "@/services/sentimentAnalysis";
-import { useToast } from "@/components/ui/use-toast";
-import MessageList from "@/components/MessageList";
-import ChatInput from "@/components/ChatInput";
-import ChatSidebar from "@/components/ChatSidebar";
-import SessionControls from "@/components/SessionControls";
-import VideoChat from "@/components/VideoChat";
-import { SentimentIndicator } from "@/components/SentimentIndicator";
-import { sessionManager, type SessionMode } from "@/services/sessionManager";
-import { ContextualLearningSystem } from "@/services/contextualLearning";
-import ContextualHints from "@/components/ContextualHints";
-import { InterventionOptimizationSystem } from "@/services/interventionOptimization";
-import InterventionRecommendations from "@/components/InterventionRecommendations";
-import { api } from "@/services/api";
+import { useAuth } from '@/context/authcontext';
+import { analyzeMessageHistory, analyzeSentiment } from '@/services/sentimentanalysis';
+import { useToast } from '@/components/ui/use-toast';
+import MessageList from '@/components/messagelist';
+import ChatInput from '@/components/chatinput';
+import ChatSidebar from '@/components/chatsidebar';
+import SessionControls from '@/components/sessioncontrols';
+import VideoChat from '@/components/videochat';
+import { SentimentIndicator } from '@/components/sentimentindicator';
+import { sessionManager, type SessionMode } from '@/services/sessionmanager';
+import { ContextualLearningSystem } from '@/services/contextuallearning';
+import ContextualHints from '@/components/contextualhints';
+import { InterventionOptimizationSystem } from '@/services/interventionoptimization';
+import InterventionRecommendations from '@/components/interventionrecommendations';
+import { api } from '@/services/api';
+import { Loading } from '@/components/ui/loading';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import type { Message, ChatSession, ClientProfile } from '@/types';
+
 type Message = {
     role: 'user' | 'assistant';
     content: string;
     timestamp?: number;
 };
+
 interface Client {
     id: string;
     name: string;
     lastSession?: string;
 }
-const ChatPage = () => {
+
+const ChatPage: React.FC = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const { toast } = useToast();
@@ -41,6 +51,7 @@ const ChatPage = () => {
     const [interventionRecommendations, setInterventionRecommendations] = useState<Array<any>>([]);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const clientId = location.state?.clientId;
+
     useEffect(() => {
         const initializeSession = async () => {
             try {
@@ -82,6 +93,7 @@ const ChatPage = () => {
         };
         initializeSession();
     }, [clientId, navigate, sessionMode, toast]);
+
     const handleSendMessage = async (content: string) => {
         try {
             setIsLoading(true);
@@ -112,6 +124,7 @@ const ChatPage = () => {
             setIsLoading(false);
         }
     };
+
     const handleEndSession = async () => {
         if (!sessionId)
             return;
@@ -132,6 +145,7 @@ const ChatPage = () => {
             });
         }
     };
+
     const handleModeChange = async (newMode: SessionMode) => {
         if (!sessionId)
             return;
@@ -152,6 +166,7 @@ const ChatPage = () => {
             });
         }
     };
+
     return (<div className="flex h-screen bg-[#0A0A0B]">
       <ChatSidebar mode={sessionMode} onModeChange={handleModeChange} onEndSession={handleEndSession}></ChatSidebar>
       <div className="flex-1 flex flex-col">
@@ -167,4 +182,5 @@ const ChatPage = () => {
       </div>
     </div>);
 };
+
 export default ChatPage;

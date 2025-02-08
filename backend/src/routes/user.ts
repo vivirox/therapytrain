@@ -1,7 +1,7 @@
-import { Router, Request, Response, RequestHandler } from 'express';
+import { Router, Request, Response, RequestHandler, NextFunction } from 'express';
 import { UserService } from "@/services/UserService";
 import { SecurityAuditService } from "@/services/SecurityAuditService";
-import { User } from '@supabase/supabase-js';
+import { User, SupabaseClient, Session } from '@supabase/supabase-js';
 import { UserProfile } from "@/config/supabase";
 const router = Router();
 const securityAudit = new SecurityAuditService();
@@ -112,3 +112,7 @@ router.get('/sessions', getSessions);
 router.post('/sessions/revoke', revokeSession);
 router.put('/preferences', updatePreferences);
 export default router;
+
+export interface Database {
+    public: { Tables: { [key: string]: any } };
+}

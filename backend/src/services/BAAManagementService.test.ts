@@ -1,11 +1,12 @@
-import { BAAManagementService, BAType, BAStatus, BAAStatus, BAADocumentType, DataAccessType, SecurityCategory, SignatureType } from "./BAAManagementService";
-import { SecurityAuditService } from "./SecurityAuditService";
-import { HIPAACompliantAuditService } from "./HIPAACompliantAuditService";
+import { SecurityAuditService } from '@services/SecurityAuditService';
+import { HIPAACompliantAuditService } from '@services/HIPAACompliantAuditService';
+import { BAAManagementService, BAType, BAStatus, BAAStatus, BAADocumentType, DataAccessType, SecurityCategory, SignatureType } from '@services/BAAManagementService';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import os from 'os';
-jest.mock('./SecurityAuditService');
-jest.mock('./HIPAACompliantAuditService');
+import { HIPAAEventType, HIPAAActionType } from '@types/hipaa';
+jest.mock('@services/SecurityAuditService');
+jest.mock('@services/HIPAACompliantAuditService');
 describe('BAAManagementService', () => {
     let baaManagementService: BAAManagementService;
     let mockSecurityAuditService: jest.Mocked<SecurityAuditService>;
@@ -31,15 +32,15 @@ describe('BAAManagementService', () => {
     describe('Business Associate Management', () => {
         it('should create business associate', async () => {
             const baData = {
-                name: 'Test Vendor',
-                type: BAType.TECHNOLOGY_VENDOR,
+                name: 'Test BA',
+                type: BAType.SERVICE_PROVIDER,
                 contact: {
                     name: 'John Doe',
                     email: 'john@example.com',
                     phone: '123-456-7890',
                     address: '123 Main St'
                 },
-                services: ['Cloud Storage', 'Data Analytics'],
+                services: ['Service 1', 'Service 2'],
                 dataAccess: [DataAccessType.VIEW, DataAccessType.CREATE],
                 status: BAStatus.ACTIVE
             };
@@ -65,8 +66,8 @@ describe('BAAManagementService', () => {
         it('should handle business associate creation errors', async () => {
             jest.spyOn(fs, 'writeFile').mockRejectedValueOnce(new Error('Write error'));
             await expect(baaManagementService.createBusinessAssociate({
-                name: 'Test Vendor',
-                type: BAType.TECHNOLOGY_VENDOR,
+                name: 'Test BA',
+                type: BAType.SERVICE_PROVIDER,
                 contact: {
                     name: 'John Doe',
                     email: 'john@example.com',
@@ -92,45 +93,17 @@ describe('BAAManagementService', () => {
                 documents: [],
                 signatures: [],
                 amendments: [],
-                dataHandlingRequirements: [
-                    {
-                        id: '1',
-                        dataType: 'PHI',
-                        accessLevel: DataAccessType.VIEW,
-                        encryptionRequired: true,
-                        retentionPeriod: 365 * 6,
-                        disposalMethod: 'Secure Deletion'
-                    }
-                ],
-                securityRequirements: [
-                    {
-                        id: '1',
-                        category: SecurityCategory.ENCRYPTION,
-                        description: 'Data at rest encryption',
-                        minimumStandard: 'AES-256',
-                        verificationMethod: 'Technical Review',
-                        verificationFrequency: 90
-                    }
-                ],
-                breachNotificationRequirements: [
-                    {
-                        id: '1',
-                        timeframe: 24,
-                        notificationMethod: ['Email', 'Phone'],
-                        requiredInformation: ['Nature of Breach', 'Affected Data'],
-                        escalationProcedure: 'Contact Privacy Officer'
-                    }
-                ],
-                terminationRequirements: [
-                    {
-                        id: '1',
-                        condition: 'Contract End',
-                        noticePeriod: 30,
-                        dataReturnMethod: 'Secure File Transfer',
-                        dataDestructionMethod: 'Secure Deletion',
-                        verificationRequired: true
-                    }
-                ]
+                dataHandlingRequirements: [],
+                securityRequirements: [{
+                    id: 'sec-1',
+                    category: SecurityCategory.ENCRYPTION,
+                    description: 'Data encryption at rest',
+                    minimumStandard: 'AES-256',
+                    verificationMethod: 'Audit',
+                    verificationFrequency: '90'
+                }],
+                breachNotificationRequirements: [],
+                terminationRequirements: []
             };
             const baa = await baaManagementService.createBAA('test-ba-id', baaData);
             expect(baa.id).toBeDefined();
@@ -157,8 +130,8 @@ describe('BAAManagementService', () => {
             await fs.writeFile(testFilePath, 'test content');
             const document = {
                 type: BAADocumentType.AGREEMENT,
-                filename: 'test-document.pdf',
-                path: testFilePath,
+                filename: 'test.pdf',
+                path: '/test/path',
                 uploadedBy: 'admin',
                 metadata: {}
             };
@@ -213,7 +186,7 @@ describe('BAAManagementService', () => {
             });
             const signature = {
                 signerId: 'user1',
-                signerRole: 'Privacy Officer',
+                signerRole: 'Manager',
                 signatureDate: new Date(),
                 signatureType: SignatureType.ELECTRONIC,
                 signatureData: 'test-signature',

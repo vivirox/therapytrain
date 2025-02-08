@@ -128,7 +128,7 @@ export class SecurityHeadersService {
     private buildCSPDirectives(nonce: string): string {
         const { cspDirectives } = this.config;
         return Object.entries(cspDirectives)
-            .map(([key, values]) => {
+            .map(([key, values]: any) => {
             // Add nonce to script-src and style-src
             if (key === 'scriptSrc' || key === 'styleSrc') {
                 values = [...values, `'nonce-${nonce}'`];

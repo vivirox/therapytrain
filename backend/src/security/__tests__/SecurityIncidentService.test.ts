@@ -1,6 +1,6 @@
-import { SecurityIncidentService, IncidentType, IncidentSeverity } from '../SecurityIncidentService';
-import { SecurityAuditService } from '../../services/SecurityAuditService';
-import { WebAuthnService } from '../WebAuthnService';
+import { SecurityIncidentService, IncidentType, IncidentSeverity } from '@/SecurityIncidentService';
+import { SecurityAuditService } from '@/../services/SecurityAuditService';
+import { WebAuthnService } from '@/WebAuthnService';
 
 jest.mock('../../services/SecurityAuditService');
 jest.mock('../WebAuthnService');

@@ -1,16 +1,19 @@
-import React, { useEffect } from 'react';
-export const DevTools: React.FC =    () => {
-    useEffect(() => {
-        // Only load in development
-        if (process.env.NODE_ENV === 'development') {
-            const script = document.createElement('script');
-            script.src = 'http://localhost:8097';
-            script.async = true;
-            document.head.appendChild(script);
-            return () => {
-                document.head.removeChild(script);
-            };
-        }
-    }, []);
+import React from 'react';
+
+interface DevToolsProps {
+  children?: React.ReactNode;
+}
+
+export const DevTools: React.FC<DevToolsProps> = ({ children }) => {
+  if (process.env.NODE_ENV === 'production') {
     return null;
+  }
+
+  return (
+    <div className="fixed bottom-4 right-4 z-50">
+      {children}
+    </div>
+  );
 };
+
+export default DevTools; 

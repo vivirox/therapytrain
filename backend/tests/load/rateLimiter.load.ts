@@ -43,19 +43,19 @@ else {
     runWorker();
 }
 function aggregateResults(results: Array<TestResult>): TestResult {
-    const totalRequests = results.reduce((sum, r) => sum + r.totalRequests, 0);
-    const successfulRequests = results.reduce((sum, r) => sum + r.successfulRequests, 0);
-    const failedRequests = results.reduce((sum, r) => sum + r.failedRequests, 0);
+    const totalRequests = results.reduce((sum: any, r: any) => sum + r.totalRequests, 0);
+    const successfulRequests = results.reduce((sum: any, r: any) => sum + r.successfulRequests, 0);
+    const failedRequests = results.reduce((sum: any, r: any) => sum + r.failedRequests, 0);
     // Combine response times from all workers
     const allTimes = results.flatMap(r => r.avgResponseTime);
     return {
         totalRequests,
         successfulRequests,
         failedRequests,
-        avgResponseTime: allTimes.reduce((a, b) => a + b) / allTimes.length,
+        avgResponseTime: allTimes.reduce((a: any, b: any) => a + b) / allTimes.length,
         p95ResponseTime: calculatePercentile(allTimes, 95),
         p99ResponseTime: calculatePercentile(allTimes, 99),
-        maxResponseTime: Math.max(...results.map(r => r.maxResponseTime)),
+        maxResponseTime: Math.max(...results.map((r: any) => r.maxResponseTime)),
         rps: totalRequests / (DURATION / 1000)
     };
 }
@@ -114,7 +114,7 @@ async function runWorker() {
             totalRequests: successful + failed,
             successfulRequests: successful,
             failedRequests: failed,
-            avgResponseTime: results.reduce((a, b) => a + b) / results.length,
+            avgResponseTime: results.reduce((a: any, b: any) => a + b) / results.length,
             p95ResponseTime: calculatePercentile(results, 95),
             p99ResponseTime: calculatePercentile(results, 99),
             maxResponseTime: Math.max(...results),

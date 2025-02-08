@@ -1,5 +1,5 @@
-import { useAuth } from "./AuthProvider";
-import { Button } from "@/ui/button";
+import { useAuth } from '@/authprovider';
+import { Button } from '@/components/ui/button';
 interface AuthCredentials {
     email: string;
     password: string;
@@ -8,27 +8,27 @@ const defaultCredentials: AuthCredentials = {
     email: '',
     password: ''
 };
-export const LoginButton = () => {
+export const LoginButton: React.FC = () => {
     const { login } = useAuth();
     const handleLogin = () => login(defaultCredentials.email, defaultCredentials.password);
     return (<Button onClick={handleLogin} variant="outline">
       Sign In
     </Button>);
 };
-export const RegisterButton = () => {
+export const RegisterButton: React.FC = () => {
     const { register } = useAuth();
     const handleRegister = () => register(defaultCredentials.email, defaultCredentials.password);
     return (<Button onClick={handleRegister} variant="default">
       Sign Up
     </Button>);
 };
-export const LogoutButton = () => {
+export const LogoutButton: React.FC = () => {
     const { logout } = useAuth();
     return (<Button onClick={logout} variant="ghost">
       Sign Out
     </Button>);
 };
-export const AuthButtons = () => {
+export const AuthButtons: React.FC = () => {
     const { isAuthenticated } = useAuth();
     if (isAuthenticated) {
         return <LogoutButton ></LogoutButton>;

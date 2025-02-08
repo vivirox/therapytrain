@@ -15,37 +15,136 @@ export enum TherapistCredentialField {
 }
 
 export interface SessionMetadata {
-    isEmergency: boolean;
-    isRecorded: boolean;
-    isSupervised: boolean;
-    isTraining: boolean;
+    sessionId: string;
+    timestamp: number;
+    clientId: string;
+    therapistId: string;
+    encryptionKey?: string;
 }
 
 export interface TherapistCredential {
-    licenseHash: string;
-    specializationHash: string;
-    certificationHash: string;
-    statusHash: string;
+    id: string;
+    publicKey: string;
+    privateKey?: string;
+    metadata: {
+        issuedAt: number;
+        expiresAt: number;
+        issuer: string;
+    };
 }
 
 export interface ProofGenerationInput {
-    sessionId: string;
-    startTimestamp: number;
-    endTimestamp: number;
-    therapistPubKey: Uint8Array;
-    therapistCredentialHash: string;
-    sessionData: Uint8Array[];
-    metadata: SessionMetadata;
-    therapistCredential: TherapistCredential;
-    signature: {
-        R8: Uint8Array;
-        S: Uint8Array;
+    sessionData: Array<{
+        timestamp: number;
+        messageHash: string;
+        role: 'THERAPIST' | 'CLIENT';
+    }>;
+    therapistCredential: {
+        id: string;
+        licenseNumber: string;
+        expirationDate: Date;
+        status: 'ACTIVE' | 'SUSPENDED' | 'EXPIRED';
+        verificationHash: string;
+    };
+    metadata: {
+        sessionId: string;
+        clientId: string;
+        timestamp: number;
+        protocol: string;
     };
 }
 
 export interface ProofOutput {
-    proof: any;
-    publicSignals: any[];
+    proof: string;
+    publicSignals: string[];
+    metadata: {
+        protocol: string;
+        timestamp: number;
+        verificationKey: string;
+    };
+}
+
+export interface CircuitMetadata {
+    name: string;
+    version: string;
+    description: string;
+    inputs: {
+        name: string;
+        type: string;
+        description: string;
+    }[];
+    outputs: {
+        name: string;
+        type: string;
+        description: string;
+    }[];
+}
+
+export interface VerificationKey {
+    id: string;
+    key: string;
+    circuit: string;
+    version: string;
+    createdAt: number;
+    expiresAt: number;
+}
+
+export interface ProofVerificationResult {
+    verified: boolean;
+    error?: string;
+    metadata?: {
+        verificationTime: number;
+        keyId: string;
+    };
+}
+
+export interface ZKWorkerMessage {
+    type: 'GENERATE_PROOF' | 'VERIFY_PROOF' | 'ERROR';
+    payload: any;
+    error?: string;
+}
+
+export interface ZKWorkerResult {
+    success: boolean;
+    data?: ProofOutput | ProofVerificationResult;
+    error?: string;
+    metadata?: {
+        executionTime: number;
+        memoryUsage: number;
+    };
+}
+
+export interface ZKUtils {
+    generateProof(input: ProofGenerationInput): Promise<ProofOutput>;
+    verifyProof(proof: ProofOutput): Promise<boolean>;
+    generateVerificationKey(): Promise<string>;
+}
+
+export interface WorkerPoolMetrics {
+    activeWorkers: number;
+    pendingTasks: number;
+    completedTasks: number;
+    failedTasks: number;
+    averageProcessingTime: number;
+    workers: Array<{
+        id: string;
+        status: 'IDLE' | 'BUSY' | 'ERROR';
+        taskCount: number;
+        lastActive: Date;
+    }>;
+}
+
+export interface ProofGenerationStats {
+    totalProofs: number;
+    successfulProofs: number;
+    failedProofs: number;
+    averageGenerationTime: number;
+    verificationStats: {
+        totalVerifications: number;
+        successfulVerifications: number;
+        failedVerifications: number;
+        averageVerificationTime: number;
+    };
 }
 
 export class ZKUtils {
@@ -134,13 +233,13 @@ export class ZKUtils {
             sessionId: input.sessionId,
             startTimestamp: input.startTimestamp,
             endTimestamp: input.endTimestamp,
-            therapistPubKey: Array.from(input.therapistPubKey).map(b => b.toString()),
+            therapistPubKey: Array.from(input.therapistPubKey).map((b: any) => b.toString()),
             therapistCredentialHash: input.therapistCredentialHash,
-            sessionData: input.sessionData.map(d => Array.from(d).map(b => b.toString())),
+            sessionData: input.sessionData.map((d: any) => Array.from(d).map((b: any) => b.toString())),
             metadataFlags: this.metadataToFlags(input.metadata),
             therapistCredential: this.credentialToArray(input.therapistCredential),
-            therapistSigR8: Array.from(input.signature.R8).map(b => b.toString()),
-            therapistSigS: Array.from(input.signature.S).map(b => b.toString())
+            therapistSigR8: Array.from(input.signature.R8).map((b: any) => b.toString()),
+            therapistSigS: Array.from(input.signature.S).map((b: any) => b.toString())
         };
     }
 }

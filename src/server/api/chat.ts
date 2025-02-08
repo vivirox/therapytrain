@@ -1,8 +1,8 @@
 import { createRouteHandlerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
-import { type Message } from "@/../ollama/process";
+import { type Message } from '@/ollama/process';
 import { TherapeuticAIProcessor } from '@/ai/processor';
-import type { ClientProfile } from '@/types/ClientProfile';
+import type { ClientProfile } from '@/types/clientprofile';
 import type { Database } from '@/types/supabase';
 export async function POST(req: Request) {
     try {

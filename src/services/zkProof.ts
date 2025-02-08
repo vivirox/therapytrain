@@ -142,11 +142,11 @@ export class ZKProofService {
             { min: 0, max: 100 }
         ];
         // Create proof that each value is within its range
-        const proofs = values.map((value, i) => {
+        const proofs = values.map((value: any, i: any) => {
             const range = ranges[i];
             return this.createRangeProof(value, range.min, range.max, blindingFactor);
         });
-        return bytesToHex(Buffer.concat(proofs.map(p => Buffer.from(p))));
+        return bytesToHex(Buffer.concat(proofs.map((p: any) => Buffer.from(p))));
     }
     private createRangeProof(value: number, min: number, max: number, blindingFactor: bigint): Buffer {
         // Implement single range proof
@@ -223,7 +223,7 @@ class Point {
     toHex(): string {
         return this.point.toHex(true);
     }
-    toRawBytes(compressed = true): Buffer {
+    toRawBytes(compressed: any = true): Buffer {
         return Buffer.from(this.point.toRawBytes(compressed));
     }
     static fromHex(hex: string): Point {

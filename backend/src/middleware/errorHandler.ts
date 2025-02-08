@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { logger } from "@/utils/logger";
-import { PostgrestError } from '@supabase/supabase-js';
+import { PostgrestError, SupabaseClient, User, Session } from '@supabase/supabase-js';
 export interface AppError extends Error {
     status?: number;
     code?: string;
@@ -35,3 +35,7 @@ export const errorHandler = (err: Error | AppError | PostgrestError, req: Reques
         message: process.env.NODE_ENV === 'production' ? 'An unexpected error occurred' : err.message
     });
 };
+
+export interface Database {
+    public: { Tables: { [key: string]: any } };
+}

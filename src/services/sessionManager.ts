@@ -1,5 +1,5 @@
-import EncryptionService from "./encryption";
-import ZKService from "./zkService";
+import EncryptionService from '@/encryption';
+import ZKService from '@/zkservice';
 export type SessionMode = 'text' | 'video' | 'hybrid';
 export interface SessionBranch {
     id: string;

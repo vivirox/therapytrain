@@ -1,8 +1,8 @@
 import { AlertHandler, Alert, AlertType, AlertSeverity } from './types';
-import { logger } from '../utils/logger';
-import { UserService } from '../services/UserService';
-import { RateLimiterService } from '../services/RateLimiterService';
-import { SecurityAuditService } from '../services/SecurityAuditService';
+import { logger } from '@/utils/logger';
+import { UserService } from '@/services/UserService';
+import { RateLimiterService } from '@/services/RateLimiterService';
+import { SecurityAuditService } from '@/services/SecurityAuditService';
 
 export class AutomatedResponseHandler implements AlertHandler {
   private userService: UserService;

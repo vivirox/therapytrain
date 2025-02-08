@@ -1,5 +1,5 @@
-import Analytics from '@/pages/Analytics';
+import Analytics from '@/pages/analytics';
 
-export default function AnalyticsPage() {
+export default function AnalyticsPage(): JSX.Element {
   return <Analytics ></Analytics>;
 }

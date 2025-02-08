@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { useChat } from "@/../contexts/ChatContext";
 import { Message } from "@/../../../backend/src/types/chat";
-import { Avatar } from "@/ui/avatar";
+import { Avatar } from "@/components/ui/avatar";
 import { formatDistanceToNow } from 'date-fns';
 import ReactMarkdown from 'react-markdown';
 function MessageItem({ message }: {

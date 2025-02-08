@@ -43,7 +43,7 @@ interface KeyRotationEvent {
     details: Record<string, any>;
 }
 
-enum KeyStatus {
+export enum KeyStatus {
     ACTIVE = 'ACTIVE',
     ROTATING = 'ROTATING',
     EXPIRED = 'EXPIRED',
@@ -52,7 +52,7 @@ enum KeyStatus {
     DELETED = 'DELETED'
 }
 
-enum KeyPurpose {
+export enum KeyPurpose {
     PHI_ENCRYPTION = 'PHI_ENCRYPTION',
     AUDIT_LOG_ENCRYPTION = 'AUDIT_LOG_ENCRYPTION',
     BACKUP_ENCRYPTION = 'BACKUP_ENCRYPTION',
@@ -320,7 +320,7 @@ export class EncryptionKeyRotationService {
     private async loadExistingKeys(): Promise<void> {
         try {
             const files = await fs.readdir(this.keysPath);
-            const keyFiles = files.filter(f => f.startsWith('key-') && f.endsWith('.json'));
+            const keyFiles = files.filter((f: any) => f.startsWith('key-') && f.endsWith('.json'));
 
             for (const file of keyFiles) {
                 const content = await fs.readFile(path.join(this.keysPath, file), 'utf-8');

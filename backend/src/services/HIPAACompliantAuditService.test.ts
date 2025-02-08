@@ -1,11 +1,18 @@
 import { HIPAACompliantAuditService } from "./HIPAACompliantAuditService";
 import { SecurityAuditService } from "./SecurityAuditService";
 import { VerificationKeyService } from "./VerificationKeyService";
+import {
+    HIPAAEventType,
+    HIPAAActionType,
+    HIPAAAuditEvent,
+    HIPAAQueryFilters
+} from '@/types/hipaa';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import os from 'os';
 jest.mock('./SecurityAuditService');
 jest.mock('./VerificationKeyService');
+jest.mock('fs/promises');
 describe('HIPAACompliantAuditService', () => {
     let hipaaAuditService: HIPAACompliantAuditService;
     let mockSecurityAuditService: jest.Mocked<SecurityAuditService>;
@@ -33,8 +40,8 @@ describe('HIPAACompliantAuditService', () => {
     });
     describe('Event Logging', () => {
         it('should log PHI access events', async () => {
-            const event = {
-                eventType: 'PHI_ACCESS' as const,
+            const event: Omit<HIPAAAuditEvent, 'id' | 'metadata'> = {
+                eventType: HIPAAEventType.PHI_ACCESS,
                 timestamp: new Date(),
                 actor: {
                     id: 'user123',
@@ -43,12 +50,12 @@ describe('HIPAACompliantAuditService', () => {
                     userAgent: 'test-agent'
                 },
                 action: {
-                    type: 'READ' as const,
-                    status: 'SUCCESS' as const,
+                    type: HIPAAActionType.READ,
+                    status: 'SUCCESS',
                     details: { recordType: 'THERAPY_NOTE' }
                 },
                 resource: {
-                    type: 'PHI' as const,
+                    type: 'PHI',
                     id: 'note123',
                     description: 'Therapy session notes'
                 },
@@ -77,8 +84,8 @@ describe('HIPAACompliantAuditService', () => {
             });
         });
         it('should log and alert on high-risk events', async () => {
-            const event = {
-                eventType: 'PHI_MODIFICATION' as const,
+            const event: Omit<HIPAAAuditEvent, 'id' | 'metadata'> = {
+                eventType: HIPAAEventType.PHI_MODIFICATION,
                 timestamp: new Date(),
                 actor: {
                     id: 'user123',
@@ -86,12 +93,12 @@ describe('HIPAACompliantAuditService', () => {
                     ipAddress: '127.0.0.1'
                 },
                 action: {
-                    type: 'DELETE' as const,
-                    status: 'SUCCESS' as const,
+                    type: HIPAAActionType.DELETE,
+                    status: 'SUCCESS',
                     details: { recordType: 'PATIENT_RECORD' }
                 },
                 resource: {
-                    type: 'PHI' as const,
+                    type: 'PHI',
                     id: 'record123',
                     description: 'Patient record'
                 }
@@ -103,9 +110,10 @@ describe('HIPAACompliantAuditService', () => {
             }));
         });
         it('should maintain event chain integrity', async () => {
-            const events = [
+            const events: HIPAAAuditEvent[] = [
                 {
-                    eventType: 'USER_AUTHENTICATION' as const,
+                    id: 'event1',
+                    eventType: HIPAAEventType.USER_AUTHENTICATION,
                     timestamp: new Date(),
                     actor: {
                         id: 'user123',
@@ -113,18 +121,24 @@ describe('HIPAACompliantAuditService', () => {
                         ipAddress: '127.0.0.1'
                     },
                     action: {
-                        type: 'LOGIN' as const,
-                        status: 'SUCCESS' as const,
+                        type: HIPAAActionType.LOGIN,
+                        status: 'SUCCESS',
                         details: {}
                     },
                     resource: {
-                        type: 'SYSTEM' as const,
+                        type: 'SYSTEM',
                         id: 'auth',
                         description: 'Authentication system'
+                    },
+                    metadata: {
+                        encryptedAt: new Date(),
+                        hashValue: 'hash1',
+                        previousEventHash: ''
                     }
                 },
                 {
-                    eventType: 'PHI_ACCESS' as const,
+                    id: 'event2',
+                    eventType: HIPAAEventType.PHI_ACCESS,
                     timestamp: new Date(),
                     actor: {
                         id: 'user123',
@@ -132,14 +146,19 @@ describe('HIPAACompliantAuditService', () => {
                         ipAddress: '127.0.0.1'
                     },
                     action: {
-                        type: 'READ' as const,
-                        status: 'SUCCESS' as const,
+                        type: HIPAAActionType.READ,
+                        status: 'SUCCESS',
                         details: {}
                     },
                     resource: {
-                        type: 'PHI' as const,
+                        type: 'PHI',
                         id: 'record123',
                         description: 'Patient record'
+                    },
+                    metadata: {
+                        encryptedAt: new Date(),
+                        hashValue: 'hash2',
+                        previousEventHash: 'hash1'
                     }
                 }
             ];
@@ -159,41 +178,55 @@ describe('HIPAACompliantAuditService', () => {
     describe('Event Querying', () => {
         it('should retrieve filtered events', async () => {
             // Log multiple events
-            const events = [
+            const events: HIPAAAuditEvent[] = [
                 {
-                    eventType: 'PHI_ACCESS' as const,
+                    id: 'event1',
+                    eventType: HIPAAEventType.PHI_ACCESS,
+                    timestamp: new Date(),
                     actor: {
                         id: 'user1',
                         role: 'THERAPIST',
                         ipAddress: '127.0.0.1'
                     },
                     action: {
-                        type: 'READ' as const,
-                        status: 'SUCCESS' as const,
+                        type: HIPAAActionType.READ,
+                        status: 'SUCCESS',
                         details: {}
                     },
                     resource: {
-                        type: 'PHI' as const,
+                        type: 'PHI',
                         id: 'record1',
                         description: 'Record 1'
+                    },
+                    metadata: {
+                        encryptedAt: new Date(),
+                        hashValue: 'hash1',
+                        previousEventHash: ''
                     }
                 },
                 {
-                    eventType: 'SYSTEM_OPERATION' as const,
+                    id: 'event2',
+                    eventType: HIPAAEventType.SYSTEM_OPERATION,
+                    timestamp: new Date(),
                     actor: {
                         id: 'user2',
                         role: 'ADMIN',
                         ipAddress: '127.0.0.1'
                     },
                     action: {
-                        type: 'UPDATE' as const,
-                        status: 'SUCCESS' as const,
+                        type: HIPAAActionType.UPDATE,
+                        status: 'SUCCESS',
                         details: {}
                     },
                     resource: {
-                        type: 'SYSTEM' as const,
+                        type: 'SYSTEM',
                         id: 'config',
                         description: 'System config'
+                    },
+                    metadata: {
+                        encryptedAt: new Date(),
+                        hashValue: 'hash2',
+                        previousEventHash: 'hash1'
                     }
                 }
             ];
@@ -204,11 +237,11 @@ describe('HIPAACompliantAuditService', () => {
             const startDate = new Date(Date.now() - 3600000);
             const endDate = new Date();
             const filteredEvents = await hipaaAuditService.queryEvents(startDate, endDate, {
-                eventType: 'PHI_ACCESS',
+                eventType: HIPAAEventType.PHI_ACCESS,
                 actorId: 'user1'
             });
             expect(filteredEvents.length).toBe(1);
-            expect(filteredEvents[0].eventType).toBe('PHI_ACCESS');
+            expect(filteredEvents[0].eventType).toBe(HIPAAEventType.PHI_ACCESS);
             expect(filteredEvents[0].actor.id).toBe('user1');
         });
         it('should handle query errors gracefully', async () => {

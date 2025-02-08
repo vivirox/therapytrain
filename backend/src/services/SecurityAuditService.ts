@@ -119,7 +119,7 @@ export class SecurityAuditService {
             .gte('createdAt', startTime.toISOString())
             .lte('createdAt', endTime.toISOString());
         // Apply filters
-        Object.entries(filters).forEach(([key, value]) => {
+        Object.entries(filters).forEach(([key, value]: any) => {
             if (value !== undefined) {
                 query = query.eq(key, value);
             }
@@ -148,8 +148,8 @@ export class SecurityAuditService {
         }
     }
     private startBufferFlush(): void {
-        setInterval(() => {
-            this.flushBuffer().catch(error, unknown => {
+        this.flushInterval = setInterval(() => {
+            this.flushBuffer().catch((error: Error) => {
                 console.error('Error in flush interval:', error);
             });
         }, this.FLUSH_INTERVAL);

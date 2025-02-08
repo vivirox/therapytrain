@@ -30,7 +30,7 @@ describe('RateLimiter Performance Tests', () => {
                 const end = performance.now();
                 results.push(end - start);
             }
-            const avgTime = results.reduce((a, b) => a + b) / results.length;
+            const avgTime = results.reduce((a: any, b: any) => a + b) / results.length;
             const p95Time = results.sort((a, b) => a - b)[Math.floor(iterations * 0.95)];
             console.log(`Average check time: ${avgTime.toFixed(3)}ms`);
             console.log(`95th percentile check time: ${p95Time.toFixed(3)}ms`);
@@ -40,15 +40,15 @@ describe('RateLimiter Performance Tests', () => {
         });
         it('should handle concurrent requests efficiently', async () => {
             const concurrentRequests = 100;
-            const requests = Array(concurrentRequests).fill(null).map((_, index) => {
+            const requests = Array(concurrentRequests).fill(null).map((_: any, index: any) => {
                 return async () => {
                     const start = performance.now();
                     await rateLimiter.createRateLimiter()(mockReq, mockRes, mockNext);
                     return performance.now() - start;
                 };
             });
-            const results = await Promise.all(requests.map(req => req()));
-            const avgTime = results.reduce((a, b) => a + b, 0) / results.length;
+            const results = await Promise.all(requests.map((req: any) => req()));
+            const avgTime = results.reduce((a: any, b: any) => a + b, 0) / results.length;
             const sortedResults = [...results].sort((a, b) => Number(a) - Number(b));
             const p95Time = sortedResults[Math.floor(concurrentRequests * 0.95)];
             console.log(`Average concurrent request time: ${avgTime.toFixed(3)}ms`);
@@ -70,7 +70,7 @@ describe('RateLimiter Performance Tests', () => {
                 const end = performance.now();
                 results.push(end - start);
             }
-            const avgTime = results.reduce((a, b) => a + b) / results.length;
+            const avgTime = results.reduce((a: any, b: any) => a + b) / results.length;
             const p95Time = results.sort((a, b) => a - b)[Math.floor(iterations * 0.95)];
             console.log(`Average suspicious check time: ${avgTime.toFixed(3)}ms`);
             console.log(`95th percentile suspicious check time: ${p95Time.toFixed(3)}ms`);

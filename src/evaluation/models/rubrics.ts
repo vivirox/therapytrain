@@ -138,8 +138,8 @@ export const therapeuticApproaches: TherapeuticApproach[] = [
 export function calculateWeightedScore(scores: Record<string, number>, rubric: ScoringCriteria[]): number {
     let totalScore = 0;
     let totalWeight = 0;
-    rubric.forEach(category => {
-        category.subcategories.forEach(sub => {
+    rubric.forEach((category: any) => {
+        category.subcategories.forEach((sub: any) => {
             if (scores[sub.name]) {
                 totalScore += scores[sub.name] * sub.weight;
                 totalWeight += sub.weight;
@@ -151,8 +151,8 @@ export function calculateWeightedScore(scores: Record<string, number>, rubric: S
 // Helper function to generate feedback based on scores
 export function generateFeedback(scores: Record<string, number>, approach: TherapeuticApproach): string[] {
     const feedback: string[] = [];
-    approach.scoringRubric.forEach(category => {
-        category.subcategories.forEach(sub => {
+    approach.scoringRubric.forEach((category: any) => {
+        category.subcategories.forEach((sub: any) => {
             const score = scores[sub.name] || 0;
             feedback.push(`${sub.name}: ${sub.scoringGuide[score as 1 | 2 | 3 | 4 | 5]}`);
         });

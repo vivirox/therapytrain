@@ -150,7 +150,7 @@ export class HIPAAComplianceReportService {
             // Get audit events for the period
             const auditEvents = await this.hipaaAuditService.queryEvents(startDate, endDate);
             // Get retention status for all data types
-            const retentionStatus = await Promise.all(Object.values(DataType).map(dataType => this.dataRetentionService.getRetentionStatus(dataType)));
+            const retentionStatus = await Promise.all(Object.values(DataType).map((dataType: any) => this.dataRetentionService.getRetentionStatus(dataType)));
             // Analyze audit trails
             const auditTrails = await this.analyzeAuditTrails(auditEvents);
             // Analyze data retention
@@ -212,7 +212,7 @@ export class HIPAAComplianceReportService {
         const missingAudits = this.detectMissingAudits(auditEvents);
         const incompleteAudits = this.detectIncompleteAudits(auditEvents);
         const violations: Array<ComplianceViolation> = [
-            ...missingAudits.map((details) => ({
+            ...missingAudits.map((details: any) => ({
                 id: crypto.randomBytes(16).toString('hex'),
                 timestamp: new Date(),
                 type: ViolationType.MISSING_AUDIT,
@@ -221,7 +221,7 @@ export class HIPAAComplianceReportService {
                 details,
                 status: 'OPEN' as const
             })),
-            ...incompleteAudits.map((details) => ({
+            ...incompleteAudits.map((details: any) => ({
                 id: crypto.randomBytes(16).toString('hex'),
                 timestamp: new Date(),
                 type: ViolationType.INCOMPLETE_AUDIT,
@@ -243,7 +243,7 @@ export class HIPAAComplianceReportService {
         let totalRecords = 0;
         let pendingArchival = 0;
         let pendingDeletion = 0;
-        retentionStatus.forEach((status, index) => {
+        retentionStatus.forEach((status: any, index: any) => {
             const dataType = Object.values(DataType)[index];
             totalRecords += status.total;
             pendingArchival += status.pendingArchival;
@@ -290,7 +290,7 @@ export class HIPAAComplianceReportService {
         const unauthorizedAccesses = this.detectUnauthorizedAccesses(auditEvents);
         const emergencyAccesses = this.detectEmergencyAccesses(auditEvents);
         const violations: Array<ComplianceViolation> = [
-            ...unauthorizedAccesses.map((details) => ({
+            ...unauthorizedAccesses.map((details: any) => ({
                 id: crypto.randomBytes(16).toString('hex'),
                 timestamp: new Date(),
                 type: ViolationType.UNAUTHORIZED_ACCESS,
@@ -299,7 +299,7 @@ export class HIPAAComplianceReportService {
                 details,
                 status: 'OPEN' as const
             })),
-            ...emergencyAccesses.map((details) => ({
+            ...emergencyAccesses.map((details: any) => ({
                 id: crypto.randomBytes(16).toString('hex'),
                 timestamp: new Date(),
                 type: ViolationType.EMERGENCY_ACCESS,
@@ -310,7 +310,7 @@ export class HIPAAComplianceReportService {
             }))
         ];
         return {
-            totalAccesses: auditEvents.filter((e) => e?.action?.type === 'READ').length,
+            totalAccesses: auditEvents.filter((e: any) => e?.action?.type === 'READ').length,
             unauthorizedAccesses: unauthorizedAccesses.length,
             emergencyAccesses: emergencyAccesses.length,
             accessViolations: violations
@@ -408,7 +408,7 @@ export class HIPAAComplianceReportService {
             ...report.dataRetention.retentionViolations,
             ...report.accessControl.accessViolations,
             ...report.encryption.encryptionViolations
-        ].filter(v => v.severity === 'HIGH' || v.severity === 'CRITICAL');
+        ].filter((v: any) => v.severity === 'HIGH' || v.severity === 'CRITICAL');
         for (const violation of highRiskViolations) {
             await this.securityAuditService.recordAlert('COMPLIANCE_VIOLATION', 'HIGH', {
                 violationType: violation.type,
@@ -422,7 +422,7 @@ export class HIPAAComplianceReportService {
         return [];
     }
     private detectIncompleteAudits(auditEvents: Array<any>): Array<any> {
-        return auditEvents.filter((event) => {
+        return auditEvents.filter((event: any) => {
             if (!event)
                 return false;
             return !this.assessmentCriteria.auditTrails.requiredFields.every(field => {
@@ -438,7 +438,7 @@ export class HIPAAComplianceReportService {
         });
     }
     private detectUnauthorizedAccesses(auditEvents: Array<any>): Array<any> {
-        return auditEvents.filter((event) => {
+        return auditEvents.filter((event: any) => {
             if (!event?.action)
                 return false;
             return event.action.type === 'READ' &&
@@ -447,7 +447,7 @@ export class HIPAAComplianceReportService {
         });
     }
     private detectEmergencyAccesses(auditEvents: Array<any>): Array<any> {
-        return auditEvents.filter((event) => {
+        return auditEvents.filter((event: any) => {
             if (!event?.action)
                 return false;
             return event.action.type === 'EMERGENCY_ACCESS';

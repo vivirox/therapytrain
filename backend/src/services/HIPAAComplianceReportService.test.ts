@@ -5,6 +5,12 @@ import { DataRetentionService, DataType } from "./DataRetentionService";
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import os from 'os';
+import {
+    HIPAAEventType,
+    HIPAAActionType,
+    HIPAAAuditEvent,
+    HIPAAComplianceReport
+} from '@/types/hipaa';
 jest.mock('./SecurityAuditService');
 jest.mock('./HIPAACompliantAuditService');
 jest.mock('./DataRetentionService');
@@ -204,6 +210,130 @@ describe('HIPAAComplianceReportService', () => {
                 const report = await complianceReportService.generateComplianceReport(new Date(), new Date());
                 expect(report.summary.riskLevel).toBe(level);
             }
+        });
+    });
+    describe('generateComplianceReport', () => {
+        it('should generate a compliance report for a given time period', async () => {
+            const startTime = new Date('2024-01-01');
+            const endTime = new Date('2024-01-31');
+
+            // Mock audit events
+            const events: HIPAAAuditEvent[] = [
+                {
+                    id: 'event1',
+                    eventType: HIPAAEventType.PHI_ACCESS,
+                    timestamp: new Date('2024-01-15'),
+                    actor: {
+                        id: 'user1',
+                        role: 'THERAPIST',
+                        ipAddress: '192.168.1.1',
+                        userAgent: 'Mozilla/5.0'
+                    },
+                    action: {
+                        type: HIPAAActionType.READ,
+                        status: 'SUCCESS',
+                        details: {}
+                    },
+                    resource: {
+                        type: 'PHI',
+                        id: 'record1',
+                        description: 'Patient Record'
+                    },
+                    metadata: {
+                        encryptedAt: new Date(),
+                        hashValue: 'hash1',
+                        previousEventHash: ''
+                    }
+                },
+                {
+                    id: 'event2',
+                    eventType: HIPAAEventType.PHI_MODIFICATION,
+                    timestamp: new Date('2024-01-16'),
+                    actor: {
+                        id: 'user1',
+                        role: 'THERAPIST',
+                        ipAddress: '192.168.1.1',
+                        userAgent: 'Mozilla/5.0'
+                    },
+                    action: {
+                        type: HIPAAActionType.UPDATE,
+                        status: 'SUCCESS',
+                        details: {}
+                    },
+                    resource: {
+                        type: 'PHI',
+                        id: 'record1',
+                        description: 'Patient Record'
+                    },
+                    metadata: {
+                        encryptedAt: new Date(),
+                        hashValue: 'hash2',
+                        previousEventHash: 'hash1'
+                    }
+                },
+                {
+                    id: 'event3',
+                    eventType: HIPAAEventType.AUTHENTICATION,
+                    timestamp: new Date('2024-01-17'),
+                    actor: {
+                        id: 'user2',
+                        role: 'ADMIN',
+                        ipAddress: '192.168.1.2',
+                        userAgent: 'Mozilla/5.0'
+                    },
+                    action: {
+                        type: HIPAAActionType.LOGIN,
+                        status: 'SUCCESS',
+                        details: {}
+                    },
+                    resource: {
+                        type: 'SYSTEM',
+                        id: 'auth',
+                        description: 'Authentication System'
+                    },
+                    metadata: {
+                        encryptedAt: new Date(),
+                        hashValue: 'hash3',
+                        previousEventHash: 'hash2'
+                    }
+                }
+            ];
+
+            // Mock the audit service to return these events
+            jest.spyOn(mockHipaaAuditService, 'queryEvents').mockResolvedValue(events);
+
+            const report = await complianceReportService.generateComplianceReport(startTime, endTime);
+
+            expect(report).toBeDefined();
+            expect(report.summary.totalEvents).toBe(3);
+            expect(report.summary.phiAccessEvents).toBe(1);
+            expect(report.summary.phiModificationEvents).toBe(1);
+            expect(report.summary.authenticationEvents).toBe(1);
+        });
+
+        it('should handle empty audit logs', async () => {
+            const startTime = new Date('2024-01-01');
+            const endTime = new Date('2024-01-31');
+
+            jest.spyOn(mockHipaaAuditService, 'queryEvents').mockResolvedValue([]);
+
+            const report = await complianceReportService.generateComplianceReport(startTime, endTime);
+
+            expect(report).toBeDefined();
+            expect(report.summary.totalEvents).toBe(0);
+            expect(report.summary.phiAccessEvents).toBe(0);
+            expect(report.summary.phiModificationEvents).toBe(0);
+            expect(report.summary.authenticationEvents).toBe(0);
+        });
+
+        it('should handle audit service errors', async () => {
+            const startTime = new Date('2024-01-01');
+            const endTime = new Date('2024-01-31');
+
+            jest.spyOn(mockHipaaAuditService, 'queryEvents').mockRejectedValue(new Error('Database error'));
+
+            await expect(complianceReportService.generateComplianceReport(startTime, endTime))
+                .rejects.toThrow('Failed to generate compliance report');
         });
     });
 });

@@ -1,10 +1,12 @@
-import { Request, Response } from 'express';
-import { supabase } from "@/../../config/database";
+import { Request, Response, NextFunction } from 'express';
+import { supabase } from "../../config/database";
 import { ChatService } from "./ChatService";
-import { Message, ChatStreamResponse, ChatEvent } from "@/../types/chat";
-import { OpenAIService } from "@/ai/OpenAIService";
-import { AnthropicService } from "@/ai/AnthropicService";
-import { GoogleAIService } from "@/ai/GoogleAIService";
+import { Message, ChatStreamResponse, ChatEvent } from "../../types/chat";
+import { OpenAIService } from "../ai/OpenAIService";
+import { AnthropicService } from "../ai/AnthropicService";
+import { GoogleAIService } from "../ai/GoogleAIService";
+import { EventEmitter } from 'events';
+
 export class ChatStreamService {
     private chatService: ChatService;
     private openAI: OpenAIService;
@@ -75,7 +77,7 @@ export class ChatStreamService {
                 throw new Error('Session not found');
             // Get conversation history
             const messages = await this.chatService.getMessages(sessionId, 10);
-            const history = messages.map(m => ({
+            const history = messages.map((m: any) => ({
                 role: m.payload.role || 'user',
                 content: m.payload.content
             }));
