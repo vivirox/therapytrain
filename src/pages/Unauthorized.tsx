@@ -1,35 +1,40 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle, } from '@/components/ui/card';
-export const UnauthorizedPage: React.FC = () => {
-    const navigate = useNavigate();
-    return (<div className="container flex items-center justify-center min-h-[80vh]">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>Access Denied</CardTitle>
-          <CardDescription>
-            You don't have permission to access this page.
-          </CardDescription>
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { MdLock, MdArrowBack } from 'react-icons/md';
+
+const Unauthorized: React.FC = () => {
+  const navigate = useNavigate();
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-900 p-4">
+      <Card className="max-w-md w-full bg-gray-800 border-gray-700">
+        <CardHeader className="text-center">
+          <div className="mx-auto w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mb-4">
+            <MdLock className="w-8 h-8 text-red-500" />
+          </div>
+          <CardTitle className="text-2xl font-bold text-white">Access Denied</CardTitle>
         </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">
-            This could be because:
+        <CardContent className="text-center space-y-6">
+          <p className="text-gray-400">
+            You don't have permission to access this page. Please contact your administrator
+            if you believe this is a mistake.
           </p>
-          <ul className="list-disc list-inside mt-2 text-sm text-muted-foreground">
-            <li>You don't have the required permissions</li>
-            <li>You're not an organization admin</li>
-            <li>You're trying to access a restricted area</li>
-          </ul>
+          <div className="flex justify-center">
+            <Button
+              variant="outline"
+              onClick={() => navigate(-1)}
+              className="flex items-center gap-2"
+            >
+              <MdArrowBack className="w-4 h-4" />
+              Go Back
+            </Button>
+          </div>
         </CardContent>
-        <CardFooter className="flex justify-between">
-          <Button variant="ghost" onClick={() => navigate(-1)}>
-            Go Back
-          </Button>
-          <Button variant="default" onClick={() => navigate('/')}>
-            Go Home
-          </Button>
-        </CardFooter>
       </Card>
-    </div>);
+    </div>
+  );
 };
+
+export default Unauthorized;

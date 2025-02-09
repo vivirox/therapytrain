@@ -2,7 +2,7 @@
 /// <reference types="@testing-library/jest-dom" />
 
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { FormSelect } from '../FormSelect';
@@ -25,6 +25,18 @@ const FormSelectWrapper = ({
 };
 
 describe('FormSelect', () => {
+  const defaultProps = {
+    id: 'test-select',
+    name: 'test-select',
+    label: 'Test Select',
+    options: [
+      { value: 'option1', label: 'Option 1' },
+      { value: 'option2', label: 'Option 2' },
+      { value: 'option3', label: 'Option 3' },
+    ],
+    onChange: vi.fn(),
+  };
+
   it('renders correctly with all props', () => {
     render(
       <FormSelectWrapper
@@ -174,5 +186,124 @@ describe('FormSelect', () => {
     
     const trigger = screen.getByRole('combobox');
     expect(trigger).toHaveTextContent('No options');
+  });
+
+  it('renders with label and options', () => {
+    render(<FormSelect {...defaultProps} />);
+    
+    expect(screen.getByLabelText('Test Select')).toBeInTheDocument();
+    expect(screen.getByRole('combobox')).toBeInTheDocument();
+    defaultProps.options.forEach(option => {
+      expect(screen.getByText(option.label)).toBeInTheDocument();
+    });
+  });
+
+  it('handles value changes', () => {
+    render(<FormSelect {...defaultProps} />);
+    
+    const select = screen.getByRole('combobox');
+    fireEvent.change(select, { target: { value: 'option2' } });
+    
+    expect(defaultProps.onChange).toHaveBeenCalledTimes(1);
+    expect(defaultProps.onChange).toHaveBeenCalledWith(expect.any(Object));
+  });
+
+  it('displays error message when provided', () => {
+    const error = 'This field is required';
+    render(<FormSelect {...defaultProps} error={error} />);
+    
+    expect(screen.getByText(error)).toBeInTheDocument();
+    expect(screen.getByRole('combobox')).toHaveAttribute('aria-invalid', 'true');
+  });
+
+  it('supports disabled state', () => {
+    render(<FormSelect {...defaultProps} disabled />);
+    
+    expect(screen.getByRole('combobox')).toBeDisabled();
+  });
+
+  it('handles required attribute', () => {
+    render(<FormSelect {...defaultProps} required />);
+    
+    expect(screen.getByRole('combobox')).toHaveAttribute('required');
+    expect(screen.getByText('*')).toBeInTheDocument();
+  });
+
+  it('applies custom className when provided', () => {
+    const className = 'custom-select';
+    render(<FormSelect {...defaultProps} className={className} />);
+    
+    expect(screen.getByRole('combobox')).toHaveClass(className);
+  });
+
+  it('supports placeholder option', () => {
+    const placeholder = 'Select an option';
+    render(<FormSelect {...defaultProps} placeholder={placeholder} />);
+    
+    expect(screen.getByText(placeholder)).toBeInTheDocument();
+  });
+
+  it('supports keyboard navigation', async () => {
+    const user = userEvent.setup();
+    render(<FormSelect {...defaultProps} />);
+    
+    const select = screen.getByRole('combobox');
+    
+    // Tab to focus
+    await user.tab();
+    expect(select).toHaveFocus();
+    
+    // Space to open
+    await user.keyboard('[Space]');
+    
+    // Arrow down to navigate
+    await user.keyboard('[ArrowDown]');
+    expect(screen.getByRole('option', { name: 'Option 1' })).toHaveFocus();
+    
+    // Arrow down again
+    await user.keyboard('[ArrowDown]');
+    expect(screen.getByRole('option', { name: 'Option 2' })).toHaveFocus();
+    
+    // Enter to select
+    await user.keyboard('[Enter]');
+    expect(defaultProps.onChange).toHaveBeenCalled();
+  });
+
+  it('maintains focus after selection', async () => {
+    const user = userEvent.setup();
+    render(<FormSelect {...defaultProps} />);
+    
+    const select = screen.getByRole('combobox');
+    
+    // Focus and open
+    await user.tab();
+    await user.keyboard('[Space]');
+    
+    // Make selection
+    await user.keyboard('[ArrowDown]');
+    await user.keyboard('[Enter]');
+    
+    // Select should retain focus
+    expect(select).toHaveFocus();
+  });
+
+  it('supports screen reader accessibility', () => {
+    render(<FormSelect {...defaultProps} />);
+    
+    const select = screen.getByRole('combobox');
+    
+    // ARIA attributes
+    expect(select).toHaveAttribute('aria-label', 'Test Select');
+    expect(select).toHaveAttribute('aria-expanded', 'false');
+    expect(select).toHaveAttribute('aria-haspopup', 'listbox');
+    
+    // Required state
+    render(<FormSelect {...defaultProps} required />);
+    expect(screen.getByRole('combobox')).toHaveAttribute('aria-required', 'true');
+    
+    // Error state
+    render(<FormSelect {...defaultProps} error="Error message" />);
+    expect(screen.getByRole('combobox')).toHaveAttribute('aria-invalid', 'true');
+    expect(screen.getByRole('combobox')).toHaveAttribute('aria-errormessage');
   });
 }); 

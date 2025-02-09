@@ -1,33 +1,56 @@
-import * as React from "react"
-import { cn } from '@/lib/utils'
+import React from 'react';
+import { cn } from '@/lib/utils';
+import { Loader2 } from 'lucide-react';
 
 interface LoadingProps extends React.HTMLAttributes<HTMLDivElement> {
-  size?: "sm" | "md" | "lg"
-    className?: string;
+  variant?: 'default' | 'page' | 'card' | 'spinner';
+  size?: 'sm' | 'md' | 'lg';
+  text?: string;
 }
 
-const Loading = React.forwardRef<HTMLDivElement, LoadingProps>(
-  ({ className, size = "md", ...props }, ref) => {
-    const sizeClasses = {
-      sm: "h-4 w-4",
-      md: "h-6 w-6",
-      lg: "h-8 w-8",
-    }
+const variantClassMap = {
+  default: 'flex items-center justify-center',
+  page: 'min-h-screen flex items-center justify-center',
+  card: 'min-h-[200px] flex items-center justify-center',
+  spinner: 'inline-flex',
+};
 
-    return (
-      <div
-        ref={ref}
-        className={cn("animate-spin", sizeClasses[size], className)}
-        {...props}
-      >
-        <div className="h-full w-full rounded-full border-2 border-current border-t-transparent" />
+const sizeClassMap = {
+  sm: 'w-4 h-4',
+  md: 'w-6 h-6',
+  lg: 'w-8 h-8',
+};
+
+export const Loading: React.FC<LoadingProps> = ({
+  variant = 'default',
+  size = 'md',
+  text = 'Loading...',
+  className,
+  ...props
+}) => {
+  return (
+    <div
+      className={cn(
+        'text-muted-foreground',
+        variantClassMap[variant],
+        className
+      )}
+      {...props}
+    >
+      <div className="flex flex-col items-center gap-2">
+        <Loader2
+          className={cn(
+            'animate-spin',
+            sizeClassMap[size]
+          )}
+        />
+        {variant !== 'spinner' && (
+          <span className="text-sm font-medium">{text}</span>
+        )}
       </div>
-    )
-  }
-)
-Loading.displayName = "Loading"
-
-export { Loading }
+    </div>
+  );
+};
 
 export const LoadingComponent: React.FC = () => (
   <div className="flex items-center justify-center min-h-screen">

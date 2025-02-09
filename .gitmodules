@@ -7,3 +7,24 @@
 [submodule "mintlify"]
 	path = docs
 	url = https://github.com/mintlify/mintlify-starter.git
+[submodule "integrate/nexus"]
+	path = integrate/nexus
+	url = https://github.com/nexus-xyz/nexus-zkvm
+[submodule "docs2"]
+	path = docs2
+	url = https://github.com/vivirox/mintlify-docs
+[submodule "integrate/chatbot"]
+	path = integrate/chatbot
+	url = https://github.com/vercel/ai-chatbot.git
+[submodule "edge-runtime"]
+	path = edge-runtime
+	url = https://github.com/vercel/edge-runtime
+[submodule "integrate/swr"]
+	path = integrate/swr
+	url = https://github.com/vercel/swr
+[submodule "integrate/styled-jsx"]
+	path = integrate/styled-jsx
+	url = https://github.com/vercel/styled-jsx.git
+[submodule "integrate/style-guide"]
+	path = integrate/style-guide
+	url = https://github.com/vercel/style-guide.git
