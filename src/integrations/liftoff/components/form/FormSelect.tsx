@@ -1,14 +1,7 @@
 import { FormSelectProps } from '../../types/form';
 import { cn } from '@/lib/utils';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { FormField } from './FormField';
-import { Controller } from 'react-hook-form';
+import { Controller, RegisterOptions, Path } from 'react-hook-form';
 
 export const FormSelect = <T extends Record<string, any>>({
   name,
@@ -34,33 +27,35 @@ export const FormSelect = <T extends Record<string, any>>({
       error={errors[name]?.message as string}
       className={className}
     >
-      <Controller
-        name={name}
+      <Controller<T>
+        name={name as Path<T>}
         control={control}
-        rules={validation}
+        rules={validation as RegisterOptions<T, Path<T>>}
         render={({ field }) => (
-          <Select
+          <select
+            {...field}
             disabled={disabled}
-            onValueChange={field.onChange}
-            value={field.value}
+            className={cn(
+              "flex h-10 w-full rounded-md border bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+              errors[name] && "border-destructive",
+              className
+            )}
           >
-            <SelectTrigger
-              className={cn(errors[name] && 'border-destructive')}
-            >
-              <SelectValue placeholder={placeholder} />
-            </SelectTrigger>
-            <SelectContent>
-              {options.map((option) => (
-                <SelectItem
-                  key={option.value}
-                  value={option.value}
-                  disabled={option.disabled}
-                >
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            {placeholder && (
+              <option value="" disabled>
+                {placeholder}
+              </option>
+            )}
+            {options.map((option) => (
+              <option
+                key={option.value}
+                value={option.value}
+                disabled={option.disabled}
+              >
+                {option.label}
+              </option>
+            ))}
+          </select>
         )}
       />
     </FormField>

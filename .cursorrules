@@ -110,8 +110,80 @@ If needed, you can further use the `web_scraper.py` file to scrape the web page 
 - Add debug information to stderr while keeping the main output clean in stdout for better pipeline integration
 - When using seaborn styles in matplotlib, use 'seaborn-v0_8' instead of 'seaborn' as the style name due to recent seaborn version changes
 - Use 'gpt-4o' as the model name for OpenAI's GPT-4 with vision capabilities
+- When configuring TypeScript with Vitest, ensure proper types setup in tsconfig.json
+- For form components, prefer simple HTML elements over complex UI libraries when facing type issues
+- Keep test files organized with clear test suites and descriptive test cases
+- Use wrapper components in tests to provide necessary context (e.g., form context)
 
 # Scratchpad
+
+## Current Task: Form Component Tests and TypeScript Configuration (March 2024)
+
+### Progress Update
+1. Completed Form Component Tests:
+   [X] All form component tests implemented and passing
+   [X] Test patterns established and documented
+   [X] Accessibility testing included
+   [X] Error handling verified
+   [X] Form validation tested
+
+2. TypeScript Configuration Updates:
+   [X] Updated tsconfig.json types configuration
+   [X] Removed vitest/globals from types array
+   [X] Maintained testing-library__jest-dom types
+   [X] Verified test environment still working
+
+3. Form Component Implementation:
+   [X] Simplified FormSelect implementation
+   [X] Removed complex Radix UI dependencies
+   [X] Fixed type issues with HTML select
+   [X] Maintained all required functionality
+
+### Next Steps:
+[ ] Documentation
+   - Add component usage examples
+   - Document test patterns
+   - Add accessibility guidelines
+   - Document form validation patterns
+
+[ ] Integration Tests
+   - Test form component interactions
+   - Test form submission flows
+   - Test validation scenarios
+   - Test error handling
+
+[ ] Performance Testing
+   - Test rendering performance
+   - Test large form scenarios
+   - Test validation performance
+   - Test real-time updates
+
+### Lessons Learned:
+1. Testing Patterns:
+   - Use wrapper components for form context
+   - Test accessibility attributes
+   - Test all state variations
+   - Include error scenarios
+   - Test real-time updates
+
+2. Component Design:
+   - Prefer simple implementations when possible
+   - Use native HTML elements when appropriate
+   - Ensure proper type definitions
+   - Maintain accessibility
+   - Keep styling consistent
+
+3. TypeScript Configuration:
+   - Keep types configuration minimal
+   - Remove unused type definitions
+   - Verify test environment after changes
+   - Maintain proper path aliases
+
+### Next Actions:
+1. Begin documentation
+2. Plan integration tests
+3. Set up performance testing
+4. Review test coverage
 
 ## Current Task: Systematic TypeScript Refactoring (March 2024)
 
@@ -138,12 +210,33 @@ If needed, you can further use the `web_scraper.py` file to scrape the web page 
    - Checkbox toggle
    - Radio group with descriptions
 
-2. Next Steps:
-   [ ] Add component tests
-   - Unit tests for all components
-   - Integration tests for form validation
-   - Accessibility tests
-   - Snapshot tests for UI consistency
+2. Component Tests:
+   [X] Chat Component Tests
+   - TypingIndicator tests
+   - MessageBubble tests
+   - ChatInput tests
+   - ChatContainer tests
+
+   [X] Navigation Component Tests
+   - Breadcrumb tests
+   - Header tests
+   - Sidebar tests
+   - MobileMenu tests
+
+   [ ] Form Component Tests
+   - FormField tests
+   - Input tests
+   - Textarea tests
+   - Select tests
+   - Checkbox tests
+   - Radio tests
+
+3. Next Steps:
+   [ ] Complete Form Component Tests
+   - Write test cases
+   - Add accessibility tests
+   - Add validation tests
+   - Add error handling tests
 
    [ ] Start PocketBase Integration
    - Study PocketBase architecture
@@ -164,11 +257,12 @@ If needed, you can further use the `web_scraper.py` file to scrape the web page 
    - Handle all edge cases in validation
    - Add proper accessibility attributes
 
-2. Form Handling:
-   - Integrate deeply with react-hook-form
-   - Provide comprehensive validation options
-   - Handle async validation properly
-   - Maintain consistent error handling
+2. Testing Strategy:
+   - Mock external dependencies (next/navigation)
+   - Test responsive behavior
+   - Verify accessibility attributes
+   - Test user interactions thoroughly
+   - Include edge cases in test coverage
 
 3. Navigation Design:
    - Consider mobile-first approach
@@ -177,7 +271,7 @@ If needed, you can further use the `web_scraper.py` file to scrape the web page 
    - Maintain consistent animations
 
 ### Next Actions
-1. Create test suite for components
+1. Create test suite for form components
 2. Begin PocketBase integration planning
 3. Document component usage
 4. Review and optimize bundle size

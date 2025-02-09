@@ -4,3 +4,6 @@
 [submodule "pocket"]
 	path = pocket
 	url = https://github.com/pocketbase/pocketbase.git
+[submodule "mintlify"]
+	path = docs
+	url = https://github.com/mintlify/mintlify-starter.git
