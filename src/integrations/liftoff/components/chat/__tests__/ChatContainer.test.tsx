@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '../../__tests__/setup';
+import { render, screen } from '../../__tests__/setup';
 import { ChatContainer } from '../ChatContainer';
 import { Message } from '../../../types/chat';
 import userEvent from '@testing-library/user-event';
@@ -109,18 +109,19 @@ describe('ChatContainer', () => {
       <ChatContainer messages={mockMessages} onSendMessage={mockOnSendMessage} />
     );
 
-    const newMessages = [
-      ...mockMessages,
-      {
-        id: '4',
-        role: 'assistant',
-        content: 'New message',
-        timestamp: new Date(),
-      },
-    ];
-
     rerender(
-      <ChatContainer messages={newMessages} onSendMessage={mockOnSendMessage} />
+      <ChatContainer
+        messages={[
+          ...mockMessages,
+          {
+            id: '4',
+            role: 'assistant' as const,
+            content: 'New message',
+            timestamp: new Date(),
+          },
+        ]}
+        onSendMessage={mockOnSendMessage}
+      />
     );
 
     expect(Element.prototype.scrollIntoView).toHaveBeenCalled();

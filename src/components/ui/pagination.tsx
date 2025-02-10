@@ -1,116 +1,205 @@
-import React from 'react';
-import { ChevronLeft, ChevronRight, MoreHorizontal } from 'lucide-react';
-import { Button } from '@/button';
-import { cn } from '@/lib/utils';
-import { ButtonProps, buttonVariants } from '@/components/ui/button';
+import * as React from "react";
+import { ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { useAccessibility } from "@/contexts/accessibility-context";
+import { useKeyboardNavigation, useFocusable } from "@/contexts/keyboard-navigation";
+import { Button } from "./button";
 
-interface PaginationProps {
-    className?: string;
-    currentPage: number;
-    totalPages: number;
-    onPageChange: (page: number) => void;
+export interface PaginationProps {
+  className?: string;
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
+  siblingCount?: number;
+  'aria-label'?: string;
 }
 
-interface PaginationLinkProps {
-    children: React.ReactNode;
-    'aria-label': string;
-    size?: 'default' | 'sm' | 'lg';
-    className?: string;
-    onClick?: () => void;
-}
-
-const PaginationLink: React.FC<PaginationLinkProps> = ({
-    children,
-    'aria-label': ariaLabel,
-    size = 'default',
-    className,
-    onClick
-}) => (
-    <Button
-        variant="outline"
-        size={size}
-        className={className}
-        onClick={onClick}
-        aria-label={ariaLabel}
-    >
-        {children}
-    </Button>
-);
-
-export function Pagination({
-    className,
-    currentPage,
-    totalPages,
-    onPageChange
-}: PaginationProps): JSX.Element {
-    return (
-        <nav
-            role="navigation"
-            aria-label="pagination"
-            className={className}
-        >
-            <div className="flex items-center space-x-2">
-                <PaginationLink
-                    aria-label="Go to previous page"
-                    size="default"
-                    className="gap-1 pl-2.5"
-                    onClick={() => onPageChange(Math.max(1, currentPage - 1))}
-                >
-                    <ChevronLeft className="h-4 w-4" />
-                    <span>Previous</span>
-                </PaginationLink>
-                <PaginationLink
-                    aria-label="Go to next page"
-                    size="default"
-                    className="gap-1 pr-2.5"
-                    onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
-                >
-                    <span>Next</span>
-                    <ChevronRight className="h-4 w-4" />
-                </PaginationLink>
-            </div>
-        </nav>
-    );
-}
-
-const PaginationContent = React.forwardRef<
-  HTMLUListElement,
-  React.ComponentProps<"ul">
->(({ className, ...props }, ref) => (
-  <ul
-    ref={ref}
-    className={cn("flex flex-row items-center gap-1", className)}
-    {...props}
-  />
-));
-PaginationContent.displayName = "PaginationContent";
-
-const PaginationItem = React.forwardRef<
-  HTMLLIElement,
-  React.ComponentProps<"li">
->(({ className, ...props }, ref) => (
-  <li ref={ref} className={cn("", className)} {...props} />
-));
-PaginationItem.displayName = "PaginationItem";
-
-const PaginationEllipsis: React.FC = ({
+const Pagination = React.forwardRef<HTMLElement, PaginationProps>(({
   className,
+  currentPage,
+  totalPages,
+  onPageChange,
+  siblingCount = 1,
+  'aria-label': ariaLabel = 'Pagination',
   ...props
-}: React.ComponentProps<"span">) => (
-  <span
-    aria-hidden
-    className={cn("flex h-9 w-9 items-center justify-center", className)}
-    {...props}
-  >
-    <MoreHorizontal className="h-4 w-4" />
-    <span className="sr-only">More pages</span>
-  </span>
-);
-PaginationEllipsis.displayName = "PaginationEllipsis";
+}, ref) => {
+  const { announce } = useAccessibility();
+  const { shortcuts } = useAccessibility();
+  const navRef = useFocusable(0, 'pagination');
 
-export {
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-};
+  // Combine refs
+  const combinedRef = React.useCallback(
+    (node: HTMLElement | null) => {
+      if (typeof ref === 'function') ref(node);
+      else if (ref) ref.current = node;
+      if (navRef) navRef.current = node;
+    },
+    [ref, navRef]
+  );
+
+  // Register keyboard shortcuts
+  React.useEffect(() => {
+    shortcuts.register('Alt+ArrowLeft', () => {
+      if (currentPage > 1) {
+        onPageChange(currentPage - 1);
+        announce(`Navigated to page ${currentPage - 1}`, 'polite');
+      }
+    });
+
+    shortcuts.register('Alt+ArrowRight', () => {
+      if (currentPage < totalPages) {
+        onPageChange(currentPage + 1);
+        announce(`Navigated to page ${currentPage + 1}`, 'polite');
+      }
+    });
+
+    return () => {
+      shortcuts.unregister('Alt+ArrowLeft');
+      shortcuts.unregister('Alt+ArrowRight');
+    };
+  }, [shortcuts, currentPage, totalPages, onPageChange, announce]);
+
+  // Generate page numbers
+  const range = (start: number, end: number) => {
+    const length = end - start + 1;
+    return Array.from({ length }, (_, i) => start + i);
+  };
+
+  const generatePaginationItems = () => {
+    const totalNumbers = siblingCount * 2 + 3; // siblings + first + current + last
+    const totalBlocks = totalNumbers + 2; // totalNumbers + 2 dots
+
+    if (totalPages <= totalBlocks) {
+      return range(1, totalPages);
+    }
+
+    const leftSiblingIndex = Math.max(currentPage - siblingCount, 1);
+    const rightSiblingIndex = Math.min(currentPage + siblingCount, totalPages);
+
+    const shouldShowLeftDots = leftSiblingIndex > 2;
+    const shouldShowRightDots = rightSiblingIndex < totalPages - 2;
+
+    if (!shouldShowLeftDots && shouldShowRightDots) {
+      const leftItemCount = 3 + 2 * siblingCount;
+      return [...range(1, leftItemCount), -1, totalPages];
+    }
+
+    if (shouldShowLeftDots && !shouldShowRightDots) {
+      const rightItemCount = 3 + 2 * siblingCount;
+      return [1, -1, ...range(totalPages - rightItemCount + 1, totalPages)];
+    }
+
+    return [
+      1,
+      -1,
+      ...range(leftSiblingIndex, rightSiblingIndex),
+      -2,
+      totalPages,
+    ];
+  };
+
+  const items = generatePaginationItems();
+
+  return (
+    <nav
+      ref={combinedRef}
+      aria-label={ariaLabel}
+      className={cn(
+        "mx-auto flex w-full justify-center",
+        "focus-visible-within",
+        "reduced-motion-safe",
+        className
+      )}
+      {...props}
+    >
+      <ul className="flex items-center gap-1">
+        <li>
+          <Button
+            variant="outline"
+            size="icon"
+            className={cn(
+              "h-8 w-8",
+              "focus-visible-ring",
+              "high-contrast-button",
+              "reduced-motion-safe"
+            )}
+            disabled={currentPage === 1}
+            onClick={() => {
+              onPageChange(currentPage - 1);
+              announce(`Navigated to page ${currentPage - 1}`, 'polite');
+            }}
+            aria-label="Previous page"
+            ref={useFocusable(1, 'pagination')}
+          >
+            <ChevronLeft className="h-4 w-4 high-contrast-icon" />
+          </Button>
+        </li>
+        {items.map((page, index) => {
+          if (page < 0) {
+            return (
+              <li key={index} role="presentation">
+                <span
+                  className={cn(
+                    "flex h-8 w-8 items-center justify-center",
+                    "high-contrast-text"
+                  )}
+                  aria-hidden="true"
+                >
+                  <MoreHorizontal className="h-4 w-4" />
+                </span>
+              </li>
+            );
+          }
+
+          return (
+            <li key={index}>
+              <Button
+                variant={currentPage === page ? "default" : "outline"}
+                size="icon"
+                className={cn(
+                  "h-8 w-8",
+                  "focus-visible-ring",
+                  "high-contrast-button",
+                  "reduced-motion-safe"
+                )}
+                onClick={() => {
+                  onPageChange(page);
+                  announce(`Navigated to page ${page}`, 'polite');
+                }}
+                aria-label={`Page ${page}`}
+                aria-current={currentPage === page ? "page" : undefined}
+                ref={useFocusable(index + 2, 'pagination')}
+              >
+                {page}
+              </Button>
+            </li>
+          );
+        })}
+        <li>
+          <Button
+            variant="outline"
+            size="icon"
+            className={cn(
+              "h-8 w-8",
+              "focus-visible-ring",
+              "high-contrast-button",
+              "reduced-motion-safe"
+            )}
+            disabled={currentPage === totalPages}
+            onClick={() => {
+              onPageChange(currentPage + 1);
+              announce(`Navigated to page ${currentPage + 1}`, 'polite');
+            }}
+            aria-label="Next page"
+            ref={useFocusable(items.length + 2, 'pagination')}
+          >
+            <ChevronRight className="h-4 w-4 high-contrast-icon" />
+          </Button>
+        </li>
+      </ul>
+    </nav>
+  );
+});
+Pagination.displayName = "Pagination";
+
+export { Pagination };

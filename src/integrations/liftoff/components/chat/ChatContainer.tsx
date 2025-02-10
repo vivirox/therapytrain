@@ -1,16 +1,16 @@
 import { ChatContainerProps } from '../../types/chat';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, FC } from 'react';
 import { cn } from '@/lib/utils';
 import { MessageBubble } from './MessageBubble';
 import { ChatInput } from './ChatInput';
 
-export const ChatContainer = ({
+export const ChatContainer: FC<ChatContainerProps> = ({
   messages,
   onSendMessage,
   isLoading,
   className,
   children,
-}: ChatContainerProps) => {
+}) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {

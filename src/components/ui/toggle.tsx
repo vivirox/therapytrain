@@ -1,10 +1,12 @@
 import * as React from "react";
 import * as TogglePrimitive from "@radix-ui/react-toggle";
 import { cva, type VariantProps } from "class-variance-authority";
-import { cn } from '@/lib/utils';
+import { cn } from "@/lib/utils";
+import { useAccessibility } from "@/contexts/accessibility-context";
+import { useFocusable } from "@/contexts/keyboard-navigation";
 
 const toggleVariants = cva(
-  "inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors hover:bg-muted hover:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=on]:bg-accent data-[state=on]:text-accent-foreground",
+  "inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors hover:bg-muted hover:text-muted-foreground data-[state=on]:bg-accent data-[state=on]:text-accent-foreground",
   {
     variants: {
       variant: {
@@ -24,18 +26,53 @@ const toggleVariants = cva(
   }
 );
 
+export interface ToggleProps
+  extends React.ComponentPropsWithoutRef<typeof TogglePrimitive.Root>,
+    VariantProps<typeof toggleVariants> {
+  pressed?: boolean;
+}
+
 const Toggle = React.forwardRef<
   React.ElementRef<typeof TogglePrimitive.Root>,
-  React.ComponentPropsWithoutRef<typeof TogglePrimitive.Root> &
-    VariantProps<typeof toggleVariants>
->(({ className, variant, size, ...props }, ref) => (
-  <TogglePrimitive.Root
-    ref={ref}
-    className={cn(toggleVariants({ variant, size, className }))}
-    {...props}
-  />
-));
+  ToggleProps
+>(({ className, variant, size, pressed, children, onPressedChange, ...props }, ref) => {
+  const toggleRef = useFocusable(0, 'toggle');
+  const { announce } = useAccessibility();
 
+  // Combine refs
+  const combinedRef = React.useCallback(
+    (node: React.ElementRef<typeof TogglePrimitive.Root> | null) => {
+      if (typeof ref === 'function') ref(node);
+      else if (ref) ref.current = node;
+      if (toggleRef) toggleRef.current = node;
+    },
+    [ref, toggleRef]
+  );
+
+  // Announce state changes
+  const handlePressedChange = (pressed: boolean) => {
+    announce(`${children} ${pressed ? 'pressed' : 'released'}`, 'polite');
+    onPressedChange?.(pressed);
+  };
+
+  return (
+    <TogglePrimitive.Root
+      ref={combinedRef}
+      pressed={pressed}
+      onPressedChange={handlePressedChange}
+      className={cn(
+        toggleVariants({ variant, size, className }),
+        "focus-visible-ring",
+        "high-contrast-text",
+        "reduced-motion-safe",
+        variant === 'outline' && "high-contrast-button"
+      )}
+      {...props}
+    >
+      {children}
+    </TogglePrimitive.Root>
+  );
+});
 Toggle.displayName = TogglePrimitive.Root.displayName;
 
 export { Toggle, toggleVariants };

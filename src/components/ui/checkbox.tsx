@@ -1,30 +1,131 @@
 import * as React from "react";
 import * as CheckboxPrimitive from "@radix-ui/react-checkbox";
+import { Check } from "lucide-react";
+import { cn } from '@/lib/utils';
+import { useAccessibility } from '@/contexts/accessibility-context';
+import { useFocusable } from '@/contexts/keyboard-navigation';
+
+export interface CheckboxProps
+  extends React.ComponentPropsWithoutRef<typeof CheckboxPrimitive.Root> {
+    error?: string;
+    description?: string;
+    label?: string;
+    'aria-describedby'?: string;
+    'aria-errormessage'?: string;
+}
 
 const Checkbox = React.forwardRef<
   React.ElementRef<typeof CheckboxPrimitive.Root>,
-  React.ComponentPropsWithoutRef<typeof CheckboxPrimitive.Root>
->(({ className, ...props }, ref) => (
-  <CheckboxPrimitive.Root
-    ref={ref}
-    className="peer h-4 w-4 shrink-0 rounded-sm border border-gray-200 border-gray-900 ring-offset-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-gray-900 data-[state=checked]:text-gray-50 dark:border-gray-800 dark:border-gray-50 dark:ring-offset-gray-950 dark:focus-visible:ring-gray-800 dark:data-[state=checked]:bg-gray-50 dark:data-[state=checked]:text-gray-900"
-    {...props}
-  >
-    <CheckboxPrimitive.Indicator className="flex items-center justify-center text-current">
-      <svg
-        className="h-4 w-4"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth={2}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <polyline points="20 6 9 17 4 12" />
-      </svg>
-    </CheckboxPrimitive.Indicator>
-  </CheckboxPrimitive.Root>
-));
+  CheckboxProps
+>(({ 
+  className, 
+  error, 
+  description,
+  label,
+  id,
+  'aria-describedby': ariaDescribedby,
+  'aria-errormessage': ariaErrorMessage,
+  onCheckedChange,
+  ...props 
+}, ref) => {
+  const { announce } = useAccessibility();
+  const checkboxRef = useFocusable(0, 'checkbox');
+  
+  // Combine refs
+  const combinedRef = React.useCallback(
+    (node: React.ElementRef<typeof CheckboxPrimitive.Root> | null) => {
+      if (typeof ref === 'function') ref(node);
+      else if (ref) ref.current = node;
+      if (checkboxRef) checkboxRef.current = node;
+    },
+    [ref, checkboxRef]
+  );
+
+  // Announce state changes to screen readers
+  const handleCheckedChange = (checked: boolean | 'indeterminate') => {
+    const state = checked === 'indeterminate' ? 'indeterminate' : checked ? 'checked' : 'unchecked';
+    announce(`${label ? label + ' ' : ''}checkbox ${state}`, 'polite');
+    onCheckedChange?.(checked);
+  };
+
+  // Announce errors to screen readers
+  React.useEffect(() => {
+    if (error) {
+      announce(`Error: ${error}`, 'assertive');
+    }
+  }, [error, announce]);
+
+  const descriptionId = description ? `${id}-description` : ariaDescribedby;
+  const errorId = error ? `${id}-error` : ariaErrorMessage;
+
+  return (
+    <div className="relative flex items-start">
+      <div className="flex items-center">
+        <CheckboxPrimitive.Root
+          ref={combinedRef}
+          id={id}
+          className={cn(
+            "peer h-4 w-4 shrink-0 rounded-sm border border-input ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground",
+            "focus-visible-ring",
+            error && "border-destructive focus-visible:ring-destructive",
+            "high-contrast-text",
+            "reduced-motion-safe",
+            className
+          )}
+          onCheckedChange={handleCheckedChange}
+          aria-invalid={!!error}
+          aria-describedby={cn(descriptionId, errorId)}
+          {...props}
+        >
+          <CheckboxPrimitive.Indicator 
+            className={cn(
+              "flex items-center justify-center text-current",
+              "high-contrast-icon",
+              "reduced-motion"
+            )}
+          >
+            <Check className="h-4 w-4" />
+          </CheckboxPrimitive.Indicator>
+        </CheckboxPrimitive.Root>
+        {label && (
+          <label
+            htmlFor={id}
+            className={cn(
+              "ml-2 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70",
+              error && "text-destructive",
+              "high-contrast-text"
+            )}
+          >
+            {label}
+          </label>
+        )}
+      </div>
+      {description && (
+        <div
+          id={descriptionId}
+          className={cn(
+            "mt-1 text-sm text-muted-foreground",
+            "high-contrast-text"
+          )}
+        >
+          {description}
+        </div>
+      )}
+      {error && (
+        <div
+          id={errorId}
+          className={cn(
+            "mt-2 text-sm text-destructive",
+            "high-contrast-text"
+          )}
+          role="alert"
+        >
+          {error}
+        </div>
+      )}
+    </div>
+  );
+});
 Checkbox.displayName = CheckboxPrimitive.Root.displayName;
 
 export { Checkbox };
