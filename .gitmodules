@@ -28,3 +28,12 @@
 [submodule "integrate/edge-runtime"]
 	path = integrate/edge-runtime
 	url = https://github.com/vercel/edge-runtime.git
+[submodule "integrate/ai-sdk"]
+	path = integrate/ai-sdk
+	url = https://github.com/vercel/ai
+[submodule "integrate/resend"]
+	path = integrate/resend
+	url = https://github.com/resend/resend-vercel-example.git
+[submodule "village"]
+	path = village
+	url = https://codeberg.org/vivirocks/village.git

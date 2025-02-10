@@ -20,7 +20,11 @@
     "type-check": "tsc --noEmit",
     "ts:check-strict": "tsx scripts/migrate-types.ts",
     "ts:fix": "tsx scripts/fix-types.ts",
-    "ts:migrate": "pnpm ts:check-strict && pnpm ts:fix"
+    "ts:migrate": "pnpm ts:check-strict && pnpm ts:fix",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:debug": "playwright test --debug",
+    "test:e2e:report": "playwright show-report"
   },
   "dependencies": {
     "@astrojs/check": "^0.9.4",
@@ -104,6 +108,7 @@
     "react-resizable-panels": "^2.1.7",
     "react-router-dom": "^7.1.5",
     "recharts": "^2.15.1",
+    "resend": "^4.1.2",
     "sentiment": "^5.0.2",
     "snarkjs": "^0.7.5",
     "sonner": "^1.7.4",
@@ -198,6 +203,7 @@
     "rehype-prism-plus": "^2.0.0",
     "remark-gfm": "^4.0.0",
     "rollup-plugin-visualizer": "^5.14.0",
+    "supabase": "^2.9.6",
     "tailwindcss": "3.4.1",
     "tailwindcss-animate": "^1.0.7",
     "ts-morph": "^25.0.1",
@@ -213,12 +219,13 @@
   "pnpm": {
     "onlyBuiltDependencies": [
       "@swc/core",
+      "@vercel/speed-insights",
       "blake-hash",
       "deno",
       "esbuild",
       "isolated-vm",
       "sharp",
-      "@vercel/speed-insights"
+      "supabase"
     ]
   }
 }
