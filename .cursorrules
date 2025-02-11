@@ -14,6 +14,15 @@ The goal is to help you maintain a big picture as well as the progress of the ta
 
 Note all the tools are in python. So in the case you need to do batch processing, you can always consult the python files and write your own script.
 
+IMPORTANT: Make better use of the available Python tools! Before diving into implementation, always try to:
+
+1. Use search_engine.py to research solutions and best practices
+2. Use web_scraper.py to gather detailed documentation
+3. Use llm_api.py for complex analysis tasks
+4. Combine tools for a better research workflow
+
+Remember: These tools are here to help make better informed decisions. Use them proactively!
+
 ## Screenshot Verification
 
 The screenshot verification workflow allows you to capture screenshots of web pages and verify their appearance using LLMs. The following tools are available:
@@ -21,13 +30,13 @@ The screenshot verification workflow allows you to capture screenshots of web pa
 - Screenshot Capture:
 
 ```bash
-venv/bin/python tools/screenshot_utils.py URL [--output OUTPUT] [--width WIDTH] [--height HEIGHT]
+python tools/screenshot_utils.py URL [--output OUTPUT] [--width WIDTH] [--height HEIGHT]
 ```
 
 - LLM Verification with Images:
 
 ```bash
-venv/bin/python tools/llm_api.py --prompt "Your verification question" --provider {openai|anthropic} --image path/to/screenshot.png
+python tools/llm_api.py --prompt "Your verification question" --provider {openai|anthropic} --image path/to/screenshot.png
 ```
 
 Example workflow:
@@ -53,7 +62,7 @@ print(response)
 You always have an LLM at your side to help you with the task. For simple tasks, you could invoke the LLM by running the following command:
 
 ```bash
-venv/bin/python ./tools/llm_api.py --prompt "What is the capital of France?" --provider "anthropic"
+python ./tools/llm_api.py --prompt "What is the capital of France?" --provider "anthropic"
 ```
 
 The LLM API supports multiple providers:
@@ -72,7 +81,7 @@ But usually it's a better idea to check the content of the file and use the APIs
 You could use the `tools/web_scraper.py` file to scrape the web.
 
 ```bash
-venv/bin/python ./tools/web_scraper.py --max-concurrent 3 URL1 URL2 URL3
+python ./tools/web_scraper.py --max-concurrent 3 URL1 URL2 URL3
 ```
 
 This will output the content of the web pages.
@@ -82,7 +91,7 @@ This will output the content of the web pages.
 You could use the `tools/search_engine.py` file to search the web.
 
 ```bash
-venv/bin/python ./tools/search_engine.py "your search keywords"
+python ./tools/search_engine.py "your search keywords"
 ```
 
 This will output the search results in the following format:
@@ -97,172 +106,197 @@ If needed, you can further use the `web_scraper.py` file to scrape the web page 
 
 ## Lessons
 
-## User Specified Lessons
+### Core Lessons
 
-- You have a python venv in ./venv. Use it.
-- Include info useful for debugging in the program output.
-- Read the file before you try to edit it.
-- Due to Cursor's limit, when you use `git` and `gh` and need to submit a multiline commit message, first write the message in a file, and then use `git commit -F <filename>` or similar command to commit. And then remove the file. Include "[Cursor] " in the commit message and PR title.
+- Use proper TypeScript types and interfaces for better type safety
+- When adapting authentication systems, ensure proper session and user type compatibility
+- Keep audit events consistent with the system's event types
+- Handle rate limiting and security at the adapter level
+- Implement proper error handling and audit logging
+- Follow HIPAA compliance requirements for authentication and audit trails
+- Make better use of available Python tools for research and automation:
+  - Use search_engine.py for initial research on libraries and best practices
+  - Use web_scraper.py for gathering detailed documentation
+  - Use llm_api.py for analyzing complex technical decisions
+  - Combine tools for a more thorough research workflow
 
-## Cursor learned
+### Recent Fixes
 
-- For search results, ensure proper handling of different character encodings (UTF-8) for international queries
-- Add debug information to stderr while keeping the main output clean in stdout for better pipeline integration
-- When using seaborn styles in matplotlib, use 'seaborn-v0_8' instead of 'seaborn' as the style name due to recent seaborn version changes
-- Use 'gpt-4o' as the model name for OpenAI's GPT-4 with vision capabilities
-- When configuring TypeScript with Vitest, ensure proper types setup in tsconfig.json
-- For form components, prefer simple HTML elements over complex UI libraries when facing type issues
-- Keep test files organized with clear test suites and descriptive test cases
-- Use wrapper components in tests to provide necessary context (e.g., form context)
+- Fixed PocketBase adapter type issues:
+  - Moved PocketBase-specific interfaces to the adapter file
+  - Updated audit event types to match system requirements
+  - Fixed session user initialization
+  - Improved type safety in authentication flow
+  - Added proper error handling and audit logging
+
+- Improved research workflow:
+  - Started using search_engine.py more consistently
+  - Combined search results with web_scraper.py for deeper analysis
+  - Better utilization of Python toolkit for research tasks
 
 ## Scratchpad
 
-### Current Task: Project Progress Update
+### Current Progress (Based on Roadmaps)
 
-#### Completed Phases
+#### Completed Features
 
-1. UI/UX Core Features:
-   [X] Dark Mode Implementation
-   - [X] Theme system with context provider
-   - [X] Component theming with variants
-   - [X] Theme persistence and sync
-   - [X] Theme animations and transitions
-   - [X] High contrast support
-   - [X] Testing & documentation
+[X] UI/UX Core Features
+  [X] Dark Mode Implementation
+  [X] Component Theming
+  [X] Accessibility Implementation
+  [X] Interactive Components
 
-2. Accessibility Implementation:
-   [X] Core Infrastructure
-   - [X] Accessibility context provider
-   - [X] Keyboard navigation system
-   - [X] Focus trap management
-   - [X] Screen reader announcements
+[X] Authentication System
+  [X] User Management
+  [X] Security Features
+  [X] Password Management UI
+  [X] Email System Integration
 
-   [X] Component Accessibility
-   - [X] Focus management
-   - [X] ARIA attributes
-   - [X] Keyboard shortcuts
-   - [X] High contrast mode
-   - [X] Reduced motion support
+[X] HIPAA Compliance Core
+  [X] Audit Logging
+  [X] Data Retention
+  [X] Compliance Reporting
+  [X] BAA Management
+  [X] Encryption Key Rotation
+  [X] Secure Backup Procedures
 
-3. Authentication System:
-   [X] Core Features
-   - [X] Password management
-   - [X] Security features
-   - [X] Email integration
-   - [X] Testing coverage
+[X] HIPAA Compliance (Final Phase)
+  [X] Core Infrastructure
+  [X] Dashboard Implementation
+  [X] Compliance Violation Detection
+    [X] Real-time monitoring
+    [X] Violation alerts
+    [X] Remediation workflows
+    [X] End-to-end testing
+    [X] Documentation
 
-4. Email System Implementation:
-   [X] Template Management
-   - [X] Base email template
-   - [X] Accessibility improvements
-   - [X] Template inheritance
-   - [X] Dark mode support
-   - [X] Template preview
+#### In Progress
 
-   [X] Email Infrastructure
-   - [X] Resend provider setup
-   - [X] Error handling
-   - [X] Email validation
-   - [X] Analytics tracking
-   - [X] Testing utilities
-
-   [X] Email Analytics Dashboard
-   - [X] Delivery tracking UI
-   - [X] Bounce rate monitoring
-   - [X] Analytics visualizations
-   - [X] A/B testing system
-
-5. HIPAA Compliance Implementation:
-   [X] Core Infrastructure
-   - [X] Database schema setup
-   - [X] Real-time monitoring service
-   - [X] Event handling system
-   - [X] Violation detection
-   - [X] Alert management
-
-   [X] Monitoring Dashboard
-   - [X] Metrics visualization
-   - [X] Active incidents display
-   - [X] Real-time updates
-   - [X] Alert management
-
-   [X] Testing Coverage
-   - [X] Unit tests for monitoring service
-   - [X] Integration tests
-   - [X] API endpoint tests
-   - [X] Dashboard component tests
-
-#### Current Progress
-
-1. Documentation (In Progress):
-   [ ] API Documentation
-   - [ ] Monitoring endpoints
-   - [ ] Event types and schemas
-   - [ ] Integration guides
-   - [ ] Security requirements
-
-   [ ] User Documentation
-   - [ ] Dashboard usage guide
-   - [ ] Alert management
-   - [ ] Compliance reporting
-   - [ ] Best practices
-
-2. Advanced Features (Next Up):
-   [ ] Automated Remediation
-   - [ ] Workflow automation
-   - [ ] Incident response
-   - [ ] Recovery procedures
-   - [ ] Audit trails
-
-   [ ] Advanced Analytics
-   - [ ] Compliance reporting
-   - [ ] Trend analysis
-   - [ ] Risk assessment
-   - [ ] Predictive analytics
+[~] Advanced Security Features
+  [X] Quantum-resistant encryption
+    [X] Implementation structure
+    [X] CRYSTALS-Kyber integration
+    [X] SPHINCS+ signatures
+    [X] Hybrid encryption mode
+    [X] Test coverage
+  [X] Homomorphic encryption
+    [X] Implementation structure
+    [X] Microsoft SEAL integration
+    [X] BFV scheme for integers
+    [X] CKKS scheme for floating-point
+    [X] Test coverage
+  [X] Secure multi-party computation
+    [X] Implementation structure
+    [X] JIFF library integration
+    [X] Secret sharing
+    [X] Secure operations
+    [X] Test coverage
+  [ ] Zero-knowledge range proofs
 
 #### Next Steps (Prioritized)
 
-1. Complete Documentation
-   - API documentation
-   - User guides
-   - Integration guides
-   - Security documentation
+1. Complete Advanced Security Features
+   [X] Implement quantum-resistant encryption
+   [X] Implement homomorphic encryption
+   [X] Implement secure multi-party computation
+   [ ] Prototype zero-knowledge range proofs
 
-2. Implement Advanced Features
-   - Automated remediation
-   - Advanced analytics
-   - Compliance reporting
-   - Risk assessment
+2. Start Performance Optimization
+   [ ] Plan Redis caching implementation
+   [ ] Design database optimization strategy
+   [ ] Research service worker integration
+   [ ] Plan monitoring system enhancement
 
-3. Start Advanced Security Features
-   - Quantum-resistant encryption
-   - Homomorphic encryption
-   - Secure multi-party computation
-   - Zero-knowledge proofs
+### Notes & Considerations
 
-### Notes
+1. Security Focus
+   - Maintain zero-knowledge principles throughout
+   - Ensure HIPAA compliance in all new features
+   [X] Keep security audit trails comprehensive
+   [X] Implement real-time violation detection
+   [X] Complete remediation workflows
+   [X] Implement quantum-resistant encryption
+   [X] Implement homomorphic encryption
+   [X] Implement secure multi-party computation
 
-- HIPAA monitoring system core features complete
-- Moving to documentation and advanced features
-- Maintaining focus on security and compliance
-- Planning advanced analytics implementation
+2. Performance
+   - Monitor impact of security features
+   - Plan for scalability
+   - Consider edge computing options
 
-### Lessons Learned
+3. Documentation
+   [X] Keep security documentation updated
+   [X] Document all compliance measures
+   [X] Maintain clear audit trail documentation
 
-1. HIPAA Compliance:
-   - Real-time monitoring patterns
-   - Violation detection strategies
-   - Alert management system
-   - Testing methodologies
+### Current Task: Implementing Zero-Knowledge Range Proofs
 
-2. Security:
-   - Event handling patterns
-   - Audit logging
-   - Incident response
-   - Access control
+Progress:
+[X] Research and Analysis
+  [X] Investigate Bulletproofs protocol
+  [X] Review existing implementations
+  [X] Identify key components
 
-3. Dashboard Design:
-   - Real-time updates
-   - Metrics visualization
-   - Alert management
-   - User experience
+[X] Core Implementation
+  [X] Create ZKRangeProof service
+    [X] Design proof system architecture
+    [X] Implement Pedersen commitments
+    [X] Add vector operations
+    [X] Create inner product protocol
+  [X] Add test suite
+    [X] Basic range proof tests
+    [X] Aggregated proof tests
+    [X] Edge case tests
+  [X] Implement proof generation
+    [X] Add range proof protocol
+    [X] Implement Fiat-Shamir transform
+    [X] Create proof aggregation
+  [X] Add verification system
+    [X] Implement proof verification
+    [X] Add batch verification
+
+[~] Integration and Testing
+  [X] Integrate Bulletproofs with ZKRangeProof service
+  [X] Update service interface
+  [X] Add serialization/deserialization
+  [X] Add comprehensive integration tests
+    [X] Single value proofs
+    [X] Aggregated proofs
+    [X] Performance tests
+    [X] Error handling
+  [ ] Implement proof aggregation optimization
+
+Next immediate steps:
+
+1. Optimize proof aggregation for better performance
+2. Document the implementation details and usage
+
+Implementation Notes:
+
+1. Basic structure and interfaces are complete
+2. Test suite covers all major functionality
+3. Core Bulletproofs implementation is in place
+4. Integration with existing ZK infrastructure is ready
+5. Integration tests verify end-to-end functionality
+6. TODO: Optimize proof aggregation for better performance
+
+### Lessons Learned from Implementation
+
+1. Protocol Design:
+   - Bulletproofs provide efficient range proofs
+   - No trusted setup required
+   - Support for proof aggregation
+   - Logarithmic proof size
+
+2. Performance Considerations:
+   - Proof generation is computationally intensive
+   - Verification is relatively fast
+   - Proof aggregation can significantly reduce size
+   - Careful generator selection is important
+
+3. Testing Requirements:
+   - Test edge cases thoroughly
+   - Verify proof soundness
+   - Check proof zero-knowledge property
+   - Measure performance characteristics
+   - Include integration tests for end-to-end verification

@@ -1,5 +1,5 @@
 import { ClientProfile } from '@/types/clientprofile';
-import { analyzeMessage } from '@/ai/models/therapeuticPatterns';
+import { analyzeMessage, AnalysisResult, MessageContext } from '@/ai/models/therapeuticPatterns';
 import { Message } from '@/ollama/process';
 interface ProcessorOptions {
     temperature?: number;
@@ -30,7 +30,7 @@ export class TherapeuticAIProcessor {
             triggers: []
         };
     }
-    private adjustResponseBasedOnAnalysis(baseResponse: string, analysis: ReturnType<typeof analyzeMessage>): string {
+    private adjustResponseBasedOnAnalysis(baseResponse: string, analysis: AnalysisResult): string {
         let adjustedResponse = baseResponse;
         // Apply defense mechanisms
         if (analysis.defenses.length > 0) {
@@ -75,7 +75,7 @@ export class TherapeuticAIProcessor {
         }
         return response;
     }
-    private updateEmotionalState(analysis: ReturnType<typeof analyzeMessage>): void {
+    private updateEmotionalState(analysis: AnalysisResult): void {
         if (analysis.emotions.length > 0) {
             const dominantEmotion = analysis.emotions[0];
             this.emotionalState = {
@@ -87,7 +87,12 @@ export class TherapeuticAIProcessor {
     }
     async processMessage(messages: Array<Message>, options: ProcessorOptions = {}): Promise<ProcessedResponse> {
         const lastMessage = messages[messages.length - 1];
-        const analysis = analyzeMessage(lastMessage.content, this.clientProfile);
+        const context: MessageContext = {
+            clientGoals: this.clientProfile.goals || [],
+            sessionHistory: messages.map(m => m.content),
+            clientProfile: this.clientProfile
+        };
+        const analysis = analyzeMessage(lastMessage.content, context);
         // Update emotional state based on analysis
         this.updateEmotionalState(analysis);
         // Prepare system message with current emotional state
@@ -125,9 +130,9 @@ export class TherapeuticAIProcessor {
             return {
                 content: adjustedResponse,
                 analysis: {
-                    patterns: analysis.patterns.map((p: any) => p.type),
-                    defenses: analysis.defenses.map((d: any) => d.name),
-                    emotions: analysis.emotions.map((e: any) => e.emotion),
+                    patterns: analysis.patterns.map(p => p.name),
+                    defenses: analysis.defenses.map(d => d.name),
+                    emotions: analysis.emotions.map(e => e.emotion),
                     intensity: this.emotionalState.intensity
                 }
             };

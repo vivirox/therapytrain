@@ -209,24 +209,102 @@ export class ZKProofService {
     }
 }
 // Helper Point class for elliptic curve operations
-class Point {
+export class Point {
     static ZERO = new Point(secp256k1.ProjectivePoint.ZERO);
     static BASE = new Point(secp256k1.ProjectivePoint.BASE);
     static fromPrivateKey = (privateKey: bigint) => new Point(secp256k1.ProjectivePoint.fromPrivateKey(privateKey));
-    constructor(private point: secp256k1.ProjectivePoint) { }
+
+    constructor(private point: secp256k1.ProjectivePoint) {
+        if (!point || !(point instanceof secp256k1.ProjectivePoint)) {
+            throw new Error('Invalid point: must be a valid ProjectivePoint instance');
+        }
+    }
+
     add(other: Point): Point {
+        if (!other || !(other instanceof Point)) {
+            throw new Error('Invalid point: cannot add undefined or invalid point');
+        }
         return new Point(this.point.add(other.point));
     }
+
     multiply(scalar: bigint): Point {
+        if (typeof scalar !== 'bigint') {
+            throw new Error('Invalid scalar: must be a BigInt');
+        }
         return new Point(this.point.multiply(scalar));
     }
+
     toHex(): string {
         return this.point.toHex(true);
     }
-    toRawBytes(compressed: any = true): Buffer {
+
+    toRawBytes(compressed: boolean = true): Buffer {
         return Buffer.from(this.point.toRawBytes(compressed));
     }
+
     static fromHex(hex: string): Point {
+        if (!hex || typeof hex !== 'string') {
+            throw new Error('Invalid hex string');
+        }
         return new Point(secp256k1.ProjectivePoint.fromHex(hex));
+    }
+
+    equals(other: Point): boolean {
+        if (!other || !(other instanceof Point)) {
+            return false;
+        }
+        return this.point.equals(other.point);
+    }
+
+    get x(): bigint {
+        if (!this.point || typeof this.point.x === 'undefined') {
+            throw new Error('Invalid point: x coordinate is undefined');
+        }
+        return BigInt(this.point.x);
+    }
+
+    get y(): bigint {
+        if (!this.point || typeof this.point.y === 'undefined') {
+            throw new Error('Invalid point: y coordinate is undefined');
+        }
+        return BigInt(this.point.y);
+    }
+
+    get point(): secp256k1.ProjectivePoint {
+        if (!this._point) {
+            throw new Error('Point not initialized');
+        }
+        return this._point;
+    }
+
+    private get _point(): secp256k1.ProjectivePoint {
+        return this.point;
+    }
+
+    isOnCurve(): boolean {
+        try {
+            const p = secp256k1.CURVE.P;
+            const ySquared = (this.y * this.y) % p;
+            const xCubed = (this.x * this.x * this.x) % p;
+            const seven = 7n;
+            const right = (xCubed + seven) % p;
+            return ySquared === right;
+        } catch (error) {
+            return false;
+        }
+    }
+
+    hasCorrectOrder(): boolean {
+        try {
+            const n = secp256k1.CURVE.n;
+            const multiplied = this.multiply(n);
+            return multiplied.equals(Point.ZERO);
+        } catch (error) {
+            return false;
+        }
+    }
+
+    isValid(): boolean {
+        return this.isOnCurve() && this.hasCorrectOrder() && !this.equals(Point.ZERO);
     }
 }
