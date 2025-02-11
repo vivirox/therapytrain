@@ -1,14 +1,7 @@
-import animate from "tailwindcss-animate"
-import typography from "@tailwindcss/typography"
-
 /** @type {import('tailwindcss').Config} */
-export default {
-  darkMode: ["class"],
-  content: [
-    './src/**/*.{js,jsx,ts,tsx}',
-    './index.html'
-  ],
-  prefix: "",
+module.exports = {
+  darkMode: ["class", '[data-theme="dark"]'],
+  content: ["./src/**/*.{js,jsx,ts,tsx}"],
   theme: {
     container: {
       center: true,
@@ -72,11 +65,7 @@ export default {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
       },
-      backgroundImage: {
-        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
-        'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
-      },
     },
   },
-  plugins: [animate, typography],
-} 
+  plugins: [require("tailwindcss-animate")],
+}; 

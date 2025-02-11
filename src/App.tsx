@@ -16,6 +16,8 @@ const Features = lazy(() => import("./pages/Features"));
 const Benefits = lazy(() => import("./pages/Benefits"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const TermsOfService = lazy(() => import("./pages/TermsOfService"));
+const AdminDashboard = lazy(() => import("./pages/admin/Dashboard"));
+const Unauthorized = lazy(() => import("./pages/Unauthorized"));
 const NotFound: FC = () => <h1>404 - Page Not Found</h1>;
 
 const components = {
@@ -49,6 +51,8 @@ const App: FC = () => {
             <Route path="/benefits" element={<Benefits />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/terms" element={<TermsOfService />} />
+            <Route path="/admin/*" element={<AdminDashboard />} />
+            <Route path="/unauthorized" element={<Unauthorized />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Layout>

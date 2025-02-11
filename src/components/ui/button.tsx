@@ -2,9 +2,11 @@ import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
+import { useAccessibility } from "@/contexts/accessibility-context"
+import { useFocusable } from "@/contexts/keyboard-navigation"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+  "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors disabled:pointer-events-none disabled:opacity-50",
   {
     variants: {
       variant: {
@@ -32,19 +34,52 @@ const buttonVariants = cva(
   }
 )
 
-export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement>, VariantProps<typeof buttonVariants> {
   asChild?: boolean
-  variant?: VariantProps<typeof buttonVariants>["variant"]
-  size?: VariantProps<typeof buttonVariants>["size"]
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, asChild = false, ...props }, ref) => {
+    const buttonRef = useFocusable(0, 'button')
+    const { announce } = useAccessibility()
+
+    // Combine refs
+    const combinedRef = React.useCallback(
+      (node: HTMLButtonElement | null) => {
+        if (typeof ref === 'function') ref(node)
+        else if (ref) ref.current = node
+        if (buttonRef) buttonRef.current = node
+      },
+      [ref, buttonRef]
+    )
+
+    // Handle press events for screen reader announcements
+    const handlePress = (event: React.MouseEvent<HTMLButtonElement>) => {
+      if (props.disabled) {
+        event.preventDefault()
+        announce('Button is disabled', 'polite')
+        return
+      }
+      
+      if (props.onClick) {
+        props.onClick(event)
+      }
+    }
+
     const Comp = asChild ? Slot : "button"
     return (
       <Comp
-        className={cn(buttonVariants({ variant, size, className }))}
-        ref={ref}
+        ref={combinedRef}
+        className={cn(
+          buttonVariants({ variant, size, className }),
+          "focus-visible-ring",
+          "high-contrast-text",
+          "reduced-motion-safe",
+          variant === 'link' && "high-contrast-link",
+          variant === 'ghost' && "high-contrast-button",
+          variant === 'outline' && "high-contrast-button"
+        )}
+        onClick={handlePress}
         {...props}
       />
     )

@@ -364,7 +364,6 @@ Would you like me to proceed with implementing these changes? I recommend starti
 
 ```json
 {
-  "@testing-library/jest-dom": "^6.1.5",
   "@testing-library/react": "^14.1.2",
   "@testing-library/user-event": "^14.5.1",
   "vitest": "^1.0.4"

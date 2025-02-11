@@ -1,0 +1,54 @@
+{
+  "name": "@edge-runtime/ponyfill",
+  "description": "A ponyfill (doesn't overwrite the native methods) to use Edge Runtime APIs in any environment.",
+  "homepage": "https://edge-runtime.vercel.app/packages/ponyfill",
+  "version": "4.0.0",
+  "main": "src/index.js",
+  "module": "dist/index.mjs",
+  "repository": {
+    "directory": "packages/ponyfill",
+    "type": "git",
+    "url": "git+https://github.com/vercel/edge-runtime.git"
+  },
+  "bugs": {
+    "url": "https://github.com/vercel/edge-runtime/issues"
+  },
+  "keywords": [
+    "apis",
+    "edge",
+    "edge-runtime",
+    "functions",
+    "polyfill",
+    "ponyfill",
+    "primitives",
+    "runtime",
+    "shim",
+    "standard",
+    "web"
+  ],
+  "devDependencies": {
+    "@edge-runtime/jest-environment": "workspace:*",
+    "@edge-runtime/primitives": "workspace:*",
+    "@edge-runtime/vm": "workspace:*",
+    "acorn": "8.14.0",
+    "acorn-loose": "8.4.0",
+    "acorn-walk": "8.3.4"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "src"
+  ],
+  "scripts": {
+    "clean": "rm -rf node_modules",
+    "test": "pnpm test:edge && pnpm test:node",
+    "test:edge": "EDGE_RUNTIME_EXISTS=true jest --env=@edge-runtime/jest-environment --testPathIgnorePatterns='.node.test.ts$'",
+    "test:node": "jest --env=node"
+  },
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "types": "src/index.d.ts"
+}
