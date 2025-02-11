@@ -1,5 +1,5 @@
 /** @jsxImportSource @emotion/react */
-import { type FC } from 'react';
+import { type FC, ComponentType } from 'react';
 import { Suspense, lazy } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { Loading } from '@/components/ui/loading';
@@ -20,17 +20,16 @@ const AdminDashboard = lazy(() => import("./pages/admin/Dashboard"));
 const Unauthorized = lazy(() => import("./pages/Unauthorized"));
 const NotFound: FC = () => <h1>404 - Page Not Found</h1>;
 
-const components = {
-  h1: (props: any) => <h1 className="text-4xl font-bold mb-6 text-gray-900 dark:text-white" {...props} />,
-  h2: (props: any) => <h2 className="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-100" {...props} />,
-  h3: (props: any) => <h3 className="text-xl font-bold mb-3 text-gray-800 dark:text-gray-100" {...props} />,
-  p: (props: any) => <p className="mb-4 text-gray-700 dark:text-gray-300" {...props} />,
-  a: (props: any) => <a className="text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300" {...props} />,
-  ul: (props: any) => <ul className="list-disc pl-5 mb-4 text-gray-700 dark:text-gray-300" {...props} />,
-  ol: (props: any) => <ol className="list-decimal pl-5 mb-4 text-gray-700 dark:text-gray-300" {...props} />,
-  li: (props: any) => <li className="mb-2" {...props} />,
-  strong: (props: any) => <strong className="font-bold text-gray-900 dark:text-white" {...props} />,
-  // Add our UI components
+const components: Record<string, ComponentType<any>> = {
+  h1: (props) => <h1 className="text-4xl font-bold mb-6 text-gray-900 dark:text-white" {...props} />,
+  h2: (props) => <h2 className="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-100" {...props} />,
+  h3: (props) => <h3 className="text-xl font-bold mb-3 text-gray-800 dark:text-gray-100" {...props} />,
+  p: (props) => <p className="mb-4 text-gray-700 dark:text-gray-300" {...props} />,
+  a: (props) => <a className="text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300" {...props} />,
+  ul: (props) => <ul className="list-disc pl-5 mb-4 text-gray-700 dark:text-gray-300" {...props} />,
+  ol: (props) => <ol className="list-decimal pl-5 mb-4 text-gray-700 dark:text-gray-300" {...props} />,
+  li: (props) => <li className="mb-2" {...props} />,
+  strong: (props) => <strong className="font-bold text-gray-900 dark:text-white" {...props} />,
   Card,
   ProgressBar,
   Checkbox,
@@ -38,7 +37,7 @@ const components = {
   TabsContent,
   TabsList,
   TabsTrigger,
-};
+} as const;
 
 const App: FC = () => {
   return (

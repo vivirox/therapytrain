@@ -1,5 +1,5 @@
 import { ClientProfile } from '@/types/clientprofile';
-import { analyzeMessage } from '@/models/therapeuticpatterns';
+import { analyzeMessage } from '@/ai/models/therapeuticPatterns';
 import { Message } from '@/ollama/process';
 interface ProcessorOptions {
     temperature?: number;
@@ -94,8 +94,7 @@ export class TherapeuticAIProcessor {
         const systemMessage = {
             role: 'system',
             content: `You are roleplaying as ${this.clientProfile.name}, currently feeling ${this.emotionalState.primary} 
-        with intensity ${this.emotionalState.intensity}/10. Your defense mechanisms include: 
-        ${this.clientProfile.defense_mechanisms.join(', ')}. Respond authentically based on this emotional state.`
+        with intensity ${this.emotionalState.intensity}/10. Respond authentically based on this emotional state.`
         };
         // Add system message to the conversation
         const enhancedMessages = [systemMessage, ...messages];

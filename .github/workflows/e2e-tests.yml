@@ -6,16 +6,16 @@ on:
   pull_request:
     branches: [ main ]
 
-env:
-  NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-  NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-  RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
-  EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
-
 jobs:
   test:
     timeout-minutes: 60
     runs-on: ubuntu-latest
+
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+      RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+      EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
 
     steps:
       - uses: actions/checkout@v4
@@ -34,6 +34,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
+      - name: Install Playwright
+        run: pnpm add -D @playwright/test
+        
       - name: Install Playwright Browsers
         run: pnpm exec playwright install --with-deps
 
