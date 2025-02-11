@@ -10,6 +10,7 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./src/test-setup.ts'],
     globals: true,
+    includeSource: ['src/**/*.{ts,tsx}'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
@@ -33,4 +34,4 @@ export default defineConfig({
       '@': resolve(__dirname, './src')
     }
   }
-}) 
+})

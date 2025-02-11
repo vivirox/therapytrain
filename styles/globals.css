@@ -1,0 +1,28 @@
+@layer base {
+  :root {
+    --focus-ring-color: hsl(var(--primary));
+    --focus-ring-offset: hsl(var(--background));
+  }
+
+  .dark {
+    --focus-ring-color: hsl(var(--primary-foreground));
+    --focus-ring-offset: hsl(var(--background));
+  }
+
+  *:focus-visible {
+    outline: none;
+  }
+
+  /* High contrast mode overrides */
+  @media (forced-colors: active) {
+    :root {
+      --focus-ring-color: Highlight;
+      --focus-ring-offset: Canvas;
+    }
+
+    .focus-ring {
+      outline: 2px solid Highlight !important;
+      outline-offset: 2px !important;
+    }
+  }
+} 

@@ -3,7 +3,6 @@
     "target": "ES2020",
     "useDefineForClassFields": true,
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
-    "types": ["testing-library__jest-dom"],
     "module": "ESNext",
     "skipLibCheck": true,
     "moduleResolution": "bundler",
@@ -64,7 +63,8 @@
     "src/**/*.mdx",
     "*.mdx",
     "src/types/**/*.d.ts",
-    "src/types/custom.d.ts"
+    "src/types/custom.d.ts",
+    "src/types/vitest.d.ts"
   ],
   "exclude": [
     "node_modules",

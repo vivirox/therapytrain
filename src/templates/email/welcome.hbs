@@ -1,0 +1,60 @@
+{{#> base}}
+  {{#*inline "content"}}
+    <div role="article" aria-label="Welcome to TherapyTrain">
+      <h1>Welcome to TherapyTrain!</h1>
+      
+      <p>Hello{{#if name}} {{name}}{{/if}},</p>
+      
+      <p>Thank you for joining TherapyTrain! We're excited to have you on board and look forward to helping you on your journey.</p>
+      
+      <div style="text-align: center; margin: 32px 0;">
+        <a href="{{dashboardUrl}}" class="button" role="button" aria-label="Go to your dashboard">
+          Get Started
+        </a>
+      </div>
+      
+      <h2>Quick Start Guide</h2>
+      <ol style="padding-left: 20px;">
+        <li>
+          <strong>Complete Your Profile</strong>
+          <p>Add your information to help us personalize your experience.</p>
+        </li>
+        <li>
+          <strong>Set Your Preferences</strong>
+          <p>Customize your notification settings and communication preferences.</p>
+        </li>
+        <li>
+          <strong>Explore Features</strong>
+          <p>Discover the tools and resources available to you.</p>
+        </li>
+      </ol>
+      
+      <div style="margin: 32px 0; padding: 24px; background-color: #f5f5f5; border-radius: 8px;">
+        <h3 style="margin-top: 0;">Need Help?</h3>
+        <p>Our support team is here for you:</p>
+        <ul style="padding-left: 20px;">
+          <li><a href="{{supportUrl}}" aria-label="Visit our help center">Visit our Help Center</a></li>
+          <li><a href="{{contactUrl}}" aria-label="Contact our support team">Contact Support</a></li>
+          <li><a href="{{faqUrl}}" aria-label="Read our frequently asked questions">Read our FAQs</a></li>
+        </ul>
+      </div>
+      
+      <div style="margin-top: 32px; text-align: center;">
+        <p>Follow us on social media for updates and tips:</p>
+        <div style="margin-top: 16px;">
+          {{#if socialLinks}}
+            {{#each socialLinks}}
+              <a href="{{this.url}}" 
+                 style="margin: 0 8px;"
+                 aria-label="Follow us on {{this.platform}}"
+                 target="_blank" 
+                 rel="noopener noreferrer">
+                {{this.platform}}
+              </a>
+            {{/each}}
+          {{/if}}
+        </div>
+      </div>
+    </div>
+  {{/inline}}
+{{/base}} 

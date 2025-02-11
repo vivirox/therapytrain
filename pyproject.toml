@@ -7,7 +7,6 @@ authors = [
 ]
 license = {text = "MIT"}
 readme = "README.md"
-requires-python = ">=3.9"
 dependencies = [
     "playwright (>=1.50.0,<2.0.0)",
     "html5lib (>=1.1,<2.0)",
@@ -21,10 +20,3 @@ dependencies = [
     "google-generativeai (>=0.8.4,<0.9.0)",
     "grpcio (>=1.70.0,<2.0.0)"
 ]
-
-[tool.poetry]
-package-mode = false
-
-[build-system]
-requires = ["poetry-core>=2.0.0,<3.0.0"]
-build-backend = "poetry.core.masonry.api"
