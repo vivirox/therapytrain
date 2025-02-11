@@ -4,6 +4,8 @@ import { Navigate } from 'react-router-dom';
 import UserManagement from '@/components/admin/UserManagement';
 import SecuritySettings from '@/components/admin/SecuritySettings';
 import Analytics from '@/components/admin/Analytics';
+import EmailAnalyticsDashboard from '@/components/email/EmailAnalyticsDashboard';
+import { HipaaMonitoringDashboard } from '@/components/compliance/HipaaMonitoringDashboard';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
@@ -12,9 +14,11 @@ import {
   MdInsights,
   MdSettings,
   MdMenu,
+  MdOutlineEmail,
+  MdHealthAndSafety,
 } from 'react-icons/md';
 
-type Tab = 'users' | 'security' | 'analytics' | 'settings';
+type Tab = 'users' | 'security' | 'analytics' | 'settings' | 'email' | 'hipaa';
 
 interface NavItem {
   id: Tab;
@@ -44,6 +48,18 @@ const AdminDashboard: React.FC = () => {
       component: <Analytics />,
     },
     {
+      id: 'email',
+      label: 'Email Analytics',
+      icon: <MdOutlineEmail className="w-5 h-5" />,
+      component: <EmailAnalyticsDashboard />,
+    },
+    {
+      id: 'hipaa',
+      label: 'HIPAA Monitoring',
+      icon: <MdHealthAndSafety className="w-5 h-5" />,
+      component: <HipaaMonitoringDashboard />,
+    },
+    {
       id: 'users',
       label: 'User Management',
       icon: <MdPeople className="w-5 h-5" />,
@@ -66,65 +82,50 @@ const AdminDashboard: React.FC = () => {
   const activeComponent = navItems.find((item) => item.id === activeTab)?.component;
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
+    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black">
       {/* Mobile Menu Button */}
-      <div className="lg:hidden p-4">
+      <div className="md:hidden p-4">
         <Button
           variant="outline"
           size="icon"
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
         >
-          <MdMenu className="w-6 h-6" />
+          <MdMenu className="h-6 w-6" />
         </Button>
       </div>
 
-      <div className="flex">
+      <div className="flex flex-col md:flex-row">
         {/* Sidebar Navigation */}
-        <aside
+        <nav
           className={`
-            fixed lg:static inset-y-0 left-0 z-50
-            w-64 bg-gray-800 transform transition-transform duration-200 ease-in-out
-            ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+            md:w-64 bg-gray-900 p-4
+            ${isMobileMenuOpen ? 'block' : 'hidden'}
+            md:block
           `}
         >
-          <div className="p-6">
-            <h1 className="text-xl font-bold mb-8">Admin Dashboard</h1>
-            <nav className="space-y-2">
-              {navItems.map((item) => (
-                <Button
-                  key={item.id}
-                  variant={activeTab === item.id ? 'default' : 'ghost'}
-                  className="w-full justify-start gap-2"
-                  onClick={() => {
-                    setActiveTab(item.id);
-                    setIsMobileMenuOpen(false);
-                  }}
-                >
-                  {item.icon}
-                  {item.label}
-                </Button>
-              ))}
-            </nav>
+          <div className="space-y-2">
+            {navItems.map((item) => (
+              <Button
+                key={item.id}
+                variant={activeTab === item.id ? 'default' : 'ghost'}
+                className="w-full justify-start"
+                onClick={() => {
+                  setActiveTab(item.id);
+                  setIsMobileMenuOpen(false);
+                }}
+              >
+                {item.icon}
+                <span className="ml-2">{item.label}</span>
+              </Button>
+            ))}
           </div>
-        </aside>
+        </nav>
 
         {/* Main Content */}
-        <main className="flex-1 min-h-screen">
-          <div className="p-4">
-            <Card className="bg-gray-800 border-gray-700">
-              {activeComponent}
-            </Card>
-          </div>
+        <main className="flex-1 p-4">
+          {activeComponent}
         </main>
       </div>
-
-      {/* Mobile Menu Overlay */}
-      {isMobileMenuOpen && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
-          onClick={() => setIsMobileMenuOpen(false)}
-        />
-      )}
     </div>
   );
 };
