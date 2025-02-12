@@ -1,7 +1,7 @@
 {
     "python": {
         "version": "3.10.16",
-        "venvPath": "/home/vivi/miniconda3/envs/therapytrain",
-        "defaultInterpreterPath": "/home/vivi/miniconda3/envs/therapytrain/bin/python"
+        "venvPath": ".venv",
+        "defaultInterpreterPath": ".venv/bin/python"
     }
 }

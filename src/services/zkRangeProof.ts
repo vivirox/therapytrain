@@ -342,55 +342,80 @@ export class ZKRangeProofService {
     }
 
     private async aggregateProofs(proofs: BulletproofData[]): Promise<BulletproofData> {
+        if (proofs.length === 0) {
+            throw new Error('No proofs to aggregate');
+        }
+        if (proofs.length === 1) {
+            return proofs[0];
+        }
+
+        // Determine optimal batch size based on available CPU cores
+        const batchSize = Math.max(1, Math.floor(proofs.length / this.maxWorkers));
+        const batches: BulletproofData[][] = [];
+        
+        // Split proofs into batches
+        for (let i = 0; i < proofs.length; i += batchSize) {
+            batches.push(proofs.slice(i, i + batchSize));
+        }
+
         try {
-            if (proofs.length === 0) {
-                throw new Error('No proofs to aggregate');
-            }
-            if (proofs.length === 1) {
-                return proofs[0];
-            }
+            // Process batches in parallel
+            const batchResults = await Promise.all(
+                batches.map(async batch => {
+                    // Aggregate points within each batch
+                    const aggregatedA = this.aggregatePoints(batch.map(p => p.A));
+                    const aggregatedS = this.aggregatePoints(batch.map(p => p.S));
+                    const aggregatedT1 = this.aggregatePoints(batch.map(p => p.T1));
+                    const aggregatedT2 = this.aggregatePoints(batch.map(p => p.T2));
+                    
+                    // Combine challenges
+                    const combinedTaux = batch.reduce(
+                        (acc, p) => (acc + p.taux) % secp256k1.CURVE.n,
+                        BigInt(0)
+                    );
+                    const combinedMu = batch.reduce(
+                        (acc, p) => (acc + p.mu) % secp256k1.CURVE.n,
+                        BigInt(0)
+                    );
+                    
+                    // Aggregate inner product proofs
+                    const innerProductProofs = batch.map(p => p.innerProductProof);
+                    const aggregatedInnerProduct = await this.aggregateInnerProductProofs(innerProductProofs);
 
-            // Convert hex strings to Points for all proofs
-            const A_points = proofs.map(p => Point.fromHex(p.A));
-            const S_points = proofs.map(p => Point.fromHex(p.S));
-            const T1_points = proofs.map(p => Point.fromHex(p.T1));
-            const T2_points = proofs.map(p => Point.fromHex(p.T2));
-
-            // Aggregate the points using point addition
-            const A_aggregated = this.aggregatePoints(A_points);
-            const S_aggregated = this.aggregatePoints(S_points);
-            const T1_aggregated = this.aggregatePoints(T1_points);
-            const T2_aggregated = this.aggregatePoints(T2_points);
-
-            // Combine the taux values
-            const taux_values = proofs.map(p => BigInt(p.taux));
-            const taux_aggregated = taux_values.reduce(
-                (sum, val) => (sum + val) % (1n << 256n), 0n
+                    return {
+                        A: aggregatedA,
+                        S: aggregatedS,
+                        T1: aggregatedT1,
+                        T2: aggregatedT2,
+                        taux: combinedTaux,
+                        mu: combinedMu,
+                        innerProductProof: aggregatedInnerProduct
+                    };
+                })
             );
 
-            // Combine the mu values
-            const mu_values = proofs.map(p => BigInt(p.mu));
-            const mu_aggregated = mu_values.reduce(
-                (sum, val) => (sum + val) % (1n << 256n), 0n
-            );
-
-            // Aggregate inner product proofs
-            const innerProduct_aggregated = await this.aggregateInnerProductProofs(
-                proofs.map(p => p.innerProduct)
-            );
-
-            // Return the aggregated proof
-            return {
-                A: A_aggregated.toHex(),
-                S: S_aggregated.toHex(),
-                T1: T1_aggregated.toHex(),
-                T2: T2_aggregated.toHex(),
-                taux: taux_aggregated.toString(),
-                mu: mu_aggregated.toString(),
-                innerProduct: innerProduct_aggregated
+            // Final aggregation of batch results
+            const finalProof: BulletproofData = {
+                A: this.aggregatePoints(batchResults.map(r => r.A)),
+                S: this.aggregatePoints(batchResults.map(r => r.S)),
+                T1: this.aggregatePoints(batchResults.map(r => r.T1)),
+                T2: this.aggregatePoints(batchResults.map(r => r.T2)),
+                taux: batchResults.reduce(
+                    (acc, r) => (acc + r.taux) % secp256k1.CURVE.n,
+                    BigInt(0)
+                ),
+                mu: batchResults.reduce(
+                    (acc, r) => (acc + r.mu) % secp256k1.CURVE.n,
+                    BigInt(0)
+                ),
+                innerProductProof: await this.aggregateInnerProductProofs(
+                    batchResults.map(r => r.innerProductProof)
+                )
             };
+
+            return finalProof;
         } catch (error) {
-            console.error('Error aggregating proofs:', error);
+            console.error('Error in proof aggregation:', error);
             throw new Error('Failed to aggregate proofs');
         }
     }

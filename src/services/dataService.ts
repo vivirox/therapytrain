@@ -1,90 +1,131 @@
-import { supabase } from '@/lib/supabase';
+import { SupabaseClient } from '@supabase/supabase-js';
+import { Database } from '../types/database';
+import { OptimizedDatabaseService } from './OptimizedDatabaseService';
+import { getCacheTTL, shouldInvalidateCache } from '../config/database.config';
 
-export interface StorageItem<T> {
-  id: string; // Use string for Supabase IDs
-  data: T;
-  createdAt: Date;
-  updatedAt: Date;
+export interface StorageItem<T> extends Record<string, any> {
+    data: T;
 }
 
 class DataService {
-  private static instance: DataService;
+    private static instance: DataService;
+    private client: SupabaseClient<Database>;
+    private dbService: OptimizedDatabaseService;
 
-  private constructor() {}
-
-  public static getInstance(): DataService {
-    if (!DataService.instance) {
-      DataService.instance = new DataService();
-    }
-    return DataService.instance;
-  }
-
-  public async create<T>(table: string, data: T): Promise<StorageItem<T>> {
-
-    const { data: createdData, error } = await supabase.from(table).insert(data).select();
-    if (error) {
-      throw new Error(error.message);
+    private constructor(client: SupabaseClient<Database>) {
+        this.client = client;
+        this.dbService = OptimizedDatabaseService.getInstance(client);
     }
 
-    if (!createdData || !Array.isArray(createdData) || createdData.length === 0) {
-      throw new Error("No data returned");
+    public static getInstance(client: SupabaseClient<Database>): DataService {
+        if (!DataService.instance) {
+            DataService.instance = new DataService(client);
+        }
+        return DataService.instance;
     }
 
+    public async create<T>(table: string, data: T): Promise<StorageItem<T>> {
+        const result = await this.dbService.insert<StorageItem<T>>(table, data, {
+            cache: shouldInvalidateCache(table as any),
+            cacheTTL: getCacheTTL(table as any)
+        });
 
-    return createdData[0] as StorageItem<T>; // Return the first created item
-  }
-  public async get<T>(table: string, id: string): Promise<StorageItem<T> | null> {
-    const { data, error } = await supabase.from(table).select('*').eq('id', id).single();
-    if (error) {
-      throw new Error(error.message);
-    }
-    return data;
-  }
+        if (!result || result.length === 0) {
+            throw new Error("No data returned");
+        }
 
-  public async update<T>(table: string, id: string, data: Partial<T>): Promise<StorageItem<T> | null> {
-
-    const { data: updatedData, error } = await supabase.from(table).update(data).eq('id', id).select();
-    if (error) {
-      throw new Error(error.message);
+        return result[0];
     }
 
-    if (!updatedData || !Array.isArray(updatedData) || updatedData.length === 0) {
-      throw new Error("No data returned");
+    public async get<T>(table: string, id: string): Promise<StorageItem<T> | null> {
+        const results = await this.dbService.select<StorageItem<T>>(table, {
+            where: { id },
+            cache: true,
+            cacheTTL: getCacheTTL(table as any)
+        });
+
+        return results[0] || null;
     }
 
+    public async update<T>(
+        table: string,
+        id: string,
+        updates: Partial<T>
+    ): Promise<StorageItem<T> | null> {
+        const results = await this.dbService.update<StorageItem<T>>(
+            table,
+            { id },
+            updates,
+            {
+                cache: shouldInvalidateCache(table as any),
+                cacheTTL: getCacheTTL(table as any)
+            }
+        );
 
-    return updatedData[0] as StorageItem<T>; // Return the first updated item
-  }
-  public async delete(table: string, id: string): Promise<void> {
-    const { error } = await supabase.from(table).delete().eq('id', id);
-    if (error) {
-      throw new Error(error.message);
+        return results[0] || null;
     }
-  }
 
-  public async list<T>(table: string, query: Record<string, any> = {}): Promise<Array<StorageItem<T>>> {
-    const { data, error } = await supabase.from(table).select('*').match(query);
-    if (error) {
-      throw new Error(error.message);
+    public async delete<T>(table: string, id: string): Promise<StorageItem<T> | null> {
+        const results = await this.dbService.delete<StorageItem<T>>(
+            table,
+            { id },
+            { cache: shouldInvalidateCache(table as any) }
+        );
+
+        return results[0] || null;
     }
-    return data;
-  }
 
-  public async findOne<T>(table: string, query: Record<string, any>): Promise<StorageItem<T> | null> {
-    const { data, error } = await supabase.from(table).select('*').match(query).single();
-    if (error) {
-      throw new Error(error.message);
+    public async list<T>(
+        table: string,
+        query: Record<string, any> = {},
+        options: {
+            orderBy?: string;
+            limit?: number;
+            offset?: number;
+        } = {}
+    ): Promise<Array<StorageItem<T>>> {
+        return await this.dbService.select<StorageItem<T>>(table, {
+            where: query,
+            ...options,
+            cache: true,
+            cacheTTL: getCacheTTL(table as any)
+        });
     }
-    return data;
-  }
 
-  public async query<T>(
-    table: string,
-    predicate: (item: StorageItem<T>) => boolean
-  ): Promise<Array<StorageItem<T>>> {
-    const items = await this.list<T>(table);
-    return items.filter(predicate);
-  }
+    public async findOne<T>(
+        table: string,
+        query: Record<string, any>
+    ): Promise<StorageItem<T> | null> {
+        const results = await this.dbService.select<StorageItem<T>>(table, {
+            where: query,
+            limit: 1,
+            cache: true,
+            cacheTTL: getCacheTTL(table as any)
+        });
+
+        return results[0] || null;
+    }
+
+    public async batch<T>(operations: {
+        type: 'create' | 'update' | 'delete';
+        table: string;
+        data?: any;
+        where?: Record<string, any>;
+    }[]): Promise<Array<StorageItem<T>[]>> {
+        const mappedOperations = operations.map(op => ({
+            type: op.type === 'create' ? 'insert' : op.type,
+            table: op.table,
+            data: op.data,
+            where: op.where
+        }));
+
+        return await this.dbService.batch<StorageItem<T>>(mappedOperations);
+    }
+
+    /**
+     * Get database performance metrics
+     */
+    public getPerformanceMetrics() {
+        return this.dbService.generateReport();
+    }
 }
-
-export const dataService = DataService.getInstance();

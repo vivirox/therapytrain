@@ -53,7 +53,8 @@
       "@/mocks": ["src/types/mocks"],
       "@/clientprofile": ["src/types/clientprofile"]
     },
-    "typeRoots": ["./node_modules/@types", "./src/types"]
+    "typeRoots": ["./node_modules/@types", "./src/types"],
+    "outDir": "dist"
   },
   "include": [
     "src/**/*.ts",

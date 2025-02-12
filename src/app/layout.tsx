@@ -1,6 +1,9 @@
 import { AccessibilityProvider } from '@/contexts/accessibility-context';
 import { KeyboardNavigationProvider } from '@/contexts/keyboard-navigation';
 import { SkipLinks } from '@/components/ui/skip-links';
+import { Toaster } from 'react-hot-toast';
+import { ServiceWorkerUpdater } from '../components/ServiceWorkerUpdater';
+import { OfflineIndicator } from '../components/OfflineIndicator';
 
 // ... existing imports ...
 
@@ -11,7 +14,14 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head />
+      <head>
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#4a90e2" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="TherapyTrain" />
+        <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+      </head>
       <body>
         <AccessibilityProvider>
           <KeyboardNavigationProvider>
@@ -37,6 +47,9 @@ export default function RootLayout({
             </footer>
           </KeyboardNavigationProvider>
         </AccessibilityProvider>
+        <Toaster />
+        <ServiceWorkerUpdater />
+        <OfflineIndicator />
       </body>
     </html>
   );

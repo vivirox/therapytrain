@@ -1,0 +1,165 @@
+# Zero-Knowledge Range Proofs
+
+## Overview
+
+The Zero-Knowledge Range Proof (ZKRP) system in TherapyTrain provides a secure way to prove that a value lies within a specific range without revealing the actual value. This implementation uses Bulletproofs, a highly efficient non-interactive zero-knowledge proof protocol.
+
+## Features
+
+- Single-value range proofs
+- Aggregated multi-value proofs
+- Parallel proof verification
+- Optimized batch processing
+- Secure generator caching
+- Quantum-resistant integration
+
+## Technical Implementation
+
+### Core Components
+
+```typescript
+interface RangeProofInput {
+    value: number;    // The value to prove
+    min: number;      // Minimum allowed value
+    max: number;      // Maximum allowed value
+}
+
+interface RangeProofData {
+    commitment: string;   // Pedersen commitment
+    proof: string;       // Serialized Bulletproof
+    publicInputs: {
+        min: number;     // Range minimum
+        max: number;     // Range maximum
+    };
+}
+```
+
+### Key Features
+
+1. **Single-Value Proofs**
+   - Generates Bulletproof for individual values
+   - Uses Pedersen commitments for hiding values
+   - Provides efficient verification
+
+2. **Aggregated Proofs**
+   - Combines multiple proofs efficiently
+   - Optimized batch processing
+   - Parallel verification for large batches
+
+3. **Performance Optimizations**
+   - Generator caching for repeated operations
+   - Multi-threaded proof verification
+   - Efficient point aggregation
+   - Dynamic batch sizing based on CPU cores
+
+## Usage Examples
+
+### Basic Range Proof
+
+```typescript
+const zkService = ZKRangeProofService.getInstance();
+
+// Generate a proof
+const proof = await zkService.generateRangeProof({
+    value: 100,
+    min: 0,
+    max: 1000
+});
+
+// Verify the proof
+const isValid = await zkService.verifyRangeProof(proof);
+```
+
+### Aggregated Proofs
+
+```typescript
+const proofs = await zkService.generateAggregatedProof([
+    { value: 100, min: 0, max: 1000 },
+    { value: 500, min: 0, max: 1000 },
+    { value: 750, min: 0, max: 1000 }
+]);
+
+const isValid = await zkService.verifyAggregatedProof(proofs);
+```
+
+## Security Considerations
+
+1. **Quantum Resistance**
+   - Integration with quantum-resistant encryption
+   - Hybrid mode support with traditional cryptography
+   - Future-proof security design
+
+2. **Privacy Guarantees**
+   - Zero-knowledge property ensures value privacy
+   - Range bounds are public but values remain hidden
+   - Commitment scheme prevents value modification
+
+3. **Performance Security**
+   - Parallel processing without compromising security
+   - Secure generator caching
+   - Protected against timing attacks
+
+## Performance Characteristics
+
+### Single Proof Performance
+- Generation: O(log n) complexity
+- Verification: O(log n) complexity
+- Space: O(log n) proof size
+
+### Aggregated Proof Performance
+- Generation: O(m log n) for m proofs
+- Verification: O(m log n) with parallelization
+- Space: O(log n + log m) for m proofs
+
+## Integration Guidelines
+
+1. **Setup**
+   ```typescript
+   import { ZKRangeProofService } from '@/services/zkRangeProof';
+   const zkService = ZKRangeProofService.getInstance();
+   ```
+
+2. **Configuration**
+   - Adjust `maxWorkers` based on system capabilities
+   - Configure generator cache size as needed
+   - Set appropriate batch sizes for aggregation
+
+3. **Error Handling**
+   - Handle range validation errors
+   - Manage proof verification failures
+   - Process aggregation errors
+
+## Best Practices
+
+1. **Range Selection**
+   - Use appropriate bit sizes for ranges
+   - Consider performance implications of range size
+   - Group similar ranges for efficient aggregation
+
+2. **Batch Processing**
+   - Aggregate proofs when possible
+   - Use appropriate batch sizes
+   - Consider memory constraints
+
+3. **Error Management**
+   - Implement proper error handling
+   - Log verification failures
+   - Monitor performance metrics
+
+## Future Enhancements
+
+1. **Planned Improvements**
+   - Additional optimization for large batches
+   - Enhanced caching strategies
+   - Extended range support
+
+2. **Research Areas**
+   - Alternative proof systems
+   - Advanced aggregation techniques
+   - Novel optimization strategies
+
+## References
+
+- [Bulletproofs Paper](https://eprint.iacr.org/2017/1066.pdf)
+- [Range Proof Optimization](https://crypto.stanford.edu/bulletproofs/)
+- [Zero-Knowledge Proofs](https://zkp.science/) 

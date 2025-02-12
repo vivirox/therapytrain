@@ -96,11 +96,21 @@ CREATE POLICY "Users can read status of their messages"
     );
 
 -- Typing status policies
-CREATE POLICY "Users can update their typing status"
+DO $$ 
+BEGIN
+    -- Drop existing policies if they exist
+    DROP POLICY IF EXISTS "Users can update their typing status" ON typing_status;
+    DROP POLICY IF EXISTS "Users can insert their typing status" ON typing_status;
+    DROP POLICY IF EXISTS "Users can update their own typing status" ON typing_status;
+    DROP POLICY IF EXISTS "Users can read typing status in their chats" ON typing_status;
+END $$;
+
+-- Create new policies
+CREATE POLICY "Users can insert their typing status"
     ON typing_status FOR INSERT
     WITH CHECK (auth.uid() = user_id);
 
-CREATE POLICY "Users can update their typing status"
+CREATE POLICY "Users can update their own typing status"
     ON typing_status FOR UPDATE
     USING (auth.uid() = user_id)
     WITH CHECK (auth.uid() = user_id);
