@@ -1,0 +1,287 @@
+## Mega-List
+
+### Chat Section with Streaming Responses and SSE
+
+- [ ] Implement SSE endpoint in `/app/api/chat/route.ts`
+    - [ ] Create a `GET` route to handle SSE connections.
+        - [ ] Set `Content-Type`, `Cache-Control`, and `Connection` headers.
+        - [ ] Add the client to the `connectedClients` map.
+        - [ ] Send an initial connection message.
+        - [ ] Handle client disconnections.
+    - [ ] Subscribe to Supabase `postgres_changes` events for the specific chat thread.
+    - [ ] Forward these events to the client as SSE messages.
+- [ ] Modify the `POST` route in `/app/api/chat/route.ts`
+    - [ ] After storing the user's message in Supabase, send an SSE event to notify the client of the new message.
+    - [ ] If necessary, trigger the AI response generation and stream it back to the client as SSE events.
+- [ ] Implement client-side code to connect to the SSE endpoint and handle incoming events.
+    - [ ] Make a fetch request to the `/api/chat/route` GET endpoint passing in the userId and threadId.
+    - [ ] Use `EventSource` to listen for new messages.
+    - [ ] Update the Chat UI when a new message is received.
+- [ ] Implement robust error handling.
+- [ ] Consider scalability issues and implement a more robust solution for managing SSE connections if necessary.
+
+# Instructions
+
+During you interaction with the user, if you find anything reusable in this project (e.g. version of a library, model name), especially about a fix to a mistake you made or a correction you received, you should take note in the `Lessons` section in the `.cursorrules` file so you will not make the same mistake again.
+
+You should also use the `.cursorrules` file as a scratchpad to organize your thoughts. Especially when you receive a new task, you should first review the content of the scratchpad, clear old different task if necessary, first explain the task, and plan the steps you need to take to complete the task. You can use todo markers to indicate the progress, e.g.
+[X] Task 1
+[ ] Task 2
+
+Also update the progress of the task in the Scratchpad when you finish a subtask.
+Especially when you finished a milestone, it will help to improve your depth of task accomplishment to use the scratchpad to reflect and plan.
+The goal is to help you maintain a big picture as well as the progress of the task. Always refer to the Scratchpad when you plan the next step.
+
+## Tools
+
+Note all the tools are in python. So in the case you need to do batch processing, you can always consult the python files and write your own script.
+
+IMPORTANT: Make better use of the available Python tools! Before diving into implementation, always try to:
+
+1. Use search_engine.py to research solutions and best practices
+2. Use web_scraper.py to gather detailed documentation
+3. Use llm_api.py for complex analysis tasks
+4. Combine tools for a better research workflow
+
+Remember: These tools are here to help make better informed decisions. Use them proactively!
+
+## Screenshot Verification
+
+The screenshot verification workflow allows you to capture screenshots of web pages and verify their appearance using LLMs. The following tools are available:
+
+- Screenshot Capture:
+
+'''bash
+python tools/screenshot_utils.py URL [--output OUTPUT] [--width WIDTH] [--height HEIGHT]
+'''
+
+- LLM Verification with Images:
+
+'''bash
+python tools/llm_api.py --prompt "Your verification question" --provider {openai|anthropic} --image path/to/screenshot.png
+'''
+
+Example workflow:
+
+'''python
+from screenshot_utils import take_screenshot_sync
+from llm_api import query_llm
+
+# Take a screenshot
+screenshot_path = take_screenshot_sync('https://example.com', 'screenshot.png')
+
+# Verify with LLM
+response = query_llm(
+    "What is the background color and title of this webpage?",
+    provider="openai",  # or "anthropic"
+    image_path=screenshot_path
+)
+print(response)
+'''
+
+## LLM
+
+You always have an LLM at your side to help you with the task. For simple tasks, you could invoke the LLM by running the following command:
+
+'''bash
+python ./tools/llm_api.py --prompt "What is the capital of France?" --provider "anthropic"
+'''
+
+The LLM API supports multiple providers:
+
+- OpenAI (default, model: gpt-4o)
+- Azure OpenAI (model: configured via AZURE_OPENAI_MODEL_DEPLOYMENT in .env file, defaults to gpt-4o-ms)
+- DeepSeek (model: deepseek-chat)
+- Anthropic (model: claude-3-sonnet-20240229)
+- Gemini (model: gemini-pro)
+- Local LLM (model: Qwen/Qwen2.5-32B-Instruct-AWQ)
+
+But usually it's a better idea to check the content of the file and use the APIs in the `tools/llm_api.py` file to invoke the LLM if needed.
+
+## Web browser
+
+You could use the `tools/web_scraper.py` file to scrape the web.
+
+'''bash
+python ./tools/web_scraper.py --max-concurrent 3 URL1 URL2 URL3
+'''
+
+This will output the content of the web pages.
+
+## Search engine
+
+You could use the `tools/search_engine.py` file to search the web.
+
+'''bash
+python ./tools/search_engine.py "your search keywords"
+'''
+
+This will output the search results in the following format:
+
+'''bash
+URL: https://example.com
+Title: This is the title of the search result
+Snippet: This is a snippet of the search result
+'''
+
+If needed, you can further use the `web_scraper.py` file to scrape the web page content.
+
+## Lessons
+
+### Core Lessons
+
+- Use proper TypeScript types and interfaces for better type safety
+- When adapting authentication systems, ensure proper session and user type compatibility
+- Keep audit events consistent with the system's event types
+- Handle rate limiting and security at the adapter level
+- Implement proper error handling and audit logging
+- Follow HIPAA compliance requirements for authentication and audit trails
+- Make better use of available Python tools for research and automation:
+  - Use search_engine.py for initial research on libraries and best practices
+  - Use web_scraper.py for gathering detailed documentation
+  - Use llm_api.py for analyzing complex technical decisions
+  - Combine tools for a more thorough research workflow
+
+### Recent Fixes
+
+- Fixed PocketBase adapter type issues:
+  - Moved PocketBase-specific interfaces to the adapter file
+  - Updated audit event types to match system requirements
+  - Fixed session user initialization
+  - Improved type safety in authentication flow
+  - Added proper error handling and audit logging
+
+- Improved research workflow:
+  - Started using search_engine.py more consistently
+  - Combined search results with web_scraper.py for deeper analysis
+  - Better utilization of Python toolkit for research tasks
+
+- Fixed PostgreSQL statistics views and column names:
+  - Use pg_stat_user_tables for table statistics (n_live_tup, n_dead_tup, etc.)
+  - Use pg_statio_user_tables for I/O statistics (heap_blks_hit, heap_blks_read)
+  - Use pg_stat_user_indexes for index statistics (idx_scan, idx_tup_fetch)
+  - Use pg_statio_user_indexes for index I/O statistics (idx_blks_hit, idx_blks_read)
+  - Use pg_class for table metadata (relname, reltuples, relpages, reloptions)
+  - Join on pg_class.oid = pg_stat_user_tables.relid for correct table matching
+
+### Best Practices
+
+- Use appropriate caching strategies for different data types
+- Implement proper monitoring from the start
+- Follow progressive enhancement principles
+- Consider both vertical and horizontal scaling
+- Use correct PostgreSQL system catalog views and column names for statistics gathering
+- Properly handle table and index statistics for performance monitoring
+- Use appropriate joins between system catalog tables for accurate metadata
+
+## Scratchpad
+
+### Current Task: Database Optimization
+
+Progress:
+[X] Database Optimization
+  [X] Create Database Monitoring Service
+    [X] Implement metrics collection
+    [X] Add performance tracking
+    [X] Add query analysis
+    [X] Implement recommendations engine
+  [X] Create SQL Analysis Functions
+    [X] Add slow query analysis
+    [X] Add table statistics
+    [X] Add index statistics
+    [X] Add query pattern analysis
+    [X] Add index recommendations
+  [X] Create Performance Analysis Script
+    [X] Implement table analysis
+    [X] Add optimization recommendations
+    [X] Add performance comparison
+    [X] Generate detailed reports
+  [X] Implement Query Optimizations
+    [X] Analyze current query patterns
+    [X] Design indexing strategy
+    [X] Apply recommended optimizations
+    [X] Verify performance improvements
+  [X] Add Performance Monitoring
+    [X] Set up continuous monitoring
+    [X] Configure alerts
+    [X] Create monitoring dashboard
+    [X] Implement automated maintenance
+
+### Completed Tasks:
+1. Created database performance analysis script
+2. Implemented table discovery and analysis
+3. Added size and performance metrics collection
+4. Created recommendations system
+5. Added detailed reporting
+
+### Lessons Learned:
+- When working with Supabase, prefer standard table operations over system functions
+- Use row sampling for performance analysis when system stats aren't available
+- Implement graceful fallbacks for restricted operations
+- Handle connection issues by using simpler, more reliable approaches
+- Focus on actionable metrics that can be gathered without special permissions
+
+### Best Practices:
+- Use standard table operations for better compatibility
+- Implement progressive analysis (start simple, add detail when available)
+- Handle errors gracefully and provide useful fallback information
+- Focus on actionable recommendations
+- Keep monitoring lightweight to avoid impacting performance
+
+### Recent Fixes:
+- Switched from system functions to standard table operations
+- Improved table discovery mechanism
+- Enhanced error handling and reporting
+- Added size estimation based on row sampling
+- Implemented more reliable monitoring approach
+
+### Next Steps:
+
+1. Analyze Query Patterns
+   - Run performance analysis script
+   - Review query patterns
+   - Identify optimization opportunities
+   - Plan index strategy
+
+2. Implement Optimizations
+   - Create necessary indexes
+   - Optimize slow queries
+   - Implement query caching
+   - Set up maintenance tasks
+
+3. Set up Monitoring
+   - Configure continuous monitoring
+   - Set up performance alerts
+   - Create monitoring dashboard
+   - Implement automated maintenance
+
+## Lessons
+
+### Core Lessons
+
+- Use proper monitoring from the start
+- Track query performance metrics
+- Analyze query patterns regularly
+- Implement proper maintenance tasks
+- Handle database scaling appropriately
+
+### Recent Fixes
+
+- Implemented comprehensive database monitoring
+- Added query pattern analysis
+- Created performance optimization tools
+- Set up maintenance tasks
+- Added detailed performance reporting
+
+### Best Practices
+
+- Monitor database performance continuously
+- Track query patterns and performance
+- Implement proper maintenance tasks
+- Use appropriate indexes
+- Follow PostgreSQL best practices
+- Handle scaling appropriately
+- Use proper monitoring metrics
+- Implement automated maintenance
+- Track performance metrics
+- Use appropriate tools for analysis
