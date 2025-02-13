@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabaseclient';
 import { AlertService } from '../email/alert-service';
+import { ViolationDetectionSystem } from './violation-detection';
 
 export type HipaaViolationType = 
   | 'unauthorized_access'
@@ -70,13 +71,22 @@ export class HipaaMonitoringService {
   private static async handlePhiAccessChange(payload: any) {
     const { new: newRecord, old: oldRecord, eventType } = payload;
 
-    // Check for unauthorized access attempts
+    // Process event through violation detection system
+    const violations = await ViolationDetectionSystem.processEvent({
+      type: 'access',
+      authorized: newRecord.authorized,
+      user_id: newRecord.user_id,
+      data_type: newRecord.data_type,
+      encrypted: newRecord.encrypted,
+      timestamp: newRecord.timestamp
+    });
+
+    // Additional monitoring logic can remain
     if (eventType === 'INSERT' && !newRecord.authorized) {
       const violations = await this.detectUnauthorizedAccess(newRecord.user_id);
       await this.handleViolations(violations);
     }
 
-    // Check for potential PHI exposure
     if (eventType === 'UPDATE' && newRecord.exposure_level !== oldRecord.exposure_level) {
       const violations = await this.detectPhiExposure(newRecord);
       await this.handleViolations(violations);
@@ -89,6 +99,15 @@ export class HipaaMonitoringService {
   private static async handleAuthenticationChange(payload: any) {
     const { new: newRecord } = payload;
 
+    // Process event through violation detection system
+    await ViolationDetectionSystem.processEvent({
+      type: 'authentication',
+      status: newRecord.status,
+      user_id: newRecord.user_id,
+      timestamp: newRecord.timestamp
+    });
+
+    // Additional monitoring logic can remain
     if (newRecord.status === 'failed') {
       const violations = await this.detectAuthenticationFailures(newRecord.user_id);
       await this.handleViolations(violations);
@@ -101,6 +120,16 @@ export class HipaaMonitoringService {
   private static async handleEncryptionChange(payload: any) {
     const { new: newRecord } = payload;
 
+    // Process event through violation detection system
+    await ViolationDetectionSystem.processEvent({
+      type: 'encryption',
+      status: newRecord.status,
+      data_id: newRecord.data_id,
+      data_type: newRecord.data_type,
+      timestamp: newRecord.timestamp
+    });
+
+    // Additional monitoring logic can remain
     if (newRecord.status === 'failed') {
       const violations = await this.detectEncryptionFailures(newRecord);
       await this.handleViolations(violations);

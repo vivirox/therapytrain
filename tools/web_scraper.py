@@ -1,11 +1,11 @@
-#!/usr/bin/env /workspace/tmp_windsurf/venv/bin/python3
+#!~/.venv/ ~/.venv/bin/env/python
 
 import asyncio
 import argparse
 import sys
 import os
 from typing import List, Optional
-from playwright.async_api import async_playwright
+from pyppeteer import launch
 import html5lib
 from multiprocessing import Pool
 import time
@@ -20,13 +20,20 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-async def fetch_page(url: str, context) -> Optional[str]:
+async def fetch_page(url: str, browser) -> Optional[str]:
     """Asynchronously fetch a webpage's content."""
-    page = await context.new_page()
+    page = await browser.newPage()
     try:
         logger.info(f"Fetching {url}")
-        await page.goto(url)
-        await page.wait_for_load_state('networkidle')
+        # Set viewport to ensure consistent rendering
+        await page.setViewport({'width': 1920, 'height': 1080})
+        # Navigate with longer timeout and wait until network is idle
+        await page.goto(url, {
+            'waitUntil': 'networkidle0',
+            'timeout': 60000
+        })
+        # Wait a bit for any dynamic content
+        await asyncio.sleep(2)
         content = await page.content()
         logger.info(f"Successfully fetched {url}")
         return content
@@ -125,34 +132,41 @@ def parse_html(html_content: Optional[str]) -> str:
 
 async def process_urls(urls: List[str], max_concurrent: int = 5) -> List[str]:
     """Process multiple URLs concurrently."""
-    async with async_playwright() as p:
-        browser = await p.chromium.launch()
-        try:
-            # Create browser contexts
-            n_contexts = min(len(urls), max_concurrent)
-            contexts = [await browser.new_context() for _ in range(n_contexts)]
+    # Launch browser with appropriate options
+    browser = await launch({
+        'headless': True,
+        'args': [
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-dev-shm-usage',
+            '--disable-accelerated-2d-canvas',
+            '--disable-gpu',
+            '--window-size=1920,1080'
+        ]
+    })
+    
+    try:
+        # Create semaphore to limit concurrent pages
+        semaphore = asyncio.Semaphore(max_concurrent)
+        
+        async def fetch_with_semaphore(url: str) -> Optional[str]:
+            async with semaphore:
+                return await fetch_page(url, browser)
+        
+        # Create tasks for each URL
+        tasks = [fetch_with_semaphore(url) for url in urls]
+        
+        # Gather results
+        html_contents = await asyncio.gather(*tasks)
+        
+        # Parse HTML contents in parallel
+        with Pool() as pool:
+            results = pool.map(parse_html, html_contents)
             
-            # Create tasks for each URL
-            tasks = []
-            for i, url in enumerate(urls):
-                context = contexts[i % len(contexts)]
-                task = fetch_page(url, context)
-                tasks.append(task)
+        return results
             
-            # Gather results
-            html_contents = await asyncio.gather(*tasks)
-            
-            # Parse HTML contents in parallel
-            with Pool() as pool:
-                results = pool.map(parse_html, html_contents)
-                
-            return results
-            
-        finally:
-            # Cleanup
-            for context in contexts:
-                await context.close()
-            await browser.close()
+    finally:
+        await browser.close()
 
 def validate_url(url: str) -> bool:
     """Validate if the given string is a valid URL."""

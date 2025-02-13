@@ -1,14 +1,14 @@
-#!/usr/bin/env python3
+#!~/.venv/ ~/.venv/bin/env/python
 
 import asyncio
-from playwright.async_api import async_playwright
+import pyppeteer
 import os
 import tempfile
 from pathlib import Path
 
 async def take_screenshot(url: str, output_path: str = None, width: int = 1280, height: int = 720) -> str:
     """
-    Take a screenshot of a webpage using Playwright.
+    Take a screenshot of a webpage using Pyppeteer.
     
     Args:
         url (str): The URL to take a screenshot of
@@ -25,15 +25,15 @@ async def take_screenshot(url: str, output_path: str = None, width: int = 1280, 
         output_path = temp_file.name
         temp_file.close()
 
-    async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
-        page = await browser.new_page(viewport={'width': width, 'height': height})
-        
-        try:
-            await page.goto(url, wait_until='networkidle')
-            await page.screenshot(path=output_path, full_page=True)
-        finally:
-            await browser.close()
+    browser = await pyppeteer.launch(headless=True)
+    page = await browser.newPage()
+    await page.setViewport({'width': width, 'height': height})
+    
+    try:
+        await page.goto(url, waitUntil='networkidle0')
+        await page.screenshot({'path': output_path, 'fullPage': True})
+    finally:
+        await browser.close()
     
     return output_path
 

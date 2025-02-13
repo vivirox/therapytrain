@@ -1,4 +1,4 @@
-#!/usr/bin/env /workspace/tmp_windsurf/venv/bin/python3
+#!~/.venv/ ~/.venv/bin/env/python
 
 import google.generativeai as genai
 from openai import OpenAI, AzureOpenAI

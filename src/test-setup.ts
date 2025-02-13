@@ -2,11 +2,31 @@
 import { beforeAll, afterAll, afterEach, vi } from 'vitest';
 import '@testing-library/jest-dom/vitest';
 import { cleanup } from '@testing-library/react';
+import { webcrypto } from 'node:crypto';
 
 // Mock environment variables
 process.env.NEXT_PUBLIC_APP_URL = 'http://localhost:3000';
 process.env.RESEND_API_KEY = 'test_key';
 process.env.EMAIL_FROM = 'test@therapytrain.ai';
+
+// Delete existing crypto property if it exists
+delete (global as any).crypto;
+
+// Mock crypto for tests with webcrypto implementation
+Object.defineProperty(global, 'crypto', {
+    value: {
+        getRandomValues: (array: Uint8Array) => webcrypto.getRandomValues(array),
+        subtle: {
+            digest: vi.fn(),
+            importKey: vi.fn(),
+            deriveKey: vi.fn(),
+            encrypt: vi.fn(),
+            decrypt: vi.fn(),
+        }
+    },
+    configurable: true,
+    writable: true
+});
 
 // Mock crypto for password hashing
 global.crypto = {

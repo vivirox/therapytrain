@@ -52,22 +52,27 @@ export class PasswordService {
   validatePassword(password: string): { valid: boolean; errors: string[] } {
     const errors: string[] = [];
 
+    // Check length
     if (password.length < this.policy.minLength) {
       errors.push(`Password must be at least ${this.policy.minLength} characters long`);
     }
 
+    // Check for numbers
     if (this.policy.requireNumbers && !/\d/.test(password)) {
       errors.push('Password must contain at least one number');
     }
 
-    if (this.policy.requireSymbols && !/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+    // Check for symbols (expanded pattern)
+    if (this.policy.requireSymbols && !/[!@#$%^&*(),.?":{}|<>\-_=+[\]\\;'`~]/.test(password)) {
       errors.push('Password must contain at least one symbol');
     }
 
+    // Check for uppercase
     if (this.policy.requireUppercase && !/[A-Z]/.test(password)) {
       errors.push('Password must contain at least one uppercase letter');
     }
 
+    // Check for lowercase
     if (this.policy.requireLowercase && !/[a-z]/.test(password)) {
       errors.push('Password must contain at least one lowercase letter');
     }
