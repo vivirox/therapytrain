@@ -1,222 +1,262 @@
 import { SupabaseClient } from '@supabase/supabase-js';
-import { Database } from '../types/database';
-import { EventEmitter } from 'events';
+import * as Sentry from '@sentry/nextjs';
+
+interface QueryMetrics {
+  query: string;
+  calls: number;
+  totalTime: number;
+  meanTime: number;
+  rows: number;
+}
+
+interface TableStats {
+  tableName: string;
+  totalRows: number;
+  totalSize: string;
+  indexSize: string;
+  cacheHitRatio: number;
+  seqScans: number;
+  indexScans: number;
+  deadTuples: number;
+  modSinceAnalyze: number;
+}
+
+interface IndexStats {
+  tableName: string;
+  indexName: string;
+  indexSize: string;
+  indexScans: number;
+  rowsFetched: number;
+  cacheHitRatio: number;
+}
+
+interface PerformanceReport {
+  slowQueries: QueryMetrics[];
+  tableStats: TableStats[];
+  indexStats: IndexStats[];
+  recommendations: string[];
+}
 
 export class DatabaseMonitoringService {
-    private static instance: DatabaseMonitoringService;
-    private client: SupabaseClient<Database>;
-    private eventEmitter: EventEmitter;
-    private queryMetrics: Map<string, {
-        count: number;
-        totalTime: number;
-        slowQueries: number;
-        errors: number;
-        lastExecuted: Date;
-    }> = new Map();
-    private readonly slowQueryThreshold = 1000; // 1 second
+  private static instance: DatabaseMonitoringService;
+  private client: SupabaseClient;
+  private performanceData: Map<string, number[]>;
+  private queryHistory: Map<string, QueryMetrics>;
 
-    private constructor(client: SupabaseClient<Database>) {
-        this.client = client;
-        this.eventEmitter = new EventEmitter();
-        this.setupMonitoring();
+  private constructor(client: SupabaseClient) {
+    this.client = client;
+    this.performanceData = new Map();
+    this.queryHistory = new Map();
+  }
+
+  public static getInstance(client: SupabaseClient): DatabaseMonitoringService {
+    if (!DatabaseMonitoringService.instance) {
+      DatabaseMonitoringService.instance = new DatabaseMonitoringService(client);
     }
+    return DatabaseMonitoringService.instance;
+  }
 
-    public static getInstance(client: SupabaseClient<Database>): DatabaseMonitoringService {
-        if (!DatabaseMonitoringService.instance) {
-            DatabaseMonitoringService.instance = new DatabaseMonitoringService(client);
+  public async trackQuery(queryId: string, queryFn: () => Promise<any>): Promise<any> {
+    const startTime = performance.now();
+    try {
+      const result = await queryFn();
+      const duration = performance.now() - startTime;
+      this.recordQueryMetrics(queryId, duration, result?.length || 0);
+      return result;
+    } catch (error) {
+      const duration = performance.now() - startTime;
+      this.recordQueryMetrics(queryId, duration, 0, true);
+      throw error;
+    }
+  }
+
+  private recordQueryMetrics(queryId: string, duration: number, rows: number, isError: boolean = false) {
+    const metrics = this.queryHistory.get(queryId) || {
+      query: queryId,
+      calls: 0,
+      totalTime: 0,
+      meanTime: 0,
+      rows: 0
+    };
+
+    metrics.calls++;
+    metrics.totalTime += duration;
+    metrics.meanTime = metrics.totalTime / metrics.calls;
+    metrics.rows += rows;
+
+    this.queryHistory.set(queryId, metrics);
+
+    const performanceHistory = this.performanceData.get(queryId) || [];
+    performanceHistory.push(duration);
+    if (performanceHistory.length > 100) performanceHistory.shift();
+    this.performanceData.set(queryId, performanceHistory);
+
+    if (duration > 1000 || isError) {
+      this.reportSlowQuery(queryId, metrics);
+    }
+  }
+
+  private async reportSlowQuery(queryId: string, metrics: QueryMetrics) {
+    if (process.env.SENTRY_DSN) {
+      Sentry.addBreadcrumb({
+        category: 'database',
+        message: 'Slow query detected',
+        level: 'warning',
+        data: {
+          queryId,
+          duration: metrics.meanTime,
+          calls: metrics.calls
         }
-        return DatabaseMonitoringService.instance;
+      });
+    }
+  }
+
+  public async generatePerformanceReport(): Promise<PerformanceReport> {
+    try {
+      const [slowQueries, tableStats, indexStats] = await Promise.all([
+        this.getSlowQueries(),
+        this.getTableStats(),
+        this.getIndexStats()
+      ]);
+
+      const recommendations = await this.generateRecommendations(
+        slowQueries,
+        tableStats,
+        indexStats
+      );
+
+      return {
+        slowQueries,
+        tableStats,
+        indexStats,
+        recommendations
+      };
+    } catch (error) {
+      console.error('Error generating performance report:', error);
+      throw error;
+    }
+  }
+
+  private async getSlowQueries(): Promise<QueryMetrics[]> {
+    const { data, error } = await this.client.rpc('get_slow_queries', {
+      p_min_exec_time: 1000
+    });
+
+    if (error) throw error;
+    return data;
+  }
+
+  private async getTableStats(): Promise<TableStats[]> {
+    const { data, error } = await this.client.rpc('get_table_stats');
+    if (error) throw error;
+    return data;
+  }
+
+  private async getIndexStats(): Promise<IndexStats[]> {
+    const { data, error } = await this.client.rpc('get_index_stats');
+    if (error) throw error;
+    return data;
+  }
+
+  private async generateRecommendations(
+    slowQueries: QueryMetrics[],
+    tableStats: TableStats[],
+    indexStats: IndexStats[]
+  ): Promise<string[]> {
+    const recommendations: string[] = [];
+
+    // Analyze slow queries
+    for (const query of slowQueries) {
+      if (query.meanTime > 2000) {
+        recommendations.push(`Query "${query.query.substring(0, 100)}..." is consistently slow (${query.meanTime.toFixed(2)}ms). Consider optimization.`);
+      }
     }
 
-    private setupMonitoring(): void {
-        // Monitor database events
-        this.client.channel('db-monitor')
-            .on('postgres_changes', { event: '*', schema: 'public' }, (payload) => {
-                this.eventEmitter.emit('dbChange', payload);
-            })
-            .subscribe();
+    // Analyze table statistics
+    for (const table of tableStats) {
+      if (table.seqScans > table.indexScans * 2) {
+        recommendations.push(`Table "${table.tableName}" has high sequential scans. Consider adding indexes.`);
+      }
+      if (table.deadTuples > table.totalRows * 0.2) {
+        recommendations.push(`Table "${table.tableName}" has high dead tuple ratio. Consider running VACUUM.`);
+      }
+      if (table.cacheHitRatio < 0.8) {
+        recommendations.push(`Table "${table.tableName}" has low cache hit ratio. Consider increasing shared_buffers.`);
+      }
     }
 
-    /**
-     * Track a database query
-     */
-    public async trackQuery(queryId: string, operation: () => Promise<any>): Promise<any> {
-        const startTime = Date.now();
-        try {
-            const result = await operation();
-            const duration = Date.now() - startTime;
-
-            // Update metrics
-            const metrics = this.queryMetrics.get(queryId) || {
-                count: 0,
-                totalTime: 0,
-                slowQueries: 0,
-                errors: 0,
-                lastExecuted: new Date()
-            };
-
-            metrics.count++;
-            metrics.totalTime += duration;
-            metrics.lastExecuted = new Date();
-
-            if (duration > this.slowQueryThreshold) {
-                metrics.slowQueries++;
-                this.eventEmitter.emit('slowQuery', {
-                    queryId,
-                    duration,
-                    timestamp: new Date()
-                });
-            }
-
-            this.queryMetrics.set(queryId, metrics);
-            return result;
-        } catch (error) {
-            const metrics = this.queryMetrics.get(queryId) || {
-                count: 0,
-                totalTime: 0,
-                slowQueries: 0,
-                errors: 0,
-                lastExecuted: new Date()
-            };
-
-            metrics.errors++;
-            this.queryMetrics.set(queryId, metrics);
-
-            this.eventEmitter.emit('queryError', {
-                queryId,
-                error,
-                timestamp: new Date()
-            });
-
-            throw error;
-        }
+    // Analyze index statistics
+    for (const index of indexStats) {
+      if (index.indexScans === 0) {
+        recommendations.push(`Index "${index.indexName}" on table "${index.tableName}" is unused. Consider removing.`);
+      }
+      if (index.cacheHitRatio < 0.8) {
+        recommendations.push(`Index "${index.indexName}" has low cache hit ratio. Consider increasing effective_cache_size.`);
+      }
     }
 
-    /**
-     * Get query metrics
-     */
-    public getQueryMetrics(queryId?: string) {
-        if (queryId) {
-            return this.queryMetrics.get(queryId);
-        }
+    return recommendations;
+  }
 
-        const allMetrics: Record<string, any> = {};
-        this.queryMetrics.forEach((metrics, id) => {
-            allMetrics[id] = {
-                ...metrics,
-                averageTime: metrics.totalTime / metrics.count,
-                errorRate: metrics.errors / metrics.count,
-                slowQueryRate: metrics.slowQueries / metrics.count
-            };
-        });
-
-        return allMetrics;
+  public getOptimizationRecommendations(): string[] {
+    const recommendations: string[] = [];
+    
+    // Analyze query patterns
+    for (const [queryId, metrics] of this.queryHistory.entries()) {
+      const performanceHistory = this.performanceData.get(queryId) || [];
+      const avgDuration = performanceHistory.reduce((a, b) => a + b, 0) / performanceHistory.length;
+      
+      if (avgDuration > 1000) {
+        recommendations.push(`Query pattern "${queryId}" consistently takes ${avgDuration.toFixed(2)}ms. Consider optimization.`);
+      }
+      
+      if (metrics.calls > 1000 && metrics.meanTime > 100) {
+        recommendations.push(`Query pattern "${queryId}" is called frequently (${metrics.calls} times) with moderate latency. Consider caching.`);
+      }
     }
 
-    /**
-     * Get optimization recommendations
-     */
-    public getOptimizationRecommendations(): string[] {
-        const recommendations: string[] = [];
-        
-        this.queryMetrics.forEach((metrics, queryId) => {
-            const avgTime = metrics.totalTime / metrics.count;
-            const errorRate = metrics.errors / metrics.count;
-            const slowQueryRate = metrics.slowQueries / metrics.count;
+    return recommendations;
+  }
 
-            if (avgTime > this.slowQueryThreshold) {
-                recommendations.push(
-                    `Query ${queryId} has high average execution time (${avgTime}ms). Consider adding indexes or optimizing the query.`
-                );
-            }
-
-            if (errorRate > 0.1) {
-                recommendations.push(
-                    `Query ${queryId} has high error rate (${(errorRate * 100).toFixed(2)}%). Review error handling and query structure.`
-                );
-            }
-
-            if (slowQueryRate > 0.2) {
-                recommendations.push(
-                    `Query ${queryId} frequently exceeds performance threshold (${(slowQueryRate * 100).toFixed(2)}% slow queries). Consider query optimization or caching.`
-                );
-            }
-        });
-
-        return recommendations;
+  public async analyzeQueryPattern(queryId: string): Promise<{
+    metrics: QueryMetrics;
+    recommendations: string[];
+  }> {
+    const metrics = this.queryHistory.get(queryId);
+    if (!metrics) {
+      return {
+        metrics: {
+          query: queryId,
+          calls: 0,
+          totalTime: 0,
+          meanTime: 0,
+          rows: 0
+        },
+        recommendations: []
+      };
     }
 
-    /**
-     * Subscribe to database events
-     */
-    public onEvent(event: string, callback: (...args: any[]) => void): void {
-        this.eventEmitter.on(event, callback);
+    const recommendations: string[] = [];
+    const performanceHistory = this.performanceData.get(queryId) || [];
+    
+    // Analyze performance patterns
+    const avgDuration = performanceHistory.reduce((a, b) => a + b, 0) / performanceHistory.length;
+    const stdDev = Math.sqrt(
+      performanceHistory.reduce((a, b) => a + Math.pow(b - avgDuration, 2), 0) / performanceHistory.length
+    );
+
+    if (stdDev > avgDuration * 0.5) {
+      recommendations.push('Query performance is highly variable. Consider investigating consistency issues.');
     }
 
-    /**
-     * Reset metrics
-     */
-    public resetMetrics(): void {
-        this.queryMetrics.clear();
+    if (metrics.calls > 100 && avgDuration > 100) {
+      recommendations.push('Query is frequently used and moderately slow. Consider implementing caching.');
     }
 
-    /**
-     * Get table statistics
-     */
-    public async getTableStats(tableName: string) {
-        const { data, error } = await this.client
-            .from(tableName)
-            .select('*', { count: 'exact', head: true });
-
-        if (error) throw error;
-
-        return {
-            totalRows: data?.length || 0,
-            lastUpdated: new Date(),
-            // Add more statistics as needed
-        };
+    if (metrics.rows / metrics.calls < 10 && metrics.calls > 1000) {
+      recommendations.push('Query returns few rows but is called frequently. Consider batch processing.');
     }
 
-    /**
-     * Analyze query patterns
-     */
-    public analyzeQueryPatterns(): Record<string, any> {
-        const patterns: Record<string, any> = {};
-
-        this.queryMetrics.forEach((metrics, queryId) => {
-            patterns[queryId] = {
-                frequency: metrics.count,
-                timing: {
-                    average: metrics.totalTime / metrics.count,
-                    isProblematic: (metrics.totalTime / metrics.count) > this.slowQueryThreshold
-                },
-                reliability: {
-                    errorRate: metrics.errors / metrics.count,
-                    slowQueryRate: metrics.slowQueries / metrics.count
-                },
-                lastExecuted: metrics.lastExecuted
-            };
-        });
-
-        return patterns;
-    }
-
-    /**
-     * Generate performance report
-     */
-    public generatePerformanceReport() {
-        const patterns = this.analyzeQueryPatterns();
-        const recommendations = this.getOptimizationRecommendations();
-
-        return {
-            summary: {
-                totalQueries: this.queryMetrics.size,
-                problematicQueries: Object.values(patterns).filter(p => p.timing.isProblematic).length,
-                recommendationCount: recommendations.length
-            },
-            patterns,
-            recommendations,
-            timestamp: new Date()
-        };
-    }
+    return { metrics, recommendations };
+  }
 } 

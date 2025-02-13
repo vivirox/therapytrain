@@ -6,6 +6,8 @@ import { getSession, getOrCreateSharedKey } from '@/lib/zk/session';
 import { StreamingTextResponse, LangChainStream } from 'ai';
 import { ChatOpenAI } from 'langchain/chat_models/openai';
 import { AIMessage, HumanMessage } from 'langchain/schema';
+import { cache, invalidateByPattern } from '@/lib/redis';
+import { cacheConfig } from '@/config/cache.config';
 
 // Enable edge runtime
 export const runtime = 'edge';
@@ -108,12 +110,9 @@ export async function POST(req: NextRequest) {
     await supabase.from('messages').insert([message]);
 
     // Invalidate cache for both participants
-    const cacheKey = generateCacheKey(session.user.id, threadId);
-    const recipientCacheKey = generateCacheKey(recipientId, threadId);
-    
     await Promise.all([
-      caches.default.delete(cacheKey),
-      caches.default.delete(recipientCacheKey),
+      invalidateByPattern(`chat:${session.user.id}:*`, true),
+      invalidateByPattern(`chat:${recipientId}:*`, true)
     ]);
 
     return new StreamingTextResponse(stream);
@@ -135,110 +134,56 @@ export async function GET(req: NextRequest) {
     }
 
     const cacheKey = generateCacheKey(session.user.id, threadId);
-    const cache = caches.default;
 
-    // Try to get from cache
-    const cachedResponse = await cache.match(cacheKey);
-    if (cachedResponse) {
-      const cachedData = await cachedResponse.json();
-      const cacheAge = Date.now() - cachedData.timestamp;
-      
-      if (cacheAge < CACHE_REVALIDATION_TIME * 1000) {
-        return NextResponse.json(cachedData.data);
-      }
-    }
-
-    const userSession = await getSession(session.user.id);
-    if (!userSession) {
-      return new NextResponse('Session not found', { status: 404 });
-    }
-
-    // Get messages from Supabase
-    let query = supabase
-      .from('messages')
-      .select('*')
-      .order('timestamp', { ascending: true });
-
-    if (threadId) {
-      query = query.eq('thread_id', threadId);
-    } else {
-      query = query.or(`senderId.eq.${session.user.id},recipientId.eq.${session.user.id}`);
-    }
-
-    const { data: messages } = await query;
-
-    if (!messages) {
-      return NextResponse.json({ messages: [] });
-    }
-
-    // Decrypt messages
-    const decryptedMessages = await Promise.all(
-      messages.map(async (message: ZKMessage) => {
-        try {
-          const isReceived = message.recipientId === session.user.id;
-          const otherUserId = isReceived ? message.senderId : message.recipientId;
-
-          // Get other user's public key
-          const { data: otherUserData } = await supabase
-            .from('user_keys')
-            .select('public_key')
-            .eq('user_id', otherUserId)
-            .single();
-
-          if (!otherUserData) {
-            throw new Error('User key not found');
-          }
-
-          // Get or create shared key
-          const sharedKey = await getOrCreateSharedKey(
-            userSession,
-            otherUserId,
-            otherUserData.public_key
-          );
-
-          // Decrypt message
-          const decryptedContent = await decrypt(
-            {
-              content: message.encryptedContent,
-              iv: message.iv,
-            },
-            sharedKey
-          );
-
-          return {
-            ...message,
-            decryptedContent,
-            status: 'read',
-          } as ZKChatMessage;
-        } catch (error) {
-          console.error('Message decryption error:', error);
-          return {
-            ...message,
-            error: 'Failed to decrypt message',
-            status: 'error',
-          } as ZKChatMessage;
+    return await cache(
+      cacheKey,
+      async () => {
+        const userSession = await getSession(session.user.id);
+        if (!userSession) {
+          throw new Error('Session not found');
         }
-      })
-    );
 
-    const responseData = { messages: decryptedMessages };
+        // Get messages from Supabase
+        let query = supabase
+          .from('messages')
+          .select('*')
+          .order('timestamp', { ascending: true });
 
-    // Cache the response
-    const cacheData = {
-      data: responseData,
-      timestamp: Date.now(),
-    };
+        if (threadId) {
+          query = query.eq('thread_id', threadId);
+        } else {
+          query = query.or(`senderId.eq.${session.user.id},recipientId.eq.${session.user.id}`);
+        }
 
-    const response = new Response(JSON.stringify(cacheData), {
-      headers: {
-        'Content-Type': 'application/json',
-        'Cache-Control': `s-maxage=${MESSAGE_CACHE_TIME}`,
+        const { data: messages } = await query;
+
+        if (!messages) {
+          return { messages: [] };
+        }
+
+        // Decrypt messages
+        const decryptedMessages = await Promise.all(
+          messages.map(async (message) => {
+            const sharedKey = await getOrCreateSharedKey(
+              userSession,
+              message.senderId === session.user.id ? message.recipientId : message.senderId,
+              recipientData.public_key
+            );
+
+            const decryptedContent = await decrypt(message.encryptedContent, message.iv, sharedKey);
+
+            return {
+              ...message,
+              decryptedContent,
+            };
+          })
+        );
+
+        return { messages: decryptedMessages };
       },
-    });
-
-    await cache.put(cacheKey, response.clone());
-
-    return NextResponse.json(responseData);
+      cacheConfig.redis.ttl.messages,
+      true // Use edge runtime
+    );
   } catch (error) {
     console.error('Chat error:', error);
     return new NextResponse('Internal Server Error', { status: 500 });

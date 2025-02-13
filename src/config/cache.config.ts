@@ -14,6 +14,7 @@ export const cacheConfig = {
             session: 3600, // 1 hour
             branch: 1800, // 30 minutes
             metrics: 86400, // 24 hours
+            messages: 300, // 5 minutes
             default: 3600, // 1 hour
         },
 
@@ -23,6 +24,7 @@ export const cacheConfig = {
             completedSessions: 'completed-sessions',
             sessionBranches: 'session-branches',
             metrics: 'performance-metrics',
+            messages: 'chat-messages',
         },
 
         // Performance thresholds

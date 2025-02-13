@@ -3,7 +3,10 @@ channels:
   - conda-forge
   - defaults
 dependencies:
-  - python=3.10
+  - python=3.10.16
   - pip
+  - puppeteer
   - pip:
     - -r requirements.txt
+    - -r tools/requirements.txt
+    - python-dotenv

@@ -7,15 +7,16 @@ GRANT EXECUTE ON FUNCTION get_frequent_queries(integer) TO postgres;
 GRANT EXECUTE ON FUNCTION get_table_bloat() TO postgres;
 GRANT EXECUTE ON FUNCTION get_index_usage_stats() TO postgres;
 
--- Enable required extensions if not already enabled
+-- Enable required extensions
 CREATE EXTENSION IF NOT EXISTS pg_stat_statements;
 CREATE EXTENSION IF NOT EXISTS hypopg;  -- For hypothetical index analysis
 
--- Configure pg_stat_statements to track more information
-ALTER SYSTEM SET pg_stat_statements.max = 10000;  -- Track more queries
-ALTER SYSTEM SET pg_stat_statements.track = 'all';  -- Track all queries
-ALTER SYSTEM SET pg_stat_statements.track_utility = 'on';  -- Track utility commands
-ALTER SYSTEM SET pg_stat_statements.save = 'on';  -- Save stats across restarts
+-- Note: pg_stat_statements configuration requires server restart
+-- The following settings should be configured in postgresql.conf:
+-- pg_stat_statements.max = 10000
+-- pg_stat_statements.track = 'all'
+-- pg_stat_statements.track_utility = on
+-- pg_stat_statements.save = on
 
 -- Create a role for monitoring
 DO $$
@@ -55,6 +56,15 @@ CREATE TABLE IF NOT EXISTS index_advisor.recommendations (
 GRANT USAGE ON SCHEMA index_advisor TO monitoring_role;
 GRANT ALL ON ALL TABLES IN SCHEMA index_advisor TO monitoring_role;
 GRANT ALL ON ALL SEQUENCES IN SCHEMA index_advisor TO monitoring_role;
+
+-- Grant execute permissions on analysis functions
+GRANT EXECUTE ON FUNCTION get_query_stats() TO postgres;
+GRANT EXECUTE ON FUNCTION get_cache_hit_rates() TO postgres;
+GRANT EXECUTE ON FUNCTION get_slow_queries(integer) TO postgres;
+GRANT EXECUTE ON FUNCTION get_frequent_queries(integer) TO postgres;
+GRANT EXECUTE ON FUNCTION get_table_bloat() TO postgres;
+GRANT EXECUTE ON FUNCTION get_index_usage_stats() TO postgres;
+GRANT EXECUTE ON FUNCTION analyze_hypothetical_index(text, text[], text) TO postgres;
 
 -- Function to analyze and recommend indexes
 CREATE OR REPLACE FUNCTION index_advisor.recommend_indexes()

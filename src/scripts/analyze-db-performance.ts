@@ -1,245 +1,241 @@
 import { createClient } from '@supabase/supabase-js';
-import { Database } from '../types/database';
 import { DatabaseMonitoringService } from '../services/DatabaseMonitoringService';
-import { OptimizedDatabaseService } from '../services/OptimizedDatabaseService';
+import * as Sentry from '@sentry/node';
 
-const supabase = createClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+// Initialize Sentry
+Sentry.init({
+  dsn: process.env.SENTRY_DSN,
+  tracesSampleRate: 1.0,
+  debug: process.env.NODE_ENV === 'development',
+});
 
+// Initialize Supabase client
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const supabase = createClient(supabaseUrl, supabaseKey);
+
+// Initialize monitoring service
 const monitoringService = DatabaseMonitoringService.getInstance(supabase);
-const dbService = OptimizedDatabaseService.getInstance(supabase);
 
-async function analyzeQueryPatterns() {
-    // Get query statistics
-    const stats = await supabase.rpc('get_query_stats');
-    console.log('Query Statistics:', stats);
+interface OptimizationResult {
+  tableName: string;
+  recommendations: string[];
+  appliedChanges: string[];
+  performance: {
+    before: {
+      totalRows: number;
+      totalSize: string;
+      indexSize: string;
+    };
+  };
+}
 
-    // Get table statistics
-    const tables = ['sessions', 'profiles', 'messages'];
-    for (const table of tables) {
-        const tableStats = await monitoringService.getTableStats(table);
-        console.log(`Table ${table} Statistics:`, tableStats);
+async function getTableSize(tableName: string): Promise<number> {
+  try {
+    // Get row count as an approximation
+    const { count, error } = await supabase
+      .from(tableName)
+      .select('*', { count: 'exact', head: true });
+
+    if (error) throw error;
+    
+    // Rough estimation: assume 1KB per row as a baseline
+    return (count || 0) * 1024;
+  } catch (error) {
+    console.error(`Error getting table size for ${tableName}:`, error);
+    return 0;
+  }
+}
+
+async function analyzeTablePerformance(tableName: string): Promise<OptimizationResult> {
+  try {
+    // Get row count
+    const { count: totalRows, error: countError } = await supabase
+      .from(tableName)
+      .select('*', { count: 'exact', head: true });
+
+    if (countError) throw new Error(`Failed to get row count: ${countError.message}`);
+
+    // Get estimated table size
+    const estimatedSize = await getTableSize(tableName);
+
+    const recommendations: string[] = [];
+    const appliedChanges: string[] = [];
+
+    // Basic size analysis
+    if (estimatedSize > 100 * 1024 * 1024) { // 100MB
+      recommendations.push(`Table size is large (estimated ${Math.round(estimatedSize / (1024 * 1024))} MB). Consider partitioning or archiving old data.`);
     }
 
-    // Get performance report
-    const performanceReport = monitoringService.generatePerformanceReport();
-    console.log('Performance Report:', performanceReport);
+    // Row count analysis
+    if (totalRows && totalRows > 1000000) {
+      recommendations.push(`Large number of rows (${totalRows.toLocaleString()}). Consider table partitioning.`);
+    }
 
-    // Get optimization recommendations
-    const recommendations = monitoringService.getOptimizationRecommendations();
-    console.log('Optimization Recommendations:', recommendations);
+    // Sample some rows to check for potential issues
+    const { data: sampleRows, error: sampleError } = await supabase
+      .from(tableName)
+      .select('*')
+      .limit(1000);
 
-    // Analyze cache hit rates
-    const cacheStats = await supabase.rpc('get_cache_hit_rates');
-    console.log('Cache Hit Rates:', cacheStats);
+    if (!sampleError && sampleRows) {
+      // Check for potential indexing needs
+      if (totalRows && totalRows > 10000) {
+        recommendations.push('Large table detected. Consider reviewing indexing strategy.');
+      }
 
-    // Get slow queries
-    const slowQueries = await supabase.rpc('get_slow_queries', {
-        threshold_ms: 1000 // queries taking more than 1 second
-    });
-    console.log('Slow Queries:', slowQueries);
+      // Check for wide rows
+      if (sampleRows.length > 0) {
+        const rowSize = JSON.stringify(sampleRows[0]).length;
+        if (rowSize > 1024) { // 1KB
+          recommendations.push(`Large row size detected (${Math.round(rowSize / 1024)} KB). Consider normalizing data or using JSONB for nested structures.`);
+        }
+      }
+    }
 
-    // Get most frequent queries
-    const frequentQueries = await supabase.rpc('get_frequent_queries', {
-        min_calls: 100 // queries called at least 100 times
-    });
-    console.log('Most Frequent Queries:', frequentQueries);
-
-    // Get table bloat information
-    const tableBloat = await supabase.rpc('get_table_bloat');
-    console.log('Table Bloat:', tableBloat);
-
-    // Get index usage statistics
-    const indexStats = await supabase.rpc('get_index_usage_stats');
-    console.log('Index Usage:', indexStats);
+    return {
+      tableName,
+      recommendations,
+      appliedChanges,
+      performance: {
+        before: {
+          totalRows: totalRows || 0,
+          totalSize: `${Math.round(estimatedSize / (1024 * 1024))} MB (estimated)`,
+          indexSize: 'N/A'
+        }
+      }
+    };
+  } catch (error) {
+    console.error('Error analyzing table performance:', error);
+    Sentry.captureException(error);
+    throw error;
+  }
 }
 
-// Create necessary database functions
-async function createAnalysisFunctions() {
-    // Function to get query statistics
-    await supabase.rpc('create_function_get_query_stats', {
-        definition: `
-            CREATE OR REPLACE FUNCTION get_query_stats()
-            RETURNS TABLE (
-                query text,
-                calls bigint,
-                total_time double precision,
-                mean_time double precision,
-                rows bigint
-            )
-            LANGUAGE sql
-            SECURITY DEFINER
-            AS $$
-                SELECT query, calls, total_exec_time + total_plan_time as total_time,
-                       mean_exec_time + mean_plan_time as mean_time, rows
-                FROM pg_stat_statements
-                ORDER BY total_time DESC
-                LIMIT 100;
-            $$;
-        `
-    });
+async function getPublicTables(): Promise<string[]> {
+  // Try to discover tables by making requests to common table names
+  const commonTables = [
+    'users',
+    'profiles',
+    'sessions',
+    'messages',
+    'audit_logs',
+    'settings',
+    'notifications',
+    'documents',
+    'files',
+    'tags'
+  ];
 
-    // Function to get cache hit rates
-    await supabase.rpc('create_function_get_cache_hit_rates', {
-        definition: `
-            CREATE OR REPLACE FUNCTION get_cache_hit_rates()
-            RETURNS TABLE (
-                name text,
-                ratio numeric
-            )
-            LANGUAGE sql
-            SECURITY DEFINER
-            AS $$
-                SELECT 'index hit rate' as name,
-                       CASE WHEN sum(idx_blks_hit) = 0 THEN 0
-                            ELSE sum(idx_blks_hit)::numeric / sum(idx_blks_hit + idx_blks_read)
-                       END as ratio
-                FROM pg_statio_user_indexes
-                UNION ALL
-                SELECT 'table hit rate' as name,
-                       CASE WHEN sum(heap_blks_hit) = 0 THEN 0
-                            ELSE sum(heap_blks_hit)::numeric / sum(heap_blks_hit + heap_blks_read)
-                       END as ratio
-                FROM pg_statio_user_tables;
-            $$;
-        `
-    });
+  const tables: string[] = [];
 
-    // Function to get slow queries
-    await supabase.rpc('create_function_get_slow_queries', {
-        definition: `
-            CREATE OR REPLACE FUNCTION get_slow_queries(threshold_ms integer)
-            RETURNS TABLE (
-                query text,
-                mean_time double precision,
-                calls bigint
-            )
-            LANGUAGE sql
-            SECURITY DEFINER
-            AS $$
-                SELECT query, mean_exec_time + mean_plan_time as mean_time, calls
-                FROM pg_stat_statements
-                WHERE mean_exec_time + mean_plan_time > threshold_ms
-                ORDER BY mean_time DESC
-                LIMIT 50;
-            $$;
-        `
-    });
-
-    // Function to get frequent queries
-    await supabase.rpc('create_function_get_frequent_queries', {
-        definition: `
-            CREATE OR REPLACE FUNCTION get_frequent_queries(min_calls integer)
-            RETURNS TABLE (
-                query text,
-                calls bigint,
-                mean_time double precision
-            )
-            LANGUAGE sql
-            SECURITY DEFINER
-            AS $$
-                SELECT query, calls, mean_exec_time + mean_plan_time as mean_time
-                FROM pg_stat_statements
-                WHERE calls >= min_calls
-                ORDER BY calls DESC
-                LIMIT 50;
-            $$;
-        `
-    });
-
-    // Function to get table bloat information
-    await supabase.rpc('create_function_get_table_bloat', {
-        definition: `
-            CREATE OR REPLACE FUNCTION get_table_bloat()
-            RETURNS TABLE (
-                schemaname name,
-                tablename name,
-                bloat_ratio numeric,
-                wasted_bytes bigint
-            )
-            LANGUAGE sql
-            SECURITY DEFINER
-            AS $$
-                WITH constants AS (
-                    SELECT current_setting('block_size')::numeric AS bs,
-                           23 AS hdr,
-                           8 AS ma
-                ),
-                no_stats AS (
-                    SELECT table_schema, table_name, 
-                           n_live_tup::numeric as est_rows,
-                           pg_table_size(relid)::numeric as table_size
-                    FROM information_schema.tables
-                    JOIN pg_stat_user_tables as psut
-                         ON relname = table_name
-                    WHERE table_schema NOT IN ('pg_catalog', 'information_schema')
-                ),
-                null_headers AS (
-                    SELECT hdr+1+(sum(case when null_frac <> 0 THEN 1 else 0 END)/8) as nullhdr
-                    FROM pg_stats s
-                    JOIN constants ON true
-                    GROUP BY schemaname, tablename
-                ),
-                table_bloat AS (
-                    SELECT schemaname, tablename,
-                           ROUND(100 * (table_size - (est_rows * ((-1/8.0)::numeric * bs)::numeric)) / table_size) as bloat_ratio,
-                           table_size * ((100 - bloat_ratio)/100) as wasted_bytes
-                    FROM no_stats
-                )
-                SELECT * FROM table_bloat
-                WHERE bloat_ratio > 10
-                ORDER BY wasted_bytes DESC;
-            $$;
-        `
-    });
-
-    // Function to get index usage statistics
-    await supabase.rpc('create_function_get_index_usage_stats', {
-        definition: `
-            CREATE OR REPLACE FUNCTION get_index_usage_stats()
-            RETURNS TABLE (
-                schemaname name,
-                tablename name,
-                indexname name,
-                idx_scan bigint,
-                idx_tup_read bigint,
-                idx_tup_fetch bigint
-            )
-            LANGUAGE sql
-            SECURITY DEFINER
-            AS $$
-                SELECT schemaname, tablename, indexname,
-                       idx_scan, idx_tup_read, idx_tup_fetch
-                FROM pg_stat_user_indexes
-                WHERE idx_scan = 0
-                AND schemaname NOT IN ('pg_catalog', 'pg_toast')
-                ORDER BY schemaname, tablename;
-            $$;
-        `
-    });
-}
-
-async function main() {
+  for (const table of commonTables) {
     try {
-        console.log('Creating analysis functions...');
-        await createAnalysisFunctions();
+      const { error } = await supabase
+        .from(table)
+        .select('*', { count: 'exact', head: true });
 
-        console.log('Analyzing database performance...');
-        await analyzeQueryPatterns();
-
-        // Get recommendations from monitoring service
-        const report = monitoringService.generatePerformanceReport();
-        console.log('\nPerformance Report:', report);
-
-        // Suggest indexes based on query patterns
-        const recommendations = monitoringService.getOptimizationRecommendations();
-        console.log('\nOptimization Recommendations:', recommendations);
-
+      // If no permission error, the table exists
+      if (!error || !error.message.includes('does not exist')) {
+        tables.push(table);
+      }
     } catch (error) {
-        console.error('Error analyzing database performance:', error);
+      // Ignore errors
     }
+  }
+
+  return tables;
 }
 
-main(); 
+async function optimizeDatabasePerformance() {
+  try {
+    console.log('Starting database performance analysis...');
+
+    // Get list of tables
+    const publicTables = await getPublicTables();
+
+    if (publicTables.length === 0) {
+      console.log('No tables found in the database.');
+      return;
+    }
+
+    console.log(`Found tables: ${publicTables.join(', ')}`);
+
+    // Analyze each table
+    const results: OptimizationResult[] = [];
+    for (const tableName of publicTables) {
+      console.log(`\nAnalyzing table: ${tableName}`);
+      try {
+        const result = await analyzeTablePerformance(tableName);
+        results.push(result);
+      } catch (error) {
+        console.error(`Error analyzing table ${tableName}:`, error);
+        Sentry.captureException(error, {
+          tags: {
+            table: tableName,
+            operation: 'table_analysis'
+          }
+        });
+      }
+    }
+
+    if (results.length === 0) {
+      console.log('No tables were successfully analyzed.');
+      return;
+    }
+
+    // Generate summary report
+    console.log('\nDatabase Performance Analysis Report');
+    console.log('===================================');
+
+    for (const result of results) {
+      console.log(`\nTable: ${result.tableName}`);
+      console.log(`Size: ${result.performance.before.totalSize}`);
+      console.log(`Rows: ${result.performance.before.totalRows.toLocaleString()}`);
+      
+      if (result.recommendations.length > 0) {
+        console.log('\nRecommendations:');
+        result.recommendations.forEach(rec => console.log(`- ${rec}`));
+      }
+
+      if (result.appliedChanges.length > 0) {
+        console.log('\nApplied Changes:');
+        result.appliedChanges.forEach(change => console.log(`- ${change}`));
+      }
+    }
+
+    try {
+      // Send report to monitoring service
+      const report = await monitoringService.generatePerformanceReport();
+      console.log('\nDetailed Performance Report:', JSON.stringify(report, null, 2));
+    } catch (error) {
+      console.error('Error generating performance report:', error);
+      Sentry.captureException(error, {
+        tags: {
+          operation: 'generate_performance_report'
+        }
+      });
+    }
+
+  } catch (error) {
+    console.error('Error optimizing database performance:', error);
+    Sentry.captureException(error, {
+      tags: {
+        operation: 'database_optimization'
+      }
+    });
+    throw error;
+  }
+}
+
+// Run optimization if executed directly
+if (import.meta.url === new URL(process.argv[1], 'file://').href) {
+  optimizeDatabasePerformance()
+    .then(() => process.exit(0))
+    .catch(error => {
+      console.error('Fatal error:', error);
+      process.exit(1);
+    });
+}
+
+export { optimizeDatabasePerformance, analyzeTablePerformance }; 

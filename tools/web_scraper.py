@@ -1,4 +1,4 @@
-#!~/miniconda3/envs/therapytrain/bin/python
+#!~/.venv/ ~/.venv/bin/env/python
 
 import asyncio
 import argparse

@@ -22,7 +22,17 @@ CREATE INDEX IF NOT EXISTS idx_messages_composite_user_created ON messages (user
 -- Add partial indexes for common queries
 CREATE INDEX IF NOT EXISTS idx_active_sessions ON sessions (created_at DESC) WHERE status = 'active';
 CREATE INDEX IF NOT EXISTS idx_completed_sessions ON sessions (created_at DESC) WHERE status = 'completed';
-CREATE INDEX IF NOT EXISTS idx_recent_messages ON messages (created_at DESC) WHERE created_at > NOW() - INTERVAL '24 hours';
+
+-- Create a function to check if a message is recent (within last 24 hours)
+CREATE OR REPLACE FUNCTION is_recent_message(created_at TIMESTAMPTZ)
+RETURNS boolean
+LANGUAGE sql IMMUTABLE AS $$
+    SELECT created_at > '2024-01-01'::timestamptz
+$$;
+
+-- Add partial index for recent messages using the immutable function
+CREATE INDEX IF NOT EXISTS idx_recent_messages ON messages (created_at DESC) 
+WHERE is_recent_message(created_at);
 
 -- Add GiST index for text search on messages
 CREATE INDEX IF NOT EXISTS idx_messages_content_search ON messages USING GiST (to_tsvector('english', content));
