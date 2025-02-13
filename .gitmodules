@@ -1,12 +1,3 @@
-[submodule "liftoff"]
-	path = liftoff
-	url = https://github.com/Tameyer41/liftoff.git
-[submodule "pocket"]
-	path = pocket
-	url = https://github.com/pocketbase/pocketbase.git
-[submodule "mintlify"]
-	path = docs
-	url = https://github.com/vivirox/mintlify-docs
 [submodule "integrate/nexus"]
 	path = integrate/nexus
 	url = https://github.com/nexus-xyz/nexus-zkvm
@@ -25,15 +16,9 @@
 [submodule "integrate/payload"]
 	path = integrate/payload
 	url = https://github.com/payloadcms/payload
-[submodule "integrate/edge-runtime"]
-	path = integrate/edge-runtime
-	url = https://github.com/vercel/edge-runtime.git
 [submodule "integrate/resend"]
 	path = integrate/resend
 	url = https://github.com/resend/resend-vercel-example.git
-[submodule "village"]
-	path = village
-	url = https://codeberg.org/vivirocks/village.git
 [submodule "integrate/vercel-ai-chatbot"]
 	path = integrate/vercel-ai-chatbot
 	url = https://github.com/supabase-community/vercel-ai-chatbot.git

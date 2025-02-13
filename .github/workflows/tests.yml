@@ -24,12 +24,17 @@ jobs:
         version: 8
         
     - name: Set up Conda
-      uses: conda-incubator/setup-miniconda@v3
+      uses: s-weigand/setup-conda@v1
       with:
-        activate-environment: therapytrain
-        environment-file: environment.yml
+        activate-conda: true
+        conda-channels: conda-forge
         python-version: "3.10"
-        auto-activate-base: false
+        
+    - name: Create and activate environment
+      shell: bash -l {0}
+      run: |
+        conda env create -f environment.yml
+        conda activate therapytrain
         
     - name: Install dependencies
       shell: bash -l {0}

@@ -1,71 +1,104 @@
 ---
-title: Introduction
-description: "Welcome to the home of your new documentation"
+title: Welcome to TherapyTrain
+description: 'TherapyTrain: A secure, AI-powered platform for mental health professionals.'
 ---
 
-<img
-  className="block dark:hidden"
-  src="/images/hero-light.png"
-  alt="Hero Light"
-/>
-<img
-  className="hidden dark:block"
-  src="/images/hero-dark.png"
-  alt="Hero Dark"
-/>
+import { HeroCard } from '/snippets/components.mdx';
 
-## Setting up
+<CardGroup>
+  <HeroCard
+    title="Quick Start Guide"
+    description="Get started with TherapyTrain in minutes. Learn about setup, configuration, and basic usage."
+    href="/quickstart"
+  />
+  <HeroCard
+    title="Core Concepts"
+    description="Understand the architecture, authentication, sessions, and AI integration."
+    href="/core/architecture"
+  />
+</CardGroup>
 
-The first step to world-class documentation is setting up your editing environments.
+## What is TherapyTrain?
+
+TherapyTrain is a cutting-edge platform that combines secure communication, AI assistance, and professional tools to enhance the therapeutic process. Our platform provides:
 
 <CardGroup cols={2}>
-  <Card
-    title="Edit Your Docs"
-    icon="pen-to-square"
-    href="https://mintlify.com/docs/quickstart"
-  >
-    Get your docs set up locally for easy development
+  <Card title="Secure Communication" icon="lock">
+    End-to-end encrypted sessions with multiple communication modes (text, voice, video)
   </Card>
-  <Card
-    title="Preview Changes"
-    icon="image"
-    href="https://mintlify.com/docs/development"
-  >
-    Preview your changes before you push to make sure they're perfect
+  <Card title="AI Assistance" icon="robot">
+    Intelligent support for therapists with real-time insights and suggestions
+  </Card>
+  <Card title="Session Management" icon="calendar">
+    Comprehensive tools for scheduling, managing, and analyzing therapy sessions
+  </Card>
+  <Card title="Data Privacy" icon="shield">
+    Zero-knowledge architecture ensuring complete privacy of sensitive information
   </Card>
 </CardGroup>
 
-## Make it yours
+## Key Features
 
-Update your docs to your brand and add valuable content for the best user conversion.
+### Secure Communication
+- End-to-end encrypted sessions
+- Multiple communication modes
+- Secure file sharing
+- Crisis detection and alerts
+
+### AI Integration
+- Real-time sentiment analysis
+- Topic extraction and tracking
+- Automated note-taking assistance
+- Pattern recognition and insights
+
+### Professional Tools
+- Session scheduling and management
+- Progress tracking
+- Documentation assistance
+- Resource recommendations
+
+## Getting Started
+
+Choose your path to get started with TherapyTrain:
 
 <CardGroup cols={2}>
   <Card
-    title="Customize Style"
-    icon="palette"
-    href="https://mintlify.com/docs/settings/global"
+    title="Quick Setup"
+    icon="rocket"
+    href="/quickstart"
   >
-    Customize your docs to your company's colors and brands
+    Get up and running quickly with our basic setup guide
   </Card>
   <Card
-    title="Reference APIs"
+    title="Developer Guide"
     icon="code"
-    href="https://mintlify.com/docs/api-playground/openapi"
+    href="/development"
   >
-    Automatically generate endpoints from an OpenAPI spec
+    Detailed technical documentation for developers
   </Card>
   <Card
-    title="Add Components"
-    icon="screwdriver-wrench"
-    href="https://mintlify.com/docs/content/components/accordions"
+    title="API Reference"
+    icon="book"
+    href="/api-reference/introduction"
   >
-    Build interactive features and designs to guide your users
+    Complete API documentation for integration
   </Card>
   <Card
-    title="Get Inspiration"
-    icon="stars"
-    href="https://mintlify.com/customers"
+    title="Deployment"
+    icon="server"
+    href="/deployment/requirements"
   >
-    Check out our showcase of our favorite documentation
+    Learn how to deploy TherapyTrain in production
   </Card>
 </CardGroup>
+
+## Security & Compliance
+
+TherapyTrain is built with security and privacy at its core:
+
+- End-to-end encryption for all communications
+- Zero-knowledge architecture
+- HIPAA compliance
+- Regular security audits
+- Comprehensive access controls
+- Detailed audit logging

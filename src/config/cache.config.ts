@@ -49,6 +49,31 @@ export const cacheConfig = {
             maxMemoryBytes: 512 * 1024 * 1024, // 512MB
             warningThreshold: 0.8, // 80% of max memory
         },
+
+        // Smart caching settings
+        smartCaching: {
+            enabled: true,
+            patternThreshold: 5, // Minimum accesses to establish a pattern
+            warmInterval: 60000, // 1 minute
+            maxHistory: 100, // Maximum number of access timestamps to keep
+            confidenceThreshold: 0.8, // Minimum confidence for predictions
+            ttlMultiplier: 1.5, // Multiplier for hot keys TTL
+            categories: {
+                hot: {
+                    minAccessCount: 10,
+                    maxInactiveTime: 300000, // 5 minutes
+                },
+                cold: {
+                    minInactiveTime: 3600000, // 1 hour
+                    maxAccessCount: 5,
+                },
+            },
+            optimization: {
+                interval: 300000, // 5 minutes
+                maxPredictions: 1000,
+                maxWarmingConcurrency: 10,
+            },
+        },
     },
 
     // Monitoring settings
@@ -77,6 +102,7 @@ export const cacheConfig = {
         patternInvalidation: true,
         monitoring: true,
         recommendations: true,
+        smartCaching: true,
         autoScaling: false, // Future feature
     },
 } as const;
@@ -104,5 +130,9 @@ export const getPerformanceThreshold = (
 };
 
 export const getMonitoringConfig = () => cacheConfig.monitoring;
+
+export const getSmartCachingConfig = () => {
+    return cacheConfig.redis.smartCaching;
+};
 
 export default cacheConfig; 

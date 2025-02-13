@@ -8,6 +8,7 @@ import { ChatOpenAI } from 'langchain/chat_models/openai';
 import { AIMessage, HumanMessage } from 'langchain/schema';
 import { cache, invalidateByPattern } from '@/lib/redis';
 import { cacheConfig } from '@/config/cache.config';
+import { ChatEncryptionService } from '@/app/chat/ChatEncryptionService';
 
 // Enable edge runtime
 export const runtime = 'edge';
@@ -33,6 +34,9 @@ const supabase = createClient(
   }
 );
 
+// Initialize encryption service
+const encryptionService = new ChatEncryptionService();
+
 // Helper function to generate cache key
 function generateCacheKey(userId: string, threadId?: string) {
   return `chat:${userId}:${threadId || 'direct'}`;
@@ -41,35 +45,21 @@ function generateCacheKey(userId: string, threadId?: string) {
 export async function POST(req: NextRequest) {
   try {
     const json = await req.json();
-    const { messages, recipientId, threadId, parentMessageId } = json;
+    const { message, recipientId, threadId } = json;
     const { data: { session } } = await supabase.auth.getSession();
 
     if (!session) {
       return new NextResponse('Unauthorized', { status: 401 });
     }
 
-    const userSession = await getSession(session.user.id);
-    if (!userSession) {
-      return new NextResponse('Session not found', { status: 404 });
-    }
-
-    // Get recipient's public key from Supabase
-    const { data: recipientData } = await supabase
-      .from('user_keys')
-      .select('public_key')
-      .eq('user_id', recipientId)
-      .single();
-
-    if (!recipientData) {
-      return new NextResponse('Recipient not found', { status: 404 });
-    }
-
-    // Get or create shared key for the recipient
-    const sharedKey = await getOrCreateSharedKey(
-      userSession,
-      recipientId,
-      recipientData.public_key
+    // Encrypt and store message
+    const encryptedMessage = await encryptionService.encryptMessage(
+      message,
+      session.user.id,
+      recipientId
     );
+
+    await encryptionService.storeMessage(encryptedMessage);
 
     // Create streaming response
     const { stream, handlers } = LangChainStream();
@@ -81,33 +71,11 @@ export async function POST(req: NextRequest) {
       temperature: 0.7,
     });
 
-    // Convert messages to LangChain format
-    const langchainMessages = messages.map((m: ZKChatMessage) => 
-      m.role === 'user' 
-        ? new HumanMessage(m.decryptedContent || '')
-        : new AIMessage(m.decryptedContent || '')
-    );
+    // Convert message to LangChain format
+    const langchainMessages = [new HumanMessage(message)];
 
     // Start streaming response
     chat.call(langchainMessages, {}, [handlers]);
-
-    // Encrypt and store message
-    const messageId = generateMessageId();
-    const encryptedPayload = await encrypt(messages[messages.length - 1].content, sharedKey);
-
-    const message: ZKMessage = {
-      id: messageId,
-      senderId: session.user.id,
-      recipientId,
-      encryptedContent: encryptedPayload.content,
-      iv: encryptedPayload.iv,
-      timestamp: Date.now(),
-      thread_id: threadId,
-      parent_message_id: parentMessageId,
-    };
-
-    // Store message in Supabase
-    await supabase.from('messages').insert([message]);
 
     // Invalidate cache for both participants
     await Promise.all([
@@ -138,43 +106,23 @@ export async function GET(req: NextRequest) {
     return await cache(
       cacheKey,
       async () => {
-        const userSession = await getSession(session.user.id);
-        if (!userSession) {
-          throw new Error('Session not found');
-        }
-
-        // Get messages from Supabase
-        let query = supabase
-          .from('messages')
-          .select('*')
-          .order('timestamp', { ascending: true });
-
-        if (threadId) {
-          query = query.eq('thread_id', threadId);
-        } else {
-          query = query.or(`senderId.eq.${session.user.id},recipientId.eq.${session.user.id}`);
-        }
-
-        const { data: messages } = await query;
-
-        if (!messages) {
-          return { messages: [] };
-        }
+        // Get messages from encryption service
+        const messages = await encryptionService.getMessages(
+          session.user.id,
+          recipientId!
+        );
 
         // Decrypt messages
         const decryptedMessages = await Promise.all(
           messages.map(async (message) => {
-            const sharedKey = await getOrCreateSharedKey(
-              userSession,
-              message.senderId === session.user.id ? message.recipientId : message.senderId,
-              recipientData.public_key
+            const decryptedContent = await encryptionService.decryptMessage(
+              message,
+              session.user.id
             );
-
-            const decryptedContent = await decrypt(message.encryptedContent, message.iv, sharedKey);
 
             return {
               ...message,
-              decryptedContent,
+              content: decryptedContent,
             };
           })
         );
