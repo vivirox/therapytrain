@@ -3,11 +3,9 @@ import { createClient } from '@supabase/supabase-js';
 import { ZKMessage, ZKChatMessage } from '@/lib/zk/types';
 import { encrypt, decrypt, generateMessageId } from '@/lib/zk/crypto';
 import { getSession, getOrCreateSharedKey } from '@/lib/zk/session';
-import { StreamingTextResponse, LangChainStream } from 'ai';
-import { ChatOpenAI } from 'langchain/chat_models/openai';
-import { AIMessage, HumanMessage } from 'langchain/schema';
 import { cache, invalidateByPattern } from '@/lib/redis';
 import { cacheConfig } from '@/config/cache.config';
+import routeMessage from '@/services/router';
 
 // Enable edge runtime
 export const runtime = 'edge';
@@ -36,6 +34,72 @@ const supabase = createClient(
 // Helper function to generate cache key
 function generateCacheKey(userId: string, threadId?: string) {
   return `chat:${userId}:${threadId || 'direct'}`;
+}
+
+const connectedClients = new Map<string, { response: NextResponse, threadId: string }>();
+
+function sendSSEEvent(clientId: string, event: any) {
+  const client = connectedClients.get(clientId);
+  if (client) {
+    const encoder = new TextEncoder();
+    client.response.writableStream.write(encoder.encode(`data: ${JSON.stringify(event)}
+
+`));
+  }
+}
+
+export async function GET(req: NextRequest) {
+  const { searchParams } = new URL(req.url);
+  const userId = searchParams.get('userId') as string;
+  const threadId = searchParams.get('threadId') as string;
+
+  if (!userId || !threadId) {
+    return new NextResponse('Missing userId or threadId', { status: 400 });
+  }
+
+  return new ReadableStream({
+    start(controller) {
+      const response = new NextResponse(controller.desiredSize);
+      response.headers.set('Content-Type', 'text/event-stream');
+      response.headers.set('Cache-Control', 'no-cache');
+      response.headers.set('Connection', 'keep-alive');
+
+      const clientId = `${userId}-${Date.now()}`;
+      connectedClients.set(clientId, { response, threadId });
+
+      console.log(`Client ${clientId} connected`);
+      controller.enqueue(`data: ${JSON.stringify({ type: 'status', payload: { status: 'connected' } })}
+
+`);
+
+      req.onclose = () => {
+        connectedClients.delete(clientId);
+        console.log(`Client ${clientId} disconnected`);
+        controller.close();
+      };
+
+      supabase
+        .channel(`chat_thread_${threadId}`)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'messages',
+            filter: `thread_id=eq.${threadId}`,
+          },
+          (payload) => {
+            console.log('Received message:', payload);
+            sendSSEEvent(clientId, { type: 'message', payload: payload.new });
+          }
+        )
+        .subscribe();
+    },
+    cancel() {
+      console.log('Stream cancelled');
+    }
+  }).pipeThrough(new TextEncoder().writable)
+    .pipeTo(new WritableStream({ write(chunk) { } }));
 }
 
 export async function POST(req: NextRequest) {
@@ -110,6 +174,29 @@ export async function POST(req: NextRequest) {
     await supabase.from('messages').insert([message]);
 
     // Invalidate cache for both participants
+    await Promise.all([
+      invalidateByPattern(`chat:${session.user.id}:*`, true),
+      invalidateByPattern(`chat:${recipientId}:*`, true)
+    ]);
+
+        // Send SSE event to connected clients
+    const sseEvent = {
+      type: 'message',
+      payload: message,
+    };
+
+    connectedClients.forEach((client, clientId) => {
+      if (client.threadId === threadId && client.response) {
+        sendSSEEvent(clientId, sseEvent);
+      }
+    });
+
+    // Call the routeMessage function to handle the user's message
+    const aiResponse = await routeMessage(messages[messages.length - 1].content);
+
+    // Send the AI response back to the client
+    return new NextResponse(aiResponse as string, { status: 200 });
+
     await Promise.all([
       invalidateByPattern(`chat:${session.user.id}:*`, true),
       invalidateByPattern(`chat:${recipientId}:*`, true)
