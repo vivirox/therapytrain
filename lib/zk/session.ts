@@ -1,65 +1,150 @@
-import { User } from '@supabase/supabase-js';
-import { ZKSession, ZKKeyPair } from './types';
-import { generateKeyPair, generateSharedKey } from './crypto';
+import { createClient } from '@supabase/supabase-js';
+import { UserSession, SharedKey } from './types';
+import { generateKey, generateKeyPair } from './crypto';
 
-const sessions = new Map<string, ZKSession>();
+// Initialize Supabase client
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  {
+    auth: {
+      persistSession: false,
+      detectSessionInUrl: false,
+    },
+  }
+);
 
-export async function createSession(user: User): Promise<ZKSession> {
-  const existingSession = sessions.get(user.id);
-  if (existingSession) {
-    return existingSession;
+// In-memory session cache
+const sessionCache = new Map<string, UserSession>();
+const sharedKeyCache = new Map<string, SharedKey>();
+
+/**
+ * Get or create a user session
+ */
+export async function getSession(userId: string): Promise<UserSession | null> {
+  // Check cache first
+  const cachedSession = sessionCache.get(userId);
+  if (cachedSession) {
+    return cachedSession;
   }
 
+  // Get session from database
+  const { data: sessionData, error } = await supabase
+    .from('user_sessions')
+    .select('*')
+    .eq('user_id', userId)
+    .single();
+
+  if (error && error.code !== 'PGRST116') {
+    console.error('Error fetching session:', error);
+    return null;
+  }
+
+  if (sessionData) {
+    const session: UserSession = {
+      id: sessionData.user_id,
+      privateKey: sessionData.private_key,
+      publicKey: sessionData.public_key,
+    };
+    sessionCache.set(userId, session);
+    return session;
+  }
+
+  // Create new session if none exists
   const keyPair = await generateKeyPair();
-  const session: ZKSession = {
-    id: user.id,
-    user,
-    keyPair,
-    sharedKeys: new Map(),
+  const newSession: UserSession = {
+    id: userId,
+    privateKey: keyPair.privateKey,
+    publicKey: keyPair.publicKey,
   };
 
-  sessions.set(user.id, session);
-  return session;
+  const { error: insertError } = await supabase
+    .from('user_sessions')
+    .insert([{
+      user_id: userId,
+      private_key: keyPair.privateKey,
+      public_key: keyPair.publicKey,
+    }]);
+
+  if (insertError) {
+    console.error('Error creating session:', insertError);
+    return null;
+  }
+
+  sessionCache.set(userId, newSession);
+  return newSession;
 }
 
-export async function getSession(userId: string): Promise<ZKSession | null> {
-  return sessions.get(userId) || null;
-}
-
-export async function updateSessionKeys(session: ZKSession, keyPair: ZKKeyPair): Promise<void> {
-  session.keyPair = keyPair;
-  session.sharedKeys.clear(); // Clear old shared keys as they're no longer valid
-  sessions.set(session.id, session);
-}
-
+/**
+ * Get or create a shared key between two users
+ */
 export async function getOrCreateSharedKey(
-  session: ZKSession,
+  userSession: UserSession,
   recipientId: string,
   recipientPublicKey: string
 ): Promise<string> {
-  const existingKey = session.sharedKeys.get(recipientId);
-  if (existingKey) {
-    return existingKey;
+  const cacheKey = `${userSession.id}-${recipientId}`;
+  const cachedKey = sharedKeyCache.get(cacheKey);
+  if (cachedKey) {
+    return cachedKey.key;
   }
 
-  const sharedKey = await generateSharedKey(session.keyPair.privateKey, recipientPublicKey);
-  session.sharedKeys.set(recipientId, sharedKey);
+  // Get shared key from database
+  const { data: keyData, error } = await supabase
+    .from('shared_keys')
+    .select('*')
+    .eq('user_id', userSession.id)
+    .eq('recipient_id', recipientId)
+    .single();
+
+  if (error && error.code !== 'PGRST116') {
+    console.error('Error fetching shared key:', error);
+    throw error;
+  }
+
+  if (keyData) {
+    const sharedKey: SharedKey = {
+      key: keyData.key,
+      userId: keyData.user_id,
+      recipientId: keyData.recipient_id,
+    };
+    sharedKeyCache.set(cacheKey, sharedKey);
+    return sharedKey.key;
+  }
+
+  // Create new shared key if none exists
+  const sharedKey = generateKey();
+  const { error: insertError } = await supabase
+    .from('shared_keys')
+    .insert([{
+      user_id: userSession.id,
+      recipient_id: recipientId,
+      key: sharedKey,
+    }]);
+
+  if (insertError) {
+    console.error('Error creating shared key:', insertError);
+    throw insertError;
+  }
+
+  const newSharedKey: SharedKey = {
+    key: sharedKey,
+    userId: userSession.id,
+    recipientId,
+  };
+  sharedKeyCache.set(cacheKey, newSharedKey);
   return sharedKey;
 }
 
-export function destroySession(userId: string): void {
-  sessions.delete(userId);
-}
-
-export function getAllSessions(): ZKSession[] {
-  return Array.from(sessions.values());
-}
-
-export async function rotateSessionKeys(session: ZKSession): Promise<void> {
-  const newKeyPair = await generateKeyPair();
-  await updateSessionKeys(session, newKeyPair);
-}
-
-export function isSessionActive(userId: string): boolean {
-  return sessions.has(userId);
+/**
+ * Clear session cache for a user
+ */
+export function clearSessionCache(userId: string) {
+  sessionCache.delete(userId);
+  // Clear related shared keys
+  for (const [key] of sharedKeyCache) {
+    if (key.startsWith(userId)) {
+      sharedKeyCache.delete(key);
+    }
+  }
 } 
