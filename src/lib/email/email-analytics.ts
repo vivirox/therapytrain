@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabaseClient';
+import { supabase } from '@/lib/supabase';
 
 interface DateRange {
   startDate: string;
@@ -144,7 +144,8 @@ export class EmailAnalyticsService {
       .select('date, sent, delivered, opened, clicked')
       .gte('date', period.startDate)
       .lte('date', period.endDate)
-      .order('date', { ascending: true });
+      .order('date', { ascending: true })
+      .in('granularity', [granularity]);
 
     if (!data || data.length === 0) {
       return { periods: [] };

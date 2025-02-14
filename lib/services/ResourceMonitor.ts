@@ -1,7 +1,6 @@
 import { Redis } from '@upstash/redis';
 import { Logger } from '../logger';
 import os from 'os';
-import v8 from 'v8';
 
 interface SystemMetrics {
   cpu: {
@@ -135,7 +134,6 @@ export class ResourceMonitor {
   private async gatherMetrics(): Promise<SystemMetrics> {
     const cpuUsage = await this.getCPUUsage();
     const memUsage = process.memoryUsage();
-    const heapStats = v8.getHeapStatistics();
     const networkStats = await this.getNetworkStats();
     const processStats = await this.getProcessStats();
 
