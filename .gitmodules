@@ -1,8 +1,8 @@
 [submodule "liftoff"]
-	path = liftoff
+	path = integrate/liftoff
 	url = https://github.com/Tameyer41/liftoff.git
 [submodule "pocket"]
-	path = pocket
+	path = integrate/pocket
 	url = https://github.com/pocketbase/pocketbase.git
 [submodule "mintlify"]
 	path = docs
