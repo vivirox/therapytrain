@@ -2,7 +2,11 @@ import { randomBytes, createCipheriv, createDecipheriv, scrypt } from 'crypto';
 import { promisify } from 'util';
 import { ZKConfig, ZKEncryptedPayload, ZKKeyPair } from './types';
 
-const scryptAsync = promisify(scrypt);
+const scryptAsync = promisify<string, Buffer, number, Buffer>(scrypt);
+
+const ALGORITHM = 'aes-256-gcm';
+const IV_LENGTH = 16;
+const KEY_LENGTH = 32;
 
 export const defaultConfig: ZKConfig = {
   keySize: 32,
@@ -12,8 +16,8 @@ export const defaultConfig: ZKConfig = {
 };
 
 export async function generateKeyPair(): Promise<ZKKeyPair> {
-  const privateKey = randomBytes(defaultConfig.keySize).toString('hex');
-  const publicKey = await derivePublicKey(privateKey);
+  const privateKey = randomBytes(KEY_LENGTH).toString('hex');
+  const publicKey = randomBytes(KEY_LENGTH).toString('hex');
   return { privateKey, publicKey };
 }
 
@@ -29,38 +33,30 @@ export async function generateSharedKey(privateKey: string, recipientPublicKey: 
   return derivedKey.toString('hex');
 }
 
-export async function encrypt(message: string, key: string): Promise<ZKEncryptedPayload> {
-  const iv = randomBytes(defaultConfig.ivSize);
-  const cipher = createCipheriv(
-    defaultConfig.algorithm,
-    Buffer.from(key, 'hex'),
-    iv
-  );
-
-  const encryptedContent = Buffer.concat([
-    cipher.update(message, 'utf8'),
-    cipher.final(),
-  ]);
-
+export async function encrypt(content: string, key: string) {
+  const iv = randomBytes(IV_LENGTH);
+  const cipher = createCipheriv(ALGORITHM, Buffer.from(key, 'hex'), iv);
+  
+  let encrypted = cipher.update(content, 'utf8', 'hex');
+  encrypted += cipher.final('hex');
+  
   return {
-    content: encryptedContent.toString('hex'),
-    iv: iv.toString('hex'),
+    content: encrypted,
+    iv: iv.toString('hex')
   };
 }
 
-export async function decrypt(payload: ZKEncryptedPayload, key: string): Promise<string> {
+export async function decrypt(encryptedContent: string, iv: string, key: string): Promise<string> {
   const decipher = createDecipheriv(
-    defaultConfig.algorithm,
+    ALGORITHM,
     Buffer.from(key, 'hex'),
-    Buffer.from(payload.iv, 'hex')
+    Buffer.from(iv, 'hex')
   );
-
-  const decryptedContent = Buffer.concat([
-    decipher.update(Buffer.from(payload.content, 'hex')),
-    decipher.final(),
-  ]);
-
-  return decryptedContent.toString('utf8');
+  
+  let decrypted = decipher.update(encryptedContent, 'hex', 'utf8');
+  decrypted += decipher.final('utf8');
+  
+  return decrypted;
 }
 
 export function generateMessageId(): string {
@@ -74,4 +70,8 @@ export async function verifyKeyPair(keyPair: ZKKeyPair): Promise<boolean> {
   } catch {
     return false;
   }
+}
+
+export function generateKey(): string {
+  return randomBytes(KEY_LENGTH).toString('hex');
 } 

@@ -10,8 +10,10 @@ export interface ZKMessage {
   senderId: string;
   recipientId: string;
   encryptedContent: string;
-  iv: string; // Initialization vector
+  iv: string;
   timestamp: number;
+  thread_id: string;
+  parent_message_id?: string;
 }
 
 export interface ZKSession {
@@ -27,6 +29,7 @@ export interface ZKEncryptedPayload {
 }
 
 export interface ZKChatMessage extends ZKMessage {
+  role: 'user' | 'assistant';
   decryptedContent?: string;
   status: 'sent' | 'delivered' | 'read';
   error?: string;
@@ -40,4 +43,23 @@ export interface ZKConfig {
   ivSize: number;
   algorithm: string;
   iterations: number;
+}
+
+export interface UserSession {
+  id: string;
+  privateKey: string;
+  publicKey: string;
+}
+
+export interface SharedKey {
+  key: string;
+  userId: string;
+  recipientId: string;
+}
+
+export interface UserKeys {
+  user_id: string;
+  public_key: string;
+  created_at: string;
+  updated_at: string;
 } 
