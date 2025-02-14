@@ -1,9 +1,11 @@
 import { readFile } from 'fs/promises';
+import { readdir } from 'fs/promises';
 import { join } from 'path';
 import Handlebars from 'handlebars';
 import mjml2html from 'mjml';
 import { TemplateManager } from '@/lib/email/template-manager';
 import { Logger } from '@/lib/logger';
+import Handlebars, { TemplateDelegate as HandlebarsTemplateDelegate } from 'handlebars';
 
 const TEMPLATE_DIR = join(process.cwd(), 'src/templates/email');
 const templateCache = new Map<string, HandlebarsTemplateDelegate>();
@@ -33,6 +35,12 @@ Handlebars.registerHelper('ifEquals', function(arg1: any, arg2: any, options: Ha
   return (arg1 == arg2) ? options.fn(this) : options.inverse(this);
 });
 
+// Add localization helper
+Handlebars.registerHelper('t', function(key: string, context: any) {
+  const locale = context.data.root.locale || 'en';
+  return localeMessages[locale]?.[key] || key;
+});
+
 // Default template context that's available to all templates
 const defaultContext = {
   companyName: 'TherapyTrain',
@@ -40,6 +48,54 @@ const defaultContext = {
   lang: 'en',
   dir: 'ltr'
 };
+
+/**
+ * Load locale messages for a specific language
+ */
+export async function loadLocale(locale: string): Promise<void> {
+  try {
+    const localePath = join(process.cwd(), 'src/locales', `${locale}.json`);
+    const content = await readFile(localePath, 'utf-8');
+    localeMessages[locale] = JSON.parse(content);
+  } catch (error) {
+    console.error(`Failed to load locale ${locale}:`, error);
+    throw new Error(`Failed to load locale ${locale}`);
+  }
+}
+
+/**
+ * Create a new template version
+ */
+export async function createTemplateVersion(templateName: string, content: string): Promise<void> {
+  const template = Handlebars.compile(content);
+  const version = {
+    version: new Date().toISOString(),
+    template,
+    createdAt: new Date()
+  };
+
+  if (!templateVersions[templateName]) {
+    templateVersions[templateName] = {
+      current: version,
+      versions: [version]
+    };
+  } else {
+    templateVersions[templateName].versions.push(version);
+    templateVersions[templateName].current = version;
+  }
+}
+
+/**
+ * Get a specific template version
+ */
+export function getTemplateVersion(templateName: string, version?: string): TemplateVersion | null {
+  const templateData = templateVersions[templateName];
+  if (!templateData) return null;
+
+  if (!version) return templateData.current;
+
+  return templateData.versions.find(v => v.version === version) || null;
+}
 
 /**
  * Load and register a partial template
@@ -150,8 +206,8 @@ export async function previewTemplate(templateName: string, testData: Record<str
  */
 export async function listTemplates(): Promise<string[]> {
   try {
-    const templates = await readFile(TEMPLATE_DIR);
-    return templates
+    const files = await readdir(TEMPLATE_DIR);
+    return files
       .filter(file => file.endsWith('.hbs'))
       .map(file => file.replace('.hbs', ''));
   } catch (error) {
