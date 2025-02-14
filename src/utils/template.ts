@@ -1,47 +1,37 @@
 import { readFile } from 'fs/promises';
 import { readdir } from 'fs/promises';
 import { join } from 'path';
+import Handlebars from 'handlebars';
+import mjml2html from 'mjml';
+import { TemplateManager } from '@/lib/email/template-manager';
+import { Logger } from '@/lib/logger';
 import Handlebars, { TemplateDelegate as HandlebarsTemplateDelegate } from 'handlebars';
 
 const TEMPLATE_DIR = join(process.cwd(), 'src/templates/email');
 const templateCache = new Map<string, HandlebarsTemplateDelegate>();
 const partialsCache = new Map<string, HandlebarsTemplateDelegate>();
 
-// Template versioning interface
-interface TemplateVersion {
-  version: string;
-  template: HandlebarsTemplateDelegate;
-  createdAt: Date;
-}
-
-interface TemplateVersions {
-  [templateName: string]: {
-    current: TemplateVersion;
-    versions: TemplateVersion[];
-  };
-}
-
-const templateVersions: TemplateVersions = {};
-
-// Localization support
-interface LocaleMessages {
-  [key: string]: string;
-}
-
-const localeMessages: Record<string, LocaleMessages> = {};
+const logger = Logger.getInstance();
 
 // Register common helpers
 Handlebars.registerHelper('currentYear', () => new Date().getFullYear());
 
 Handlebars.registerHelper('formatDate', (date: Date) => {
-  return new Intl.DateTimeFormat('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  }).format(date);
+  return new Date(date).toLocaleDateString();
 });
 
-Handlebars.registerHelper('ifEquals', function(this: any, arg1: any, arg2: any, options: Handlebars.HelperOptions) {
+Handlebars.registerHelper('formatTime', (date: Date) => {
+  return new Date(date).toLocaleTimeString();
+});
+
+Handlebars.registerHelper('formatCurrency', (amount: number) => {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+  }).format(amount);
+});
+
+Handlebars.registerHelper('ifEquals', function(arg1: any, arg2: any, options: Handlebars.HelperOptions) {
   return (arg1 == arg2) ? options.fn(this) : options.inverse(this);
 });
 
@@ -128,34 +118,69 @@ async function loadPartial(partialName: string): Promise<void> {
 /**
  * Render a template with the given context
  */
-export async function render(templateName: string, context: Record<string, any>): Promise<string> {
+export async function render(
+  templateName: string,
+  context: Record<string, any>
+): Promise<string> {
   try {
-    // Load base template if not already loaded
-    await loadPartial('base');
-    
-    // Check cache first
-    let template = templateCache.get(templateName);
-    
+    // Get template from database
+    const templateManager = TemplateManager.getInstance();
+    const template = await templateManager.getTemplate(templateName);
+
     if (!template) {
-      // Load and compile template
-      const templatePath = join(TEMPLATE_DIR, `${templateName}.hbs`);
-      const templateContent = await readFile(templatePath, 'utf-8');
-      template = Handlebars.compile(templateContent);
-      templateCache.set(templateName, template);
+      throw new Error(`Template not found: ${templateName}`);
     }
-    
-    // Merge context with defaults
-    const mergedContext = {
+
+    // Compile template with Handlebars
+    const compiledTemplate = Handlebars.compile(template.html);
+
+    // Add default context variables
+    const defaultContext = {
+      currentYear: new Date().getFullYear(),
+      logoUrl: process.env.NEXT_PUBLIC_LOGO_URL || 'https://therapytrain.ai/logo.png',
+      privacyUrl: process.env.NEXT_PUBLIC_PRIVACY_URL || 'https://therapytrain.ai/privacy',
+      termsUrl: process.env.NEXT_PUBLIC_TERMS_URL || 'https://therapytrain.ai/terms',
+      supportUrl: process.env.NEXT_PUBLIC_SUPPORT_URL || 'https://therapytrain.ai/support',
+      dashboardUrl: process.env.NEXT_PUBLIC_DASHBOARD_URL || 'https://therapytrain.ai/dashboard',
+      contactUrl: process.env.NEXT_PUBLIC_CONTACT_URL || 'https://therapytrain.ai/contact',
+      faqUrl: process.env.NEXT_PUBLIC_FAQ_URL || 'https://therapytrain.ai/faq',
+      unsubscribeUrl: process.env.NEXT_PUBLIC_UNSUBSCRIBE_URL || 'https://therapytrain.ai/unsubscribe',
+      socialLinks: [
+        {
+          platform: 'twitter',
+          url: process.env.NEXT_PUBLIC_TWITTER_URL || 'https://twitter.com/therapytrain',
+        },
+        {
+          platform: 'linkedin',
+          url: process.env.NEXT_PUBLIC_LINKEDIN_URL || 'https://linkedin.com/company/therapytrain',
+        },
+      ],
+    };
+
+    // Render template with combined context
+    const renderedHtml = compiledTemplate({
       ...defaultContext,
       ...context,
-      title: context.title || `${defaultContext.companyName} - ${templateName.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}`
-    };
-    
-    // Render template with context
-    return template(mergedContext);
+    });
+
+    // Convert MJML to HTML if the template contains MJML
+    if (renderedHtml.trim().startsWith('<mjml>')) {
+      const { html, errors } = mjml2html(renderedHtml);
+
+      if (errors.length > 0) {
+        throw new Error(`MJML validation error: ${JSON.stringify(errors)}`);
+      }
+
+      return html;
+    }
+
+    return renderedHtml;
   } catch (error) {
-    console.error(`Failed to render template ${templateName}:`, error);
-    throw new Error(`Failed to render template ${templateName}`);
+    await logger.error('Template rendering error', error as Error, {
+      templateName,
+      context,
+    });
+    throw error;
   }
 }
 
@@ -189,4 +214,35 @@ export async function listTemplates(): Promise<string[]> {
     console.error('Failed to list templates:', error);
     throw new Error('Failed to list templates');
   }
+}
+
+/**
+ * Register a partial template
+ */
+export function registerPartial(name: string, template: string): void {
+  Handlebars.registerPartial(name, template);
+}
+
+/**
+ * Register a custom helper
+ */
+export function registerHelper(
+  name: string,
+  helper: Handlebars.HelperDelegate
+): void {
+  Handlebars.registerHelper(name, helper);
+}
+
+/**
+ * Unregister a partial template
+ */
+export function unregisterPartial(name: string): void {
+  Handlebars.unregisterPartial(name);
+}
+
+/**
+ * Unregister a custom helper
+ */
+export function unregisterHelper(name: string): void {
+  Handlebars.unregisterHelper(name);
 } 
