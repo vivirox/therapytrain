@@ -1,11 +1,11 @@
-#!/usr/bin/env /workspace/tmp_windsurf/venv/bin/python3
+#!~/.venv/ ~/.venv/bin/env/python
 
 import asyncio
 import argparse
 import sys
 import os
 from typing import List, Optional
-from playwright.async_api import async_playwright
+from pyppeteer import launch
 import html5lib
 from multiprocessing import Pool
 import time

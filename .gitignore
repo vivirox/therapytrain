@@ -27,6 +27,7 @@ dist-ssr
 *.sln
 *.sw?
 
+.venv
 .env
 .vercel
 src/utils/supabase.
@@ -40,51 +41,9 @@ src/utils/supabase.
 .cursorrules
 .windsurfrules
 
-# commit message files
-commit_msg*.txt
-*_commit_msg.txt
-pr_msg*.txt
-*_pr_msg.txt
+integrate
+integrate/*
 
-# dependencies
-/node_modules
-/.pnp
-.pnp.js
 
-# testing
-/coverage
-
-# next.js
-/.next/
-/out/
-
-# production
-/build
-
-# misc
-.DS_Store
-*.pem
-
-# debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
-
-# typescript
-*.tsbuildinfo
-next-env.d.ts
-
-credentials.json
-
-# asdf
-.tool-versions
-
-# pycache
-**/__pycache__/
-
-# python virtual environment
-/venv/
-
-# pytest
-.pytest_cache/
+# Sentry Config File
+.env.sentry-build-plugin

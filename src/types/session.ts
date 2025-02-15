@@ -16,18 +16,10 @@ export type SessionStatus = 'active' | 'completed' | 'cancelled';
 export type SessionMode = 'chat' | 'video' | 'audio' | 'in-person';
 
 export interface SessionMetrics {
-  duration: number;
-  message_count: number;
-  response_time_avg: number;
-  sentiment_scores: {
-    positive: number;
-    negative: number;
-    neutral: number;
-  };
-  engagement_score: number;
-  therapeutic_progress: number;
-  risk_level: 'low' | 'medium' | 'high';
-  metadata?: Metadata;
+  sentiment: number;
+  engagement: number;
+  riskLevel: number;
+  interventionSuccess: number;
 }
 
 export interface SessionConfig {
@@ -105,14 +97,29 @@ export interface SessionAnalytics {
   metadata?: Metadata;
 }
 
+export interface SessionState {
+  id: string;
+  clientId: string;
+  mode: SessionMode;
+  status: 'active' | 'completed' | 'error';
+  startTime: Date;
+  endTime?: Date;
+  metrics: SessionMetrics;
+  lastActivity?: Date;
+  nodeId?: string;
+  version?: number;
+}
+
 export interface SessionManager {
-  createSession: (config: SessionConfig) => Promise<Session>;
-  endSession: (session_id: string) => Promise<void>;
-  getSession: (session_id: string) => Promise<Session>;
-  updateSession: (session_id: string, updates: Partial<Session>) => Promise<Session>;
-  getSessionMetrics: (session_id: string) => Promise<SessionMetrics>;
-  getSessionEvents: (session_id: string) => Promise<SessionEvent[]>;
-  getSessionSummary: (session_id: string) => Promise<SessionSummary>;
-  getSessionFeedback: (session_id: string) => Promise<SessionFeedback[]>;
-  getSessionAnalytics: (session_id: string) => Promise<SessionAnalytics>;
+  startSession(clientId: string, mode: SessionMode): Promise<SessionState>;
+  getSession(sessionId: string): Promise<SessionState | null>;
+  updateSession(sessionId: string, updates: Partial<SessionState>): Promise<SessionState | null>;
+  endSession(sessionId: string): Promise<void>;
+}
+
+export interface DistributedSessionEvents {
+  'session:update': (sessionId: string, session: SessionState) => void;
+  'session:end': (sessionId: string) => void;
+  'node:heartbeat': (nodeId: string) => void;
+  'node:offline': (nodeId: string) => void;
 }

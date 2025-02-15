@@ -1,26 +1,21 @@
 import { supabase } from '@/lib/supabaseclient';
 
-export type AlertSeverity = 'info' | 'warning' | 'critical';
-export type AlertType = 'bounce_rate' | 'spam_reports' | 'rapid_sending' | 'suspicious_pattern';
+type AlertType = 'hipaa_violation' | 'security_breach' | 'system_error';
+type AlertSeverity = 'low' | 'medium' | 'high' | 'critical';
 
-export interface Alert {
+interface Alert {
   id: string;
   type: AlertType;
   severity: AlertSeverity;
   message: string;
-  details: Record<string, any>;
+  metadata: Record<string, any>;
   created_at: string;
   acknowledged_at?: string;
   resolved_at?: string;
-  sender?: string;
+  status: 'new' | 'acknowledged' | 'resolved';
 }
 
 export class AlertService {
-  private static BOUNCE_RATE_WARNING = 0.03; // 3%
-  private static BOUNCE_RATE_CRITICAL = 0.05; // 5%
-  private static SPAM_REPORTS_WARNING = 0.01; // 1%
-  private static SPAM_REPORTS_CRITICAL = 0.02; // 2%
-
   /**
    * Create a new alert
    */
@@ -28,122 +23,99 @@ export class AlertService {
     type: AlertType,
     severity: AlertSeverity,
     message: string,
-    details: Record<string, any>,
-    sender?: string
-  ): Promise<void> {
+    metadata: Record<string, any>
+  ): Promise<Alert> {
+    const alert: Alert = {
+      id: crypto.randomUUID(),
+      type,
+      severity,
+      message,
+      metadata,
+      created_at: new Date().toISOString(),
+      status: 'new'
+    };
+
     try {
-      const { error } = await supabase.from('alerts').insert([{
-        type,
-        severity,
-        message,
-        details,
-        sender,
-        created_at: new Date().toISOString(),
-      }]);
+      // Store alert in database
+      await supabase.from('alerts').insert([alert]);
 
-      if (error) throw error;
-    } catch (err) {
-      console.error('Failed to create alert:', err);
-      throw err;
-    }
-  }
-
-  /**
-   * Check metrics and create alerts if thresholds are exceeded
-   */
-  static async checkMetricsAndAlert(sender: string): Promise<void> {
-    const timeWindow = new Date();
-    timeWindow.setHours(timeWindow.getHours() - 24); // Last 24 hours
-
-    // Get total emails sent
-    const { count: totalSent } = await supabase
-      .from('email_events')
-      .select('*', { count: 'exact' })
-      .eq('type', 'sent')
-      .eq('sender', sender)
-      .gte('created_at', timeWindow.toISOString());
-
-    if (!totalSent) return;
-
-    // Check bounce rate
-    const { count: bounces } = await supabase
-      .from('email_events')
-      .select('*', { count: 'exact' })
-      .eq('type', 'bounced')
-      .eq('sender', sender)
-      .gte('created_at', timeWindow.toISOString());
-
-    const bounceRate = bounces / totalSent;
-
-    if (bounceRate >= this.BOUNCE_RATE_CRITICAL) {
-      await this.createAlert(
-        'bounce_rate',
-        'critical',
-        `Critical: High bounce rate detected (${(bounceRate * 100).toFixed(1)}%)`,
-        { bounceRate, threshold: this.BOUNCE_RATE_CRITICAL },
-        sender
-      );
-    } else if (bounceRate >= this.BOUNCE_RATE_WARNING) {
-      await this.createAlert(
-        'bounce_rate',
-        'warning',
-        `Warning: Elevated bounce rate (${(bounceRate * 100).toFixed(1)}%)`,
-        { bounceRate, threshold: this.BOUNCE_RATE_WARNING },
-        sender
-      );
-    }
-
-    // Check spam reports
-    const { count: spamReports } = await supabase
-      .from('email_events')
-      .select('*', { count: 'exact' })
-      .eq('type', 'spam')
-      .eq('sender', sender)
-      .gte('created_at', timeWindow.toISOString());
-
-    const spamRate = spamReports / totalSent;
-
-    if (spamRate >= this.SPAM_REPORTS_CRITICAL) {
-      await this.createAlert(
-        'spam_reports',
-        'critical',
-        `Critical: High spam report rate (${(spamRate * 100).toFixed(1)}%)`,
-        { spamRate, threshold: this.SPAM_REPORTS_CRITICAL },
-        sender
-      );
-    } else if (spamRate >= this.SPAM_REPORTS_WARNING) {
-      await this.createAlert(
-        'spam_reports',
-        'warning',
-        `Warning: Elevated spam reports (${(spamRate * 100).toFixed(1)}%)`,
-        { spamRate, threshold: this.SPAM_REPORTS_WARNING },
-        sender
-      );
-    }
-  }
-
-  /**
-   * Get active alerts for a sender
-   */
-  static async getActiveAlerts(sender?: string): Promise<Alert[]> {
-    try {
-      let query = supabase
-        .from('alerts')
-        .select('*')
-        .is('resolved_at', null)
-        .order('created_at', { ascending: false });
-
-      if (sender) {
-        query = query.eq('sender', sender);
+      // Send email notification for high and critical alerts
+      if (severity === 'high' || severity === 'critical') {
+        await this.sendAlertEmail(alert);
       }
 
-      const { data, error } = await query;
+      // For critical alerts, also send SMS
+      if (severity === 'critical') {
+        await this.sendAlertSMS(alert);
+      }
 
-      if (error) throw error;
-      return data || [];
-    } catch (err) {
-      console.error('Failed to fetch alerts:', err);
-      throw err;
+      return alert;
+    } catch (error) {
+      console.error('Failed to create alert:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Send alert email
+   */
+  private static async sendAlertEmail(alert: Alert): Promise<void> {
+    try {
+      const response = await fetch('/api/email/send', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          type: 'alert',
+          data: {
+            alert_type: alert.type,
+            severity: alert.severity,
+            message: alert.message,
+            metadata: alert.metadata,
+            created_at: alert.created_at
+          }
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to send alert email');
+      }
+    } catch (error) {
+      console.error('Failed to send alert email:', error);
+      // Don't throw here - we don't want to fail the entire alert creation
+      // if email sending fails
+    }
+  }
+
+  /**
+   * Send alert SMS
+   */
+  private static async sendAlertSMS(alert: Alert): Promise<void> {
+    try {
+      const response = await fetch('/api/sms/send', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          type: 'alert',
+          data: {
+            alert_type: alert.type,
+            severity: alert.severity,
+            message: alert.message,
+            created_at: alert.created_at
+          }
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to send alert SMS');
+      }
+    } catch (error) {
+      console.error('Failed to send alert SMS:', error);
+      // Don't throw here - we don't want to fail the entire alert creation
+      // if SMS sending fails
     }
   }
 
@@ -152,32 +124,78 @@ export class AlertService {
    */
   static async acknowledgeAlert(alertId: string): Promise<void> {
     try {
-      const { error } = await supabase
+      await supabase
         .from('alerts')
-        .update({ acknowledged_at: new Date().toISOString() })
+        .update({
+          status: 'acknowledged',
+          acknowledged_at: new Date().toISOString()
+        })
         .eq('id', alertId);
-
-      if (error) throw error;
-    } catch (err) {
-      console.error('Failed to acknowledge alert:', err);
-      throw err;
+    } catch (error) {
+      console.error('Failed to acknowledge alert:', error);
+      throw error;
     }
   }
 
   /**
    * Resolve an alert
    */
-  static async resolveAlert(alertId: string): Promise<void> {
+  static async resolveAlert(
+    alertId: string,
+    resolution_notes?: string
+  ): Promise<void> {
     try {
-      const { error } = await supabase
+      await supabase
         .from('alerts')
-        .update({ resolved_at: new Date().toISOString() })
+        .update({
+          status: 'resolved',
+          resolved_at: new Date().toISOString(),
+          metadata: supabase.rpc('jsonb_set', {
+            resolution_notes
+          })
+        })
         .eq('id', alertId);
+    } catch (error) {
+      console.error('Failed to resolve alert:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get all active alerts
+   */
+  static async getActiveAlerts(): Promise<Alert[]> {
+    try {
+      const { data, error } = await supabase
+        .from('alerts')
+        .select('*')
+        .in('status', ['new', 'acknowledged'])
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
-    } catch (err) {
-      console.error('Failed to resolve alert:', err);
-      throw err;
+      return data || [];
+    } catch (error) {
+      console.error('Failed to get active alerts:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get alerts by type
+   */
+  static async getAlertsByType(type: AlertType): Promise<Alert[]> {
+    try {
+      const { data, error } = await supabase
+        .from('alerts')
+        .select('*')
+        .eq('type', type)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Failed to get alerts by type:', error);
+      throw error;
     }
   }
 } 

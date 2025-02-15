@@ -9,6 +9,7 @@ async function previewAllTemplates() {
   try {
     // Create output directory if it doesn't exist
     await mkdir(OUTPUT_DIR, { recursive: true });
+    await mkdir(OUTPUT_DIR, { recursive: true });
 
     // Get list of all templates
     const templates = await listTemplates();

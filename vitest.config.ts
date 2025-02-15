@@ -8,7 +8,7 @@ export default defineConfig({
   plugins: [react(), tsconfigPaths()],
   test: {
     environment: 'jsdom',
-    setupFiles: ['./src/test-setup.ts'],
+    setupFiles: [],
     globals: true,
     includeSource: ['src/**/*.{ts,tsx}'],
     coverage: {

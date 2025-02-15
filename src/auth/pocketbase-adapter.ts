@@ -6,14 +6,59 @@ import {
   AuthMethod,
   AuthProvider,
   AuthResponse,
-  PocketBaseAuth,
-  PocketBaseUser,
-  ZKAuthConfig,
-  ZKKeyPair,
-  RateLimitConfig,
-  RateLimitState,
-  AuthAuditEvent
+  AuthEvent,
+  AuthSession
 } from '@/types/auth';
+
+export interface PocketBaseAuth {
+  email: string;
+  password: string;
+  token: string;
+  refreshToken: string;
+  meta: Record<string, unknown>;
+}
+
+export interface PocketBaseUser {
+  id: string;
+  email: string;
+  verified: boolean;
+  roles: string[];
+  meta: Record<string, unknown>;
+}
+
+export interface ZKAuthConfig {
+  enabled: boolean;
+  keyDerivation: {
+    algorithm: string;
+    iterations: number;
+    saltLength: number;
+  };
+  encryption: {
+    algorithm: string;
+    keyLength: number;
+    ivLength: number;
+  };
+}
+
+export interface ZKKeyPair {
+  publicKey: string;
+  encryptedPrivateKey: string;
+  nonce: string;
+}
+
+export interface RateLimitConfig {
+  enabled: boolean;
+  maxAttempts: number;
+  windowMs: number;
+  blockDurationMs: number;
+}
+
+export interface RateLimitState {
+  attempts: number;
+  firstAttempt: Date;
+  blocked: boolean;
+  blockExpires?: Date;
+}
 
 export class PocketBaseAuthAdapter {
   private static readonly DEFAULT_ZK_CONFIG: ZKAuthConfig = {
@@ -70,12 +115,23 @@ export class PocketBaseAuthAdapter {
 
   // Convert PocketBase session to Supabase session
   private toSupabaseSession(pbAuth: PocketBaseAuth): Session {
+    const user = {
+      id: 'temp_id', // This should be set by the auth context
+      email: pbAuth.email,
+      user_metadata: pbAuth.meta,
+      app_metadata: {
+        provider: 'pocketbase'
+      },
+      aud: 'authenticated',
+      created_at: new Date().toISOString()
+    } as User;
+
     return {
       access_token: pbAuth.token,
       refresh_token: pbAuth.refreshToken,
-      expires_in: 3600, // 1 hour
+      expires_in: 3600,
       token_type: 'bearer',
-      user: null, // Will be set by auth context
+      user
     } as Session;
   }
 
@@ -129,7 +185,7 @@ export class PocketBaseAuthAdapter {
   }
 
   // Create audit event
-  private async createAuditEvent(event: Partial<AuthAuditEvent>): Promise<void> {
+  private async createAuditEvent(event: Partial<AuthEvent>): Promise<void> {
     // TODO: Implement audit logging
     console.log('Audit event:', event);
   }
@@ -138,59 +194,60 @@ export class PocketBaseAuthAdapter {
   async authenticate(credentials: AuthCredentials): Promise<AuthResponse> {
     try {
       // Rate limiting check
-      this.checkRateLimit(credentials.email || 'anonymous');
+      this.checkRateLimit(credentials.email);
 
       // TODO: Implement actual PocketBase authentication
       const pbAuth: PocketBaseAuth = {
-        email: credentials.email || '',
-        password: credentials.password || '',
+        email: credentials.email,
+        password: credentials.password,
         token: 'pb_token',
         refreshToken: 'pb_refresh_token',
-        meta: credentials.metadata || {},
+        meta: {}
       };
 
       const pbUser: PocketBaseUser = {
         id: 'pb_user_id',
-        email: credentials.email || '',
+        email: credentials.email,
         verified: true,
         roles: ['user'],
-        meta: {},
+        meta: {}
       };
 
       // Generate ZK keys if enabled
       let zkKeyPair: ZKKeyPair | null = null;
-      if (this.zkConfig.enabled && credentials.password) {
+      if (this.zkConfig.enabled) {
         zkKeyPair = await this.generateKeyPair(credentials.password);
       }
 
       // Create audit event
       await this.createAuditEvent({
-        type: 'authentication',
-        userId: pbUser.id,
-        timestamp: new Date(),
-        success: true,
-        provider: credentials.provider,
-        method: credentials.method,
-        ip: 'TODO', // Should be passed from request
-        userAgent: 'TODO', // Should be passed from request
+        type: 'SIGNED_IN',
+        timestamp: new Date().toISOString(),
+        metadata: {
+          provider: 'pocketbase',
+          method: 'password'
+        }
       });
 
+      const user = this.toSupabaseUser(pbUser);
+      const session = this.toSupabaseSession(pbAuth);
+
       return {
-        user: this.toSupabaseUser(pbUser),
-        session: this.toSupabaseSession(pbAuth),
-        provider: credentials.provider,
+        user,
+        session,
+        tokens: {
+          access_token: session.access_token,
+          refresh_token: session.refresh_token
+        }
       };
     } catch (error) {
       // Create audit event for failure
       await this.createAuditEvent({
-        type: 'authentication_failed',
-        timestamp: new Date(),
-        success: false,
-        provider: credentials.provider,
-        method: credentials.method,
-        ip: 'TODO', // Should be passed from request
-        userAgent: 'TODO', // Should be passed from request
-        metadata: { error: error instanceof Error ? error.message : 'Unknown error' },
+        type: 'SIGNED_OUT',
+        timestamp: new Date().toISOString(),
+        metadata: {
+          error: error instanceof Error ? error.message : 'Unknown error'
+        }
       });
 
       throw error;

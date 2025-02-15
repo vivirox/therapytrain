@@ -1,6 +1,9 @@
 import '@testing-library/jest-dom';
 import { cleanup } from '@testing-library/react';
 import { afterEach, vi } from 'vitest';
+import { AccessibilityProvider } from '../contexts/accessibility-context';
+import { render } from '@testing-library/react';
+import { ReactElement } from 'react';
 // Mock TextEncoder/TextDecoder if they don't exist
 if (typeof global.TextEncoder === 'undefined') {
     class TextEncoder {
@@ -76,3 +79,26 @@ const sessionStorageMock = {
     key: vi.fn(),
 };
 Object.defineProperty(window, 'sessionStorage', { value: sessionStorageMock });
+
+// Mock framer-motion
+vi.mock('framer-motion', () => ({
+  motion: {
+    div: ({ children, ...props }: any) => <div {...props}>{children}</div>,
+    nav: ({ children, ...props }: any) => <nav {...props}>{children}</nav>,
+    aside: ({ children, ...props }: any) => <aside {...props}>{children}</aside>,
+  },
+  AnimatePresence: ({ children }: any) => <>{children}</>,
+}));
+
+// Custom render method that includes providers
+const customRender = (ui: ReactElement) => {
+  return render(ui, {
+    wrapper: ({ children }) => (
+      <AccessibilityProvider>{children}</AccessibilityProvider>
+    ),
+  });
+};
+
+// Re-export everything
+export * from '@testing-library/react';
+export { customRender as render };

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import * as React from 'react';
 
 interface AccessibilityContextType {
   prefersReducedMotion: boolean;
@@ -7,7 +7,7 @@ interface AccessibilityContextType {
   setHighContrastMode: (enabled: boolean) => void;
   reducedMotion: boolean;
   setReducedMotion: (enabled: boolean) => void;
-  announcements: string[];
+  announcements: Announcement[];
   announce: (message: string, priority?: 'polite' | 'assertive') => void;
   focusTrap: {
     active: boolean;
@@ -20,20 +20,25 @@ interface AccessibilityContextType {
   };
 }
 
-const AccessibilityContext = createContext<AccessibilityContextType | undefined>(undefined);
+const AccessibilityContext = React.createContext<AccessibilityContextType | undefined>(undefined);
+
+interface Announcement {
+  message: string;
+  priority: 'polite' | 'assertive';
+}
 
 export function AccessibilityProvider({ children }: { children: React.ReactNode }) {
   // Preferences state
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
-  const [prefersHighContrast, setPrefersHighContrast] = useState(false);
-  const [highContrastMode, setHighContrastMode] = useState(() => {
+  const [prefersReducedMotion, setPrefersReducedMotion] = React.useState(false);
+  const [prefersHighContrast, setPrefersHighContrast] = React.useState(false);
+  const [highContrastMode, setHighContrastMode] = React.useState(() => {
     if (typeof window !== 'undefined') {
       const stored = localStorage.getItem('high-contrast-mode');
       return stored ? stored === 'true' : false;
     }
     return false;
   });
-  const [reducedMotion, setReducedMotion] = useState(() => {
+  const [reducedMotion, setReducedMotion] = React.useState(() => {
     if (typeof window !== 'undefined') {
       const stored = localStorage.getItem('reduced-motion');
       return stored ? stored === 'true' : false;
@@ -42,16 +47,16 @@ export function AccessibilityProvider({ children }: { children: React.ReactNode 
   });
   
   // Announcements for screen readers
-  const [announcements, setAnnouncements] = useState<string[]>([]);
+  const [announcements, setAnnouncements] = React.useState<Announcement[]>([]);
   
   // Focus trap state
-  const [activeTrap, setActiveTrap] = useState<string | null>(null);
+  const [activeTrap, setActiveTrap] = React.useState<string | null>(null);
   
   // Keyboard shortcuts
-  const [shortcuts, setShortcuts] = useState<Record<string, () => void>>({});
+  const [shortcuts, setShortcuts] = React.useState<Record<string, () => void>>({});
 
   // Monitor user preferences
-  useEffect(() => {
+  React.useEffect(() => {
     const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
     const contrastQuery = window.matchMedia('(prefers-contrast: more)');
 
@@ -85,7 +90,7 @@ export function AccessibilityProvider({ children }: { children: React.ReactNode 
   }, []);
 
   // Handle high contrast mode changes
-  useEffect(() => {
+  React.useEffect(() => {
     const root = document.documentElement;
     if (highContrastMode) {
       root.setAttribute('data-high-contrast', 'true');
@@ -101,7 +106,7 @@ export function AccessibilityProvider({ children }: { children: React.ReactNode 
   }, [highContrastMode]);
 
   // Handle reduced motion changes
-  useEffect(() => {
+  React.useEffect(() => {
     const root = document.documentElement;
     if (reducedMotion) {
       root.setAttribute('data-reduced-motion', 'true');
@@ -117,30 +122,29 @@ export function AccessibilityProvider({ children }: { children: React.ReactNode 
   }, [reducedMotion]);
 
   // Handle announcements
-  const announce = useCallback((message: string, priority: 'polite' | 'assertive' = 'polite') => {
-    setAnnouncements(prev => [...prev, message]);
+  const announce = React.useCallback((message: string, priority: 'polite' | 'assertive' = 'polite') => {
+    setAnnouncements(prev => [...prev, { message, priority }]);
     
-    // Clean up announcements after they've been read
     setTimeout(() => {
-      setAnnouncements(prev => prev.filter(a => a !== message));
+      setAnnouncements(prev => prev.filter(a => a.message !== message));
     }, 3000);
   }, []);
 
   // Focus trap management
-  const activateFocusTrap = useCallback((containerId: string) => {
+  const activateFocusTrap = React.useCallback((containerId: string) => {
     setActiveTrap(containerId);
   }, []);
 
-  const deactivateFocusTrap = useCallback(() => {
+  const deactivateFocusTrap = React.useCallback(() => {
     setActiveTrap(null);
   }, []);
 
   // Keyboard shortcuts management
-  const registerShortcut = useCallback((key: string, callback: () => void) => {
+  const registerShortcut = React.useCallback((key: string, callback: () => void) => {
     setShortcuts(prev => ({ ...prev, [key]: callback }));
   }, []);
 
-  const unregisterShortcut = useCallback((key: string) => {
+  const unregisterShortcut = React.useCallback((key: string) => {
     setShortcuts(prev => {
       const { [key]: _, ...rest } = prev;
       return rest;
@@ -148,7 +152,7 @@ export function AccessibilityProvider({ children }: { children: React.ReactNode 
   }, []);
 
   // Global keyboard event handler
-  useEffect(() => {
+  React.useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       const key = [
         event.ctrlKey && 'Ctrl',
@@ -191,13 +195,13 @@ export function AccessibilityProvider({ children }: { children: React.ReactNode 
     <AccessibilityContext.Provider value={value}>
       {children}
       {/* Screen reader announcements */}
-      <div 
-        role="status" 
-        aria-live="polite" 
+      <div
+        role="status"
+        aria-live="polite"
         className="sr-only"
       >
         {announcements.map((announcement, index) => (
-          <div key={`${announcement}-${index}`}>{announcement}</div>
+          <div key={`${announcement.message}-${index}`}>{announcement.message}</div>
         ))}
       </div>
     </AccessibilityContext.Provider>
@@ -205,7 +209,7 @@ export function AccessibilityProvider({ children }: { children: React.ReactNode 
 }
 
 export function useAccessibility() {
-  const context = useContext(AccessibilityContext);
+  const context = React.useContext(AccessibilityContext);
   if (context === undefined) {
     throw new Error('useAccessibility must be used within an AccessibilityProvider');
   }

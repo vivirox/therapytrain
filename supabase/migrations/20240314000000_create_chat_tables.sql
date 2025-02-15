@@ -1,5 +1,5 @@
--- Create messages table
-CREATE TABLE messages (
+-- Create chat_messages table
+CREATE TABLE chat_messages (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     sender_id UUID NOT NULL REFERENCES auth.users(id),
     recipient_id UUID NOT NULL REFERENCES auth.users(id),
@@ -21,7 +21,7 @@ CREATE TABLE user_keys (
 
 -- Create message_status table
 CREATE TABLE message_status (
-    message_id UUID REFERENCES messages(id),
+    message_id UUID REFERENCES chat_messages(id),
     user_id UUID REFERENCES auth.users(id),
     status TEXT NOT NULL CHECK (status IN ('sent', 'delivered', 'read')),
     timestamp TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -38,25 +38,25 @@ CREATE TABLE typing_status (
 );
 
 -- Add indexes
-CREATE INDEX idx_messages_sender ON messages(sender_id);
-CREATE INDEX idx_messages_recipient ON messages(recipient_id);
-CREATE INDEX idx_messages_timestamp ON messages(timestamp);
+CREATE INDEX idx_chat_messages_sender ON chat_messages(sender_id);
+CREATE INDEX idx_chat_messages_recipient ON chat_messages(recipient_id);
+CREATE INDEX idx_chat_messages_timestamp ON chat_messages(timestamp);
 CREATE INDEX idx_message_status_timestamp ON message_status(timestamp);
 CREATE INDEX idx_typing_status_last_updated ON typing_status(last_updated);
 
 -- Add RLS policies
-ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
+ALTER TABLE chat_messages ENABLE ROW LEVEL SECURITY;
 ALTER TABLE user_keys ENABLE ROW LEVEL SECURITY;
 ALTER TABLE message_status ENABLE ROW LEVEL SECURITY;
 ALTER TABLE typing_status ENABLE ROW LEVEL SECURITY;
 
--- Messages policies
-CREATE POLICY "Users can insert their own messages"
-    ON messages FOR INSERT
+-- Chat messages policies
+CREATE POLICY "Users can insert their own chat messages"
+    ON chat_messages FOR INSERT
     WITH CHECK (auth.uid() = sender_id);
 
-CREATE POLICY "Users can read messages they sent or received"
-    ON messages FOR SELECT
+CREATE POLICY "Users can read chat messages they sent or received"
+    ON chat_messages FOR SELECT
     USING (auth.uid() IN (sender_id, recipient_id));
 
 -- User keys policies
@@ -79,7 +79,7 @@ CREATE POLICY "Users can update status of messages they received"
     WITH CHECK (
         auth.uid() = user_id
         AND EXISTS (
-            SELECT 1 FROM messages
+            SELECT 1 FROM chat_messages
             WHERE id = message_id
             AND recipient_id = auth.uid()
         )
@@ -89,18 +89,28 @@ CREATE POLICY "Users can read status of their messages"
     ON message_status FOR SELECT
     USING (
         EXISTS (
-            SELECT 1 FROM messages
+            SELECT 1 FROM chat_messages
             WHERE id = message_id
             AND (sender_id = auth.uid() OR recipient_id = auth.uid())
         )
     );
 
 -- Typing status policies
-CREATE POLICY "Users can update their typing status"
+DO $$ 
+BEGIN
+    -- Drop existing policies if they exist
+    DROP POLICY IF EXISTS "Users can update their typing status" ON typing_status;
+    DROP POLICY IF EXISTS "Users can insert their typing status" ON typing_status;
+    DROP POLICY IF EXISTS "Users can update their own typing status" ON typing_status;
+    DROP POLICY IF EXISTS "Users can read typing status in their chats" ON typing_status;
+END $$;
+
+-- Create new policies
+CREATE POLICY "Users can insert their typing status"
     ON typing_status FOR INSERT
     WITH CHECK (auth.uid() = user_id);
 
-CREATE POLICY "Users can update their typing status"
+CREATE POLICY "Users can update their own typing status"
     ON typing_status FOR UPDATE
     USING (auth.uid() = user_id)
     WITH CHECK (auth.uid() = user_id);
@@ -118,8 +128,8 @@ BEGIN
 END;
 $$ language 'plpgsql';
 
-CREATE TRIGGER update_messages_updated_at
-    BEFORE UPDATE ON messages
+CREATE TRIGGER update_chat_messages_updated_at
+    BEFORE UPDATE ON chat_messages
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
 

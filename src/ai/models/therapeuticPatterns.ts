@@ -1,4 +1,5 @@
 import { ClientProfile } from '@/types/clientprofile';
+
 export interface TherapeuticPattern {
     name: string;
     description: string;
@@ -6,28 +7,34 @@ export interface TherapeuticPattern {
     examples: string[];
     isApplicable: (message: string, context: MessageContext) => boolean;
 }
+
 export interface DefenseMechanism {
     name: string;
     description: string;
     triggers: Array<string>;
     behaviors: Array<string>;
-    intensity: number; // 1-10
+    intensity: number;
 }
+
 export interface EmotionalResponse {
     emotion: string;
-    intensity: number; // 1-10
+    intensity: number;
     triggers: Array<string>;
     manifestation: Array<string>;
 }
-interface MessageContext {
+
+export interface MessageContext {
     clientGoals: string[];
     sessionHistory: string[];
-    clientProfile: {
-        preferredApproach?: string;
-        triggers?: string[];
-        strengths?: string[];
-    };
+    clientProfile: ClientProfile;
 }
+
+export interface AnalysisResult {
+    patterns: TherapeuticPattern[];
+    defenses: DefenseMechanism[];
+    emotions: EmotionalResponse[];
+}
+
 // Core therapeutic dialogue patterns
 export const therapeuticPatterns: Array<TherapeuticPattern> = [
     {
@@ -87,6 +94,7 @@ export const therapeuticPatterns: Array<TherapeuticPattern> = [
         },
     },
 ];
+
 // Common defense mechanisms
 export const defenseMechanisms: Array<DefenseMechanism> = [
     {
@@ -123,6 +131,7 @@ export const defenseMechanisms: Array<DefenseMechanism> = [
         intensity: 6
     }
 ];
+
 // Emotional response patterns
 export const emotionalResponses: Array<EmotionalResponse> = [
     {
@@ -156,10 +165,24 @@ export const emotionalResponses: Array<EmotionalResponse> = [
         ]
     }
 ];
-export function analyzeMessage(message: string, context: MessageContext): TherapeuticPattern[] {
+
+export function analyzeMessage(message: string, context: MessageContext): AnalysisResult {
     const patterns = getTherapeuticPatterns();
-    return patterns.filter((pattern: any) => pattern.isApplicable(message, context));
+    const matchedPatterns = patterns.filter(pattern => pattern.isApplicable(message, context));
+    const relevantDefenses = defenseMechanisms.filter(d => 
+        d.triggers.some(t => message.toLowerCase().includes(t.toLowerCase()))
+    );
+    const relevantEmotions = emotionalResponses.filter(e => 
+        e.triggers.some(t => message.toLowerCase().includes(t.toLowerCase()))
+    );
+
+    return {
+        patterns: matchedPatterns,
+        defenses: relevantDefenses,
+        emotions: relevantEmotions
+    };
 }
+
 function getTherapeuticPatterns(): TherapeuticPattern[] {
     return [
         {
