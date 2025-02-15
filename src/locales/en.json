@@ -1,0 +1,32 @@
+{
+  "common": {
+    "greeting": "Hello {{name}}",
+    "footer": {
+      "unsubscribe": "Unsubscribe from emails",
+      "preferences": "Email preferences",
+      "support": "Contact support",
+      "copyright": "© {{year}} {{companyName}}. All rights reserved."
+    }
+  },
+  "auth": {
+    "passwordReset": {
+      "title": "Reset Your Password",
+      "intro": "You recently requested to reset your password.",
+      "action": "Reset Password",
+      "expires": "This link expires in {{time}}",
+      "ignore": "If you didn't request this, you can safely ignore this email."
+    },
+    "welcome": {
+      "title": "Welcome to {{companyName}}",
+      "intro": "We're excited to have you on board!",
+      "getStarted": "Get Started",
+      "help": "Need help? Contact our support team."
+    }
+  },
+  "accessibility": {
+    "logo": "{{companyName}} logo",
+    "mainContent": "Main content",
+    "emailPreview": "Email preview text",
+    "skipToMain": "Skip to main content"
+  }
+} 
