@@ -1,15 +1,14 @@
 import { readFile } from 'fs/promises';
 import { readdir } from 'fs/promises';
 import { join } from 'path';
-import Handlebars from 'handlebars';
 import mjml2html from 'mjml';
 import { TemplateManager } from '@/lib/email/template-manager';
 import { Logger } from '@/lib/logger';
 import Handlebars, { TemplateDelegate as HandlebarsTemplateDelegate } from 'handlebars';
 
 const TEMPLATE_DIR = join(process.cwd(), 'src/templates/email');
-const templateCache = new Map<string, HandlebarsTemplateDelegate>();
 const partialsCache = new Map<string, HandlebarsTemplateDelegate>();
+const localeMessages: Record<string, Record<string, string>> = {};
 
 const logger = Logger.getInstance();
 
@@ -31,7 +30,7 @@ Handlebars.registerHelper('formatCurrency', (amount: number) => {
   }).format(amount);
 });
 
-Handlebars.registerHelper('ifEquals', function(arg1: any, arg2: any, options: Handlebars.HelperOptions) {
+Handlebars.registerHelper('ifEquals', function(this: any, arg1: any, arg2: any, options: Handlebars.HelperOptions) {
   return (arg1 == arg2) ? options.fn(this) : options.inverse(this);
 });
 
@@ -40,15 +39,6 @@ Handlebars.registerHelper('t', function(key: string, context: any) {
   const locale = context.data.root.locale || 'en';
   return localeMessages[locale]?.[key] || key;
 });
-
-// Default template context that's available to all templates
-const defaultContext = {
-  companyName: 'TherapyTrain',
-  supportUrl: process.env.SUPPORT_URL || '#',
-  lang: 'en',
-  dir: 'ltr'
-};
-
 /**
  * Load locale messages for a specific language
  */
@@ -66,9 +56,21 @@ export async function loadLocale(locale: string): Promise<void> {
 /**
  * Create a new template version
  */
+// Map to store template versions
+const templateVersions: Record<string, {
+  current: TemplateVersion;
+  versions: TemplateVersion[];
+}> = {};
+
+interface TemplateVersion {
+  version: string;
+  template: HandlebarsTemplateDelegate;
+  createdAt: Date;
+}
+
 export async function createTemplateVersion(templateName: string, content: string): Promise<void> {
   const template = Handlebars.compile(content);
-  const version = {
+  const version: TemplateVersion = {
     version: new Date().toISOString(),
     template,
     createdAt: new Date()
@@ -100,7 +102,7 @@ export function getTemplateVersion(templateName: string, version?: string): Temp
 /**
  * Load and register a partial template
  */
-async function loadPartial(partialName: string): Promise<void> {
+export async function loadPartial(partialName: string): Promise<void> {
   if (!partialsCache.has(partialName)) {
     const partialPath = join(TEMPLATE_DIR, `${partialName}.hbs`);
     try {
