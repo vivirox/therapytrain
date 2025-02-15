@@ -99,8 +99,6 @@
       "src/hooks/useScrollToBottom.ts",
       "src/hooks/useSecureAnalytics.ts",
       "src/index.css.d.ts",
-      "src/integrations/mongodb/client.ts",
-      "src/integrations/mongodb/models/User.ts",
       "src/interfaces/chat.ts",
       "src/interfaces/types.ts",
       "src/lib/ollama.ts",
