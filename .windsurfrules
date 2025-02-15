@@ -1,3 +1,90 @@
+# TherapyTrain Project Rules and Guidelines
+
+## Project Overview
+TherapyTrain is a secure, HIPAA-compliant therapy platform with real-time chat, AI assistance, and analytics capabilities.
+
+## Development Guidelines
+
+### Code Style and Structure
+- Use TypeScript for all new code
+- Follow functional programming patterns
+- Use React Server Components (RSC) by default
+- Implement proper error handling and logging
+- Follow HIPAA compliance requirements
+
+### Architecture Principles
+- Prefer Server-Sent Events (SSE) over WebSocket for real-time features
+- Use Supabase for database and real-time functionality
+- Implement zero-knowledge encryption for sensitive data
+- Follow the principle of least privilege
+
+### Testing Requirements
+- Write unit tests for all new features
+- Include integration tests for critical paths
+- Add end-to-end tests for user flows
+- Test HIPAA compliance requirements
+
+### Security Guidelines
+- Implement proper authentication and authorization
+- Use encryption for sensitive data
+- Follow zero-knowledge principles
+- Maintain audit trails
+
+## Current Tasks
+
+### 1. Update Mega-List
+- [ ] Review current chat implementation
+- [ ] Update SSE implementation details
+- [ ] Add new security requirements
+- [ ] Update testing guidelines
+
+### 2. Chat System Implementation
+- [ ] Complete SSE endpoint implementation
+- [ ] Add message persistence
+- [ ] Implement real-time features
+- [ ] Add chat analytics
+
+### 3. DevOps Setup
+- [ ] Set up CI/CD pipeline
+- [ ] Implement monitoring
+- [ ] Add automated testing
+- [ ] Configure deployment automation
+
+### 4. AI Features
+- [ ] Implement crisis prediction
+- [ ] Complete sentiment analysis
+- [ ] Add therapy technique recognition
+- [ ] Add session quality scoring
+
+## Lessons Learned
+
+### Best Practices
+- Use appropriate caching strategies
+- Implement proper monitoring from start
+- Follow progressive enhancement principles
+- Consider both vertical and horizontal scaling
+
+### Recent Fixes
+- Fixed PostgreSQL statistics views
+- Improved research workflow
+- Enhanced type safety in authentication flow
+- Added proper error handling
+
+## Scratchpad
+
+### Current Task: Project Setup and Documentation
+[ ] Create initial .windsurfrules file
+[ ] Update mega-list.mdx with SSE implementation
+[ ] Plan chat system completion
+[ ] Set up DevOps infrastructure
+[ ] Begin AI feature implementation
+
+### Notes
+- Focus on completing core functionality first
+- Maintain security and compliance throughout
+- Document all architectural decisions
+- Keep performance in mind from the start
+
 # Instructions
 
 During you interaction with the user, if you find anything reusable in this project (e.g. version of a library, model name), especially about a fix to a mistake you made or a correction you received, you should take note in the `Lessons` section in the `scratchpad.md` file so you will not make the same mistake again. 

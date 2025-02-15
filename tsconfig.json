@@ -21,11 +21,11 @@
     "forceConsistentCasingInFileNames": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"],
+      "@/*": ["src/*", "app/*", "lib/*"],
       "@/types/*": ["src/types/*"],
       "@/components/*": ["src/components/*"],
       "@/services/*": ["src/services/*"],
-      "@/lib/*": ["src/lib/*"],
+      "@/lib/*": ["src/lib/*", "app/lib/*", "lib/*"],
       "@/utils/*": ["src/utils/*"],
       "@/hooks/*": ["src/hooks/*"],
       "@/context/*": ["src/context/*"],
@@ -65,7 +65,11 @@
     "*.mdx",
     "src/types/**/*.d.ts",
     "src/types/custom.d.ts",
-    "src/types/vitest.d.ts"
+    "src/types/vitest.d.ts",
+    "app/**/*.ts",
+    "app/**/*.tsx",
+    "lib/**/*.ts",
+    "lib/**/*.tsx"
   ],
   "exclude": [
     "node_modules",

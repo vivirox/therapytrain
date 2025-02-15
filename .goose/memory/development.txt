@@ -1,0 +1,24 @@
+# #documentation #security #zk
+Nexus ZK documentation: https://docs.nexus.xyz/
+
+# #github #chat #supabase
+Vercel AI Chatbot (Supabase): https://github.com/supabase-community/vercel-ai-chatbot
+
+# #github #chat #neon
+Vercel AI Chatbot (Neon): https://github.com/vercel/ai-chatbot
+
+# #github #UI #template
+Liftoff project: https://github.com/Tameyer41/liftoff
+
+# vercel ai chatbot supabase neon comparison
+Vercel AI Chatbot (Supabase): https://github.com/supabase-community/vercel-ai-chatbot
+
+# vercel ai chatbot supabase neon comparison
+Vercel AI Chatbot (Neon): https://github.com/vercel/ai-chatbot
+
+# liftoff ui inspiration
+Liftoff project: https://github.com/Tameyer41/liftoff
+
+# therapytrain architecture security development files
+TherapyTrain project architecture, security measures, local development setup (Ollama, Supabase), mega-list.mdx and .cursorrules file locations
+

@@ -14,8 +14,10 @@ export const cacheConfig = {
             session: 3600, // 1 hour
             branch: 1800, // 30 minutes
             metrics: 86400, // 24 hours
-            messages: 300, // 5 minutes
+            messages: 60 * 60 * 24 * 7, // 7 days
             default: 3600, // 1 hour
+            sessions: 60 * 60 * 24 * 30, // 30 days
+            templates: 60 * 60 * 24 * 365, // 1 year
         },
 
         // Patterns for grouped cache management

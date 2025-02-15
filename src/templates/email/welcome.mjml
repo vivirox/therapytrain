@@ -1,0 +1,39 @@
+{{#> base}}
+  {{#*inline "content"}}
+    <mj-text>
+      <h1 style="font-size: 24px; font-weight: 600; margin-bottom: 16px;">Welcome to TherapyTrain!</h1>
+      
+      <p>Hello {{name}},</p>
+      
+      <p>Thank you for joining TherapyTrain! We're excited to have you on board and help you on your journey to becoming a better therapist.</p>
+      
+      <p>Here are a few things you can do to get started:</p>
+    </mj-text>
+
+    <mj-text padding-left="20px">
+      <ul style="margin: 0; padding-left: 20px;">
+        <li style="margin-bottom: 8px;">Complete your profile</li>
+        <li style="margin-bottom: 8px;">Explore available resources</li>
+        <li style="margin-bottom: 8px;">Join our community</li>
+        <li style="margin-bottom: 8px;">Schedule your first session</li>
+      </ul>
+    </mj-text>
+
+    <mj-button href="{{dashboardUrl}}" align="center" padding-top="20px">
+      Go to Dashboard
+    </mj-button>
+
+    <mj-text padding-top="20px">
+      <p>Need help getting started?</p>
+      <ul style="margin: 0; padding-left: 20px;">
+        <li style="margin-bottom: 8px;"><a href="{{supportUrl}}" class="text-link">Visit our Help Center</a></li>
+        <li style="margin-bottom: 8px;"><a href="{{contactUrl}}" class="text-link">Contact our Support Team</a></li>
+        <li style="margin-bottom: 8px;"><a href="{{faqUrl}}" class="text-link">Read our FAQs</a></li>
+      </ul>
+    </mj-text>
+
+    <mj-text padding-top="20px">
+      <p>Best regards,<br>The TherapyTrain Team</p>
+    </mj-text>
+  {{/inline}}
+{{/base}} 
