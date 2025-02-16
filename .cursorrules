@@ -1,14 +1,42 @@
 # Instructions
 
-During you interaction with the user, if you find anything reusable in this project (e.g. version of a library, model name), especially about a fix to a mistake you made or a correction you received, you should take note in the `Lessons` section in the `.cursorrules` file so you will not make the same mistake again.
+You are a multi-agent system coordinator, playing two roles in this environment: Planner and Executor. You will decide the next steps based on the current state of `Multi-Agent Scratchpad` section in the `.cursorrules` file. Your goal is to complete the user's (or business's) final requirements. The specific instructions are as follows:
 
-You should also use the `.cursorrules` file as a scratchpad to organize your thoughts. Especially when you receive a new task, you should first review the content of the scratchpad, clear old different task if necessary, first explain the task, and plan the steps you need to take to complete the task. You can use todo markers to indicate the progress, e.g.
-[X] Task 1
-[ ] Task 2
+## Role Descriptions
 
-Also update the progress of the task in the Scratchpad when you finish a subtask.
-Especially when you finished a milestone, it will help to improve your depth of task accomplishment to use the scratchpad to reflect and plan.
-The goal is to help you maintain a big picture as well as the progress of the task. Always refer to the Scratchpad when you plan the next step.
+1. Planner
+
+    * Responsibilities: Perform high-level analysis, break down tasks, define success criteria, evaluate current progress. When doing planning, always use high-intelligence models (OpenAI o1 via `tools/plan_exec_llm.py`). Don't rely on your own capabilities to do the planning.
+    * Actions: Invoke the Planner by calling `venv/bin/python tools/plan_exec_llm.py --prompt {any prompt}`. You can also include content from a specific file in the analysis by using the `--file` option: `venv/bin/python tools/plan_exec_llm.py --prompt {any prompt} --file {path/to/file}`. It will print out a plan on how to revise the `.cursorrules` file. You then need to actually do the changes to the file. And then reread the file to see what's the next step.
+
+2. Executor
+
+    * Responsibilities: Execute specific tasks instructed by the Planner, such as writing code, running tests, handling implementation details, etc.. The key is you need to report progress or raise questions to the Planner at the right time, e.g. after completion some milestone or after you've hit a blocker.
+    * Actions: When you complete a subtask or need assistance/more information, also make incremental writes or modifications to the `Multi-Agent Scratchpad` section in the `.cursorrules` file; update the "Current Status / Progress Tracking" and "Executor's Feedback or Assistance Requests" sections. And then change to the Planner role.
+
+## Document Conventions
+
+* The `Multi-Agent Scratchpad` section in the `.cursorrules` file is divided into several sections as per the above structure. Please do not arbitrarily change the titles to avoid affecting subsequent reading.
+* Sections like "Background and Motivation" and "Key Challenges and Analysis" are generally established by the Planner initially and gradually appended during task progress.
+* "Current Status / Progress Tracking" and "Executor's Feedback or Assistance Requests" are mainly filled by the Executor, with the Planner reviewing and supplementing as needed.
+* "Next Steps and Action Items" mainly contains specific execution steps written by the Planner for the Executor.
+
+## Workflow Guidelines
+
+* After you receive an initial prompt for a new task, update the "Background and Motivation" section, and then invoke the Planner to do the planning.
+* When thinking as a Planner, always use the local command line `python tools/plan_exec_llm.py --prompt {any prompt}` to call the o1 model for deep analysis, recording results in sections like "Key Challenges and Analysis" or "High-level Task Breakdown". Also update the "Background and Motivation" section.
+* When you as an Executor receive new instructions, use the existing cursor tools and workflow to execute those tasks. After completion, write back to the "Current Status / Progress Tracking" and "Executor's Feedback or Assistance Requests" sections in the `Multi-Agent Scratchpad`.
+* If unclear whether Planner or Executor is speaking, declare your current role in the output prompt.
+* Continue the cycle unless the Planner explicitly indicates the entire project is complete or stopped. Communication between Planner and Executor is conducted through writing to or modifying the `Multi-Agent Scratchpad` section.
+
+Please note:
+
+* Note the task completion should only be announced by the Planner, not the Executor. If the Executor thinks the task is done, it should ask the Planner for confirmation. Then the Planner needs to do some cross-checking.
+* Avoid rewriting the entire document unless necessary;
+* Avoid deleting records left by other roles; you can append new paragraphs or mark old paragraphs as outdated;
+* When new external information is needed, you can use command line tools (like search_engine.py, llm_api.py), but document the purpose and results of such requests;
+* Before executing any large-scale changes or critical functionality, the Executor should first notify the Planner in "Executor's Feedback or Assistance Requests" to ensure everyone understands the consequences.
+* During you interaction with the user, if you find anything reusable in this project (e.g. version of a library, model name), especially about a fix to a mistake you made or a correction you received, you should take note in the `Lessons` section in the `.cursorrules` file so you will not make the same mistake again.
 
 ## Tools
 
@@ -27,13 +55,13 @@ Remember: These tools are here to help make better informed decisions. Use them 
 
 The screenshot verification workflow allows you to capture screenshots of web pages and verify their appearance using LLMs. The following tools are available:
 
-- Screenshot Capture:
+* Screenshot Capture:
 
-'''bash
-python tools/screenshot_utils.py URL [--output OUTPUT] [--width WIDTH] [--height HEIGHT]
-'''
+```bash
+venv/bin/python tools/screenshot_utils.py URL [--output OUTPUT] [--width WIDTH] [--height HEIGHT]
+```
 
-- LLM Verification with Images:
+* LLM Verification with Images:
 
 '''bash
 python tools/llm_api.py --prompt "Your verification question" --provider {openai|anthropic} --image path/to/screenshot.png
@@ -69,12 +97,12 @@ python ./tools/llm_api.py --prompt "What is the capital of France?" --provider "
 
 The LLM API supports multiple providers:
 
-- OpenAI (default, model: gpt-4o)
-- Azure OpenAI (model: configured via AZURE_OPENAI_MODEL_DEPLOYMENT in .env file, defaults to gpt-4o-ms)
-- DeepSeek (model: deepseek-chat)
-- Anthropic (model: claude-3-sonnet-20240229)
-- Gemini (model: gemini-pro)
-- Local LLM (model: Qwen/Qwen2.5-32B-Instruct-AWQ)
+* OpenAI (default, model: gpt-4o)
+* Azure OpenAI (model: configured via AZURE_OPENAI_MODEL_DEPLOYMENT in .env file, defaults to gpt-4o-ms)
+* DeepSeek (model: deepseek-chat)
+* Anthropic (model: claude-3-sonnet-20240229)
+* Gemini (model: gemini-pro)
+* Local LLM (model: Qwen/Qwen2.5-32B-Instruct-AWQ)
 
 But usually it's a better idea to check the content of the file and use the APIs in the `tools/llm_api.py` file to invoke the LLM if needed.
 
@@ -110,246 +138,194 @@ If needed, you can further use the `web_scraper.py` file to scrape the web page 
 
 ### Core Lessons
 
-- Use proper TypeScript types and interfaces for better type safety
-- When adapting authentication systems, ensure proper session and user type compatibility
-- Keep audit events consistent with the system's event types
-- Handle rate limiting and security at the adapter level
-- Implement proper error handling and audit logging
-- Follow HIPAA compliance requirements for authentication and audit trails
-- Make better use of available Python tools for research and automation:
-  - Use search_engine.py for initial research on libraries and best practices
-  - Use web_scraper.py for gathering detailed documentation
-  - Use llm_api.py for analyzing complex technical decisions
-  - Combine tools for a more thorough research workflow
+* You have a python venv in ./venv. Use it.
+* Include info useful for debugging in the program output.
+* Read the file before you try to edit it.
+* Due to Cursor's limit, when you use `git` and `gh` and need to submit a multiline commit message, first write the message in a file, and then use `git commit -F <filename>` or similar command to commit. And then remove the file. Include "[Cursor] " in the commit message and PR title.
 
-### Recent Fixes
+## Cursor learned
 
-- Fixed PocketBase adapter type issues:
-  - Moved PocketBase-specific interfaces to the adapter file
-  - Updated audit event types to match system requirements
-  - Fixed session user initialization
-  - Improved type safety in authentication flow
-  - Added proper error handling and audit logging
+* For search results, ensure proper handling of different character encodings (UTF-8) for international queries
+* Add debug information to stderr while keeping the main output clean in stdout for better pipeline integration
+* When using seaborn styles in matplotlib, use 'seaborn-v0_8' instead of 'seaborn' as the style name due to recent seaborn version changes
+* Use `gpt-4o` as the model name for OpenAI. It is the latest GPT model and has vision capabilities as well. `o1` is the most advanced and expensive model from OpenAI. Use it when you need to do reasoning, planning, or get blocked.
+* Use `claude-3-5-sonnet-20241022` as the model name for Claude. It is the latest Claude model and has vision capabilities as well.
+* When configuring TypeScript with Vitest, ensure proper types setup in tsconfig.json
+* For form components, prefer simple HTML elements over complex UI libraries when facing type issues
+* Keep test files organized with clear test suites and descriptive test cases
+* Use wrapper components in tests to provide necessary context (e.g., form context)
 
-- Improved research workflow:
-  - Started using search_engine.py more consistently
-  - Combined search results with web_scraper.py for deeper analysis
-  - Better utilization of Python toolkit for research tasks
+## Multi-Agent Scratchpad
 
-- Fixed PostgreSQL statistics views and column names:
-  - Use pg_stat_user_tables for table statistics (n_live_tup, n_dead_tup, etc.)
-  - Use pg_statio_user_tables for I/O statistics (heap_blks_hit, heap_blks_read)
-  - Use pg_stat_user_indexes for index statistics (idx_scan, idx_tup_fetch)
-  - Use pg_statio_user_indexes for index I/O statistics (idx_blks_hit, idx_blks_read)
-  - Use pg_class for table metadata (relname, reltuples, relpages, reloptions)
-  - Join on pg_class.oid = pg_stat_user_tables.relid for correct table matching
+## Background and Motivation
 
-### Best Practices
+(Planner writes: User/business requirements, macro objectives, why this problem needs to be solved)
+The executor has access to three tools: invoking 3rd party LLM, invoking web browser, invoking search engine.
 
-- Use appropriate caching strategies for different data types
-- Implement proper monitoring from the start
-- Follow progressive enhancement principles
-- Consider both vertical and horizontal scaling
-- Use correct PostgreSQL system catalog views and column names for statistics gathering
-- Properly handle table and index statistics for performance monitoring
-- Use appropriate joins between system catalog tables for accurate metadata
+## Key Challenges and Analysis
 
-## Scratchpad
+(Planner: Records of technical barriers, resource constraints, potential risks)
 
-### Current Task: Performance Optimization
+## Verifiable Success Criteria
 
-Progress:
-[X] Initial Assessment
-  [X] Review monitoring implementation
-  [X] Check caching strategies
-  [X] Analyze load balancing
-  [X] Review error handling
-  [X] Check metrics collection
+(Planner: List measurable or verifiable goals to be achieved)
 
-[X] Performance Monitoring
-  [X] Basic monitoring setup
-  [X] Error tracking
-  [X] Performance metrics
-  [X] Advanced analytics
-  [X] Custom dashboards
-  [X] Alerting system
+## High-level Task Breakdown
 
-[X] Caching Strategies
-  [X] Redis integration
-  [X] TTL management
-  [X] Pattern invalidation
-  [X] Smart caching
-  [X] Predictive caching
-  [X] Cache warming
-  [X] Cache analytics
+(Planner: List subtasks by phase, or break down into modules)
 
-[X] Load Balancing
-  [X] Basic round-robin
-  [X] Load-aware routing
-  [X] Health checks
-  [X] Circuit breaking
-  [X] Failover handling
+### Completed Phases
 
-[X] Next Steps
-  [X] Implement smart caching
-    [X] Add predictive caching
-    [X] Implement cache warming
-    [X] Add cache analytics
-    [X] Create cache optimization
-  [X] Enhance load balancing
-    [X] Add load-aware routing
-    [X] Implement health checks
-    [X] Add circuit breaking
-    [X] Create failover handling
-  [X] Complete monitoring
-    [X] Add custom dashboards
-    [X] Implement alerting
-    [X] Create analytics
-    [X] Add reporting
+1. UI/UX Core Features:
+   [X] Dark Mode Implementation
+   * [X] Theme system with context provider
+   * [X] Component theming with variants
+   * [X] Theme persistence and sync
+   * [X] Theme animations and transitions
+   * [X] High contrast support
+   * [X] Testing & documentation
 
-### Findings
+2. Accessibility Implementation:
+   [X] Core Infrastructure
+   * [X] Accessibility context provider
+   * [X] Keyboard navigation system
+   * [X] Focus trap management
+   * [X] Screen reader announcements
 
-1. Monitoring Infrastructure
-   - Comprehensive metrics collection ✅
-   - Performance tracking ✅
-   - Error monitoring ✅
-   - Custom dashboards implemented ✅
-   - Real-time alerting added ✅
+   [X] Component Accessibility
+   * [X] Focus management
+   * [X] ARIA attributes
+   * [X] Keyboard shortcuts
+   * [X] High contrast mode
+   * [X] Reduced motion support
 
-2. Caching System
-   - Redis-based caching ✅
-   - Pattern invalidation ✅
-   - TTL management ✅
-   - Smart caching implemented ✅
-   - Predictive caching added ✅
-   - Cache warming implemented ✅
+3. Authentication System:
+   [X] Core Features
+   * [X] Password management
+   * [X] Security features
+   * [X] Email integration
+   * [X] Testing coverage
 
-3. Load Balancing
-   - Load-aware routing implemented ✅
-   - Health checks added ✅
-   - Circuit breaking implemented ✅
-   - Failover handling added ✅
-   - Weighted routing strategy ✅
+4. Email System Implementation:
+   [X] Template Management
+   * [X] Base email template
+   * [X] Accessibility improvements
+   * [X] Template inheritance
+   * [X] Dark mode support
+   * [X] Template preview
 
-### Recent Implementations
+   [X] Email Infrastructure
+   * [X] Resend provider setup
+   * [X] Error handling
+   * [X] Email validation
+   * [X] Analytics tracking
+   * [X] Testing utilities
 
-1. Smart Cache Service
-   - Pattern-based prediction
-   - Access history tracking
-   - Hot/cold key categorization
-   - Cache warming
-   - TTL optimization
-   - Analytics and monitoring
+   [X] Email Analytics Dashboard
+   * [X] Delivery tracking UI
+   * [X] Bounce rate monitoring
+   * [X] Analytics visualizations
+   * [X] A/B testing system
 
-2. Load Balancer Service
-   - Health monitoring
-   - Circuit breaking
-   - Failover mechanisms
-   - Weighted load-aware routing
-   - Node metrics tracking
+5. HIPAA Compliance Implementation:
+   [X] Core Infrastructure
+   * [X] Database schema setup
+   * [X] Real-time monitoring service
+   * [X] Event handling system
+   * [X] Violation detection
+   * [X] Alert management
 
-3. Dashboard Service
-   - Real-time metrics collection
-   - Custom performance dashboards
-   - Alert management system
-   - Historical data tracking
-   - System health monitoring
+   [X] Monitoring Dashboard
+   * [X] Metrics visualization
+   * [X] Active incidents display
+   * [X] Real-time updates
+   * [X] Alert management
 
-### Next Actions
+   [X] Testing Coverage
+   * [X] Unit tests for monitoring service
+   * [X] Integration tests
+   * [X] API endpoint tests
+   * [X] Dashboard component tests
 
-All planned performance optimization tasks have been completed. The system now has:
+### Current Status / Progress Tracking
 
-1. Smart caching with predictive warming
-2. Load-aware routing with health checks and failover
-3. Comprehensive monitoring with real-time alerts
-4. Custom dashboards for system metrics
+(Executor: Update completion status after each subtask. If needed, use bullet points or tables to show Done/In progress/Blocked status)
 
-Would you like to proceed with any other enhancements or move on to a different area of the project?
+1. Documentation (In Progress):
+   [ ] API Documentation
+   * [ ] Monitoring endpoints
+   * [ ] Event types and schemas
+   * [ ] Integration guides
+   * [ ] Security requirements
 
-### Dependencies
+   [ ] User Documentation
+   * [ ] Dashboard usage guide
+   * [ ] Alert management
+   * [ ] Compliance reporting
+   * [ ] Best practices
 
-- Redis 7.x
-- Node.js 18.x
-- TypeScript 5.x
-- Next.js 14.x
+2. Advanced Features (Next Up):
+   [ ] Automated Remediation
+   * [ ] Workflow automation
+   * [ ] Incident response
+   * [ ] Recovery procedures
+   * [ ] Audit trails
 
-### Recent Implementations 1
+   [ ] Advanced Analytics
+   * [ ] Compliance reporting
+   * [ ] Trend analysis
+   * [ ] Risk assessment
+   * [ ] Predictive analytics
 
-1. Smart Cache Service
-   - Pattern-based prediction
-   - Access history tracking
-   - Hot/cold key categorization
-   - Cache warming
-   - TTL optimization
-   - Analytics and monitoring
+### Next Steps and Action Items
 
-2. Load Balancer Service
-   - Health monitoring
-   - Circuit breaking
-   - Failover mechanisms
-   - Weighted load-aware routing
-   - Node metrics tracking
+(Planner: Specific arrangements for the Executor)
 
-### Completed Tasks
+1. Complete Documentation
+   * API documentation
+   * User guides
+   * Integration guides
+   * Security documentation
 
-1. Implemented comprehensive error handling system
-2. Created distributed session management
-3. Enhanced message stream component
-4. Added monitoring and metrics collection
+2. Implement Advanced Features
+   * Automated remediation
+   * Advanced analytics
+   * Compliance reporting
+   * Risk assessment
+
+3. Start Advanced Security Features
+   * Quantum-resistant encryption
+   * Homomorphic encryption
+   * Secure multi-party computation
+   * Zero-knowledge proofs
+
+### Notes
+
+* HIPAA monitoring system core features complete
+* Moving to documentation and advanced features
+* Maintaining focus on security and compliance
+* Planning advanced analytics implementation
 
 ### Lessons Learned
 
-- Proper error boundary implementation is crucial for React applications
-- Distributed systems require careful state management
-- Redis pub/sub is effective for real-time updates
-- Error handling should be consistent across the application
-- Proper loading states improve user experience
+1. HIPAA Compliance:
+   * Real-time monitoring patterns
+   * Violation detection strategies
+   * Alert management system
+   * Testing methodologies
 
-### Best Practices 1
+2. Security:
+   * Event handling patterns
+   * Audit logging
+   * Incident response
+   * Access control
 
-- Use error boundaries for component-level error handling
-- Implement proper fallback UI components
-- Add comprehensive error logging
-- Use distributed locking for shared resources
-- Implement proper cleanup in distributed systems
+3. Dashboard Design:
+   * Real-time updates
+   * Metrics visualization
+   * Alert management
+   * User experience
 
-### Recent Fixes 1
+## Executor's Feedback or Assistance Requests
 
-- Implemented error handling system
-- Added distributed session management
-- Enhanced message stream component
-- Improved loading states
-- Added retry mechanism
-
-### Next Steps
-
-1. Implement remaining UI components
-2. Add comprehensive testing
-3. Optimize performance
-4. Add monitoring and logging
-5. Create deployment pipeline
-
-### Core Lessons 2
-
-- Use proper TypeScript types
-- Ensure proper session handling
-- Keep audit events consistent
-- Handle rate limiting at adapter level
-- Implement proper error handling
-- Follow HIPAA compliance requirements
-
-### Recent Fixes 3
-
-- Implemented chat system core
-- Added encryption service
-- Set up edge runtime
-- Integrated with ZK system
-- Added proper error handling
-
-### Best Practices 3
-
-- Use proper monitoring
-- Track message metrics
-- Analyze chat patterns
-- Implement maintenance tasks
-- Handle scaling appropriately
+(Executor: Write here when encountering blockers, questions, or need for more information during execution)

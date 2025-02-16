@@ -2,11 +2,12 @@ import { Redis } from '@upstash/redis'
 import IORedis from 'ioredis'
 import { cacheConfig } from '../config/cache.config'
 import { CacheMonitoringService } from '../services/CacheMonitoringService'
+import { env } from '@/utils/env'
 
-// Create Upstash Redis client for edge runtime
-export const upstashRedis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL!,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+// Initialize Redis client
+const redis = new Redis({
+  url: env.UPSTASH_REDIS_REST_URL,
+  token: env.UPSTASH_REDIS_REST_TOKEN,
 })
 
 // Create ioredis client for server runtime
@@ -19,11 +20,82 @@ export const ioRedis = new IORedis(process.env.REDIS_URL!, {
 
 // Helper function to determine which client to use
 export function getRedisClient(isEdge: boolean = false) {
-  return isEdge ? upstashRedis : ioRedis
+  return isEdge ? redis : ioRedis
 }
 
-// Cache wrapper with automatic serialization/deserialization and monitoring
+/**
+ * Cache data with TTL
+ */
 export async function cache<T>(
+  key: string,
+  fn: () => Promise<T>,
+  ttl: number = 300, // 5 minutes default
+): Promise<T> {
+  // Try to get from cache first
+  const cached = await redis.get<T>(key);
+  if (cached !== null) {
+    return cached;
+  }
+
+  // If not in cache, execute function and cache result
+  const result = await fn();
+  await redis.setex(key, ttl, result);
+  return result;
+}
+
+/**
+ * Invalidate cache by pattern
+ */
+export async function invalidateByPattern(
+  pattern: string,
+  exact: boolean = false
+): Promise<void> {
+  const keys = await redis.keys(exact ? pattern : `${pattern}*`);
+  if (keys.length > 0) {
+    await redis.del(...keys);
+  }
+}
+
+/**
+ * Set cache value
+ */
+export async function set(
+  key: string,
+  value: unknown,
+  ttl?: number
+): Promise<void> {
+  if (ttl) {
+    await redis.setex(key, ttl, value);
+  } else {
+    await redis.set(key, value);
+  }
+}
+
+/**
+ * Get cache value
+ */
+export async function get<T>(key: string): Promise<T | null> {
+  return redis.get<T>(key);
+}
+
+/**
+ * Delete cache value
+ */
+export async function del(key: string): Promise<void> {
+  await redis.del(key);
+}
+
+/**
+ * Clear all cache
+ */
+export async function clear(): Promise<void> {
+  await redis.flushall();
+}
+
+export { redis };
+
+// Cache wrapper with automatic serialization/deserialization and monitoring
+export async function cacheWrapper<T>(
   key: string,
   getData: () => Promise<T>,
   ttl: number = cacheConfig.redis.ttl.default,
@@ -64,7 +136,7 @@ export async function cache<T>(
 }
 
 // Pattern-based cache invalidation with monitoring
-export async function invalidateByPattern(pattern: string, isEdge: boolean = false) {
+export async function invalidateByPatternWrapper(pattern: string, isEdge: boolean = false) {
   const redis = getRedisClient(isEdge)
   const monitor = CacheMonitoringService.getInstance()
   

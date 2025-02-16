@@ -1,4 +1,5 @@
-import { writeFile, mkdir } from 'fs/promises';
+import { writeFile } from 'fs/promises';
+import { mkdir } from 'fs/promises';
 import { join } from 'path';
 import { previewTemplate, listTemplates } from '../src/utils/template';
 
@@ -7,6 +8,7 @@ const OUTPUT_DIR = join(process.cwd(), 'tmp/email-previews');
 async function previewAllTemplates() {
   try {
     // Create output directory if it doesn't exist
+    await mkdir(OUTPUT_DIR, { recursive: true });
     await mkdir(OUTPUT_DIR, { recursive: true });
 
     // Get list of all templates
