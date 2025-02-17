@@ -1,27 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { ZKMessage, ZKChatMessage } from '@/lib/zk/types';
+import { ZKMessage } from '@/lib/zk/types';
 import { encrypt, decrypt, generateMessageId } from '@/lib/zk/crypto';
 import { getSession, getOrCreateSharedKey } from '@/lib/zk/session';
 import { cache, invalidateByPattern } from '@/lib/redis';
 import { cacheConfig } from '@/config/cache.config';
-<<<<<<< HEAD
 import { ChatEncryptionService } from '@/app/chat/ChatEncryptionService';
-=======
-import routeMessage from '@/services/router';
-import { ChatOpenAI } from 'langchain/chat_models/openai';
-import { HumanMessage, AIMessage } from 'langchain/schema';
-import { LangChainStream, StreamingTextResponse } from 'ai';
-import { Logger } from '@/lib/logger';
-import { ConnectionStore } from '@/lib/services/ConnectionStore';
-import { InstanceManager } from '@/lib/services/InstanceManager';
-import { RateLimiter } from '@/lib/services/RateLimiter';
-import { ResourceMonitor } from '@/lib/services/ResourceMonitor';
-import { ZKSession } from '../../lib/zk/types';
-import { decryptMessage } from '../../lib/zk/crypto';
-import { getRedisClient } from '../../lib/redis';
-import { router } from '../../services/router';
->>>>>>> origin/main
 
 // Enable edge runtime
 export const runtime = 'edge';
@@ -48,46 +32,8 @@ const supabase = createClient(
   }
 );
 
-<<<<<<< HEAD
 // Initialize encryption service
 const encryptionService = new ChatEncryptionService();
-=======
-// Initialize logger
-const logger = Logger.getInstance();
-
-// Initialize connection store
-const connectionStore = ConnectionStore.getInstance();
-
-// Initialize instance manager
-const instanceManager = InstanceManager.getInstance();
-
-// Initialize rate limiter
-const rateLimiter = RateLimiter.getInstance();
-
-// Initialize resource monitor
-const resourceMonitor = ResourceMonitor.getInstance();
-
-// Register this instance
-instanceManager.registerInstance().catch(error => {
-  logger.error('Failed to register instance', error as Error);
-});
-
-// Start resource monitoring
-resourceMonitor.startMonitoring();
-
-// Handle instance shutdown
-process.on('SIGTERM', async () => {
-  try {
-    await instanceManager.drainInstance();
-    await instanceManager.deregisterInstance();
-    resourceMonitor.stopMonitoring();
-    process.exit(0);
-  } catch (error) {
-    logger.error('Error during instance shutdown', error as Error);
-    process.exit(1);
-  }
-});
->>>>>>> origin/main
 
 // Helper function to generate cache key
 function generateCacheKey(userId: string, threadId?: string) {
@@ -339,6 +285,14 @@ export async function POST(req: NextRequest) {
       return new NextResponse('Unauthorized', { status: 401 });
     }
 
+    // Check rate limit for sending messages
+    const rateLimitInfo = await rateLimiter.checkLimit(session.user.id, 'messages');
+    if (rateLimitInfo.remaining === 0) {
+      const response = new NextResponse('Rate limit exceeded', { status: 429 });
+      addRateLimitHeaders(response.headers, rateLimitInfo);
+      return response;
+    }
+
 <<<<<<< HEAD
     // Encrypt and store message
     const encryptedMessage = await encryptionService.encryptMessage(
@@ -350,42 +304,6 @@ export async function POST(req: NextRequest) {
     await encryptionService.storeMessage(encryptedMessage);
 
     // Create streaming response
-=======
-    // Check rate limit for sending messages
-    const rateLimitInfo = await rateLimiter.checkLimit(session.user.id, 'messages');
-    if (rateLimitInfo.remaining === 0) {
-      const response = new NextResponse('Rate limit exceeded', { status: 429 });
-      addRateLimitHeaders(response.headers, rateLimitInfo);
-      return response;
-    }
-
-    const userSession = await getSession(session.user.id);
-    if (!userSession) {
-      await logger.error('Session not found', null, { userId: session.user.id });
-      return new NextResponse('Session not found', { status: 404 });
-    }
-
-    // Get recipient's public key
-    const { data: recipientData } = await supabase
-      .from('user_keys')
-      .select('public_key')
-      .eq('user_id', recipientId)
-      .single();
-
-    if (!recipientData) {
-      await logger.error('Recipient not found', null, { recipientId });
-      return new NextResponse('Recipient not found', { status: 404 });
-    }
-
-    // Get or create shared key
-    const sharedKey = await getOrCreateSharedKey(
-      userSession,
-      recipientId,
-      recipientData.public_key
-    );
-
-    // Set up streaming for AI response
->>>>>>> origin/main
     const { stream, handlers } = LangChainStream();
 
     // Initialize chat model
@@ -500,10 +418,6 @@ export async function GET(req: NextRequest) {
     );
   } catch (error) {
     console.error('Chat error:', error);
-=======
-    await logger.error('Error sending message', error as Error);
-    await resourceMonitor.trackError();
->>>>>>> origin/main
     return new NextResponse('Internal Server Error', { status: 500 });
   }
 } 

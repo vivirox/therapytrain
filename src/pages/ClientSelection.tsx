@@ -20,7 +20,7 @@ const ClientSelection: React.FC = () => {
             navigate("/auth");
             return;
         }
-        // TODO: Fetch clients from MongoDB
+        // TODO: Fetch clients from Supabase
         // For now, using mock data
         setClients([
             { id: "1", name: "John Doe", lastSession: "2024-01-20" },

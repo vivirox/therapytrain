@@ -1,16 +1,10 @@
 import { readFile } from 'fs/promises';
 import { readdir } from 'fs/promises';
 import { join } from 'path';
-import mjml2html from 'mjml';
-import { TemplateManager } from '@/lib/email/template-manager';
-import { Logger } from '@/lib/logger';
-import Handlebars, { TemplateDelegate as HandlebarsTemplateDelegate } from 'handlebars';
+import Handlebars from 'handlebars';
 
 const TEMPLATE_DIR = join(process.cwd(), 'src/templates/email');
 const partialsCache = new Map<string, HandlebarsTemplateDelegate>();
-const localeMessages: Record<string, Record<string, string>> = {};
-
-const logger = Logger.getInstance();
 
 // Register common helpers
 Handlebars.registerHelper('currentYear', () => new Date().getFullYear());
@@ -39,65 +33,14 @@ Handlebars.registerHelper('t', function(key: string, context: any) {
   const locale = context.data.root.locale || 'en';
   return localeMessages[locale]?.[key] || key;
 });
-/**
- * Load locale messages for a specific language
- */
-export async function loadLocale(locale: string): Promise<void> {
-  try {
-    const localePath = join(process.cwd(), 'src/locales', `${locale}.json`);
-    const content = await readFile(localePath, 'utf-8');
-    localeMessages[locale] = JSON.parse(content);
-  } catch (error) {
-    console.error(`Failed to load locale ${locale}:`, error);
-    throw new Error(`Failed to load locale ${locale}`);
-  }
-}
 
-/**
- * Create a new template version
- */
-// Map to store template versions
-const templateVersions: Record<string, {
-  current: TemplateVersion;
-  versions: TemplateVersion[];
-}> = {};
-
-interface TemplateVersion {
-  version: string;
-  template: HandlebarsTemplateDelegate;
-  createdAt: Date;
-}
-
-export async function createTemplateVersion(templateName: string, content: string): Promise<void> {
-  const template = Handlebars.compile(content);
-  const version: TemplateVersion = {
-    version: new Date().toISOString(),
-    template,
-    createdAt: new Date()
-  };
-
-  if (!templateVersions[templateName]) {
-    templateVersions[templateName] = {
-      current: version,
-      versions: [version]
-    };
-  } else {
-    templateVersions[templateName].versions.push(version);
-    templateVersions[templateName].current = version;
-  }
-}
-
-/**
- * Get a specific template version
- */
-export function getTemplateVersion(templateName: string, version?: string): TemplateVersion | null {
-  const templateData = templateVersions[templateName];
-  if (!templateData) return null;
-
-  if (!version) return templateData.current;
-
-  return templateData.versions.find(v => v.version === version) || null;
-}
+// Default template context that's available to all templates
+const defaultContext = {
+  companyName: 'TherapyTrain',
+  supportUrl: process.env.SUPPORT_URL || '#',
+  lang: 'en',
+  dir: 'ltr'
+};
 
 /**
  * Load and register a partial template
