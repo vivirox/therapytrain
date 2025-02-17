@@ -12,24 +12,13 @@ import {
 } from '@/components/ui/popover';
 
 interface DateRangePickerProps {
-<<<<<<< HEAD
-  value: DateRange | undefined;
-  onChange: (date: DateRange | undefined) => void;
-=======
   startDate?: string;
   endDate?: string;
   onDateChange: (startDate: string | undefined, endDate: string | undefined) => void;
->>>>>>> 586ddc5311c2246ce7603136d9238de8d4818d69
   className?: string;
 }
 
 export function DateRangePicker({
-<<<<<<< HEAD
-  value,
-  onChange,
-  className,
-}: DateRangePickerProps) {
-=======
   startDate,
   endDate,
   onDateChange,
@@ -53,7 +42,6 @@ export function DateRangePicker({
     );
   };
 
->>>>>>> 586ddc5311c2246ce7603136d9238de8d4818d69
   return (
     <div className={cn('grid gap-2', className)}>
       <Popover>
@@ -63,20 +51,6 @@ export function DateRangePicker({
             variant={'outline'}
             className={cn(
               'w-[300px] justify-start text-left font-normal',
-<<<<<<< HEAD
-              !value && 'text-muted-foreground'
-            )}
-          >
-            <CalendarIcon className="mr-2 h-4 w-4" />
-            {value?.from ? (
-              value.to ? (
-                <>
-                  {format(value.from, 'LLL dd, y')} -{' '}
-                  {format(value.to, 'LLL dd, y')}
-                </>
-              ) : (
-                format(value.from, 'LLL dd, y')
-=======
               !date && 'text-muted-foreground'
             )}
           >
@@ -89,7 +63,6 @@ export function DateRangePicker({
                 </>
               ) : (
                 format(date.from, 'LLL dd, y')
->>>>>>> 586ddc5311c2246ce7603136d9238de8d4818d69
               )
             ) : (
               <span>Pick a date range</span>
@@ -100,15 +73,9 @@ export function DateRangePicker({
           <Calendar
             initialFocus
             mode="range"
-<<<<<<< HEAD
-            defaultMonth={value?.from}
-            selected={value}
-            onSelect={onChange}
-=======
             defaultMonth={date?.from}
             selected={date}
             onSelect={handleSelect}
->>>>>>> 586ddc5311c2246ce7603136d9238de8d4818d69
             numberOfMonths={2}
           />
         </PopoverContent>

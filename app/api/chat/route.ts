@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { ZKMessage, ZKChatMessage } from '@/lib/zk/types';
+import { ZKMessage } from '@/lib/zk/types';
 import { encrypt, decrypt, generateMessageId } from '@/lib/zk/crypto';
 import { getSession, getOrCreateSharedKey } from '@/lib/zk/session';
 import { cache, invalidateByPattern } from '@/lib/redis';
@@ -293,6 +293,7 @@ export async function POST(req: NextRequest) {
       return response;
     }
 
+<<<<<<< HEAD
     // Encrypt and store message
     const encryptedMessage = await encryptionService.encryptMessage(
       message,
@@ -302,7 +303,7 @@ export async function POST(req: NextRequest) {
 
     await encryptionService.storeMessage(encryptedMessage);
 
-    // Set up streaming for AI response
+    // Create streaming response
     const { stream, handlers } = LangChainStream();
 
     // Initialize chat model
@@ -318,14 +319,56 @@ export async function POST(req: NextRequest) {
     // Start AI response generation
     chat.call(langchainMessages, {}, [handlers]);
 
+<<<<<<< HEAD
+=======
+    // Encrypt and store user message
+    const messageId = generateMessageId();
+    const encryptedPayload = await encrypt(messages[messages.length - 1].content, sharedKey);
+
+    const message: ZKMessage = {
+      id: messageId,
+      senderId: session.user.id,
+      recipientId,
+      encryptedContent: encryptedPayload.content,
+      iv: encryptedPayload.iv,
+      timestamp: Date.now(),
+      thread_id: threadId,
+      parent_message_id: parentMessageId,
+    };
+
+    // Store message in Supabase
+    await supabase.from('messages').insert([message]);
+
+>>>>>>> origin/main
     // Invalidate cache for both participants
     await Promise.all([
       invalidateByPattern(`chat:${session.user.id}:*`, true),
       invalidateByPattern(`chat:${recipientId}:*`, true)
     ]);
 
-    return new StreamingTextResponse(stream);
+    // Increment message rate limit counter
+    await rateLimiter.incrementCounter(session.user.id, 'messages');
+
+    // Track request duration
+    const duration = Date.now() - startTime;
+    await Promise.all([
+      logger.trackRequest(duration),
+      resourceMonitor.trackRequest(duration)
+    ]);
+
+    await logger.info('Message sent successfully', { 
+      userId: session.user.id,
+      recipientId,
+      threadId,
+      messageId
+    });
+
+    // Return streaming response
+    const response = new StreamingTextResponse(stream);
+    addRateLimitHeaders(response.headers, rateLimitInfo);
+    return response;
   } catch (error) {
+<<<<<<< HEAD
     console.error('Chat error:', error);
     return new NextResponse('Internal Server Error', { status: 500 });
   }
@@ -374,8 +417,7 @@ export async function GET(req: NextRequest) {
       true // Use edge runtime
     );
   } catch (error) {
-    await logger.error('Error sending message', error as Error);
-    await resourceMonitor.trackError();
+    console.error('Chat error:', error);
     return new NextResponse('Internal Server Error', { status: 500 });
   }
 } 
