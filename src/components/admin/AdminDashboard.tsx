@@ -1,11 +1,10 @@
 import React from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui/Button';
 import { useNavigate } from 'react-router-dom';
 import { MdPeople, MdSettings, MdSecurity, MdAnalytics } from 'react-icons/md';
-import { MetricsDashboard } from '@/components/MetricsDashboard';
-import { AuditDashboard } from '@/components/AuditDashboard';
+import { MetricsDashboard } from '../metricsdashboard';
 
 interface AdminSection {
   id: string;
@@ -20,34 +19,34 @@ const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
 
   // Admin sections following PocketBase's organization
-  const adminSections: AdminSection[] = [
+  const adminSections: Array<AdminSection> = [
     {
       id: 'users',
       title: 'User Management',
       description: 'Manage users, roles, and permissions',
       icon: MdPeople,
-      path: '/admin/users',
+      path: '/admin/Dashboard',
     },
     {
       id: 'security',
       title: 'Security Settings',
       description: 'Configure security policies and audit logs',
       icon: MdSecurity,
-      path: '/admin/security',
+      path: '/admin/Dashboard',
     },
     {
       id: 'analytics',
       title: 'Analytics',
       description: 'View system analytics and metrics',
       icon: MdAnalytics,
-      path: '/admin/analytics',
+      path: '/admin/Dashboard',
     },
     {
       id: 'settings',
       title: 'System Settings',
       description: 'Configure system-wide settings',
       icon: MdSettings,
-      path: '/admin/settings',
+      path: '/admin/Dashboard',
     },
   ];
 
@@ -75,7 +74,8 @@ const AdminDashboard: React.FC = () => {
                 <div className="flex items-center gap-4">
                   {React.createElement(section.icon, {
                     className: 'w-8 h-8 text-blue-500',
-                  })}
+                    style: { width: '2rem', height: '2rem' }
+                  } as React.SVGProps<SVGSVGElement>)}
                   <div>
                     <CardTitle className="text-xl">{section.title}</CardTitle>
                     <p className="text-gray-400">{section.description}</p>
@@ -96,17 +96,17 @@ const AdminDashboard: React.FC = () => {
         </div>
 
         {/* Security Audit */}
-        <Card className="bg-white/5 border-white/10">
-          <CardHeader>
-            <CardTitle className="text-xl">Security Audit Log</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <AuditDashboard />
-          </CardContent>
-        </Card>
+        {/*<Card className="bg-white/5 border-white/10">*/}
+        {/*<CardHeader>*/}
+        {/*<CardTitle className="text-xl">Security Audit Log</CardTitle>*/}
+        {/*</CardHeader>*/}
+        {/*<CardContent>*/}
+        {/*<AuditDashboard />*/}
+        {/*</CardContent>*/}
+        {/*</Card>*/}
       </div>
     </div>
   );
 };
 
-export default AdminDashboard; 
+export default AdminDashboard;

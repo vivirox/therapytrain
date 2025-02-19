@@ -17,7 +17,7 @@ interface ChartData {
     satisfaction: number;
 }
 const MetricsDashboard: React.FC =    () => {
-    const { data: metrics, isLoading: metricsLoading } = useQuery<Metric[]>({
+    const { data: metrics, isLoading: metricsLoading } = useQuery<Array<Metric>>({
         queryKey: ['metrics'],
         queryFn: async () => {
             // TODO: Replace with actual API call
@@ -53,7 +53,7 @@ const MetricsDashboard: React.FC =    () => {
             ];
         }
     });
-    const { data: chartData, isLoading: chartLoading } = useQuery<ChartData[]>({
+    const { data: chartData, isLoading: chartLoading } = useQuery<Array<ChartData>>({
         queryKey: ['chartData'],
         queryFn: async () => {
             // TODO: Replace with actual API call
@@ -69,19 +69,19 @@ const MetricsDashboard: React.FC =    () => {
         return (<div className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {[1, 2, 3, 4].map((i: any) => (<Card key={i} className="p-4">
-              <Skeleton className="h-4 w-[100px] mb-2"></Skeleton>
-              <Skeleton className="h-8 w-[60px] mb-2"></Skeleton>
-              <Skeleton className="h-4 w-[80px]"></Skeleton>
+              <Skeleton className="h-4 w-[100px] mb-2" />
+              <Skeleton className="h-8 w-[60px] mb-2" />
+              <Skeleton className="h-4 w-[80px]" />
             </Card>))}
         </div>
         <Card className="p-4">
-          <Skeleton className="h-[300px] w-full"></Skeleton>
+          <Skeleton className="h-[300px] w-full" />
         </Card>
       </div>);
     }
     return (<div className="space-y-8">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {metrics?.map((metric: unknown) => (<Card key={metric.id} className="p-4">
+        {metrics?.map((metric: Metric) => (<Card key={metric.id} className="p-4">
             <h3 className="text-sm font-medium text-gray-400">{metric.name}</h3>
             <div className="mt-2 flex items-baseline">
               <p className="text-2xl font-semibold">{metric.value}</p>
@@ -99,17 +99,18 @@ const MetricsDashboard: React.FC =    () => {
         <div className="h-[300px]">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3"></CartesianGrid>
-              <XAxis dataKey="date"></XAxis>
-              <YAxis ></YAxis>
-              <Tooltip ></Tooltip>
-              <Line type="monotone" dataKey="sessions" stroke="#3b82f6" name="Sessions"></Line>
-              <Line type="monotone" dataKey="engagement" stroke="#10b981" name="Engagement"></Line>
-              <Line type="monotone" dataKey="satisfaction" stroke="#8b5cf6" name="Satisfaction"></Line>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="date" />
+              <YAxis />
+              <Tooltip />
+              <Line type="monotone" dataKey="sessions" stroke="#3b82f6" name="Sessions" />
+              <Line type="monotone" dataKey="engagement" stroke="#10b981" name="Engagement" />
+              <Line type="monotone" dataKey="satisfaction" stroke="#8b5cf6" name="Satisfaction" />
             </LineChart>
           </ResponsiveContainer>
         </div>
       </Card>
     </div>);
 };
+
 export { MetricsDashboard };
