@@ -1,9 +1,8 @@
-declare module "@/components/*";
-declare module "@/integrations/*";
-declare module "@supabase/auth-helpers-shared";
-declare module "circomlibjs";
-declare module "bun:test";
-declare module "@supabase/ssr";
+declare module '@/components/*';
+declare module '@/integrations/*';
+declare module '@supabase/ssr';
+declare module 'circomlibjs';
+declare module 'bun:test';
 
 declare module "mongoose" {
   interface Connection {

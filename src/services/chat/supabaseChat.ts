@@ -1,4 +1,4 @@
-import { createSupabaseClient } from "@supabase/auth-helpers-shared";
+import { createSupabaseClient } from "@supabase/ssr";
 import { SupabaseClient, SupabaseClientOptions, RealtimeChannel, User, Session } from "@supabase/supabase-js";
 import { supabase } from '@/lib/supabaseclient';
 

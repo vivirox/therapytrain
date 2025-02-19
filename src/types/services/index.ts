@@ -16,6 +16,7 @@ export * from './contextuallearning';
 export * from './learningpath';
 export * from './tutorialpathway';
 export * from './recommendations';
+export * from './education';
 
 // Security
 export * from './encryption';

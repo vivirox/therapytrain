@@ -1,10 +1,19 @@
-import { LearningPath, SkillLevel, Tutorial, CaseStudy } from '@/types';
+import {
+  LearningPath,
+  SkillLevel,
+  Tutorial,
+  CaseStudy,
+} from "@/types/services/education";
 
 export interface EducationService {
   getLearningPaths(): Promise<LearningPath[]>;
   getTutorials(skillLevel: SkillLevel): Promise<Tutorial[]>;
   getCaseStudies(): Promise<CaseStudy[]>;
-  trackProgress(userId: string, tutorialId: string, progress: number): Promise<void>;
+  trackProgress(
+    userId: string,
+    tutorialId: string,
+    progress: number,
+  ): Promise<void>;
   getRecommendedPath(userId: string): Promise<LearningPath>;
   getSkillLevel(userId: string): Promise<SkillLevel>;
 }
@@ -25,5 +34,5 @@ export interface EducationConfig {
   requiredCaseStudiesPerLevel: number;
 }
 
-export * from '@/services/tutorialpathway';
-export * from '@/services/learningpath'; 
+export * from "@/services/tutorialPathway";
+export * from "@/services/learningPath";
