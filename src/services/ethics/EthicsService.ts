@@ -1,5 +1,5 @@
 import { singleton } from 'tsyringe';
-import { dataService } from '@/lib/data';
+import { dataService } from '../../services/dataService';
 import { NLPService } from '../nlp/NLPService';
 
 @singleton()
@@ -125,7 +125,7 @@ export class EthicsService {
     const adaptationStatus = await this.checkCulturalAdaptation(session);
     if (!adaptationStatus.isValid) {
       issues.push('Treatment not adequately culturally adapted');
-      recommendations.push('Adapt treatment approach to client's cultural context');
+      recommendations.push('Adapt treatment approach to clients cultural context');
     }
 
     const severity = this.determineCulturalCompetenceSeverity(issues);
@@ -278,7 +278,7 @@ export class EthicsService {
       }
 
       // Analyze cultural awareness in interactions
-      const awarenessAnalysis = await this.analyzeCulturalAwareness(session, culturalContext);
+      const awarenessAnalysis = await this.analyzeCulturalAwareness(session);
       
       return { isValid: awarenessAnalysis.score >= 0.8 };
     } catch (error) {
@@ -364,10 +364,8 @@ export class EthicsService {
   }
 
   private async getConsentDocumentation(session: any): Promise<any> {
-    return await dataService.get('consent_documentation', {
-      where: {
-        sessionId: session.id
-      }
+    return await dataService.findOne('consent_documentation', {
+      sessionId: session.id
     });
   }
 
@@ -381,10 +379,8 @@ export class EthicsService {
   }
 
   private async getComprehensionAssessment(session: any): Promise<any> {
-    return await dataService.get('comprehension_assessments', {
-      where: {
-        sessionId: session.id
-      }
+    return await dataService.findOne('comprehension_assessments', {
+      sessionId: session.id
     });
   }
 
@@ -431,10 +427,8 @@ export class EthicsService {
   }
 
   private async getRelationshipIndicators(session: any): Promise<any> {
-    return await dataService.get('relationship_indicators', {
-      where: {
-        sessionId: session.id
-      }
+    return await dataService.findOne('relationship_indicators', {
+      sessionId: session.id
     });
   }
 
@@ -449,14 +443,12 @@ export class EthicsService {
   }
 
   private async getCulturalContext(session: any): Promise<any> {
-    return await dataService.get('cultural_context', {
-      where: {
-        sessionId: session.id
-      }
+    return await dataService.findOne('cultural_context', {
+      sessionId: session.id
     });
   }
 
-  private async analyzeCulturalAwareness(session: any, context: any): Promise<{
+  private async analyzeCulturalAwareness(session: any): Promise<{
     score: number;
   }> {
     const interactions = await this.getInteractionRecords(session);
@@ -484,10 +476,8 @@ export class EthicsService {
   }
 
   private async getTreatmentApproach(session: any): Promise<any> {
-    return await dataService.get('treatment_approach', {
-      where: {
-        sessionId: session.id
-      }
+    return await dataService.findOne('treatment_approach', {
+      sessionId: session.id
     });
   }
 

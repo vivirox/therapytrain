@@ -5,6 +5,7 @@ import { ThreadMetricsCard } from './ThreadMetricsCard';
 import { ThreadPerformanceCard } from './ThreadPerformanceCard';
 import { ThreadTrendsChart } from './ThreadTrendsChart';
 import { ThreadInsightsCard } from './ThreadInsightsCard';
+import { ComparativeAnalyticsCard } from './ComparativeAnalyticsCard';
 import { ExportFormat } from '@/services/analytics/ThreadAnalyticsService';
 import { FileDownload as DownloadIcon } from '@mui/icons-material';
 
@@ -56,6 +57,15 @@ export const ThreadAnalyticsDashboard: React.FC<ThreadAnalyticsDashboardProps> =
             console.error('Error exporting report:', err);
         }
     };
+
+    // Define metrics for comparative analysis
+    const comparativeMetrics = [
+        'therapeutic.effectiveness',
+        'engagement.score',
+        'emotional.regulation',
+        'outcome.progress',
+        'compliance.adherence'
+    ];
 
     if (loading) {
         return (
@@ -144,6 +154,13 @@ export const ThreadAnalyticsDashboard: React.FC<ThreadAnalyticsDashboardProps> =
                 </Grid>
                 <Grid item xs={12} md={6}>
                     <ThreadInsightsCard report={report} />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                    <ComparativeAnalyticsCard
+                        sessionId={threadId}
+                        metrics={comparativeMetrics}
+                        therapyType={report.metrics.therapyType}
+                    />
                 </Grid>
             </Grid>
         </Box>

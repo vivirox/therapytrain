@@ -8,12 +8,13 @@ from dotenv import load_dotenv
 import sys
 import time
 from token_tracker import TokenUsage, APIResponse, get_token_tracker
+from llm_api import query_llm as llm_query
 
-STATUS_FILE = '../.cursorrules'
+STATUS_FILE = '.cursorrules'
 
 def load_environment():
     """Load environment variables from .env files"""
-    env_files = ['../.env.local', '../.env', '../.env.example']
+    env_files = ['.env.local', '.env', '.env.example']
     env_loaded = False
     
     for env_file in env_files:
@@ -33,7 +34,7 @@ def read_plan_status():
         with open(status_file, 'r', encoding='utf-8') as f:
             content = f.read()
             # Find the Multi-Agent Scratchpad section
-            scratchpad_marker = "# Multi-Agent Scratchpad"
+            scratchpad_marker = "## Scratchpad"
             if scratchpad_marker in content:
                 return content[content.index(scratchpad_marker):]
             else:
@@ -52,20 +53,9 @@ def read_file_content(file_path):
         print(f"Error reading {file_path}: {e}", file=sys.stderr)
         return None
 
-def create_llm_client():
-    """Create OpenAI client"""
-    api_key = os.getenv('OPENAI_API_KEY')
-    if not api_key:
-        raise ValueError("OPENAI_API_KEY not found in environment variables")
-    return OpenAI(api_key=api_key)
-
 def query_llm(plan_content, user_prompt=None, file_content=None):
     """Query the LLM with combined prompts"""
-    client = create_llm_client()
-    
     # Combine prompts
-    system_prompt = """"""
-    
     combined_prompt = f"""You are working on a multi-agent context. The executor is the one who actually does the work. And you are the planner. Now the executor is asking you for help. Please analyze the provided project plan and status, then address the executor's specific query or request.
 
 You need to think like a founder. Prioritize agility and don't over-engineer. Think deep. Try to foresee challenges and derisk earlier. If opportunity sizing or probing experiments can reduce risk with low cost, instruct the executor to do them.
@@ -94,51 +84,15 @@ We will do the actual changes in the .cursorrules file.
 """
 
     try:
-        start_time = time.time()
-        response = client.chat.completions.create(
-            model="o1",
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": combined_prompt}
-            ],
-            response_format={"type": "text"},
-            reasoning_effort="low"
-        )
-        thinking_time = time.time() - start_time
-        
-        # Track token usage
-        token_usage = TokenUsage(
-            prompt_tokens=response.usage.prompt_tokens,
-            completion_tokens=response.usage.completion_tokens,
-            total_tokens=response.usage.total_tokens,
-            reasoning_tokens=response.usage.completion_tokens_details.reasoning_tokens if hasattr(response.usage, 'completion_tokens_details') else None
-        )
-        
-        # Calculate cost
-        cost = get_token_tracker().calculate_openai_cost(
-            token_usage.prompt_tokens,
-            token_usage.completion_tokens,
-            "o1"
-        )
-        
-        # Track the request
-        api_response = APIResponse(
-            content=response.choices[0].message.content,
-            token_usage=token_usage,
-            cost=cost,
-            thinking_time=thinking_time,
-            provider="openai",
-            model="o1"
-        )
-        get_token_tracker().track_request(api_response)
-        
-        return response.choices[0].message.content
+        # Use the shared LLM API with OpenAI and smollm2-instruct model
+        response = llm_query(combined_prompt, provider="openai", model="smollm2-instruct")
+        return response
     except Exception as e:
         print(f"Error querying LLM: {e}", file=sys.stderr)
         return None
 
 def main():
-    parser = argparse.ArgumentParser(description='Query OpenAI o1 model with project plan context')
+    parser = argparse.ArgumentParser(description='Query LLM with project plan context')
     parser.add_argument('--prompt', type=str, help='Additional prompt to send to the LLM', required=False)
     parser.add_argument('--file', type=str, help='Path to a file whose content should be included in the prompt', required=False)
     args = parser.parse_args()

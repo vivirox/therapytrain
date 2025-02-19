@@ -2,6 +2,7 @@ import { SupabaseClient } from '@supabase/supabase-js';
 import { Database } from '../types/database';
 import { OptimizedDatabaseService } from './OptimizedDatabaseService';
 import { getCacheTTL, shouldInvalidateCache } from '../config/database.config';
+import { supabase } from '../lib/supabase';
 
 export interface StorageItem<T> extends Record<string, any> {
     data: T;
@@ -126,6 +127,9 @@ class DataService {
      * Get database performance metrics
      */
     public getPerformanceMetrics() {
-        return this.dbService.generateReport();
+        return this.dbService.getPerformanceMetrics();
     }
 }
+
+// Create and export default instance
+export const dataService = DataService.getInstance(supabase);
