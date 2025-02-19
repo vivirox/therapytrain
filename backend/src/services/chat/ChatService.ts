@@ -1,168 +1,385 @@
-import { supabase } from "../../config/database";
-import { Message, Session, MessageType, SessionStatus } from "../../types/chat";
+import { WebSocket, WebSocketServer } from 'ws';
+import { Server } from 'http';
+import { RateLimiterService } from "../RateLimiterService";
+import { SecurityAuditService } from "../SecurityAuditService";
+import { AIService } from "../AIService";
+import { MessageService } from "../MessageService";
+import { Request, Response, NextFunction } from 'express';
+import { supabase } from "@/config/supabase";
+import { ChatSession, ChatMessage, SessionRecoveryData, WebSocketConfig, SessionKeys } from '@/types/websocket';
+import { ZKService } from "../zkService";
+
+export interface ChatClient {
+    userId: string;
+    ws: WebSocketServer;
+    isAlive: boolean;
+    sessionId: string;
+    lastActivity: number;
+}
+
 export class ChatService {
-    async createSession(userId: string, title: string): Promise<Session> {
-        const { data, error } = await supabase
-            .from('sessions')
-            .insert({
-            user_id: userId,
+    private wss: WebSocketServer;
+    private clients: Map<string, ChatClient>;
+    private messageHistory: Map<string, ChatMessage[]>;
+    private readonly securityAudit: SecurityAuditService;
+    private readonly config: WebSocketConfig;
+    private rateLimiter: RateLimiterService;
+    private aiService: AIService;
+    private messageService: MessageService;
+    private zkService: ZKService;
+
+    constructor(
+        server: Server,
+        rateLimiter: RateLimiterService,
+        securityAudit: SecurityAuditService,
+        config: WebSocketConfig = {}
+    ) {
+        this.wss = new WebSocketServer({ noServer: true });
+        this.clients = new Map();
+        this.messageHistory = new Map();
+        this.rateLimiter = rateLimiter;
+        this.securityAudit = securityAudit;
+        this.zkService = new ZKService();
+        this.config = {
+            maxClients: 1000,
+            pingInterval: 30000,
+            pongTimeout: 10000,
+            closeTimeout: 5000,
+            ...config
+        };
+        this.aiService = new AIService(securityAudit, rateLimiter);
+        this.messageService = new MessageService(securityAudit);
+
+        this.setupWebSocketServer();
+        this.startHeartbeat();
+    }
+
+    async createSession(userId: string, title: string, sessionKeys: SessionKeys): Promise<ChatSession> {
+        const session = {
+            id: crypto.randomUUID(),
+            userId,
+            title,
+            createdAt: new Date().toISOString(),
             status: 'active',
-            payload: {
-                title,
-                participants: [userId],
-                settings: {
-                    model: 'gpt-4',
-                    temperature: 0.7,
-                    maxTokens: 1000
-                }
-            },
             metadata: {
+                keys: sessionKeys,
                 messageCount: 0,
-                lastActivity: new Date().toISOString(),
-                duration: 0
-            }
-        })
-            .select()
-            .single();
-        if (error)
-            throw error;
-        return data as Session;
-    }
-    async getSession(sessionId: string): Promise<Session | null> {
-        const { data, error } = await supabase
-            .from('sessions')
-            .select()
-            .eq('id', sessionId)
-            .single();
-        if (error)
-            throw error;
-        return data as Session;
-    }
-    async updateSession(sessionId: string, updates: Partial<Session>): Promise<Session> {
-        const { data, error } = await supabase
-            .from('sessions')
-            .update({
-            status: updates.status,
-            payload: updates.payload,
-            metadata: updates.metadata
-        })
-            .eq('id', sessionId)
-            .select()
-            .single();
-        if (error)
-            throw error;
-        return data as Session;
-    }
-    async getUserSessions(userId: string): Promise<Session[]> {
-        const { data, error } = await supabase
-            .from('sessions')
-            .select()
-            .eq('user_id', userId)
-            .order('created_at', { ascending: false });
-        if (error)
-            throw error;
-        return data as Session[];
-    }
-    async addMessage(sessionId: string, userId: string, type: MessageType, content: string, metadata: any = {}): Promise<Message> {
-        // Start a transaction
-        const { data: message, error: messageError } = await supabase
-            .from('messages')
-            .insert({
-            session_id: sessionId,
-            user_id: userId,
-            type,
-            payload: {
-                content,
-                role: type === 'ai' ? 'assistant' : 'user',
-                timestamp: new Date().toISOString()
-            },
-            metadata
-        })
-            .select()
-            .single();
-        if (messageError)
-            throw messageError;
-        // Update session metadata
-        const { data: session, error: sessionError } = await supabase
-            .from('sessions')
-            .update({
-            metadata: {
-                messageCount: supabase.raw('(metadata->\'messageCount\')::int + 1'),
                 lastActivity: new Date().toISOString()
             }
-        })
-            .eq('id', sessionId)
+        };
+
+        const { data, error } = await supabase
+            .from('sessions')
+            .insert(session)
             .select()
             .single();
-        if (sessionError)
-            throw sessionError;
-        return message as Message;
+
+        if (error) {
+            this.securityAudit.recordEvent('session_creation_error', {
+                userId,
+                error: error.message,
+                timestamp: new Date()
+            });
+            throw error;
+        }
+
+        return data;
     }
-    async getMessages(sessionId: string, limit: number = 50, before?: string): Promise<Message[]> {
+
+    async addMessage(
+        sessionId: string,
+        userId: string,
+        type: string,
+        encryptedContent: string,
+        metadata: any = {}
+    ): Promise<ChatMessage> {
+        const message = {
+            id: crypto.randomUUID(),
+            sessionId,
+            userId,
+            type,
+            content: encryptedContent,
+            createdAt: new Date().toISOString(),
+            metadata: {
+                ...metadata,
+                encrypted: true,
+                timestamp: new Date().toISOString()
+            }
+        };
+
+        const { data, error } = await supabase
+            .from('messages')
+            .insert(message)
+            .select()
+            .single();
+
+        if (error) {
+            this.securityAudit.recordEvent('message_creation_error', {
+                userId,
+                sessionId,
+                error: error.message,
+                timestamp: new Date()
+            });
+            throw error;
+        }
+
+        // Update session metadata
+        await supabase
+            .from('sessions')
+            .update({
+                metadata: {
+                    messageCount: supabase.raw('(metadata->\'messageCount\')::int + 1'),
+                    lastActivity: new Date().toISOString()
+                }
+            })
+            .eq('id', sessionId);
+
+        // Broadcast to connected clients
+        this.broadcastToSession(sessionId, {
+            type: 'new_message',
+            payload: data
+        });
+
+        return data;
+    }
+
+    async getMessages(
+        sessionId: string,
+        limit: number = 50,
+        before?: string
+    ): Promise<ChatMessage[]> {
         let query = supabase
             .from('messages')
-            .select()
-            .eq('session_id', sessionId)
-            .order('created_at', { ascending: false })
+            .select('*')
+            .eq('sessionId', sessionId)
+            .order('createdAt', { ascending: false })
             .limit(limit);
+
         if (before) {
-            query = query.lt('created_at', before);
+            query = query.lt('createdAt', before);
         }
+
         const { data, error } = await query;
-        if (error)
+
+        if (error) {
+            this.securityAudit.recordEvent('message_fetch_error', {
+                sessionId,
+                error: error.message,
+                timestamp: new Date()
+            });
             throw error;
-        return data as Message[];
+        }
+
+        return data || [];
     }
-    async updateSessionStatus(sessionId: string, status: SessionStatus): Promise<void> {
-        const { error } = await supabase
-            .from('sessions')
-            .update({
-            status,
-            metadata: {
-                lastActivity: new Date().toISOString()
+
+    private broadcastToSession(sessionId: string, message: any): void {
+        this.clients.forEach((client) => {
+            if (client.sessionId === sessionId && client.ws.readyState === WebSocket.OPEN) {
+                client.ws.send(JSON.stringify(message));
             }
-        })
-            .eq('id', sessionId);
-        if (error)
-            throw error;
+        });
     }
-    async deleteSession(sessionId: string): Promise<void> {
-        // Delete all messages first
-        const { error: messagesError } = await supabase
-            .from('messages')
-            .delete()
-            .eq('session_id', sessionId);
-        if (messagesError)
-            throw messagesError;
-        // Then delete the session
-        const { error: sessionError } = await supabase
+
+    private setupWebSocketServer(): void {
+        this.wss.on('connection', async (ws: WebSocket, req: any) => {
+            const userId = req.session?.userId;
+            if (!userId) {
+                ws.close(1008, 'Authentication required');
+                return;
+            }
+
+            if (this.clients.size >= this.config.maxClients!) {
+                ws.close(1008, 'Too many connections');
+                return;
+            }
+
+            const client: ChatClient = {
+                userId,
+                ws,
+                isAlive: true,
+                sessionId: req.session?.sessionId || '',
+                lastActivity: Date.now()
+            };
+
+            this.clients.set(userId, client);
+
+            ws.on('pong', () => {
+                const client = this.clients.get(userId);
+                if (client) {
+                    client.isAlive = true;
+                }
+            });
+
+            ws.on('message', async (data: WebSocket.Data) => {
+                try {
+                    const message = JSON.parse(data.toString());
+                    
+                    // Rate limiting check
+                    const canProceed = await this.rateLimiter.checkLimit(userId, 'websocket_message');
+                    if (!canProceed) {
+                        ws.send(JSON.stringify({
+                            type: 'error',
+                            payload: 'Rate limit exceeded'
+                        }));
+                        return;
+                    }
+
+                    // Handle different message types
+                    switch (message.type) {
+                        case 'join_session':
+                            await this.handleJoinSession(client, message.payload);
+                            break;
+                        case 'leave_session':
+                            await this.handleLeaveSession(client);
+                            break;
+                        case 'chat_message':
+                            await this.handleChatMessage(client, message.payload);
+                            break;
+                        default:
+                            ws.send(JSON.stringify({
+                                type: 'error',
+                                payload: 'Unknown message type'
+                            }));
+                    }
+                } catch (error) {
+                    console.error('Error handling message:', error);
+                    this.securityAudit.recordAlert('MESSAGE_HANDLING_ERROR', 'MEDIUM', {
+                        userId,
+                        error: error instanceof Error ? error.message : 'Unknown error'
+                    });
+                }
+            });
+
+            ws.on('close', () => {
+                this.handleDisconnection(client);
+            });
+
+            ws.on('error', (error: Error) => {
+                console.error('WebSocket error:', error);
+                this.securityAudit.recordAlert('WEBSOCKET_ERROR', 'HIGH', {
+                    userId,
+                    error: error.message
+                });
+            });
+        });
+    }
+
+    private async handleJoinSession(client: ChatClient, payload: any): Promise<void> {
+        const { sessionId } = payload;
+        
+        // Verify session access
+        const { data: session } = await supabase
             .from('sessions')
-            .delete()
-            .eq('id', sessionId);
-        if (sessionError)
-            throw sessionError;
+            .select('*')
+            .eq('id', sessionId)
+            .single();
+
+        if (!session || (session.userId !== client.userId && !session.participants?.includes(client.userId))) {
+            client.ws.send(JSON.stringify({
+                type: 'error',
+                payload: 'Session access denied'
+            }));
+            return;
+        }
+
+        client.sessionId = sessionId;
+        client.lastActivity = Date.now();
+
+        // Send session recovery data
+        this.sendSessionRecoveryData(client);
     }
-    async getSessionStats(sessionId: string) {
-        const { data, error } = await supabase
-            .from('messages')
-            .select('type, created_at, metadata')
-            .eq('session_id', sessionId);
-        if (error)
-            throw error;
-        const messages = data as Message[];
-        const totalMessages = messages.length;
-        const aiMessages = messages.filter((m: any) => m.type === 'ai').length;
-        const userMessages = messages.filter((m: any) => m.type === 'text').length;
-        const totalTokens = messages.reduce((sum: any, m: any) => sum + (m.metadata?.tokens || 0), 0);
-        return {
-            totalMessages,
-            aiMessages,
-            userMessages,
-            totalTokens,
-            averageResponseTime: messages
-                .filter((m: any) => m.metadata?.processingTime)
-                .reduce((sum: any, m: any) => sum + (m.metadata?.processingTime || 0), 0) /
-                aiMessages
-        };
+
+    private async handleLeaveSession(client: ChatClient): Promise<void> {
+        client.sessionId = '';
+        client.lastActivity = Date.now();
+    }
+
+    private async handleChatMessage(client: ChatClient, payload: any): Promise<void> {
+        const { content, type } = payload;
+        
+        if (!client.sessionId) {
+            client.ws.send(JSON.stringify({
+                type: 'error',
+                payload: 'No active session'
+            }));
+            return;
+        }
+
+        // Get recipient's public key
+        const { data: session } = await supabase
+            .from('sessions')
+            .select('*')
+            .eq('id', client.sessionId)
+            .single();
+
+        if (!session) {
+            client.ws.send(JSON.stringify({
+                type: 'error',
+                payload: 'Session not found'
+            }));
+            return;
+        }
+
+        // Get recipient ID
+        const recipientId = session.userId === client.userId ? session.participants[0] : session.userId;
+
+        // Get recipient's public key
+        const { data: recipientKey } = await supabase
+            .from('user_keys')
+            .select('public_key')
+            .eq('user_id', recipientId)
+            .single();
+
+        if (!recipientKey) {
+            client.ws.send(JSON.stringify({
+                type: 'error',
+                payload: 'Recipient key not found'
+            }));
+            return;
+        }
+
+        // Encrypt message
+        const encryptedMessage = await this.zkService.encryptMessage(
+            content,
+            client.userId,
+            recipientId,
+            recipientKey.public_key
+        );
+
+        // Add message to database
+        await this.addMessage(client.sessionId, client.userId, type, encryptedMessage);
+    }
+
+    private startHeartbeat(): void {
+        setInterval(() => {
+            this.clients.forEach((client) => {
+                if (!client.isAlive) {
+                    this.handleDisconnection(client);
+                    return;
+                }
+                client.isAlive = false;
+                client.ws.ping();
+            });
+        }, this.config.pingInterval);
+    }
+
+    private handleDisconnection(client: ChatClient): void {
+        client.ws.terminate();
+        this.clients.delete(client.userId);
+    }
+
+    private async sendSessionRecoveryData(client: ChatClient): Promise<void> {
+        if (!client.sessionId) return;
+
+        const messages = await this.getMessages(client.sessionId, 50);
+        
+        client.ws.send(JSON.stringify({
+            type: 'session_recovery',
+            payload: {
+                sessionId: client.sessionId,
+                messages
+            }
+        }));
     }
 }

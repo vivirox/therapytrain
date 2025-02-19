@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { ClientProfile } from '@/types/common';
+import { ProgressVisualization } from '@/components/progress/ProgressVisualization';
+import { ProgressTrackingService } from '@/services/progress/ProgressTrackingService';
 
 interface EvaluationCriteria {
     category: string;
@@ -114,6 +116,14 @@ const EvaluationPage: React.FC = () => {
     const [evaluation, setEvaluation] = useState<EvaluationCriteria[]>(evaluationCriteria);
     const [aiAnalysis, setAiAnalysis] = useState<string>('');
     const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [messages, setMessages] = useState<Message[]>([]);
+    const [analysis, setAnalysis] = useState<Analysis | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<Error | null>(null);
+    const [generating, setGenerating] = useState(false);
+    const [progressMetrics, setProgressMetrics] = useState<any>(null);
+    const [treatmentAlignment, setTreatmentAlignment] = useState<any>(null);
+
     useEffect(() => {
         const loadSessionData = async () => {
             if (!location.state) {
@@ -156,6 +166,34 @@ const EvaluationPage: React.FC = () => {
         };
         loadSessionData();
     }, [location.state, navigate]);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                // Fetch messages
+                const messagesResponse = await fetch(`/api/sessions/${sessionId}/messages`);
+                if (!messagesResponse.ok) throw new Error('Failed to fetch messages');
+                const messagesData = await messagesResponse.json();
+                setMessages(messagesData);
+
+                // Fetch progress metrics
+                const progressService = new ProgressTrackingService();
+                const metrics = await progressService.trackProgress(clientId, sessionId);
+                setProgressMetrics(metrics);
+
+                // Fetch treatment alignment
+                const alignment = await progressService.checkTreatmentAlignment(clientId, sessionId);
+                setTreatmentAlignment(alignment);
+            } catch (err) {
+                setError(err instanceof Error ? err : new Error('Failed to fetch data'));
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchData();
+    }, [sessionId, clientId]);
+
     const calculateOverallScore = () => {
         let total = 0;
         let count = 0;
@@ -174,6 +212,39 @@ const EvaluationPage: React.FC = () => {
             return 'text-yellow-600';
         return 'text-red-600';
     };
+
+    const analyzeSession = async () => {
+        setGenerating(true);
+        setError(null);
+
+        try {
+            const response = await fetch(`/api/sessions/${sessionId}/analyze`, {
+                method: 'POST',
+            });
+
+            if (!response.ok) throw new Error('Failed to analyze session');
+
+            const analysis = await response.json();
+            setAnalysis(analysis);
+
+            const report = {
+                summary: analysis.summary,
+                recommendations: analysis.recommendations,
+                metrics: {
+                    effectiveness: analysis.metrics.effectiveness,
+                    engagement: analysis.metrics.engagement,
+                    progress: analysis.metrics.progress,
+                },
+            };
+
+            onGenerateReport(report);
+        } catch (err) {
+            setError(err instanceof Error ? err : new Error('Failed to analyze session'));
+        } finally {
+            setGenerating(false);
+        }
+    };
+
     if (isLoading || !client) {
         return (<div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
@@ -258,6 +329,75 @@ const EvaluationPage: React.FC = () => {
               </Card>
             </TabsContent>
           </Tabs>
+
+          {/* Session Analysis */}
+          <Card className="p-6 mb-6">
+            <h3 className="text-xl font-semibold mb-4">Session Analysis</h3>
+            {analysis ? (
+              <>
+                <div>
+                  <h4 className="text-lg font-semibold mb-2">Summary</h4>
+                  <p className="text-gray-700">{analysis.summary}</p>
+                </div>
+
+                <div className="mt-6">
+                  <h4 className="text-lg font-semibold mb-2">Key Metrics</h4>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <p className="text-sm text-gray-600">Effectiveness</p>
+                      <p className="text-2xl font-bold">
+                        {analysis.metrics.effectiveness}/10
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Engagement</p>
+                      <p className="text-2xl font-bold">
+                        {analysis.metrics.engagement}/10
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Progress</p>
+                      <p className="text-2xl font-bold">
+                        {analysis.metrics.progress}/10
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-6">
+                  <h4 className="text-lg font-semibold mb-2">Patterns Identified</h4>
+                  <div className="space-y-2">
+                    {Object.entries(analysis.patterns.emotional).map(
+                      ([emotion, count]: any) => (
+                        <div key={emotion} className="flex justify-between items-center">
+                          <span className="text-sm">{emotion}</span>
+                          <Badge variant="outline">{count} occurrences</Badge>
+                        </div>
+                      )
+                    )}
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="text-center py-8">
+                <Button
+                  onClick={analyzeSession}
+                  disabled={generating}
+                  className="w-full max-w-xs"
+                >
+                  {generating ? 'Analyzing...' : 'Analyze Session'}
+                </Button>
+              </div>
+            )}
+          </Card>
+
+          {/* Progress Visualization */}
+          {progressMetrics && (
+            <ProgressVisualization
+              progressMetrics={progressMetrics}
+              treatmentAlignment={treatmentAlignment}
+            />
+          )}
         </div>
 
         <div className="space-y-6">
@@ -290,18 +430,26 @@ const EvaluationPage: React.FC = () => {
             <div className="space-y-4">
               <div>
                 <p className="text-sm font-medium">Duration</p>
-                <p className="text-gray-600">10 minutes</p>
+                <p className="text-gray-600">
+                  {Math.round(sessionData?.duration || 0)} minutes
+                </p>
               </div>
               <div>
                 <p className="text-sm font-medium">Interactions</p>
-                <p className="text-gray-600">{sessionData?.messages.length || 0} messages</p>
+                <p className="text-gray-600">{messages.length} messages</p>
               </div>
-              <div>
-                <p className="text-sm font-medium">Key Moments</p>
-                <div className="space-y-2 mt-1">
-                  {/* Add key moments from AI analysis */}
+              {analysis && (
+                <div>
+                  <p className="text-sm font-medium">Key Moments</p>
+                  <div className="space-y-2 mt-1">
+                    {analysis.keyMoments.map((moment: string, idx: number) => (
+                      <p key={idx} className="text-gray-600">
+                        • {moment}
+                      </p>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </Card>
 

@@ -7,17 +7,17 @@ from openai import OpenAI
 from dotenv import load_dotenv
 import sys
 import time
-from .token_tracker import TokenUsage, APIResponse, get_token_tracker
+from token_tracker import TokenUsage, APIResponse, get_token_tracker
 
-STATUS_FILE = '.cursorrules'
+STATUS_FILE = '../.cursorrules'
 
 def load_environment():
     """Load environment variables from .env files"""
-    env_files = ['.env.local', '.env', '.env.example']
+    env_files = ['../.env.local', '../.env', '../.env.example']
     env_loaded = False
     
     for env_file in env_files:
-        env_path = Path('.') / env_file
+        env_path = Path(env_file)
         if env_path.exists():
             load_dotenv(dotenv_path=env_path)
             env_loaded = True

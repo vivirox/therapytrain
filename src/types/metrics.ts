@@ -192,3 +192,133 @@ export interface MetricsManager {
   getAggregation: (metric_name: string, period: { start: string; end: string }) => Promise<MetricsAggregation>;
   getSnapshot: () => Promise<MetricsSnapshot>;
 }
+
+export interface QualityBenchmark {
+  therapyType: string;
+  metrics: {
+    minAcceptable: number;
+    target: number;
+    exceptional: number;
+  };
+  context: {
+    sessionCount: number;
+    clientDemographics?: Record<string, any>;
+    condition?: string;
+    severity?: 'mild' | 'moderate' | 'severe';
+  };
+  metadata?: Metadata;
+}
+
+export interface ComprehensiveQualityMetrics {
+  sessionId: string;
+  timestamp: number;
+  
+  // Core metrics with weights for holistic scoring
+  metrics: {
+    therapeutic: {
+      value: TherapeuticMetrics;
+      weight: number;
+    };
+    engagement: {
+      value: EngagementMetrics;
+      weight: number;
+    };
+    emotional: {
+      value: EmotionalMetrics;
+      weight: number;
+    };
+    outcome: {
+      value: OutcomeMetrics;
+      weight: number;
+    };
+    compliance: {
+      value: ComplianceMetrics;
+      weight: number;
+    };
+  };
+  
+  // Holistic scoring
+  scores: {
+    overall: number;
+    categoryScores: {
+      therapeuticProgress: number;
+      clientEngagement: number;
+      emotionalRegulation: number;
+      treatmentAdherence: number;
+      outcomeProgress: number;
+    };
+  };
+  
+  // Comparative analysis
+  benchmarks: {
+    therapyType: string;
+    performance: {
+      percentile: number;
+      relativeToBenchmark: 'below' | 'meeting' | 'exceeding';
+      areasForImprovement: string[];
+      strengths: string[];
+    };
+  };
+  
+  // Quality standards compliance
+  qualityStandards: {
+    hipaaCompliance: boolean;
+    ethicalGuidelines: boolean;
+    bestPractices: boolean;
+    documentationQuality: number;
+    issuesIdentified: Array<{
+      type: string;
+      severity: 'low' | 'medium' | 'high';
+      description: string;
+      recommendedAction: string;
+    }>;
+  };
+  
+  // Trend analysis
+  trends: {
+    shortTerm: {
+      direction: 'improving' | 'stable' | 'declining';
+      rate: number;
+      significance: number;
+    };
+    longTerm: {
+      direction: 'improving' | 'stable' | 'declining';
+      rate: number;
+      significance: number;
+    };
+  };
+  
+  // AI-assisted insights
+  insights: {
+    keyObservations: string[];
+    recommendations: string[];
+    riskFactors: string[];
+    successFactors: string[];
+  };
+  
+  metadata?: Metadata;
+}
+
+export interface QualityMetricsManager extends MetricsManager {
+  // Comprehensive quality metrics methods
+  getComprehensiveMetrics: (sessionId: string) => Promise<ComprehensiveQualityMetrics>;
+  updateBenchmarks: (therapyType: string, metrics: QualityBenchmark) => Promise<void>;
+  getBenchmarks: (therapyType: string) => Promise<QualityBenchmark>;
+  
+  // Analysis methods
+  analyzeQualityTrends: (sessionIds: string[], period: { start: string; end: string }) => Promise<{
+    trends: ComprehensiveQualityMetrics['trends'];
+    insights: ComprehensiveQualityMetrics['insights'];
+  }>;
+  
+  // Reporting methods
+  generateQualityReport: (sessionId: string) => Promise<{
+    metrics: ComprehensiveQualityMetrics;
+    recommendations: string[];
+    complianceStatus: Record<string, boolean>;
+  }>;
+  
+  // Benchmark management
+  calculatePerformancePercentile: (metrics: ComprehensiveQualityMetrics, therapyType: string) => Promise<number>;
+  identifyAreasForImprovement: (metrics: ComprehensiveQualityMetrics) => Promise<string[]>;
+}

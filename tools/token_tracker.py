@@ -118,7 +118,9 @@ class TokenTracker:
             INPUT_PRICE_PER_M = 0.2  # $0.20 per million input tokens
             OUTPUT_PRICE_PER_M = 0.2  # $0.20 per million output tokens
         else:
-            raise ValueError(f"Unsupported OpenAI model for cost calculation: {model}. Only o1, gpt-4o, and deepseek-chat are supported.")
+            # Default pricing for custom models (free)
+            INPUT_PRICE_PER_M = 0.0
+            OUTPUT_PRICE_PER_M = 0.0
         
         input_cost = (prompt_tokens / 1_000_000) * INPUT_PRICE_PER_M
         output_cost = (completion_tokens / 1_000_000) * OUTPUT_PRICE_PER_M

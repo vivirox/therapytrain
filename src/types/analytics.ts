@@ -189,3 +189,60 @@ export const THERAPY_METRICS = {
         { id: 'metric6', name: 'Satisfaction', value: 4.5, unit: 'stars' }
     ]
 };
+
+export interface ThreadMetrics {
+    threadId: string;
+    createdAt: Date;
+    lastActivity: Date;
+    messageCount: number;
+    participantCount: number;
+    activeParticipants: number;
+    averageResponseTime: number;
+    depth: number;
+    branchCount: number;
+    engagementScore: number;
+}
+
+export interface ThreadAnalyticsEvent {
+    type: 'thread_created' | 'thread_deleted' | 'message_sent' | 'participant_joined' | 'participant_left';
+    threadId: string;
+    userId: string;
+    timestamp: Date;
+    metadata: Record<string, unknown>;
+}
+
+export interface ThreadPerformanceMetrics {
+    threadId: string;
+    loadTime: number;
+    messageLatency: number;
+    cacheHitRate: number;
+    errorRate: number;
+    resourceUsage: {
+        cpu: number;
+        memory: number;
+        network: number;
+    };
+    timestamp: Date;
+}
+
+export interface ThreadReport {
+    threadId: string;
+    period: {
+        start: Date;
+        end: Date;
+    };
+    metrics: ThreadMetrics;
+    performance: ThreadPerformanceMetrics;
+    trends: {
+        messageVolume: number[];
+        participantActivity: number[];
+        responseTimes: number[];
+        errors: number[];
+    };
+    insights: {
+        type: 'success' | 'warning' | 'info';
+        message: string;
+        metric?: string;
+        change?: number;
+    }[];
+}

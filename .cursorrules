@@ -40,6 +40,12 @@ Please note:
 
 ## Tools
 
+IMPORTANT: Before using any tools, always ensure you're in the correct conda environment:
+```bash
+conda activate therapytrain
+```
+This must be done before any tool usage, as the tools require specific Python packages that are installed in this environment. Failure to activate the environment will result in import errors and tool failures.
+
 Note all the tools are in python. So in the case you need to do batch processing, you can always consult the python files and write your own script.
 
 IMPORTANT: Make better use of the available Python tools! Before diving into implementation, always try to:
@@ -181,6 +187,23 @@ If needed, you can further use the `web_scraper.py` file to scrape the web page 
   - Added proper type safety and error handling
   - Improved test coverage for all Redis operations
 
+- Fixed LLM API integration:
+  - Added support for custom models in cost calculation
+  - Improved error handling for token usage tracking
+  - Made reasoning_tokens field truly optional
+  - Updated response format handling for different providers
+  - Added proper model validation
+  - Fixed environment variable configuration:
+    - Added /v1 suffix to OPENAI_BASE_URL
+    - Ensured proper loading of environment variables
+    - Updated client creation to use base URL from env
+
+- Fixed test command usage:
+  - Use pnpm instead of npm for all commands
+  - Update test commands to use pnpm test
+  - Ensure all CI/CD pipelines use pnpm
+  - Document pnpm usage in README
+
 ### Best Practices
 
 - Use appropriate caching strategies for different data types
@@ -190,123 +213,83 @@ If needed, you can further use the `web_scraper.py` file to scrape the web page 
 - Use correct PostgreSQL system catalog views and column names for statistics gathering
 - Properly handle table and index statistics for performance monitoring
 - Use appropriate joins between system catalog tables for accurate metadata
+- Always use pnpm for package management and running scripts (never npm or yarn)
 
 ## Scratchpad
 
-### Current Task: Redis Service Implementation and Testing
+### Background and Motivation
+We are implementing a comprehensive quality metrics system for therapy sessions. This system will build upon our existing metrics infrastructure to provide deeper insights and more accurate assessments of therapy session quality.
 
-Progress:
-[X] Redis Mock Implementation
-  [X] Basic operations (set, get, del)
-  [X] Pattern-based operations
-  [X] TTL support
-  [X] Memory management
-  [X] Event emission
+### Key Challenges and Analysis
+1. Need to integrate multiple data points into a cohesive scoring system
+2. Must ensure HIPAA compliance while collecting detailed metrics
+3. Need to establish meaningful benchmarks for different therapy types
+4. Must handle real-time analysis while maintaining performance
 
-[X] Redis Service Testing
-  [X] Basic operations tests
-  [X] Pattern-based operation tests
-  [X] Performance monitoring tests
-  [X] Memory management tests
-  [X] Integration tests with MonitoringService
+### Current Status / Progress Tracking
+- Existing metrics system provides basic session and intervention tracking
+- Completed implementation of comprehensive privacy service with:
+  - Privacy compliance checks
+  - Data handling validation
+  - Consent management
+  - Access control verification
+  - HIPAA compliance integration
+  - Security service integration
+- Completed implementation of core therapy-specific AI features:
+  - Crisis Prediction System (implemented in crisisPrediction.ts)
+    - Risk assessment and alert system
+    - Pattern analysis for behavioral, emotional, contextual, and historical factors
+    - Real-time monitoring and escalation protocols
+  - Therapy Style Analysis (implemented in therapeuticPatterns.ts and NLPService.ts)
+    - Pattern detection and defense mechanism analysis
+    - Emotional response tracking
+    - Therapeutic alliance analysis
+    - Intervention effectiveness evaluation
+  - Intervention Optimization (implemented in interventionOptimization.ts)
+    - Recommendation system based on historical effectiveness
+    - Outcome prediction and risk assessment
+    - Contextual analysis for intervention fit
+- Completed implementation of session summarization features:
+  - Comprehensive narrative summary generation (implemented in SessionSummarizationService.ts)
+    - Session phase analysis
+    - Emotional journey tracking
+    - Key moment detection
+    - Breakthrough identification
+  - Progress tracking system (implemented in ProgressTrackingService.ts)
+    - Client progress metrics by category
+    - Goal achievement tracking
+    - Treatment plan alignment analysis
+    - Progress timeline generation
+  - Progress visualization (implemented in ProgressVisualization.tsx)
+    - Interactive timeline charts
+    - Category-based progress displays
+    - Goal status tracking
+    - Treatment alignment visualization
+- Need to implement comprehensive quality metrics
+- Planning phase for holistic scoring system
 
-[X] Metrics and Monitoring
-  [X] Hit/miss tracking
-  [X] Latency tracking
-  [X] Performance recommendations
-  [X] Metrics history
+### Executor's Feedback or Assistance Requests
+Requesting Planner's guidance on implementing comprehensive quality metrics system.
 
-[ ] Next Steps: Blog Content Planning and Development
-  [X] Initial Setup
-    [X] Created content calendar
-    [X] Developed article template
-    [X] Created series planning template
-    [X] Set up blog structure
+### Next Steps and Action Items
+1. Complete session summarization implementation:
+   - Develop comprehensive narrative summary generation
+   - Implement key moment detection and breakthrough analysis
+   - Add client progress tracking across sessions
+   - Create treatment plan alignment analysis
+   - Enhance pattern recognition capabilities
+   - Add predictive analytics for treatment outcomes
+   - Implement goal progress visualization
+   - Create cross-session analytics dashboard
 
-  [X] Current Series Documentation
-    [X] Understanding Trauma Series
-    [X] Healing Journey Series
-    [X] Article metadata and structure
-    [X] Series navigation
+2. Implement comprehensive quality metrics:
+   - Develop holistic scoring system
+   - Create benchmarking framework
+   - Implement trend analysis
+   - Add quality standards compliance checks
 
-  [X] Upcoming Series Planning
-    [X] Trauma and the Body Series
-      [X] Series index page
-      [X] First article template
-      [X] Resource planning
-      [X] Supporting materials
-    [ ] Mindfulness in Recovery Series
-      [ ] Detailed article outlines
-      [ ] Author assignments
-      [ ] Resource planning
-      [ ] Supporting materials
-    [ ] Attachment Patterns Series
-      [ ] Detailed article outlines
-      [ ] Author assignments
-      [ ] Resource planning
-      [ ] Supporting materials
-    [ ] Boundaries and Recovery Series
-      [ ] Detailed article outlines
-      [ ] Author assignments
-      [ ] Resource planning
-      [ ] Supporting materials
-
-  [ ] Content Development Support
-    [X] Author guidelines
-    [X] Style guide
-    [X] Review checklist
-    [ ] Resource templates
-
-  [ ] Promotional Strategy
-    [ ] Newsletter templates
-    [ ] Social media plan
-    [ ] Professional outreach
-    [ ] Community engagement
-
-### Next Steps:
-1. Continue with Mindfulness in Recovery Series planning
-2. Create resource templates for authors
-3. Develop promotional strategy components
-4. Set up newsletter and social media templates
-
-### Best Practices:
-- Maintain consistent voice and tone across series
-- Ensure evidence-based content with citations
-- Include practical applications and exercises
-- Create engaging, accessible content
-- Follow trauma-informed writing guidelines
-- Maintain professional standards
-- Use proper metadata and SEO practices
-- Include interactive elements for engagement
-- Provide downloadable resources
-- Maintain clinical accuracy
-
-### Recent Fixes:
-- Created comprehensive email database schema
-- Implemented email service with tracking
-- Added template management system
-- Created base email templates
-- Fixed package manager configuration from yarn to pnpm
-- Installed required dependencies (mjml, @types/mjml, resend, @upstash/redis)
-- Fixed import paths in tsconfig.json
-- Created logger implementation
-- Added Redis cache configuration
-- Added environment variable validation
-- Updated services to use validated environment variables
-- Created test suites for template rendering
-- Added type declarations for test dependencies
-- Created test suite for email sending
-- Added proper mocking for external services
-
-### Lessons Learned:
-- Always validate environment variables using a schema
-- Use proper TypeScript types for better type safety
-- Handle Redis client types carefully
-- Keep services properly configured with environment variables
-- Use proper error handling in services
-- Implement proper logging and monitoring
-- Write tests before implementing features when possible
-- Mock external dependencies in tests
-- Add proper type declarations for dependencies
-- Extract mock functions for better test maintainability
-- Use proper typing for mock functions
+3. Integrate with existing services:
+   - Connect with PrivacyService for data protection
+   - Utilize SecurityService for access controls
+   - Leverage AuditService for logging
+   - Incorporate HIPAAService for compliance

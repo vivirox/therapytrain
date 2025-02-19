@@ -12,7 +12,7 @@ import base64
 from typing import Optional
 import mimetypes
 import time
-from .token_tracker import TokenUsage, APIResponse, get_token_tracker
+from token_tracker import TokenUsage, APIResponse, get_token_tracker
 
 def load_environment():
     """Load environment variables from .env files in order of precedence"""
@@ -70,10 +70,12 @@ def encode_image_file(image_path: str) -> tuple[str, str]:
 def create_llm_client(provider="openai"):
     if provider == "openai":
         api_key = os.getenv('OPENAI_API_KEY')
+        base_url = os.getenv('OPENAI_BASE_URL')
         if not api_key:
             raise ValueError("OPENAI_API_KEY not found in environment variables")
         return OpenAI(
-            api_key=api_key
+            api_key=api_key,
+            base_url=base_url
         )
     elif provider == "azure":
         api_key = os.getenv('AZURE_OPENAI_API_KEY')
@@ -180,10 +182,10 @@ def query_llm(prompt: str, client=None, model=None, provider="openai", image_pat
             thinking_time = time.time() - start_time
             # Track token usage
             token_usage = TokenUsage(
-                prompt_tokens=response.usage.prompt_tokens,
-                completion_tokens=response.usage.completion_tokens,
-                total_tokens=response.usage.total_tokens,
-                reasoning_tokens=response.usage.completion_tokens_details.reasoning_tokens if hasattr(response.usage, 'completion_tokens_details') else None
+                prompt_tokens=getattr(response.usage, 'prompt_tokens', 0),
+                completion_tokens=getattr(response.usage, 'completion_tokens', 0),
+                total_tokens=getattr(response.usage, 'total_tokens', 0),
+                reasoning_tokens=None
             )
             # Calculate cost
             cost = get_token_tracker().calculate_openai_cost(
