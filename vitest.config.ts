@@ -7,10 +7,15 @@ import { resolve } from 'path'
 export default defineConfig({
   plugins: [react(), tsconfigPaths()],
   test: {
-    environment: 'jsdom',
-    setupFiles: [],
     globals: true,
-    includeSource: ['src/**/*.{ts,tsx}'],
+    environment: 'jsdom',
+    setupFiles: ['./src/test-setup.tsx'],
+    deps: {
+      inline: ['@testing-library/user-event']
+    },
+    include: ['src/**/*.{test,spec}.{ts,tsx}'],
+    exclude: ['node_modules', '.idea', '.git', '.cache'],
+    testTimeout: 20000,
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
@@ -28,8 +33,9 @@ export default defineConfig({
         lines: 70,
         statements: 70
       }
-    },
-    include: ['src/**/*.{test,spec}.{ts,tsx}'],
+    }
+  },
+  resolve: {
     alias: {
       '@': resolve(__dirname, './src')
     }

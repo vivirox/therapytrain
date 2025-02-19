@@ -171,6 +171,7 @@
     "@types/node": "^22.13.1",
     "@types/node-fetch": "^2.6.12",
     "@types/nodemailer": "^6.4.17",
+    "@types/puppeteer": "^7.0.4",
     "@types/qs": "^6.9.18",
     "@types/range-parser": "^1.2.7",
     "@types/send": "^0.17.4",
@@ -245,6 +246,5 @@
       "supabase",
       "utf-8-validate"
     ]
-  },
-  "packageManager": "pnpm@8.15.1"
+  }
 }

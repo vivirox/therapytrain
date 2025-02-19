@@ -2,9 +2,10 @@ import '@testing-library/jest-dom';
 import { render, RenderOptions } from '@testing-library/react';
 import { ReactElement } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
+import { vi } from 'vitest';
 
 // Mock framer-motion to avoid animation issues in tests
-jest.mock('framer-motion', () => ({
+vi.mock('framer-motion', () => ({
   motion: {
     div: ({ children, ...props }: any) => <div {...props}>{children}</div>,
     p: ({ children, ...props }: any) => <p {...props}>{children}</p>,

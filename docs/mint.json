@@ -1,0 +1,182 @@
+{
+  "$schema": "https://mintlify.com/schema.json",
+  "name": "TherapyTrain Documentation",
+  "theme": "quill",
+  "logo": {
+    "dark": "/logo/dark.svg",
+    "light": "/logo/light.svg",
+    "href": "/"
+  },
+  "favicon": "/favicon.svg",
+  "colors": {
+    "primary": "#0A6C74",
+    "light": "#E6F6F7",
+    "dark": "#0A6C74"
+  },
+  "topbarLinks": [
+    {
+      "name": "Support",
+      "url": "mailto:support@therapytrain.ai"
+    }
+  ],
+  "topbarCtaButton": {
+    "name": "Dashboard",
+    "url": "/dashboard"
+  },
+  "tabs": [
+    {
+      "name": "API Reference",
+      "url": "api-reference"
+    },
+    {
+      "name": "Mental Health",
+      "url": "mental"
+    },
+    {
+      "name": "Blog",
+      "url": "blog"
+    }
+  ],
+  "anchors": [
+    {
+      "name": "Documentation",
+      "icon": "book-open-cover",
+      "url": "/docs"
+    },
+    {
+      "name": "GitHub",
+      "icon": "github",
+      "url": "https://github.com/vivirox/therapytrain"
+    }
+  ],
+  "navigation": [
+    {
+      "group": "Get Started",
+      "pages": [
+        "introduction",
+        "quickstart",
+        "development"
+      ]
+    },
+    {
+      "group": "Core Concepts",
+      "pages": [
+        "core/architecture",
+        "core/authentication",
+        "core/sessions",
+        "core/ai-integration"
+      ]
+    },
+    {
+      "group": "Testing",
+      "pages": [
+        "testing/overview",
+        "testing/patterns",
+        "testing/execution",
+        "testing/debugging",
+        "testing/coverage"
+      ]
+    },
+    {
+      "group": "Deployment",
+      "pages": [
+        "deployment/requirements",
+        "deployment/setup",
+        "deployment/configuration",
+        "deployment/monitoring"
+      ]
+    },
+    {
+      "group": "API Reference",
+      "pages": [
+        "api-reference/introduction",
+        "api-reference/authentication",
+        "api-reference/sessions",
+        "api-reference/users"
+      ]
+    }
+  ],
+  "footerSocials": {
+    "github": "https://github.com/vivirox/therapytrain"
+  },
+  "navigationTabs": {
+    "mental": [
+      {
+        "group": "Overview",
+        "pages": ["mental/index"]
+      },
+      {
+        "group": "I. CPTSD",
+        "pages": [
+          "mental/I-CPTSD/overview",
+          "mental/I-CPTSD/symptoms",
+          "mental/I-CPTSD/treatment",
+          "mental/I-CPTSD/resources"
+        ]
+      },
+      {
+        "group": "II. Addiction",
+        "pages": [
+          "mental/II-Addiction/overview",
+          "mental/II-Addiction/assessment",
+          "mental/II-Addiction/intervention",
+          "mental/II-Addiction/recovery"
+        ]
+      },
+      {
+        "group": "III. Intersection",
+        "pages": [
+          "mental/III-Intersection/overview",
+          "mental/III-Intersection/comorbidity",
+          "mental/III-Intersection/integrated-treatment",
+          "mental/III-Intersection/case-studies"
+        ]
+      },
+      {
+        "group": "IV. Management",
+        "pages": [
+          "mental/IV-Management/overview",
+          "mental/IV-Management/strategies",
+          "mental/IV-Management/support-systems",
+          "mental/IV-Management/crisis-planning"
+        ]
+      },
+      {
+        "group": "V. Resources",
+        "pages": [
+          "mental/V-Resources/overview",
+          "mental/V-Resources/therapy-options",
+          "mental/V-Resources/support-groups",
+          "mental/V-Resources/literature"
+        ]
+      },
+      {
+        "group": "Resource Bundles",
+        "pages": [
+          "mental/XYZbundle/therapist-resources",
+          "mental/XYZbundle/patient-resources",
+          "mental/XYZbundle/family-resources"
+        ]
+      }
+    ],
+    "blog": [
+      {
+        "group": "Understanding Trauma",
+        "pages": [
+          "blog/trauma-series/heart-of-codependency",
+          "blog/trauma-series/scapegoat-dynamics",
+          "blog/trauma-series/understanding-narcissism",
+          "blog/trauma-series/dark-side-of-love"
+        ]
+      },
+      {
+        "group": "Healing Journey",
+        "pages": [
+          "blog/healing-series/emotional-unavailability",
+          "blog/healing-series/codependency-and-trauma",
+          "blog/healing-series/dance-of-wounded-souls"
+        ]
+      }
+    ]
+  }
+} 

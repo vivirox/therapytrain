@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { CheckIcon, CheckCheckIcon } from 'lucide-react';
 import { TypingIndicator } from './TypingIndicator';
+import { Check } from 'lucide-react';
 
 export const MessageBubble = ({ message, isLast, className }: MessageBubbleProps) => {
   const isUser = message.role === 'user';
@@ -16,6 +17,8 @@ export const MessageBubble = ({ message, isLast, className }: MessageBubbleProps
         isUser ? 'justify-end' : 'justify-start',
         className
       )}
+      role="article"
+      aria-label={`${message.role} message`}
     >
       <div
         className={cn(
@@ -31,9 +34,9 @@ export const MessageBubble = ({ message, isLast, className }: MessageBubbleProps
           <>
             <p className="whitespace-pre-wrap break-words">{message.content}</p>
             {isUser && message.status && (
-              <div className="mt-1 flex justify-end space-x-1">
+              <div className="mt-1 flex justify-end space-x-1" data-testid="message-status">
                 {message.status === 'sent' && (
-                  <CheckIcon className="h-3 w-3 text-muted" />
+                  <Check className="h-3 w-3 text-muted" />
                 )}
                 {message.status === 'delivered' && (
                   <CheckCheckIcon className="h-3 w-3 text-muted" />

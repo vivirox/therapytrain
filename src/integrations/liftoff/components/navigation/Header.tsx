@@ -14,11 +14,13 @@ export const Header = ({
         'flex flex-col gap-4 pb-4 pt-6 md:flex-row md:items-center md:justify-between',
         className
       )}
+      data-testid="header-container"
     >
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         className="space-y-1.5"
+        data-testid="header-content"
       >
         {title && (
           <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>

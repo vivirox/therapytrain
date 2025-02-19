@@ -2,7 +2,8 @@
 /// <reference types="@testing-library/jest-dom" />
 
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import { screen, waitFor, fireEvent } from '@testing-library/react';
+import { render } from '@/test-setup';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { FormSelect } from '../FormSelect';
@@ -21,7 +22,13 @@ const FormSelectWrapper = ({
   ...props
 }: any) => {
   const form = useForm({ defaultValues });
-  return <FormSelect form={form} options={options} {...props} />;
+  return (
+    <FormSelect
+      control={form.control}
+      options={options}
+      {...props}
+    />
+  );
 };
 
 describe('FormSelect', () => {
@@ -29,17 +36,15 @@ describe('FormSelect', () => {
     id: 'test-select',
     name: 'test-select',
     label: 'Test Select',
-    options: [
-      { value: 'option1', label: 'Option 1' },
-      { value: 'option2', label: 'Option 2' },
-      { value: 'option3', label: 'Option 3' },
-    ],
+    control: undefined,
+    options: mockOptions,
     onChange: vi.fn(),
   };
 
   it('renders correctly with all props', () => {
     render(
-      <FormSelectWrapper
+      <FormSelect
+        {...defaultProps}
         name="test-select"
         label="Test Label"
         description="Test Description"

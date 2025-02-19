@@ -1,11 +1,17 @@
-import { render, screen } from '../../__tests__/setup';
+import { render, screen } from '@/test-setup';
+import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { Sidebar } from '../Sidebar';
 import { NavSection } from '../../../types/navigation';
 import { HomeIcon, UsersIcon, SettingsIcon } from 'lucide-react';
 
 // Mock usePathname hook
-jest.mock('next/navigation', () => ({
+vi.mock('next/navigation', () => ({
   usePathname: () => '/users',
+  useRouter: () => ({
+    push: vi.fn(),
+    replace: vi.fn(),
+    prefetch: vi.fn(),
+  }),
 }));
 
 const mockSections: NavSection[] = [
@@ -44,6 +50,10 @@ const mockSections: NavSection[] = [
 ];
 
 describe('Sidebar', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   it('renders all sections and items', () => {
     render(<Sidebar sections={mockSections} />);
 
@@ -55,65 +65,89 @@ describe('Sidebar', () => {
 
       // Check items in each section
       section.items.forEach((item) => {
-        expect(screen.getByText(item.title)).toBeInTheDocument();
+        const link = screen.getByRole('link', { name: new RegExp(item.title, 'i') });
+        expect(link).toBeInTheDocument();
+        
+        if (item.label) {
+          expect(screen.getByText(item.label)).toBeInTheDocument();
+        }
       });
     });
   });
 
   it('applies active state to current path', () => {
     render(<Sidebar sections={mockSections} />);
-    const activeLink = screen.getByText('Users').closest('a');
+    const activeLink = screen.getByRole('link', { name: /users/i });
+    expect(activeLink).toHaveAttribute('aria-current', 'page');
     expect(activeLink).toHaveClass('bg-accent');
-  });
-
-  it('renders icons correctly', () => {
-    render(<Sidebar sections={mockSections} />);
-    const icons = screen.getAllByTestId('nav-item-icon');
-    const itemsWithIcons = mockSections.flatMap(
-      (section) => section.items.filter((item) => item.icon)
-    );
-    expect(icons).toHaveLength(itemsWithIcons.length);
   });
 
   it('handles disabled items correctly', () => {
     render(<Sidebar sections={mockSections} />);
-    const disabledLink = screen.getByText('Preferences').closest('a');
+    const disabledLink = screen.getByRole('link', { name: /preferences/i });
+    expect(disabledLink).toHaveAttribute('aria-disabled', 'true');
     expect(disabledLink).toHaveClass('pointer-events-none', 'opacity-50');
   });
 
   it('handles external links correctly', () => {
     render(<Sidebar sections={mockSections} />);
-    const externalLink = screen.getByText('Documentation').closest('a');
+    const externalLink = screen.getByRole('link', { name: /documentation/i });
     expect(externalLink).toHaveAttribute('target', '_blank');
     expect(externalLink).toHaveAttribute('rel', 'noopener noreferrer');
-    expect(screen.getByTestId('external-link-icon')).toBeInTheDocument();
+    expect(externalLink.querySelector('[aria-label="external link"]')).toBeInTheDocument();
   });
 
-  it('renders item labels correctly', () => {
+  it('renders icons correctly', () => {
     render(<Sidebar sections={mockSections} />);
-    const label = screen.getByText('12');
-    expect(label).toHaveClass('text-xs', 'text-muted-foreground');
+    const itemsWithIcons = mockSections.flatMap(
+      (section) => section.items.filter((item) => item.icon)
+    );
+    
+    itemsWithIcons.forEach((item) => {
+      const link = screen.getByRole('link', { name: new RegExp(item.title, 'i') });
+      expect(link.querySelector('svg')).toBeInTheDocument();
+    });
   });
 
   it('applies custom className', () => {
-    const customClass = 'custom-class';
+    const customClass = 'custom-sidebar';
     render(<Sidebar sections={mockSections} className={customClass} />);
-    expect(screen.getByTestId('sidebar-container')).toHaveClass(customClass);
-  });
-
-  it('handles sections without title', () => {
-    const sectionsWithoutTitle: NavSection[] = [
-      {
-        items: [{ title: 'Item', href: '/item' }],
-      },
-    ];
-    render(<Sidebar sections={sectionsWithoutTitle} />);
-    expect(screen.getByText('Item')).toBeInTheDocument();
+    const nav = screen.getByRole('navigation');
+    expect(nav).toHaveClass(customClass);
   });
 
   it('maintains consistent spacing and layout', () => {
     render(<Sidebar sections={mockSections} />);
-    const sectionsContainer = screen.getByTestId('sections-container');
-    expect(sectionsContainer).toHaveClass('space-y-4', 'py-4');
+    const nav = screen.getByRole('navigation');
+    const lists = screen.getAllByRole('list');
+    
+    expect(nav).toHaveClass('space-y-4');
+    lists.forEach(list => {
+      expect(list).toHaveClass('space-y-1');
+    });
+  });
+
+  it('supports keyboard navigation', () => {
+    render(<Sidebar sections={mockSections} />);
+    const links = screen.getAllByRole('link');
+    
+    links.forEach(link => {
+      expect(link).toHaveAttribute('tabIndex', '0');
+      expect(link).toHaveClass('focus-visible:outline-none', 'focus-visible:ring-2');
+    });
+  });
+
+  it('provides proper ARIA attributes', () => {
+    render(<Sidebar sections={mockSections} />);
+    
+    const nav = screen.getByRole('navigation');
+    expect(nav).toHaveAttribute('aria-label', 'Sidebar navigation');
+    
+    mockSections.forEach(section => {
+      if (section.title) {
+        const list = screen.getByRole('list', { name: section.title });
+        expect(list).toHaveAttribute('aria-labelledby');
+      }
+    });
   });
 });

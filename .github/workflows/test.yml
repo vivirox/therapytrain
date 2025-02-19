@@ -1,0 +1,87 @@
+name: Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+      NEXT_PUBLIC_SUPABASE_TEST_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_TEST_URL }}
+      NEXT_PUBLIC_SUPABASE_TEST_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_TEST_ANON_KEY }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests with coverage
+        run: npm run test:ci
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: test-results/
+          retention-days: 30
+
+      - name: Upload coverage reports
+        if: always()
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          directory: ./coverage/
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: true
+          verbose: true
+
+      - name: Check coverage thresholds
+        run: |
+          COVERAGE_FILE="./coverage/coverage-summary.json"
+          if [ ! -f "$COVERAGE_FILE" ]; then
+            echo "Coverage file not found!"
+            exit 1
+          fi
+
+          # Function to check coverage against threshold
+          check_coverage() {
+            local type=$1
+            local threshold=$2
+            local actual=$(jq ".$type.pct" $COVERAGE_FILE)
+            
+            if (( $(echo "$actual < $threshold" | bc -l) )); then
+              echo "$type coverage ($actual%) is below threshold ($threshold%)"
+              return 1
+            fi
+            return 0
+          }
+
+          # Check each coverage type
+          check_coverage "lines" 70 && \
+          check_coverage "functions" 70 && \
+          check_coverage "statements" 70 && \
+          check_coverage "branches" 70
+
+      - name: Generate test report
+        if: always()
+        uses: dorny/test-reporter@v1
+        with:
+          name: Vitest Tests
+          path: test-results/junit.xml
+          reporter: jest-junit
+          fail-on-error: true 

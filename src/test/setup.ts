@@ -1,6 +1,8 @@
 import '@testing-library/jest-dom';
 import { cleanup } from '@testing-library/react';
 import { afterEach, vi } from 'vitest';
+import * as matchers from '@testing-library/jest-dom/matchers';
+import { expect } from 'vitest';
 import { AccessibilityProvider } from '../contexts/accessibility-context';
 import { render } from '@testing-library/react';
 import { ReactElement } from 'react';
@@ -28,7 +30,7 @@ if (typeof global.TextDecoder === 'undefined') {
 // Mock window.matchMedia
 Object.defineProperty(window, 'matchMedia', {
     writable: true,
-    value: vi.fn().mockImplementation((query: string) => ({
+    value: vi.fn().mockImplementation(query => ({
         matches: false,
         media: query,
         onchange: null,
@@ -37,18 +39,16 @@ Object.defineProperty(window, 'matchMedia', {
         addEventListener: vi.fn(),
         removeEventListener: vi.fn(),
         dispatchEvent: vi.fn(),
-    })) as unknown as (query: string) => MediaQueryList,
+    })),
 });
 // Mock IntersectionObserver
-const mockIntersectionObserver = vi.fn();
-mockIntersectionObserver.mockReturnValue({
-    observe: () => null,
-    unobserve: () => null,
-    disconnect: () => null,
-});
-window.IntersectionObserver = mockIntersectionObserver;
+global.IntersectionObserver = vi.fn().mockImplementation(() => ({
+    observe: vi.fn(),
+    unobserve: vi.fn(),
+    disconnect: vi.fn(),
+}));
 // Mock ResizeObserver
-window.ResizeObserver = vi.fn().mockImplementation(() => ({
+global.ResizeObserver = vi.fn().mockImplementation(() => ({
     observe: vi.fn(),
     unobserve: vi.fn(),
     disconnect: vi.fn(),
@@ -102,3 +102,6 @@ const customRender = (ui: ReactElement) => {
 // Re-export everything
 export * from '@testing-library/react';
 export { customRender as render };
+
+// Extend Vitest's expect with testing-library matchers
+expect.extend(matchers);

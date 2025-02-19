@@ -54,7 +54,8 @@
       "@/clientprofile": ["src/types/clientprofile"]
     },
     "typeRoots": ["./node_modules/@types", "./src/types"],
-    "outDir": "dist"
+    "outDir": "dist",
+    "types": ["node", "vitest", "@testing-library/jest-dom"]
   },
   "include": [
     "src/**/*.ts",

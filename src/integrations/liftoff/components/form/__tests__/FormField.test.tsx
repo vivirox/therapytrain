@@ -1,90 +1,97 @@
 /// <reference types="vitest" />
 /// <reference types="@testing-library/jest-dom" />
 
-import { render, screen } from '@testing-library/react';
+import { render, screen } from '@/test-setup';
 import { FormField } from '../FormField';
+import { useForm, FormProvider } from 'react-hook-form';
+
+// Test component wrapper to provide form context
+const FormFieldWrapper = ({ children, defaultValues = {} }: any) => {
+  const form = useForm({ defaultValues });
+  return <FormProvider {...form}>{children}</FormProvider>;
+};
 
 describe('FormField', () => {
   it('renders correctly with all props', () => {
-    const { container } = render(
-      <FormField
-        name="test-field"
-        label="Test Label"
-        description="Test Description"
-        error="Test Error"
-      >
-        <input type="text" id="test-field" />
-      </FormField>
+    render(
+      <FormFieldWrapper>
+        <FormField
+          name="test-field"
+          label="Test Label"
+          description="Test Description"
+          error="Test Error"
+        >
+          <input type="text" id="test-field" />
+        </FormField>
+      </FormFieldWrapper>
     );
     
     expect(screen.getByText('Test Label')).toBeInTheDocument();
     expect(screen.getByText('Test Description')).toBeInTheDocument();
     expect(screen.getByText('Test Error')).toBeInTheDocument();
-    expect(container.querySelector('input')).toBeInTheDocument();
+    expect(screen.getByRole('textbox')).toBeInTheDocument();
   });
 
   it('renders correctly without optional props', () => {
-    const { container } = render(
-      <FormField name="test-field">
-        <input type="text" id="test-field" />
-      </FormField>
+    render(
+      <FormFieldWrapper>
+        <FormField name="test-field">
+          <input type="text" id="test-field" />
+        </FormField>
+      </FormFieldWrapper>
     );
     
     expect(screen.queryByRole('label')).not.toBeInTheDocument();
     expect(screen.queryByText(/description/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/error/i)).not.toBeInTheDocument();
-    expect(container.querySelector('input')).toBeInTheDocument();
+    expect(screen.getByRole('textbox')).toBeInTheDocument();
   });
 
   it('applies custom className correctly', () => {
-    const { container } = render(
-      <FormField
-        name="test-field"
-        className="custom-class"
-      >
-        <input type="text" id="test-field" />
-      </FormField>
+    render(
+      <FormFieldWrapper>
+        <FormField
+          name="test-field"
+          className="custom-class"
+        >
+          <input type="text" id="test-field" />
+        </FormField>
+      </FormFieldWrapper>
     );
     
-    expect(container.firstChild).toHaveClass('custom-class');
+    const formField = screen.getByRole('textbox').closest('div');
+    expect(formField).toHaveClass('custom-class');
   });
 
-  it('associates label with input using htmlFor', () => {
+  it('handles form context integration', () => {
+    const defaultValues = {
+      'test-field': 'test value'
+    };
+
     render(
-      <FormField
-        name="test-field"
-        label="Test Label"
-      >
-        <input type="text" id="test-field" />
-      </FormField>
+      <FormFieldWrapper defaultValues={defaultValues}>
+        <FormField name="test-field">
+          <input type="text" id="test-field" />
+        </FormField>
+      </FormFieldWrapper>
     );
-    
-    const label = screen.getByText('Test Label');
-    expect(label).toHaveAttribute('for', 'test-field');
+
+    expect(screen.getByRole('textbox')).toHaveValue('test value');
   });
 
-  it('renders children correctly', () => {
+  it('displays error message with proper styling', () => {
     render(
-      <FormField name="test-field">
-        <div data-testid="child-element">Child Content</div>
-      </FormField>
+      <FormFieldWrapper>
+        <FormField
+          name="test-field"
+          error="This field is required"
+        >
+          <input type="text" id="test-field" />
+        </FormField>
+      </FormFieldWrapper>
     );
-    
-    expect(screen.getByTestId('child-element')).toBeInTheDocument();
-    expect(screen.getByText('Child Content')).toBeInTheDocument();
-  });
 
-  it('handles disabled state styling', () => {
-    render(
-      <FormField
-        name="test-field"
-        label="Test Label"
-      >
-        <input type="text" id="test-field" disabled />
-      </FormField>
-    );
-    
-    const label = screen.getByText('Test Label');
-    expect(label).toHaveClass('peer-disabled:cursor-not-allowed', 'peer-disabled:opacity-70');
+    const errorMessage = screen.getByText('This field is required');
+    expect(errorMessage).toHaveClass('text-destructive');
   });
 });

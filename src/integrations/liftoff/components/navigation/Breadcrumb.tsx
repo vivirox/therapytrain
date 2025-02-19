@@ -6,7 +6,10 @@ import { motion } from 'framer-motion';
 
 export const Breadcrumb = ({ items, className }: BreadcrumbProps) => {
   return (
-    <nav className={cn('flex items-center space-x-1 text-sm', className)}>
+    <nav 
+      className={cn("flex items-center space-x-1 text-sm", className)}
+      aria-label="Breadcrumb"
+    >
       {items.map((item, index) => (
         <motion.div
           key={item.title}
@@ -16,17 +19,23 @@ export const Breadcrumb = ({ items, className }: BreadcrumbProps) => {
           transition={{ delay: index * 0.1 }}
         >
           {index > 0 && (
-            <ChevronRightIcon className="mx-1 h-4 w-4 text-muted-foreground" />
+            <ChevronRightIcon 
+              className="mx-1 h-4 w-4 text-muted-foreground"
+              data-testid="breadcrumb-separator"
+              aria-hidden="true"
+            />
           )}
-          {item.href ? (
+          {index === items.length - 1 ? (
+            <span className="font-medium text-foreground" aria-current="page">
+              {item.title}
+            </span>
+          ) : (
             <Link
               href={item.href}
               className="hover:text-foreground text-muted-foreground transition-colors"
             >
               {item.title}
             </Link>
-          ) : (
-            <span className="font-medium text-foreground">{item.title}</span>
           )}
         </motion.div>
       ))}

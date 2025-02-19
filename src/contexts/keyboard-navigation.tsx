@@ -20,9 +20,13 @@ const KeyboardNavigationContext = createContext<KeyboardNavigationContextType | 
 
 export function KeyboardNavigationProvider({ children }: { children: React.ReactNode }) {
   const { focusTrap } = useAccessibility();
-  const [currentFocusGroup, setCurrentFocusGroup] = useState<string | null>(null);
+  const [currentFocusGroup, setCurrentFocusGroupState] = useState<string | null>(null);
   const focusableElements = useRef<Map<string, FocusableElement[]>>(new Map());
   
+  const setFocusGroup = useCallback((groupName: string) => {
+    setCurrentFocusGroupState(groupName);
+  }, []);
+
   // Register a focusable element with optional order and group
   const registerFocusable = useCallback((element: FocusableElement, order?: number, group: string = 'default') => {
     if (!focusableElements.current.has(group)) {

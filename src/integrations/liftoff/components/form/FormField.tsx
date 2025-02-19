@@ -1,8 +1,9 @@
 import { FormFieldProps } from '../../types/form';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
+import { FieldValues } from 'react-hook-form';
 
-export const FormField = <T extends Record<string, any>>({
+export const FormField = <T extends FieldValues>({
   name,
   label,
   description,

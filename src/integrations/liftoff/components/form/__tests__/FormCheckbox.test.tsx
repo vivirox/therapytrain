@@ -1,24 +1,14 @@
 /// <reference types="vitest" />
 /// <reference types="@testing-library/jest-dom" />
 
-import { render, screen } from '@testing-library/react';
+import { render, screen } from '@/test-setup';
 import userEvent from '@testing-library/user-event';
 import { FormCheckbox } from '../FormCheckbox';
-import { useForm } from 'react-hook-form';
-
-// Mock component wrapper to provide form context
-const FormCheckboxWrapper = ({
-  defaultValues = {},
-  ...props
-}: any) => {
-  const form = useForm({ defaultValues });
-  return <FormCheckbox form={form} {...props} />;
-};
 
 describe('FormCheckbox', () => {
   it('renders correctly with all props', () => {
     render(
-      <FormCheckboxWrapper
+      <FormCheckbox
         name="test-checkbox"
         label="Test Label"
         description="Test Description"
@@ -32,7 +22,7 @@ describe('FormCheckbox', () => {
 
   it('handles disabled state', () => {
     render(
-      <FormCheckboxWrapper
+      <FormCheckbox
         name="test-checkbox"
         label="Disabled Checkbox"
         disabled={true}
@@ -49,7 +39,7 @@ describe('FormCheckbox', () => {
   it('handles checkbox state changes', async () => {
     const user = userEvent.setup();
     render(
-      <FormCheckboxWrapper
+      <FormCheckbox
         name="test-checkbox"
         label="Test Checkbox"
       />
@@ -71,7 +61,7 @@ describe('FormCheckbox', () => {
     };
 
     render(
-      <FormCheckboxWrapper
+      <FormCheckbox
         name="test-checkbox"
         label="Required Checkbox"
         validation={validation}
@@ -94,7 +84,7 @@ describe('FormCheckbox', () => {
     };
 
     render(
-      <FormCheckboxWrapper
+      <FormCheckbox
         name="test-checkbox"
         label="Test Checkbox"
         defaultValues={defaultValues}
@@ -107,7 +97,7 @@ describe('FormCheckbox', () => {
 
   it('applies custom className correctly', () => {
     render(
-      <FormCheckboxWrapper
+      <FormCheckbox
         name="test-checkbox"
         label="Test Checkbox"
         className="custom-class"
@@ -120,7 +110,7 @@ describe('FormCheckbox', () => {
 
   it('renders without label', () => {
     render(
-      <FormCheckboxWrapper
+      <FormCheckbox
         name="test-checkbox"
       />
     );
@@ -131,7 +121,7 @@ describe('FormCheckbox', () => {
 
   it('associates label with checkbox using htmlFor', () => {
     render(
-      <FormCheckboxWrapper
+      <FormCheckbox
         name="test-checkbox"
         label="Test Label"
       />
@@ -147,7 +137,7 @@ describe('FormCheckbox', () => {
   it('handles click on label', async () => {
     const user = userEvent.setup();
     render(
-      <FormCheckboxWrapper
+      <FormCheckbox
         name="test-checkbox"
         label="Test Label"
       />
