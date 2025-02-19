@@ -13,7 +13,7 @@ declare module '../integrations/supabase/client' {
   export const supabase: BaseSupabaseClient<Database>
 }
 
-declare module '@supabase/auth-helpers-shared' {
+declare module '@supabase/ssr' {
   export function createSupabaseClient<Database = any>(
     supabaseUrl: string,
     supabaseKey: string,
