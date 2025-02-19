@@ -6,6 +6,8 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
+token_logs/
+test_token_logs/
 
 node_modules
 dist
@@ -35,7 +37,9 @@ src/utils/supabase.
 
 .pnpm-store/*
 
-devel/*
+# python stuff
+.cursorrules
+.windsurfrules
 
 integrate
 integrate/*

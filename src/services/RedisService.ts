@@ -8,6 +8,7 @@ import {
     getPerformanceThreshold,
     isFeatureEnabled,
 } from '../config/cache.config';
+import { SmartCacheService } from './SmartCacheService';
 
 export class RedisService {
     private static instance: RedisService;
@@ -19,6 +20,7 @@ export class RedisService {
         invalidations: number;
         latency: number[];
     };
+    private smartCache: SmartCacheService;
 
     private constructor() {
         // Initialize Redis client with configuration
@@ -43,6 +45,11 @@ export class RedisService {
 
         if (isFeatureEnabled('patternInvalidation')) {
             this.setupPeriodicCleanup();
+        }
+
+        if (isFeatureEnabled('smartCaching')) {
+            this.smartCache = SmartCacheService.getInstance();
+            this.setupSmartCaching();
         }
     }
 
@@ -100,6 +107,22 @@ export class RedisService {
         }, cacheConfig.redis.cleanup.interval);
     }
 
+    private setupSmartCaching(): void {
+        // Listen for smart cache analytics
+        this.smartCache.on('analytics', (analytics) => {
+            this.eventEmitter.emit('cacheAnalytics', analytics);
+        });
+
+        // Periodically optimize cache
+        setInterval(async () => {
+            try {
+                await this.smartCache.optimizeCache();
+            } catch (error) {
+                console.error('Error optimizing cache:', error);
+            }
+        }, cacheConfig.redis.performance.metricsCollectionInterval);
+    }
+
     public static getInstance(): RedisService {
         if (!RedisService.instance) {
             RedisService.instance = new RedisService();
@@ -110,78 +133,72 @@ export class RedisService {
     /**
      * Set a value in Redis with optional TTL and cache invalidation pattern
      */
-    public async set(key: string, value: any, ttl?: number, pattern?: string): Promise<void> {
-        const startTime = Date.now();
+    public async set<T>(
+        key: string,
+        value: T,
+        ttl?: number,
+        category?: string
+    ): Promise<boolean> {
+        const startTime = performance.now();
         try {
-            const serializedValue = JSON.stringify(value);
-            const effectiveTTL = ttl || getCacheTTL('default');
-
-            await this.client.setex(key, effectiveTTL, serializedValue);
-
-            // If pattern is provided and feature is enabled, add key to pattern set
-            if (pattern && isFeatureEnabled('patternInvalidation')) {
-                await this.client.sadd(`pattern:${pattern}`, key);
-                await this.client.expire(`pattern:${pattern}`, effectiveTTL);
+            const serialized = JSON.stringify(value);
+            const fullKey = category ? `${category}:${key}` : key;
+            
+            if (ttl) {
+                await this.client.setex(fullKey, ttl, serialized);
+            } else {
+                await this.client.set(fullKey, serialized);
             }
 
-            const latency = Date.now() - startTime;
-            this.metrics.latency.push(latency);
-
-            // Check latency threshold
-            if (latency > getPerformanceThreshold('maxLatency')) {
-                this.eventEmitter.emit('highLatency', { key, latency });
-            }
-
-            this.eventEmitter.emit('set', { key, latency });
+            this.monitoringService.recordCacheOperation('set', true, performance.now() - startTime);
+            return true;
         } catch (error) {
             console.error('Redis set error:', error);
-            this.eventEmitter.emit('error', error);
-            throw error;
+            this.monitoringService.recordCacheOperation('set', false, performance.now() - startTime);
+            return false;
         }
     }
 
     /**
      * Get a value from Redis with monitoring
      */
-    public async get<T>(key: string): Promise<T | null> {
-        const startTime = Date.now();
+    public async get<T>(key: string, category?: string): Promise<T | null> {
+        const startTime = performance.now();
         try {
-            const value = await this.client.get(key);
-            const latency = Date.now() - startTime;
-            this.metrics.latency.push(latency);
-
+            const fullKey = category ? `${category}:${key}` : key;
+            const value = await this.client.get(fullKey);
+            
             if (!value) {
-                this.metrics.misses++;
-                this.eventEmitter.emit('miss', { key, latency });
+                this.monitoringService.recordCacheOperation('get', false, performance.now() - startTime);
+                this.eventEmitter.emit('miss', { key: fullKey });
                 return null;
             }
 
-            this.metrics.hits++;
-            this.eventEmitter.emit('hit', { key, latency });
-
-            // Check hit rate threshold
-            const hitRate = this.metrics.hits / (this.metrics.hits + this.metrics.misses);
-            if (hitRate < getPerformanceThreshold('minHitRate')) {
-                this.eventEmitter.emit('lowHitRate', { hitRate });
-            }
-
-            return JSON.parse(value) as T;
+            const parsed = JSON.parse(value) as T;
+            const latency = performance.now() - startTime;
+            this.monitoringService.recordCacheOperation('get', true, latency);
+            this.eventEmitter.emit('hit', { key: fullKey, latency });
+            return parsed;
         } catch (error) {
             console.error('Redis get error:', error);
-            this.eventEmitter.emit('error', error);
-            throw error;
+            this.monitoringService.recordCacheOperation('get', false, performance.now() - startTime);
+            return null;
         }
     }
 
     /**
      * Delete a key from Redis
      */
-    public async del(key: string): Promise<void> {
+    public async del(key: string): Promise<boolean> {
+        const startTime = performance.now();
         try {
             await this.client.del(key);
+            this.monitoringService.recordCacheOperation('del', true, performance.now() - startTime);
+            return true;
         } catch (error) {
             console.error('Redis del error:', error);
-            throw error;
+            this.monitoringService.recordCacheOperation('del', false, performance.now() - startTime);
+            return false;
         }
     }
 
@@ -212,12 +229,24 @@ export class RedisService {
      * Get multiple values from Redis
      */
     public async mget<T>(keys: string[]): Promise<(T | null)[]> {
+        const startTime = performance.now();
         try {
             const values = await this.client.mget(keys);
-            return values.map(value => value ? JSON.parse(value) as T : null);
+            const results = values.map(value => {
+                if (!value) return null;
+                try {
+                    return JSON.parse(value) as T;
+                } catch {
+                    return null;
+                }
+            });
+            
+            this.monitoringService.recordCacheOperation('mget', true, performance.now() - startTime);
+            return results;
         } catch (error) {
             console.error('Redis mget error:', error);
-            throw error;
+            this.monitoringService.recordCacheOperation('mget', false, performance.now() - startTime);
+            return new Array(keys.length).fill(null);
         }
     }
 
@@ -302,28 +331,17 @@ export class RedisService {
     /**
      * Invalidate cache by pattern
      */
-    public async invalidateByPattern(pattern: string): Promise<void> {
-        if (!isFeatureEnabled('patternInvalidation')) return;
-
+    public async invalidateByPattern(category: string): Promise<void> {
+        const startTime = performance.now();
         try {
-            const keys = await this.client.smembers(`pattern:${pattern}`);
+            const keys = await this.client.keys(`${category}:*`);
             if (keys.length > 0) {
                 await this.client.del(...keys);
-                await this.client.del(`pattern:${pattern}`);
-                this.metrics.invalidations += keys.length;
-
-                // Check invalidation rate threshold
-                const invalidationRate = this.metrics.invalidations / (this.metrics.hits + this.metrics.misses);
-                if (invalidationRate > getPerformanceThreshold('maxInvalidationRate')) {
-                    this.eventEmitter.emit('highInvalidationRate', { invalidationRate });
-                }
-
-                this.eventEmitter.emit('invalidate', { pattern, count: keys.length });
             }
+            this.monitoringService.recordCacheOperation('invalidatePattern', true, performance.now() - startTime);
         } catch (error) {
-            console.error('Redis invalidation error:', error);
-            this.eventEmitter.emit('error', error);
-            throw error;
+            console.error('Redis invalidateByPattern error:', error);
+            this.monitoringService.recordCacheOperation('invalidatePattern', false, performance.now() - startTime);
         }
     }
 
@@ -397,5 +415,74 @@ export class RedisService {
             invalidations: 0,
             latency: []
         };
+    }
+
+    public async keys(pattern: string): Promise<string[]> {
+        const startTime = performance.now();
+        try {
+            const keys = await this.client.keys(pattern);
+            this.monitoringService.recordCacheOperation('keys', true, performance.now() - startTime);
+            return keys;
+        } catch (error) {
+            console.error('Redis keys error:', error);
+            this.monitoringService.recordCacheOperation('keys', false, performance.now() - startTime);
+            return [];
+        }
+    }
+
+    public async acquireLock(
+        key: string,
+        value: string,
+        ttl: number
+    ): Promise<boolean> {
+        const startTime = performance.now();
+        try {
+            const result = await this.client.set(
+                `lock:${key}`,
+                value,
+                'NX',
+                'EX',
+                ttl
+            );
+            this.monitoringService.recordCacheOperation('acquireLock', result !== null, performance.now() - startTime);
+            return result !== null;
+        } catch (error) {
+            console.error('Redis acquireLock error:', error);
+            this.monitoringService.recordCacheOperation('acquireLock', false, performance.now() - startTime);
+            return false;
+        }
+    }
+
+    public async releaseLock(key: string, value: string): Promise<boolean> {
+        const startTime = performance.now();
+        try {
+            const script = `
+                if redis.call("get", KEYS[1]) == ARGV[1] then
+                    return redis.call("del", KEYS[1])
+                else
+                    return 0
+                end
+            `;
+            const result = await this.client.eval(
+                script,
+                1,
+                `lock:${key}`,
+                value
+            );
+            const success = result === 1;
+            this.monitoringService.recordCacheOperation('releaseLock', success, performance.now() - startTime);
+            return success;
+        } catch (error) {
+            console.error('Redis releaseLock error:', error);
+            this.monitoringService.recordCacheOperation('releaseLock', false, performance.now() - startTime);
+            return false;
+        }
+    }
+
+    public async shutdown(): Promise<void> {
+        if (this.smartCache) {
+            await this.smartCache.shutdown();
+        }
+        await this.client.quit();
     }
 } 

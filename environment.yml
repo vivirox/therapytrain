@@ -1,11 +1,13 @@
 name: therapytrain
 channels:
+  - anaconda
   - conda-forge
   - defaults
 dependencies:
   - python=3.10.16
+  - anaconda
   - pip
-  - puppeteer
+  - pyppeteer
   - pip:
     - -r requirements.txt
     - -r tools/requirements.txt

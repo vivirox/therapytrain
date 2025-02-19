@@ -7,12 +7,20 @@ export class MonitoringService {
         timestamp: number;
         metrics: ReturnType<typeof RedisService.prototype.getMetrics>;
     }> = [];
+    private sessionMetrics: Map<string, {
+        operations: number;
+        errors: number;
+        latency: number[];
+        lastActivity: number;
+        nodeId: string;
+    }> = new Map();
     private readonly maxHistoryLength = 1000; // Keep last 1000 metrics points
 
     private constructor() {
         this.redisService = RedisService.getInstance();
         this.setupRedisMonitoring();
         this.startPeriodicMetricsCollection();
+        this.startSessionMetricsCleanup();
     }
 
     public static getInstance(): MonitoringService {
@@ -170,5 +178,161 @@ export class MonitoringService {
     public resetHistory(): void {
         this.metricsHistory = [];
         this.redisService.resetMetrics();
+    }
+
+    public recordCacheOperation(
+        operation: string,
+        success: boolean,
+        latency: number
+    ): void {
+        // Record operation metrics
+        const metrics = this.getCurrentMetrics();
+        if (success) {
+            metrics.hits++;
+        } else {
+            metrics.misses++;
+        }
+        metrics.latency.push(latency);
+
+        // Analyze for potential issues
+        this.analyzeMetrics(metrics);
+    }
+
+    public recordSessionOperation(
+        sessionId: string,
+        nodeId: string,
+        success: boolean,
+        latency: number
+    ): void {
+        let sessionMetric = this.sessionMetrics.get(sessionId);
+        if (!sessionMetric) {
+            sessionMetric = {
+                operations: 0,
+                errors: 0,
+                latency: [],
+                lastActivity: Date.now(),
+                nodeId
+            };
+            this.sessionMetrics.set(sessionId, sessionMetric);
+        }
+
+        sessionMetric.operations++;
+        if (!success) {
+            sessionMetric.errors++;
+        }
+        sessionMetric.latency.push(latency);
+        sessionMetric.lastActivity = Date.now();
+        sessionMetric.nodeId = nodeId;
+
+        // Analyze session health
+        this.analyzeSessionHealth(sessionId, sessionMetric);
+    }
+
+    private analyzeSessionHealth(
+        sessionId: string,
+        metrics: {
+            operations: number;
+            errors: number;
+            latency: number[];
+            lastActivity: number;
+            nodeId: string;
+        }
+    ): void {
+        const errorRate = metrics.errors / metrics.operations;
+        const avgLatency = metrics.latency.reduce((a, b) => a + b, 0) / metrics.latency.length;
+
+        if (errorRate > 0.1) {
+            console.warn(`High error rate (${errorRate.toFixed(2)}) for session ${sessionId}`);
+        }
+
+        if (avgLatency > 100) {
+            console.warn(`High average latency (${avgLatency.toFixed(2)}ms) for session ${sessionId}`);
+        }
+
+        const inactiveTime = Date.now() - metrics.lastActivity;
+        if (inactiveTime > 300000) { // 5 minutes
+            console.warn(`Session ${sessionId} has been inactive for ${(inactiveTime / 1000).toFixed(0)} seconds`);
+        }
+    }
+
+    private startSessionMetricsCleanup(): void {
+        setInterval(() => {
+            const now = Date.now();
+            for (const [sessionId, metrics] of this.sessionMetrics.entries()) {
+                if (now - metrics.lastActivity > 3600000) { // 1 hour
+                    this.sessionMetrics.delete(sessionId);
+                }
+            }
+        }, 300000); // Clean up every 5 minutes
+    }
+
+    public getSessionMetrics(sessionId: string) {
+        const metrics = this.sessionMetrics.get(sessionId);
+        if (!metrics) return null;
+
+        const avgLatency = metrics.latency.reduce((a, b) => a + b, 0) / metrics.latency.length;
+        const errorRate = metrics.errors / metrics.operations;
+
+        return {
+            operations: metrics.operations,
+            errors: metrics.errors,
+            errorRate,
+            averageLatency: avgLatency,
+            lastActivity: metrics.lastActivity,
+            nodeId: metrics.nodeId,
+            health: this.calculateSessionHealth(errorRate, avgLatency)
+        };
+    }
+
+    private calculateSessionHealth(
+        errorRate: number,
+        avgLatency: number
+    ): 'healthy' | 'degraded' | 'unhealthy' {
+        if (errorRate < 0.05 && avgLatency < 50) {
+            return 'healthy';
+        } else if (errorRate < 0.1 && avgLatency < 100) {
+            return 'degraded';
+        } else {
+            return 'unhealthy';
+        }
+    }
+
+    public getAllSessionMetrics() {
+        const result = new Map<string, ReturnType<typeof this.getSessionMetrics>>();
+        for (const [sessionId] of this.sessionMetrics) {
+            const metrics = this.getSessionMetrics(sessionId);
+            if (metrics) {
+                result.set(sessionId, metrics);
+            }
+        }
+        return result;
+    }
+
+    public getNodeMetrics(nodeId: string) {
+        const sessions = Array.from(this.sessionMetrics.entries())
+            .filter(([_, metrics]) => metrics.nodeId === nodeId);
+
+        const totalOperations = sessions.reduce((sum, [_, metrics]) => sum + metrics.operations, 0);
+        const totalErrors = sessions.reduce((sum, [_, metrics]) => sum + metrics.errors, 0);
+        const allLatencies = sessions.flatMap(([_, metrics]) => metrics.latency);
+
+        return {
+            sessions: sessions.length,
+            operations: totalOperations,
+            errors: totalErrors,
+            errorRate: totalErrors / totalOperations,
+            averageLatency: allLatencies.reduce((a, b) => a + b, 0) / allLatencies.length,
+            health: this.calculateNodeHealth(sessions.length, totalErrors / totalOperations)
+        };
+    }
+
+    private calculateNodeHealth(
+        sessionCount: number,
+        errorRate: number
+    ): 'healthy' | 'degraded' | 'unhealthy' {
+        if (sessionCount === 0) return 'healthy';
+        if (errorRate < 0.05) return 'healthy';
+        if (errorRate < 0.1) return 'degraded';
+        return 'unhealthy';
     }
 } 
