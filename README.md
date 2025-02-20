@@ -216,3 +216,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - HAPI FHIR for the FHIR implementation
 - SMART on FHIR for the authentication framework
 - HL7 for the FHIR standard
+
+[![Deploy](https://github.com/vivirox/therapytrain/actions/workflows/deploy.yml/badge.svg)](https://github.com/vivirox/therapytrain/actions/workflows/deploy.yml)
