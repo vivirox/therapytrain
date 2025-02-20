@@ -97,17 +97,17 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-  deploy-staging:
-    name: Deploy to Staging
+  deploy-preview:
+    name: Deploy to Preview
     runs-on: ubuntu-latest
     needs: build
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'pull_request'
     environment:
-      name: staging
+      name: preview
       url: ${{ steps.deploy.outputs.url }}
 
     steps:
-      - name: Deploy to Vercel (Staging)
+      - name: Deploy to Vercel (Preview)
         id: deploy
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
@@ -121,10 +121,10 @@ jobs:
   deploy-production:
     name: Deploy to Production
     runs-on: ubuntu-latest
-    needs: deploy-staging
+    needs: build
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     environment:
-      name: production
+      name: live
       url: ${{ steps.deploy.outputs.url }}
 
     steps:
@@ -142,7 +142,7 @@ jobs:
   notify:
     name: Notify Status
     runs-on: ubuntu-latest
-    needs: [deploy-staging, deploy-production]
+    needs: [deploy-production]
     if: always()
     permissions:
       contents: read
@@ -153,25 +153,7 @@ jobs:
         id: status
         run: |
           if [ "${{ needs.deploy-production.result }}" = "success" ]; then
-            echo "message=🚀 Deployment to production successful" >> $GITHUB_OUTPUT
-            echo "color=good" >> $GITHUB_OUTPUT
+            echo "✅ Deployment to production successful"
           else
-            echo "message=❌ Deployment failed" >> $GITHUB_OUTPUT
-            echo "color=danger" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Send Slack notification
-        uses: 8398a7/action-slack@v3
-        if: always()
-        with:
-          status: custom
-          fields: workflow,job,commit,repo,ref,author,took
-          custom_payload: |
-            {
-              "attachments": [{
-                "color": "${{ steps.status.outputs.color }}",
-                "text": "${{ steps.status.outputs.message }}"
-              }]
-            }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }} 
+            echo "❌ Deployment failed"
+          fi 

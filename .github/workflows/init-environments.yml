@@ -4,16 +4,16 @@ on:
   workflow_dispatch:
 
 jobs:
-  init-staging:
-    name: Initialize Staging
+  init-preview:
+    name: Initialize Preview
     runs-on: ubuntu-latest
     environment:
-      name: test
-      url: https://staging.therapytrain.com
+      name: preview
+      url: https://preview.therapytrain.com
 
     steps:
       - name: No-op step
-        run: echo "Initializing staging environment"
+        run: echo "Initializing preview environment"
 
   init-production:
     name: Initialize Production
