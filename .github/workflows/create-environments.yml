@@ -13,19 +13,21 @@ jobs:
     
     steps:
       - name: Create staging environment
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh api --method PUT /repos/${{ github.repository }}/environments/staging \
+          curl -L \
+            -X PUT \
             -H "Accept: application/vnd.github+json" \
-            -f wait_timer=0 \
-            -f reviewers='["vivirox"]'
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            https://api.github.com/repos/${{ github.repository }}/environments/staging \
+            -d '{"wait_timer":0,"reviewers":["vivirox"]}'
       
       - name: Create production environment
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh api --method PUT /repos/${{ github.repository }}/environments/production \
+          curl -L \
+            -X PUT \
             -H "Accept: application/vnd.github+json" \
-            -f wait_timer=30 \
-            -f reviewers='["vivirox"]' 
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            https://api.github.com/repos/${{ github.repository }}/environments/production \
+            -d '{"wait_timer":30,"reviewers":["vivirox"]}' 
