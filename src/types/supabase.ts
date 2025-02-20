@@ -2,6 +2,7 @@
 
 import type { Database } from './database.types';
 import { createClient } from '@supabase/supabase-js';
+import { AppointmentStatus } from './common';
 
 // Re-export the generated Database type
 export type { Database };
@@ -101,4 +102,16 @@ export const createSupabaseClient = (config: SupabaseConfig) => {
 
 export interface Database {
     public: { Tables: { [key: string]: any } };
+}
+
+export interface Appointment {
+  id: string;
+  created_at: string;
+  updated_at: string;
+  client_id: string;
+  therapist_id: string;
+  start_time: string;
+  end_time: string;
+  status: AppointmentStatus;
+  metadata: Record<string, unknown> | null;
 }

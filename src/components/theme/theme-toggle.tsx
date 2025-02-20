@@ -1,12 +1,19 @@
 import { useTheme } from "./theme-provider";
 import { useAccessibility } from "@/contexts/accessibility-context";
 import { Button } from "../ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuCheckboxItem } from "../ui/dropdown-menu";
-import { Sun, Moon, Monitor, Contrast, Waves } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuCheckboxItem, DropdownMenuRadioGroup, DropdownMenuRadioItem } from "../ui/dropdown-menu";
+import { Sun, Moon, Monitor, Contrast, Waves, Eye } from "lucide-react";
 
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme();
-  const { highContrastMode, setHighContrastMode, reducedMotion, setReducedMotion } = useAccessibility();
+  const { 
+    highContrastMode, 
+    setHighContrastMode, 
+    reducedMotion, 
+    setReducedMotion,
+    colorBlindMode,
+    setColorBlindMode
+  } = useAccessibility();
 
   return (
     <DropdownMenu>
@@ -63,6 +70,25 @@ export function ThemeToggle() {
           <Waves className="h-4 w-4 high-contrast-icon" />
           <span>Reduced Motion</span>
         </DropdownMenuCheckboxItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuRadioGroup value={colorBlindMode} onValueChange={setColorBlindMode}>
+          <DropdownMenuRadioItem value="none">
+            <Eye className="mr-2 h-4 w-4" />
+            <span>Normal Vision</span>
+          </DropdownMenuRadioItem>
+          <DropdownMenuRadioItem value="protanopia">
+            <Eye className="mr-2 h-4 w-4" />
+            <span>Protanopia</span>
+          </DropdownMenuRadioItem>
+          <DropdownMenuRadioItem value="deuteranopia">
+            <Eye className="mr-2 h-4 w-4" />
+            <span>Deuteranopia</span>
+          </DropdownMenuRadioItem>
+          <DropdownMenuRadioItem value="tritanopia">
+            <Eye className="mr-2 h-4 w-4" />
+            <span>Tritanopia</span>
+          </DropdownMenuRadioItem>
+        </DropdownMenuRadioGroup>
       </DropdownMenuContent>
     </DropdownMenu>
   );

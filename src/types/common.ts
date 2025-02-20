@@ -226,10 +226,8 @@ export interface DateRange {
 }
 
 export interface TimeSlot {
-  start: string;
-  end: string;
-  available: boolean;
-  metadata?: Metadata;
+  startTime: Date;
+  endTime: Date;
 }
 
 export interface Schedule {
@@ -382,10 +380,8 @@ export interface DateRange {
 }
 
 export interface TimeSlot {
-  start: string;
-  end: string;
-  available: boolean;
-  metadata?: Metadata;
+  startTime: Date;
+  endTime: Date;
 }
 
 export interface Schedule {
@@ -414,5 +410,11 @@ export interface Settings {
   language: string;
   timezone: string;
   [key: string]: unknown;
+}
+
+export enum AppointmentStatus {
+  SCHEDULED = 'scheduled',
+  COMPLETED = 'completed',
+  CANCELLED = 'cancelled'
 }
  

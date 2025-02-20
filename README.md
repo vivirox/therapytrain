@@ -1,152 +1,218 @@
-# TherapyTrain AI
+# TherapyTrain EHR Integration Platform
 
-A HIPAA-compliant AI-powered platform for therapist training and skill development.
+A comprehensive platform for integrating with Electronic Health Record (EHR) systems, providing a secure, scalable, and HIPAA-compliant solution for healthcare applications.
+
+## Features
+
+### Core Integration
+- **Multi-Provider Support**: Seamless integration with major EHR providers:
+  - Epic
+  - Cerner
+  - Allscripts
+  - Athenahealth
+- **FHIR Resource Support**: Comprehensive implementation of FHIR resources:
+  - Patient
+  - Practitioner
+  - Organization
+  - PractitionerRole
+- **HIPAA Compliance**: Built-in HIPAA-compliant audit logging and security measures
+
+### Advanced Features
+- **Data Synchronization**: Real-time data synchronization with conflict resolution
+- **Webhooks**: Event-driven architecture with secure webhook delivery
+- **Batch Processing**: Efficient handling of large-scale data operations
+- **Rate Limiting**: Intelligent rate limiting with provider-specific configurations
+- **Caching**: Advanced caching strategies (LRU, TTL) for improved performance
+- **Performance Monitoring**: Comprehensive metrics and alerting system
+- **Bulk Data Export**: FHIR bulk data export with chunked processing
+- **Plugin System**: Extensible plugin architecture with marketplace
+
+### Security & Compliance
+- HIPAA-compliant audit logging
+- Secure authentication and authorization
+- Data encryption at rest and in transit
+- Resource-level access control
+- Security event monitoring and alerting
+
+### Developer Experience
+- **Plugin Marketplace**: Discover, publish, and manage plugins
+- **API Documentation**: Comprehensive API documentation
+- **Developer Tools**: CLI tools and SDK for plugin development
+- **Example Plugins**: Ready-to-use example plugins
+- **Monitoring Dashboard**: Real-time system monitoring
 
 ## Getting Started
 
 ### Prerequisites
-
-- Node.js 18+ 
-- pnpm 9.15.3+
+- Node.js 18 or later
+- pnpm 8 or later
+- PostgreSQL 14 or later
+- Redis 6 or later
 
 ### Installation
 
 1. Clone the repository:
-```bash
-git clone https://github.com/yourusername/therapytrain.git
-cd therapytrain
-```
+   ```bash
+   git clone https://github.com/yourusername/therapytrain.git
+   cd therapytrain
+   ```
 
 2. Install dependencies:
-```bash
-pnpm install
+   ```bash
+   pnpm install
+   ```
+
+3. Set up environment variables:
+   ```bash
+   cp .env.example .env
+   # Edit .env with your configuration
+   ```
+
+4. Initialize the database:
+   ```bash
+   pnpm db:migrate
+   pnpm db:seed
+   ```
+
+5. Start the development server:
+   ```bash
+   pnpm dev
+   ```
+
+### Configuration
+
+The platform can be configured through environment variables:
+
+```env
+# Database
+DATABASE_URL=postgresql://user:password@localhost:5432/therapytrain
+
+# Redis
+REDIS_URL=redis://localhost:6379
+
+# EHR Providers
+EPIC_BASE_URL=https://fhir.epic.com/interconnect-fhir-oauth/api/FHIR/R4
+EPIC_CLIENT_ID=your-client-id
+EPIC_CLIENT_SECRET=your-client-secret
+
+CERNER_BASE_URL=https://fhir-ehr.cerner.com/r4/ec2458f2-1e24-41c8-b71b-0e701af7583d
+CERNER_CLIENT_ID=your-client-id
+CERNER_CLIENT_SECRET=your-client-secret
+
+# Security
+JWT_SECRET=your-jwt-secret
+ENCRYPTION_KEY=your-encryption-key
+
+# Monitoring
+METRICS_ENABLED=true
+METRICS_PORT=9090
 ```
 
-3. Copy the environment variables:
-```bash
-cp .env.example .env
+See [Configuration Guide](docs/configuration.md) for detailed configuration options.
+
+### Usage Examples
+
+#### Basic EHR Integration
+```typescript
+import { EHRIntegrationService } from '@therapytrain/ehr';
+
+// Configure EHR provider
+await ehrService.configureEHRProvider('epic-provider', {
+  vendor: 'epic',
+  baseUrl: process.env.EPIC_BASE_URL,
+  clientId: process.env.EPIC_CLIENT_ID,
+  clientSecret: process.env.EPIC_CLIENT_SECRET,
+  scopes: ['patient/*.read', 'user/*.read'],
+});
+
+// Connect to EHR
+await ehrService.connect('epic-provider');
+
+// Get FHIR client
+const client = ehrService.getFHIRClient('epic-provider');
+
+// Search for patients
+const patients = await client.searchResources('Patient', {
+  name: 'John',
+  birthdate: '1970-01-01',
+});
 ```
 
-4. Update the environment variables in `.env` with your values
+#### Using Webhooks
+```typescript
+import { WebhookService } from '@therapytrain/ehr';
 
-### Development
+// Register webhook
+await webhookService.registerWebhook('my-webhook', {
+  url: 'https://my-app.com/webhooks',
+  secret: 'my-webhook-secret',
+  events: ['patient.created', 'patient.updated'],
+});
 
-Run the development server:
-
-```bash
-pnpm dev
+// The webhook will receive events in this format:
+{
+  "id": "evt_123",
+  "event": "patient.created",
+  "data": {
+    "resourceType": "Patient",
+    "id": "123",
+    // ... patient data
+  },
+  "timestamp": "2024-03-20T12:00:00Z"
+}
 ```
 
-### Building for Production
+#### Creating a Plugin
+```typescript
+import { PluginAPI } from '@therapytrain/ehr';
 
-Build the application:
+export function initialize(api: PluginAPI) {
+  // Subscribe to events
+  api.events.on('patient.created', async (patient) => {
+    // Process new patient
+    const enrichedData = await processPatient(patient);
+    
+    // Store processed data
+    await api.storage.set(`patient-${patient.id}`, enrichedData);
+    
+    // Emit custom event
+    api.events.emit('patient.enriched', enrichedData);
+  });
+}
 
-```bash
-pnpm build
+export function cleanup() {
+  // Cleanup resources
+}
 ```
 
-Preview the production build:
+See [Examples](docs/examples) directory for more usage examples.
 
-```bash
-pnpm preview
-```
+## Documentation
 
-## Deployment
-
-### Deploying to Vercel
-
-1. Install Vercel CLI:
-```bash
-npm i -g vercel
-```
-
-2. Login to Vercel:
-```bash
-vercel login
-```
-
-3. Deploy:
-```bash
-vercel
-```
-
-Or configure GitHub integration for automatic deployments.
-
-### Environment Variables
-
-Make sure to configure the following environment variables in your Vercel project settings:
-
-- `VITE_APP_TITLE`
-- `VITE_APP_ENV`
-- `VITE_API_URL`
-- `VITE_SUPABASE_URL`
-- `VITE_SUPABASE_ANON_KEY`
-- `VITE_OPENAI_API_KEY`
-- `VITE_ANTHROPIC_API_KEY`
-- `VITE_GOOGLE_ANALYTICS_ID`
-
-## Features
-
-- HIPAA-compliant platform
-- AI-powered training scenarios
-- Real-time feedback
-- Progress tracking
-- Skill certification
-- Secure environment
-
-## License
-
-[License Type] - See LICENSE file for details
-
-# TherapyTrain - Advanced Therapy Training Simulator
-
-![Black Mage Vivi](public/vivi-master.jpg)
-
-TherapyTrain is a sophisticated therapy training platform that enables therapists to practice and enhance their skills through simulated client interactions. The platform uses advanced AI and real-time analytics to provide comprehensive training scenarios and feedback.
-
-## Key Features
-
-- Real-time sentiment analysis and behavioral pattern detection
-- Multi-modal session support (video, text, hybrid)
-- Interactive scenario-based training with branching pathways
-- Comprehensive analytics and progress tracking
-- Advanced security with end-to-end encryption and zero-knowledge proofs
-- Extensive case study library and skill progression system
-
-## Development Status
-
-Current project completion: ~85%
-
-### Major Components Status
-
-- Enhanced Real-time Analytics (95%)
-- Advanced Session Features (95%)
-- Expanded Educational Resources (85%)
-- AI Model Improvements (75%)
-- Enhanced Security Features (85%)
-- Zero-Knowledge Implementation (65%)
-
-## Technology Stack
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+- [API Reference](docs/api/README.md)
+- [Configuration Guide](docs/configuration.md)
+- [Deployment Guide](docs/deployment.md)
+- [Plugin Development](docs/plugins/README.md)
+- [Security Guide](docs/security.md)
+- [Monitoring Guide](docs/monitoring.md)
+- [Contributing Guide](CONTRIBUTING.md)
 
 ## Contributing
 
-You can contribute to this project in several ways:
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
 
-1. **Direct GitHub Edits**: Edit files directly through GitHub's interface
-2. **Local Development**: Clone and work with your preferred IDE
-3. **GitHub Codespaces**: Use GitHub's cloud development environment
+## License
 
-## Security Features
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-- End-to-end encryption
-- Zero-Knowledge Security System
-- Role-based access control
-- Advanced authorization system
-- Comprehensive data protection
-- Security monitoring and audit trails
+## Support
+
+- [Issue Tracker](https://github.com/yourusername/therapytrain/issues)
+- [Documentation](docs/README.md)
+- [Community Forum](https://community.therapytrain.com)
+
+## Acknowledgments
+
+- HAPI FHIR for the FHIR implementation
+- SMART on FHIR for the authentication framework
+- HL7 for the FHIR standard

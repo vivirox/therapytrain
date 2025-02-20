@@ -7,6 +7,8 @@ interface AccessibilityContextType {
   setHighContrastMode: (enabled: boolean) => void;
   reducedMotion: boolean;
   setReducedMotion: (enabled: boolean) => void;
+  colorBlindMode: 'none' | 'protanopia' | 'deuteranopia' | 'tritanopia';
+  setColorBlindMode: (mode: 'none' | 'protanopia' | 'deuteranopia' | 'tritanopia') => void;
   announcements: Announcement[];
   announce: (message: string, priority?: 'polite' | 'assertive') => void;
   focusTrap: {
@@ -44,6 +46,13 @@ export function AccessibilityProvider({ children }: { children: React.ReactNode 
       return stored ? stored === 'true' : false;
     }
     return false;
+  });
+  const [colorBlindMode, setColorBlindMode] = React.useState<'none' | 'protanopia' | 'deuteranopia' | 'tritanopia'>(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('color-blind-mode');
+      return (stored as 'none' | 'protanopia' | 'deuteranopia' | 'tritanopia') || 'none';
+    }
+    return 'none';
   });
   
   // Announcements for screen readers
@@ -121,6 +130,18 @@ export function AccessibilityProvider({ children }: { children: React.ReactNode 
     }
   }, [reducedMotion]);
 
+  // Handle color blind mode changes
+  React.useEffect(() => {
+    const root = document.documentElement;
+    root.setAttribute('data-color-blind', colorBlindMode);
+    localStorage.setItem('color-blind-mode', colorBlindMode);
+    if (colorBlindMode !== 'none') {
+      announce(`${colorBlindMode} mode enabled`, 'polite');
+    } else if (localStorage.getItem('color-blind-mode') !== null) {
+      announce('Color blind mode disabled', 'polite');
+    }
+  }, [colorBlindMode]);
+
   // Handle announcements
   const announce = React.useCallback((message: string, priority: 'polite' | 'assertive' = 'polite') => {
     setAnnouncements(prev => [...prev, { message, priority }]);
@@ -178,6 +199,8 @@ export function AccessibilityProvider({ children }: { children: React.ReactNode 
     setHighContrastMode,
     reducedMotion,
     setReducedMotion,
+    colorBlindMode,
+    setColorBlindMode,
     announcements,
     announce,
     focusTrap: {

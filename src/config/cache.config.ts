@@ -18,6 +18,7 @@ export const cacheConfig = {
             default: 3600, // 1 hour
             sessions: 60 * 60 * 24 * 30, // 30 days
             templates: 60 * 60 * 24 * 365, // 1 year
+            preferences: 60 * 60 * 24 * 365, // 1 year for user preferences
         },
 
         // Patterns for grouped cache management
@@ -27,6 +28,7 @@ export const cacheConfig = {
             sessionBranches: 'session-branches',
             metrics: 'performance-metrics',
             messages: 'chat-messages',
+            userPreferences: 'user-preferences',
         },
 
         // Performance thresholds

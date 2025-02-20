@@ -29,7 +29,81 @@
     "all": "All",
     "none": "None",
     "required": "Required",
-    "optional": "Optional"
+    "optional": "Optional",
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "pending": "Pending",
+      "completed": "Completed",
+      "cancelled": "Cancelled",
+      "error": "Error",
+      "loading": "Loading"
+    },
+    "dates": {
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "tomorrow": "Tomorrow",
+      "days_ago": "{{count}} days ago",
+      "in_days": "in {{count}} days",
+      "date_format": "MM/DD/YYYY",
+      "time_format": "HH:mm",
+      "datetime_format": "MM/DD/YYYY HH:mm"
+    },
+    "notifications": {
+      "success": "Operation completed successfully",
+      "error": "An error occurred",
+      "info": "Information",
+      "warning": "Warning",
+      "confirm": "Are you sure?",
+      "saved": "Changes saved successfully",
+      "deleted": "Item deleted successfully",
+      "created": "Item created successfully",
+      "updated": "Item updated successfully"
+    },
+    "accessibility": {
+      "skip_to_content": "Skip to main content",
+      "navigation": "Navigation",
+      "menu_toggle": "Toggle menu",
+      "close_modal": "Close modal",
+      "open_menu": "Open menu",
+      "close_menu": "Close menu",
+      "loading": "Loading content",
+      "aria_labels": {
+        "search": "Search",
+        "menu": "Main menu",
+        "notifications": "Notifications",
+        "user_menu": "User menu",
+        "language_selector": "Language selector"
+      }
+    },
+    "errors": {
+      "required_field": "This field is required",
+      "invalid_email": "Please enter a valid email address",
+      "invalid_format": "Invalid format",
+      "min_length": "Must be at least {{count}} characters",
+      "max_length": "Must be no more than {{count}} characters",
+      "no_results": "No results found",
+      "network_error": "Network error",
+      "server_error": "Server error",
+      "unknown_error": "An unknown error occurred"
+    },
+    "actions": {
+      "save": "Save",
+      "cancel": "Cancel",
+      "confirm": "Confirm",
+      "delete": "Delete",
+      "edit": "Edit",
+      "add": "Add",
+      "remove": "Remove",
+      "search": "Search",
+      "filter": "Filter",
+      "clear": "Clear",
+      "apply": "Apply",
+      "reset": "Reset",
+      "continue": "Continue",
+      "back": "Back",
+      "close": "Close"
+    }
   },
   "validation": {
     "required": "This field is required",

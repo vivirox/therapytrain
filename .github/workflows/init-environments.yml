@@ -1,0 +1,27 @@
+name: Initialize Environments
+
+on:
+  workflow_dispatch:
+
+jobs:
+  init-staging:
+    name: Initialize Staging
+    runs-on: ubuntu-latest
+    environment:
+      name: test
+      url: https://staging.therapytrain.com
+
+    steps:
+      - name: No-op step
+        run: echo "Initializing staging environment"
+
+  init-production:
+    name: Initialize Production
+    runs-on: ubuntu-latest
+    environment:
+      name: live
+      url: https://therapytrain.com
+
+    steps:
+      - name: No-op step
+        run: echo "Initializing production environment" 
