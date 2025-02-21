@@ -1,5 +1,5 @@
 import { type FC } from 'react';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { useNavigate } from "react-router-dom";
 import { MdSecurity, MdLock, MdBolt, MdGroups, MdMilitaryTech, MdPsychology, MdAutoAwesome } from "react-icons/md";
 

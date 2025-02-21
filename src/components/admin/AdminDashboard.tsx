@@ -1,7 +1,7 @@
 import React from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { MdPeople, MdSettings, MdSecurity, MdAnalytics } from 'react-icons/md';
 import { MetricsDashboard } from '../metricsdashboard';
