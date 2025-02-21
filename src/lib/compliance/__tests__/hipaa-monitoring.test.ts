@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabaseclient';
+import { supabase } from '@/lib/supabaseClient';
 import { HipaaMonitoringService } from '../hipaa-monitoring';
 import { AlertService } from '@/lib/email/alert-service';
 

@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabaseclient';
+import { supabase } from '@/lib/supabaseClient';
 
 type AlertType = 'hipaa_violation' | 'security_breach' | 'system_error';
 type AlertSeverity = 'low' | 'medium' | 'high' | 'critical';

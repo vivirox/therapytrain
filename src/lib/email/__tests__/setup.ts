@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabaseclient';
+import { supabase } from '@/lib/supabaseClient';
 
 // Configure test timeouts
 jest.setTimeout(30000); // 30 seconds

@@ -1,5 +1,5 @@
 import { EmailTrackingService } from '../email-tracking';
-import { supabase } from '@/lib/supabaseclient';
+import { supabase } from '@/lib/supabaseClient';
 
 // Mock Supabase client
 jest.mock('@/lib/supabaseclient', () => ({

@@ -2,7 +2,7 @@ import { HipaaMonitoringService } from '../hipaa-monitoring';
 import { ViolationDetectionSystem } from '../violation-detection';
 import { RemediationWorkflowSystem } from '../remediation-workflows';
 import { AlertService } from '../../email/alert-service';
-import { supabase } from '@/lib/supabaseclient';
+import { supabase } from '@/lib/supabaseClient';
 
 // Mock external dependencies
 jest.mock('@/lib/supabaseclient', () => ({

@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabaseclient';
+import { supabase } from '@/lib/supabaseClient';
 import { EmailTrackingService } from '../../email-tracking';
 import { AlertService } from '../../alert-service';
 import { SpamDetectionService } from '../../spam-detection';

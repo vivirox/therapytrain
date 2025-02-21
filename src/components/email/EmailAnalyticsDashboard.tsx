@@ -22,7 +22,7 @@ import {
   MdAccessTime,
   MdDownload,
 } from 'react-icons/md';
-import { supabase } from '@/lib/supabaseclient';
+import { supabase } from '@/lib/supabaseClient';
 
 interface EmailMetrics {
   total_sent: number;

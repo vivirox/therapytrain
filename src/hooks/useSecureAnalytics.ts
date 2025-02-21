@@ -7,7 +7,7 @@ import { Message } from '@/types/chat';
 import { ClientProfile } from '@/types/clientprofile';
 import { EmotionalResponse } from '@/src/types/emotions';
 import type { EncryptedData } from '@/services/security';
-import { supabase } from '@/lib/supabaseclient'
+import { supabase } from '@/lib/supabaseClient'
 import type { SecurityEvent, SecurityMetrics, SecurityFilter } from '@/types/security'
 import { HIPAAEventType, HIPAAActionType } from '@/types/hipaa'
 

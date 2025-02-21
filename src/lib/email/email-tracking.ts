@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabaseclient';
+import { supabase } from '@/lib/supabaseClient';
 
 export type EmailEventType = 'sent' | 'delivered' | 'bounced' | 'spam' | 'opened' | 'clicked';
 

@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import { createTestUser, createTestThread, cleanupTestData } from '../db/utils';
 import { getWebSocketUtils } from './utils/websocket';
 import { ChatService } from '@/services/chat';
-import { supabase } from '@/lib/supabaseclient';
+import { supabase } from '@/lib/supabaseClient';
 
 test.describe('Real-time Messaging', () => {
   const wsUtils = getWebSocketUtils();

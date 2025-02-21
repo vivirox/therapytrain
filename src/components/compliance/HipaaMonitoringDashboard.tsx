@@ -24,7 +24,7 @@ import {
   MdShield,
   MdRefresh,
 } from 'react-icons/md';
-import { supabase } from '@/lib/supabaseclient';
+import { supabase } from '@/lib/supabaseClient';
 import { HipaaMonitoringService } from '@/lib/compliance/hipaa-monitoring';
 
 interface ViolationMetrics {
