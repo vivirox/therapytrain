@@ -11,6 +11,8 @@ import { DevTools } from '@/components/dev/DevTools';
 import { AuthProvider } from '@/components/auth/AuthProvider';
 import { ThemeProvider } from '@/components/ui/theme-provider';
 import { BrowserRouter } from 'react-router-dom';
+import { AccessibilityProvider } from '@/contexts/accessibility-context';
+import { KeyboardNavigationProvider } from '@/contexts/keyboard-navigation';
 
 // Create root before any React component initialization
 const root = ReactDOM.createRoot(document.getElementById('root')!);
@@ -42,13 +44,17 @@ const AppWithErrorBoundary: React.FC = () => {
       >
         <BrowserRouter>
           <ThemeProvider>
-            <AuthProvider>
-              <DevTools ></DevTools>
-              <App ></App>
-              <VercelFeedbackWrapper ></VercelFeedbackWrapper>
-              <Analytics debug={process.env.NODE_ENV === 'development'} ></Analytics>
-              <SpeedInsights ></SpeedInsights>
-            </AuthProvider>
+            <AccessibilityProvider>
+              <KeyboardNavigationProvider>
+                <AuthProvider>
+                  <DevTools ></DevTools>
+                  <App ></App>
+                  <VercelFeedbackWrapper ></VercelFeedbackWrapper>
+                  <Analytics debug={process.env.NODE_ENV === 'development'} ></Analytics>
+                  <SpeedInsights ></SpeedInsights>
+                </AuthProvider>
+              </KeyboardNavigationProvider>
+            </AccessibilityProvider>
           </ThemeProvider>
         </BrowserRouter>
       </ErrorBoundary>
