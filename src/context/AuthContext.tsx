@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
-import { supabase } from '@/lib/supabaseclient';
+import { supabase } from '@/lib/supabaseClient';
 import { PocketBaseAuthAdapter } from '@/auth/pocketbase-adapter';
 import { AuthProviderProps } from '@/types/componentprops';
 import {

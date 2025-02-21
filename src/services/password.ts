@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabaseclient';
+import { supabase } from '@/lib/supabaseClient';
 import { AuthError } from '@/types/auth';
 import { generateToken, hashToken, verifyToken } from '@/utils/token';
 import { sendEmail } from '@/utils/email';
