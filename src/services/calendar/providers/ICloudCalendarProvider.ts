@@ -274,7 +274,7 @@ export class ICloudCalendarProvider implements CalendarProvider {
     return [
       'BEGIN:VCALENDAR',
       'VERSION:2.0',
-      'PRODID:-//TherapyTrain//Calendar//EN',
+      'PRODID:-//Gradiant//Calendar//EN',
       'BEGIN:VEVENT',
       `UID:${eventId}`,
       `DTSTAMP:${now}`,

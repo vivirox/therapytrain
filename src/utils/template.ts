@@ -35,11 +35,27 @@ Handlebars.registerHelper('t', function(key: string, context: any) {
 });
 
 // Default template context that's available to all templates
-const defaultContext = {
-  companyName: 'TherapyTrain',
-  supportUrl: process.env.SUPPORT_URL || '#',
-  lang: 'en',
-  dir: 'ltr'
+export const defaultTemplateData = {
+  companyName: 'Gradiant',
+  currentYear: new Date().getFullYear(),
+  logoUrl: process.env.NEXT_PUBLIC_LOGO_URL || 'https://gemcity.xyz/logo.png',
+  privacyUrl: process.env.NEXT_PUBLIC_PRIVACY_URL || 'https://gemcity.xyz/privacy',
+  termsUrl: process.env.NEXT_PUBLIC_TERMS_URL || 'https://gemcity.xyz/terms',
+  supportUrl: process.env.NEXT_PUBLIC_SUPPORT_URL || 'https://gemcity.xyz/support',
+  dashboardUrl: process.env.NEXT_PUBLIC_DASHBOARD_URL || 'https://gemcity.xyz/dashboard',
+  contactUrl: process.env.NEXT_PUBLIC_CONTACT_URL || 'https://gemcity.xyz/contact',
+  faqUrl: process.env.NEXT_PUBLIC_FAQ_URL || 'https://gemcity.xyz/faq',
+  unsubscribeUrl: process.env.NEXT_PUBLIC_UNSUBSCRIBE_URL || 'https://gemcity.xyz/unsubscribe',
+  socialLinks: [
+    {
+      platform: 'twitter',
+      url: process.env.NEXT_PUBLIC_TWITTER_URL,
+    },
+    {
+      platform: 'linkedin',
+      url: process.env.NEXT_PUBLIC_LINKEDIN_URL,
+    }
+  ]
 };
 
 /**
@@ -79,32 +95,9 @@ export async function render(
     // Compile template with Handlebars
     const compiledTemplate = Handlebars.compile(template.html);
 
-    // Add default context variables
-    const defaultContext = {
-      currentYear: new Date().getFullYear(),
-      logoUrl: process.env.NEXT_PUBLIC_LOGO_URL || 'https://therapytrain.ai/logo.png',
-      privacyUrl: process.env.NEXT_PUBLIC_PRIVACY_URL || 'https://therapytrain.ai/privacy',
-      termsUrl: process.env.NEXT_PUBLIC_TERMS_URL || 'https://therapytrain.ai/terms',
-      supportUrl: process.env.NEXT_PUBLIC_SUPPORT_URL || 'https://therapytrain.ai/support',
-      dashboardUrl: process.env.NEXT_PUBLIC_DASHBOARD_URL || 'https://therapytrain.ai/dashboard',
-      contactUrl: process.env.NEXT_PUBLIC_CONTACT_URL || 'https://therapytrain.ai/contact',
-      faqUrl: process.env.NEXT_PUBLIC_FAQ_URL || 'https://therapytrain.ai/faq',
-      unsubscribeUrl: process.env.NEXT_PUBLIC_UNSUBSCRIBE_URL || 'https://therapytrain.ai/unsubscribe',
-      socialLinks: [
-        {
-          platform: 'twitter',
-          url: process.env.NEXT_PUBLIC_TWITTER_URL || 'https://twitter.com/therapytrain',
-        },
-        {
-          platform: 'linkedin',
-          url: process.env.NEXT_PUBLIC_LINKEDIN_URL || 'https://linkedin.com/company/therapytrain',
-        },
-      ],
-    };
-
     // Render template with combined context
     const renderedHtml = compiledTemplate({
-      ...defaultContext,
+      ...defaultTemplateData,
       ...context,
     });
 

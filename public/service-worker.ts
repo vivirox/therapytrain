@@ -96,7 +96,7 @@ if (serviceWorkerConfig.pushNotifications.enabled) {
         };
 
         event.waitUntil(
-            self.registration.showNotification('TherapyTrain', options)
+            self.registration.showNotification('Gradiant', options)
         );
     });
 

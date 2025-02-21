@@ -176,7 +176,7 @@ const Features: FC = () => {
         <div className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 p-8 rounded-2xl">
           <h2 className="text-3xl font-bold mb-4">Ready to Transform Your Practice?</h2>
           <p className="text-gray-400 mb-8 max-w-2xl mx-auto">
-            Join thousands of therapists who are enhancing their skills with TherapyTrain AI.
+            Join thousands of therapists who are enhancing their skills with Gradiant.
           </p>
           <Button
             onClick={() => navigate("/auth")}

@@ -100,7 +100,7 @@ export async function sendEmail({
     
     // Send email
     const { error } = await resend.emails.send({
-      from: process.env.EMAIL_FROM || 'noreply@therapytrain.ai',
+      from: process.env.EMAIL_FROM || 'noreply@gemcity.xyz',
       to: toEmails,
       subject,
       html,
@@ -163,7 +163,7 @@ export async function sendPasswordResetEmail(to: string, resetUrl: string): Prom
 export async function sendWelcomeEmail(to: string, name: string): Promise<void> {
   await sendEmail({
     to,
-    subject: 'Welcome to TherapyTrain!',
+    subject: 'Welcome to Gradiant!',
     template: 'welcome',
     context: {
       name,

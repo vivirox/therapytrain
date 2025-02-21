@@ -55,7 +55,7 @@ export const securityConfig: Partial<SecurityHeadersConfig> = {
     }
 };
 export const webAuthnConfig = {
-    rpName: 'TherapyTrain',
+    rpName: 'Gradiant',
     rpID: process.env.WEBAUTHN_RP_ID || 'localhost',
     origin: process.env.WEBAUTHN_ORIGIN || 'http://localhost:3000',
     challengeTimeout: 60000,

@@ -1,4 +1,4 @@
-# TherapyTrain EHR Integration Platform
+# Gradiant EHR Integration Platform
 
 A comprehensive platform for integrating with Electronic Health Record (EHR) systems, providing a secure, scalable, and HIPAA-compliant solution for healthcare applications.
 
@@ -53,8 +53,8 @@ A comprehensive platform for integrating with Electronic Health Record (EHR) sys
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/therapytrain.git
-   cd therapytrain
+   git clone https://github.com/yourusername/gradiant.git
+   cd gradiant
    ```
 
 2. Install dependencies:
@@ -114,7 +114,7 @@ See [Configuration Guide](docs/configuration.md) for detailed configuration opti
 
 #### Basic EHR Integration
 ```typescript
-import { EHRIntegrationService } from '@therapytrain/ehr';
+import { EHRIntegrationService } from '@gradiant/ehr';
 
 // Configure EHR provider
 await ehrService.configureEHRProvider('epic-provider', {
@@ -140,7 +140,7 @@ const patients = await client.searchResources('Patient', {
 
 #### Using Webhooks
 ```typescript
-import { WebhookService } from '@therapytrain/ehr';
+import { WebhookService } from '@gradiant/ehr';
 
 // Register webhook
 await webhookService.registerWebhook('my-webhook', {
@@ -164,7 +164,7 @@ await webhookService.registerWebhook('my-webhook', {
 
 #### Creating a Plugin
 ```typescript
-import { PluginAPI } from '@therapytrain/ehr';
+import { PluginAPI } from '@gradiant/ehr';
 
 export function initialize(api: PluginAPI) {
   // Subscribe to events
@@ -207,9 +207,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Support
 
-- [Issue Tracker](https://github.com/yourusername/therapytrain/issues)
-- [Documentation](docs/README.md)
-- [Community Forum](https://community.therapytrain.com)
+- [Issue Tracker](https://github.com/yourusername/gradiant/issues)
+- [Documentation](https://docs.gemcity.xyz)
+- [Community Forum](https://community.gemcity.xyz)
 
 ## Acknowledgments
 
@@ -217,4 +217,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - SMART on FHIR for the authentication framework
 - HL7 for the FHIR standard
 
-[![Deploy](https://github.com/vivirox/therapytrain/actions/workflows/deploy.yml/badge.svg)](https://github.com/vivirox/therapytrain/actions/workflows/deploy.yml)
+[![Deploy](https://github.com/vivirox/gradiant/actions/workflows/deploy.yml/badge.svg)](https://github.com/vivirox/gradiant/actions/workflows/deploy.yml)

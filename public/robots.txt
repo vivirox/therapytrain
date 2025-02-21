@@ -2,8 +2,8 @@
 User-agent: *
 Allow: /
 
-# Sitemap location
-Sitemap: https://therapytrain.ai/sitemap.xml
+# Sitemap
+Sitemap: https://gemcity.xyz/sitemap.xml
 
 # Disallow sensitive routes
 Disallow: /auth

@@ -146,7 +146,7 @@ self.addEventListener('push', (event) => {
     };
 
     event.waitUntil(
-        self.registration.showNotification('TherapyTrain', options)
+        self.registration.showNotification('Gradiant', options)
     );
 });
 

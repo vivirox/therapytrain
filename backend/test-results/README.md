@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document summarizes the test results for the TherapyTrain backend testing suite, covering performance testing, integration testing, and crisis detection verification.
+This document summarizes the test results for the Gradiant backend testing suite, covering performance testing, integration testing, and crisis detection verification.
 
 ## Test Categories
 

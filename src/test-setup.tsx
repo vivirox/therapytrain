@@ -18,7 +18,7 @@ expect.extend(matchers);
 // Mock environment variables
 process.env.NEXT_PUBLIC_APP_URL = 'http://localhost:3000';
 process.env.RESEND_API_KEY = 'test_key';
-process.env.EMAIL_FROM = 'test@therapytrain.ai';
+process.env.EMAIL_FROM = 'test@gemcity.xyz';
 
 // Mock crypto for tests
 const cryptoMock = {

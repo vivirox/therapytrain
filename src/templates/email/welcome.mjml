@@ -1,11 +1,11 @@
 {{#> base}}
   {{#*inline "content"}}
     <mj-text>
-      <h1 style="font-size: 24px; font-weight: 600; margin-bottom: 16px;">Welcome to TherapyTrain!</h1>
+      <h1 style="font-size: 24px; font-weight: 600; margin-bottom: 16px;">Welcome to Gradiant!</h1>
       
       <p>Hello {{name}},</p>
       
-      <p>Thank you for joining TherapyTrain! We're excited to have you on board and help you on your journey to becoming a better therapist.</p>
+      <p>Thank you for joining Gradiant! We're excited to have you on board and help you on your journey to becoming a better therapist.</p>
       
       <p>Here are a few things you can do to get started:</p>
     </mj-text>
@@ -33,7 +33,7 @@
     </mj-text>
 
     <mj-text padding-top="20px">
-      <p>Best regards,<br>The TherapyTrain Team</p>
+      <p>Best regards,<br>The Gradiant Team</p>
     </mj-text>
   {{/inline}}
 {{/base}} 

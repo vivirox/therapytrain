@@ -33,7 +33,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, className, ...props })
               <div className="flex items-center">
                 <Link to="/" className="flex items-center">
                   <MdPsychology className="h-8 w-8 text-blue-500" />
-                  <span className="ml-2 text-xl font-bold text-gray-900 dark:text-white">TherapyTrain AI</span>
+                  <span className="ml-2 text-xl font-bold text-gray-900 dark:text-white">Gradiant</span>
                 </Link>
               </div>
               <div className="hidden md:flex items-center space-x-8">
@@ -114,7 +114,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, className, ...props })
               <div className="flex items-center mb-4 md:mb-0">
                 <Link to="/" className="flex items-center">
                   <MdPsychology className="h-6 w-6 text-blue-500" />
-                  <span className="ml-2 text-lg font-bold text-gray-900 dark:text-white">TherapyTrain AI</span>
+                  <span className="ml-2 text-lg font-bold text-gray-900 dark:text-white">Gradiant</span>
                 </Link>
               </div>
               <div className="flex flex-wrap justify-center space-x-6 text-sm text-gray-600 dark:text-gray-400">
@@ -148,7 +148,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, className, ...props })
               </div>
             </div>
             <div className="mt-8 text-center text-sm text-gray-600 dark:text-gray-400">
-              <p>© 2024 TherapyTrain AI. All rights reserved.</p>
+              <p>© 2024 Gradiant. All rights reserved.</p>
               <p className="mt-2">HIPAA Compliant | Secure | Confidential</p>
             </div>
           </div>

@@ -142,7 +142,7 @@ export class EmailService {
     const templates = {
       'welcome': {
         template: 'welcome',
-        subject: 'Welcome to TherapyTrain!',
+        subject: 'Welcome to Gradiant!',
       },
       'password-reset': {
         template: 'password-reset',

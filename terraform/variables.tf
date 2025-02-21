@@ -34,23 +34,22 @@ variable "region" {
 }
 
 variable "app_name" {
-  description = "Application name"
+  description = "Name of the application"
   type        = string
-  default     = "therapytrain"
+  default     = "gradiant"
 }
 
 variable "domain" {
   description = "Domain name for the application"
   type        = string
-  default     = "therapytrain.com"
+  default     = "gemcity.xyz"
 }
 
 variable "tags" {
   description = "Tags to apply to all resources"
   type        = map(string)
   default = {
-    Environment = "development"
-    Project     = "therapytrain"
-    ManagedBy   = "terraform"
+    Project     = "gradiant"
+    Environment = "production"
   }
 } 

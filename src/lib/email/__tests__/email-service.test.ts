@@ -195,7 +195,7 @@ describe('EmailService', () => {
 
       expect(mockSend).toHaveBeenCalledWith(expect.objectContaining({
         to: 'test@example.com',
-        subject: 'Welcome to TherapyTrain!',
+        subject: 'Welcome to Gradiant!',
         tags: [{ name: 'type', value: 'welcome' }],
       }));
     });

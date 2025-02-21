@@ -82,7 +82,7 @@ const AuthPage: React.FC = () => {
         <div className="flex flex-col items-center justify-center space-y-4">
           <Brain className="h-16 w-16 text-blue-500"></Brain>
           <h1 className="text-center text-3xl font-bold tracking-tight text-white">
-            Welcome to TherapyTrain
+            Welcome to Gradiant
           </h1>
           <p className="text-center text-gray-400">
             {registrationStep === 'language' 

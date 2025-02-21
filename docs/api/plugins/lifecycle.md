@@ -1,6 +1,6 @@
 # Plugin Lifecycle Management
 
-This document describes the lifecycle of plugins in the TherapyTrain EHR Integration Platform, including installation, initialization, execution, and cleanup.
+This document describes the lifecycle of plugins in the Gradiant EHR Integration Platform, including installation, initialization, execution, and cleanup.
 
 ## Lifecycle Stages
 
@@ -37,7 +37,7 @@ const installation = await pluginService.installPlugin({
     name: 'Appointment Scheduler',
     description: 'Advanced scheduling capabilities',
     permissions: ['read:appointments', 'write:appointments'],
-    author: 'TherapyTrain',
+    author: 'Gradiant',
     homepage: 'https://example.com/plugins/scheduler'
   }
 });

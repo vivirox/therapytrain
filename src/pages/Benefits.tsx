@@ -167,7 +167,7 @@ const Benefits: FC = () => {
                 <div className="relative bg-[#1A1A1D] border border-gray-800 p-12 rounded-2xl text-center">
                     <h2 className="text-3xl font-bold mb-4">Ready to Experience the Benefits?</h2>
                     <p className="text-gray-400 mb-8 max-w-2xl mx-auto">
-                        Join thousands of therapists who are already enhancing their practice with TherapyTrain AI.
+                        Join thousands of therapists who are already enhancing their practice with Gradiant.
                     </p>
                     <Button
                         onClick={() => navigate("/auth")}

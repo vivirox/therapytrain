@@ -1,6 +1,6 @@
 # Plugin System Overview
 
-The TherapyTrain EHR Integration Platform's Plugin System provides a secure and flexible way to extend the platform's functionality. This document provides an overview of the plugin architecture, security model, and basic usage.
+The Gradiant EHR Integration Platform's Plugin System provides a secure and flexible way to extend the platform's functionality. This document provides an overview of the plugin architecture, security model, and basic usage.
 
 ## Architecture
 

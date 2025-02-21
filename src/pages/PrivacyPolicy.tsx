@@ -11,7 +11,7 @@ const PrivacyPolicy: FC = () => {
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center">
               <Brain className="h-8 w-8 text-blue-500" ></Brain>
-              <span className="ml-2 text-xl font-bold">TherapyTrain AI</span>
+              <span className="ml-2 text-xl font-bold">Gradiant</span>
             </div>
             <div className="hidden md:flex items-center space-x-8">
               <Link to="/" className="text-gray-300 hover:text-white">Home</Link>
@@ -36,7 +36,7 @@ const PrivacyPolicy: FC = () => {
           <section>
             <h2 className="text-2xl font-semibold mb-4">Introduction</h2>
             <p className="text-gray-400 mb-4">
-              TherapyTrain AI ("we," "our," or "us") is committed to protecting your privacy and ensuring
+              Gradiant ("we," "our," or "us") is committed to protecting your privacy and ensuring
               the security of your personal and professional information. This Privacy Policy explains how
               we collect, use, disclose, and safeguard your information when you use our platform.
             </p>
@@ -124,7 +124,7 @@ const PrivacyPolicy: FC = () => {
               Privacy Officer at:
             </p>
             <p className="text-gray-400">
-              Email: privacy@therapytrain.ai<br />
+              Email: privacy@gemcity.xyz<br />
               Address: [Your Business Address]<br />
               Phone: [Your Phone Number]
             </p>

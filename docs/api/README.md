@@ -1,6 +1,6 @@
-# TherapyTrain EHR Integration API Reference
+# Gradiant EHR Integration API Reference
 
-This documentation provides detailed information about the TherapyTrain EHR Integration APIs. Each section covers a specific service and its functionality.
+This documentation provides detailed information about the Gradiant EHR Integration APIs. Each section covers a specific service and its functionality.
 
 ## Core Services
 

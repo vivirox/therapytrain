@@ -13,16 +13,16 @@ interface TestCase {
 const TEST_CASES: TestCase[] = [
   {
     template: 'welcome',
-    subject: 'Welcome to TherapyTrain!',
+    subject: 'Welcome to Gradiant!',
     data: {
       name: 'Test User',
-      dashboardUrl: 'https://app.therapytrain.ai/dashboard',
-      supportUrl: 'https://help.therapytrain.ai',
-      contactUrl: 'https://therapytrain.ai/contact',
-      faqUrl: 'https://help.therapytrain.ai/faq',
+      dashboardUrl: 'https://app.gemcity.xyz/dashboard',
+      supportUrl: 'https://help.gemcity.xyz',
+      contactUrl: 'https://gemcity.xyz/contact',
+      faqUrl: 'https://help.gemcity.xyz/faq',
       socialLinks: [
-        { platform: 'Twitter', url: 'https://twitter.com/therapytrain' },
-        { platform: 'LinkedIn', url: 'https://linkedin.com/company/therapytrain' }
+        { platform: 'Twitter', url: process.env.NEXT_PUBLIC_TWITTER_URL },
+        { platform: 'LinkedIn', url: process.env.NEXT_PUBLIC_LINKEDIN_URL }
       ]
     }
   },
@@ -31,9 +31,9 @@ const TEST_CASES: TestCase[] = [
     subject: 'Reset Your Password',
     data: {
       name: 'Test User',
-      resetUrl: 'https://app.therapytrain.ai/reset-password?token=test',
+      resetUrl: 'https://app.gemcity.xyz/reset-password?token=test',
       expiresIn: '30 minutes',
-      supportUrl: 'https://help.therapytrain.ai'
+      supportUrl: 'https://help.gemcity.xyz'
     }
   }
 ];
@@ -50,7 +50,7 @@ async function testEmailTemplates() {
       
       // Send test email
       const { data, error } = await resend.emails.send({
-        from: 'TherapyTrain <test@therapytrain.ai>',
+        from: 'Gradiant <test@gemcity.xyz>',
         to: ['test@resend.dev'],
         subject: testCase.subject,
         html: html,

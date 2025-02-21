@@ -1,0 +1,19 @@
+[dir="rtl"] {
+  /* Margin resets */
+  .ml-1 { margin-right: 0.25rem !important; margin-left: 0 !important; }
+  .ml-2 { margin-right: 0.5rem !important; margin-left: 0 !important; }
+  .ml-3 { margin-right: 0.75rem !important; margin-left: 0 !important; }
+  .ml-4 { margin-right: 1rem !important; margin-left: 0 !important; }
+
+  /* Mirror margins */
+  .mr-1 { margin-left: 0.25rem !important; margin-right: 0 !important; }
+  .mr-2 { margin-left: 0.5rem !important; margin-right: 0 !important; }
+  .mr-3 { margin-left: 0.75rem !important; margin-right: 0 !important; }
+  .mr-4 { margin-left: 1rem !important; margin-right: 0 !important; }
+
+  /* Padding resets */
+  .pl-1 { padding-right: 0.25rem !important; padding-left: 0 !important; }
+  .pl-2 { padding-right: 0.5rem !important; padding-left: 0 !important; }
+  .pl-3 { padding-right: 0.75rem !important; padding-left: 0 !important; }
+  .pl-4 { padding-right: 1rem !important; padding-left: 0 !important; }
+} 

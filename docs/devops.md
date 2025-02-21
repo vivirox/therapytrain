@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document describes the DevOps setup for TherapyTrain, including CI/CD pipelines, infrastructure management, monitoring, and deployment procedures.
+This document describes the DevOps setup for Gradiant, including CI/CD pipelines, infrastructure management, monitoring, and deployment procedures.
 
 ## CI/CD Pipeline
 

@@ -1,7 +1,7 @@
 {
-  "name": "therapytrain-backend",
+  "name": "gradiant-backend",
   "version": "0.0.1",
-  "description": "Backend for TherapyTrain application",
+  "description": "Backend for Gradiant application",
   "main": "app.ts",
   "scripts": {
     "start": "ts-node app.ts",

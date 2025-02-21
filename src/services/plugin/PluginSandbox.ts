@@ -18,7 +18,7 @@ interface SandboxOptions {
 const DEFAULT_SANDBOX_OPTIONS: SandboxOptions = {
   memoryLimit: 128,
   cpuLimit: 10,
-  allowedHosts: ['api.therapytrain.com'],
+  allowedHosts: ['api.gemcity.xyz'],
   maxConcurrentRequests: 5,
   allowedPaths: ['./plugin-data'],
   readOnly: true,

@@ -1,6 +1,6 @@
 # Integration Test Plan
 
-This document outlines the comprehensive testing strategy for the TherapyTrain EHR Integration Platform.
+This document outlines the comprehensive testing strategy for the Gradiant EHR Integration Platform.
 
 ## Test Strategy
 

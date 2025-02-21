@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { addPassiveEventListener, removePassiveEventListener } from '@/utils/eventUtils';
-export const VercelFeedbackWrapper: React.FC =    () => {
+
+export default function VercelFeedback() {
     const wrapperRef = useRef<HTMLDivElement>(null);
     useEffect(() => {
         // Remove aria-hidden from Vercel feedback element when it's added to the DOM
@@ -43,4 +44,4 @@ export const VercelFeedbackWrapper: React.FC =    () => {
         return () => observer.disconnect();
     }, []);
     return <div ref={wrapperRef} className="vercel-feedback-wrapper"/>;
-};
+}

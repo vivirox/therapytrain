@@ -11,7 +11,7 @@ const TermsOfService: FC = () => {
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center">
               <Brain className="h-8 w-8 text-blue-500" ></Brain>
-              <span className="ml-2 text-xl font-bold">TherapyTrain AI</span>
+              <span className="ml-2 text-xl font-bold">Gradiant</span>
             </div>
             <div className="hidden md:flex items-center space-x-8">
               <Link to="/" className="text-gray-300 hover:text-white">Home</Link>
@@ -36,7 +36,7 @@ const TermsOfService: FC = () => {
           <section>
             <h2 className="text-2xl font-semibold mb-4">Agreement to Terms</h2>
             <p className="text-gray-400 mb-4">
-              By accessing or using TherapyTrain AI, you agree to be bound by these Terms of Service
+              By accessing or using Gradiant, you agree to be bound by these Terms of Service
               and our Privacy Policy. If you disagree with any part of these terms, you may not
               access our platform.
             </p>
@@ -94,7 +94,7 @@ const TermsOfService: FC = () => {
             <h2 className="text-2xl font-semibold mb-4">Intellectual Property</h2>
             <p className="text-gray-400 mb-4">
               The platform, content, and all related intellectual property rights belong to
-              TherapyTrain AI. You may not copy, modify, or create derivative works without our
+              Gradiant. You may not copy, modify, or create derivative works without our
               explicit permission.
             </p>
           </section>
@@ -113,7 +113,7 @@ const TermsOfService: FC = () => {
           <section>
             <h2 className="text-2xl font-semibold mb-4">Limitation of Liability</h2>
             <p className="text-gray-400 mb-4">
-              To the maximum extent permitted by law, TherapyTrain AI shall not be liable for any
+              To the maximum extent permitted by law, Gradiant shall not be liable for any
               indirect, incidental, special, consequential, or punitive damages arising from your
               use of the platform.
             </p>
@@ -123,7 +123,7 @@ const TermsOfService: FC = () => {
           <section>
             <h2 className="text-2xl font-semibold mb-4">Indemnification</h2>
             <p className="text-gray-400 mb-4">
-              You agree to indemnify and hold harmless TherapyTrain AI from any claims arising
+              You agree to indemnify and hold harmless Gradiant from any claims arising
               from your use of the platform or violation of these terms.
             </p>
           </section>
@@ -145,7 +145,7 @@ const TermsOfService: FC = () => {
               If you have any questions about these Terms of Service, please contact us at:
             </p>
             <p className="text-gray-400">
-              Email: legal@therapytrain.ai<br />
+              Email: legal@gemcity.xyz<br />
               Address: [Your Business Address]<br />
               Phone: [Your Phone Number]
             </p>

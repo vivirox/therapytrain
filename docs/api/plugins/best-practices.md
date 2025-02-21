@@ -1,6 +1,6 @@
 # Plugin Development Best Practices
 
-This document provides comprehensive guidelines and best practices for developing plugins for the TherapyTrain EHR Integration Platform.
+This document provides comprehensive guidelines and best practices for developing plugins for the Gradiant EHR Integration Platform.
 
 ## Architecture
 
@@ -344,7 +344,7 @@ Provide clear documentation:
 ```markdown
 # Appointment Scheduler Plugin
 
-Provides advanced appointment scheduling capabilities for the TherapyTrain EHR Platform.
+Provides advanced appointment scheduling capabilities for the Gradiant EHR Platform.
 
 ## Features
 
@@ -356,7 +356,7 @@ Provides advanced appointment scheduling capabilities for the TherapyTrain EHR P
 ## Installation
 
 ```bash
-npm install therapytrain-appointment-scheduler
+npm install gradiant-appointment-scheduler
 ```
 
 ## Configuration
@@ -393,13 +393,10 @@ Follow semantic versioning:
 ```typescript
 // package.json
 {
-  "name": "therapytrain-appointment-scheduler",
-  "version": "1.2.3",  // Major.Minor.Patch
-  "engines": {
-    "node": ">=16.0.0"
-  },
-  "peerDependencies": {
-    "therapytrain-plugin-sdk": "^2.0.0"
+  "name": "gradiant-appointment-scheduler",
+  "version": "1.0.0",
+  "dependencies": {
+    "gradiant-plugin-sdk": "^2.0.0"
   }
 }
 ```

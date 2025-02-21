@@ -277,7 +277,7 @@ const Dashboard: React.FC = () => {
         {/* Side Navigation */}
         <div className="fixed left-0 top-0 w-64 h-screen glass-card border-r border-white/10">
           <div className="p-6">
-            <h2 className="text-xl font-medium mb-6 text-white">TherapyTrain</h2>
+            <h2 className="text-xl font-medium mb-6 text-white">Gradiant</h2>
             <nav className="space-y-2">
               {navItems.map((item: any) => (<Button key={item.id} variant="ghost" className={cn("w-full justify-start gap-2 text-white", activeTab === item.id && "bg-white/10")} onClick={() => {
                 if (item.id === "education") {

@@ -1,6 +1,6 @@
 # Security Monitoring System
 
-A comprehensive security monitoring system for the TherapyTrain platform that provides real-time alerts, notifications, and automated responses to security events.
+A comprehensive security monitoring system for the Gradiant platform that provides real-time alerts, notifications, and automated responses to security events.
 
 ## Features
 

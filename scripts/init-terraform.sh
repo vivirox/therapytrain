@@ -14,24 +14,23 @@ fi
 AWS_ACCESS_KEY=$1
 AWS_SECRET_KEY=$2
 
-# Create Terraform state bucket if it doesn't exist
-echo "Creating Terraform state bucket..."
+# Create S3 bucket for Terraform state
 aws s3api create-bucket \
-    --bucket therapytrain-terraform-state \
+    --bucket gradiant-terraform-state \
     --region us-east-1 \
     --acl private \
     --profile default \
     --create-bucket-configuration LocationConstraint=us-east-1
 
-# Enable versioning on the bucket
+# Enable versioning
 aws s3api put-bucket-versioning \
-    --bucket therapytrain-terraform-state \
+    --bucket gradiant-terraform-state \
     --versioning-configuration Status=Enabled \
     --profile default
 
-# Enable encryption on the bucket
+# Enable encryption
 aws s3api put-bucket-encryption \
-    --bucket therapytrain-terraform-state \
+    --bucket gradiant-terraform-state \
     --server-side-encryption-configuration '{
         "Rules": [
             {
@@ -43,33 +42,26 @@ aws s3api put-bucket-encryption \
     }' \
     --profile default
 
-# Create Terraform variables file
+# Create Terraform configuration
 echo "Creating Terraform variables file..."
-cat > terraform/environments/development.tfvars << EOL
-environment = "development"
-region     = "us-east-1"
-app_name   = "therapytrain"
-domain     = "therapytrain.com"
-
-tags = {
-  Environment = "development"
-  Project     = "therapytrain"
-  ManagedBy   = "terraform"
-}
-EOL
-
-cat > terraform/environments/production.tfvars << EOL
-environment = "production"
-region     = "us-east-1"
-app_name   = "therapytrain"
-domain     = "therapytrain.com"
-
+cat > terraform.tfvars <<EOF
+app_name   = "gradiant"
+domain     = "gemcity.xyz"
 tags = {
   Environment = "production"
-  Project     = "therapytrain"
-  ManagedBy   = "terraform"
+  Project     = "gradiant"
 }
-EOL
+EOF
+
+# Create staging configuration
+cat > staging.tfvars <<EOF
+app_name   = "gradiant"
+domain     = "gemcity.xyz"
+tags = {
+  Environment = "staging"
+  Project     = "gradiant"
+}
+EOF
 
 # Initialize Terraform
 echo "Initializing Terraform..."

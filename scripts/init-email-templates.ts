@@ -18,7 +18,7 @@ const templates: TemplateConfig[] = [
     name: 'welcome',
     description: 'Welcome email sent to new users',
     category: 'transactional',
-    subject: 'Welcome to TherapyTrain!',
+    subject: 'Welcome to Gradiant!',
     variables: [
       'name',
       'dashboardUrl',

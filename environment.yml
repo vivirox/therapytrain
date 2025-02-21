@@ -1,4 +1,4 @@
-name: therapytrain
+name: gradiant
 channels:
   - anaconda
   - conda-forge

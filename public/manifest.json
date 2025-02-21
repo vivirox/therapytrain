@@ -1,6 +1,6 @@
 {
-    "name": "TherapyTrain",
-    "short_name": "TherapyTrain",
+    "name": "Gradiant",
+    "short_name": "Gradiant",
     "description": "A secure and accessible platform for therapy sessions",
     "start_url": "/",
     "display": "standalone",
@@ -79,14 +79,14 @@
             "sizes": "1280x720",
             "type": "image/png",
             "platform": "wide",
-            "label": "Home screen of TherapyTrain"
+            "label": "Home screen of Gradiant"
         },
         {
             "src": "/screenshots/sessions.png",
             "sizes": "1280x720",
             "type": "image/png",
             "platform": "wide",
-            "label": "Sessions screen of TherapyTrain"
+            "label": "Sessions screen of Gradiant"
         }
     ],
     "categories": ["health", "medical", "productivity"],

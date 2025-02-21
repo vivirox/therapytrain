@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Rollback script for TherapyTrain application
+# Rollback script for Gradiant application
 # Usage: ./rollback.sh <environment> <version>
 
 set -e

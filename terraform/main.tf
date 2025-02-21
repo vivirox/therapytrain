@@ -10,7 +10,7 @@ terraform {
     }
   }
   backend "s3" {
-    bucket = "therapytrain-terraform-state"
+    bucket = "gradiant-terraform-state"
     key    = "terraform.tfstate"
     region = "us-east-1"
   }
@@ -112,4 +112,15 @@ resource "github_actions_secret" "slack_webhook_url" {
   repository      = github_repository.app.name
   secret_name     = "SLACK_WEBHOOK_URL"
   plaintext_value = var.slack_webhook_url
+}
+
+resource "aws_s3_bucket" "app" {
+  bucket = "gradiant"
+  acl    = "private"
+
+  tags = {
+    Name        = "gradiant"
+    Environment = "production"
+    Description = "Gradiant Application"
+  }
 } 

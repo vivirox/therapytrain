@@ -1,6 +1,6 @@
 # Plugin Security
 
-This document outlines the security model and best practices for the TherapyTrain EHR Integration Platform's Plugin System.
+This document outlines the security model and best practices for the Gradiant EHR Integration Platform's Plugin System.
 
 ## Security Model
 
@@ -35,7 +35,7 @@ interface SandboxOptions {
 const defaultSandboxOptions: SandboxOptions = {
   memoryLimit: 128,
   cpuLimit: 10,
-  allowedHosts: ['api.therapytrain.com'],
+  allowedHosts: ['api.gemcity.xyz'],
   maxConcurrentRequests: 5,
   allowedPaths: ['./plugin-data'],
   readOnly: true,
@@ -201,7 +201,7 @@ interface NetworkPolicy {
 
 // Apply network policy
 await pluginService.setNetworkPolicy('appointment-scheduler', {
-  allowedHosts: ['api.therapytrain.com'],
+  allowedHosts: ['api.gemcity.xyz'],
   allowedPorts: [443],
   maxConcurrentConnections: 5,
   rateLimits: {

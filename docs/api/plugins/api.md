@@ -1,6 +1,6 @@
 # Plugin API Reference
 
-This document provides detailed information about the APIs available to plugin developers in the TherapyTrain EHR Integration Platform.
+This document provides detailed information about the APIs available to plugin developers in the Gradiant EHR Integration Platform.
 
 ## Core APIs
 

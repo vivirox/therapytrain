@@ -18,7 +18,7 @@ global:
   evaluation_interval: 15s
 
 scrape_configs:
-  - job_name: 'therapytrain'
+  - job_name: 'gradiant'
     static_configs:
       - targets: ['app:3000']
     metrics_path: '/metrics'

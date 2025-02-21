@@ -69,7 +69,7 @@ jobs:
       - name: Deploy to Vercel (Staging)
         run: |
           url=$(vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }})
-          vercel alias $url staging-therapytrain.vercel.app --token=${{ secrets.VERCEL_TOKEN }}
+          vercel alias $url staging-gradiant.vercel.app --token=${{ secrets.VERCEL_TOKEN }}
           echo "Deployed to $url"
           
   deploy-production:

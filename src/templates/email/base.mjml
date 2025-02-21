@@ -1,6 +1,6 @@
 <mjml>
   <mj-head>
-    <mj-title>TherapyTrain Email</mj-title>
+    <mj-title>Gradiant Email</mj-title>
     <mj-font name="Inter" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" />
     <mj-attributes>
       <mj-all font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" />
@@ -17,7 +17,7 @@
     <!-- Header -->
     <mj-section padding-bottom="0">
       <mj-column>
-        <mj-image src="{{logoUrl}}" alt="TherapyTrain" width="150px" padding="20px 0" />
+        <mj-image src="{{logoUrl}}" alt="Gradiant" width="150px" padding="20px 0" />
       </mj-column>
     </mj-section>
 
@@ -34,7 +34,7 @@
     <mj-section padding-top="20px">
       <mj-column>
         <mj-text align="center" color="#666666" font-size="14px">
-          <p>© {{currentYear}} TherapyTrain. All rights reserved.</p>
+          <p>© {{currentYear}} Gradiant. All rights reserved.</p>
           <p>
             <a href="{{privacyUrl}}" class="footer-link">Privacy Policy</a> • 
             <a href="{{termsUrl}}" class="footer-link">Terms of Service</a>
