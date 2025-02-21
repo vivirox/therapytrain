@@ -97,17 +97,17 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-  deploy-preview:
-    name: Deploy to Preview
+  deploy-staging:
+    name: Deploy to Staging
     runs-on: ubuntu-latest
     needs: build
     if: github.event_name == 'pull_request'
     environment:
-      name: preview
+      name: Preview
       url: ${{ steps.deploy.outputs.url }}
 
     steps:
-      - name: Deploy to Vercel (Preview)
+      - name: Deploy to Vercel (Staging)
         id: deploy
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
@@ -124,7 +124,7 @@ jobs:
     needs: build
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     environment:
-      name: live
+      name: Production
       url: ${{ steps.deploy.outputs.url }}
 
     steps:
