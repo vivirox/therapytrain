@@ -49,6 +49,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -56,9 +61,7 @@ jobs:
           cache: 'pnpm'
 
       - name: Install dependencies
-        run: |
-          corepack enable
-          pnpm install
+        run: pnpm install --frozen-lockfile
 
       - name: Run tests
         run: pnpm test
@@ -104,7 +107,6 @@ jobs:
     if: github.event_name == 'pull_request'
     environment:
       name: Preview
-      url: ${{ steps.deploy.outputs.url }}
 
     steps:
       - name: Deploy to Vercel (Staging)
@@ -118,6 +120,9 @@ jobs:
           DEPLOYMENT_URL=$(npx vercel deploy --token=$VERCEL_TOKEN)
           echo "url=$DEPLOYMENT_URL" >> $GITHUB_OUTPUT
 
+      - name: Update environment URL
+        run: echo "Environment URL - ${{ steps.deploy.outputs.url }}"
+
   deploy-production:
     name: Deploy to Production
     runs-on: ubuntu-latest
@@ -125,7 +130,6 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     environment:
       name: Production
-      url: ${{ steps.deploy.outputs.url }}
 
     steps:
       - name: Deploy to Vercel (Production)
@@ -138,6 +142,9 @@ jobs:
           npx vercel pull --yes --environment=production --token=$VERCEL_TOKEN
           DEPLOYMENT_URL=$(npx vercel deploy --prod --token=$VERCEL_TOKEN)
           echo "url=$DEPLOYMENT_URL" >> $GITHUB_OUTPUT
+
+      - name: Update environment URL
+        run: echo "Environment URL - ${{ steps.deploy.outputs.url }}"
 
   notify:
     name: Notify Status

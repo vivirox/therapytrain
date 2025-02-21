@@ -9,12 +9,11 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    environment: Preview
 
     env:
       NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
       NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-      NEXT_PUBLIC_SUPABASE_TEST_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_TEST_URL }}
-      NEXT_PUBLIC_SUPABASE_TEST_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_TEST_ANON_KEY }}
 
     steps:
       - uses: actions/checkout@v4
@@ -38,17 +37,6 @@ jobs:
           name: test-results
           path: test-results/
           retention-days: 30
-
-      - name: Upload coverage reports
-        if: always()
-        uses: codecov/codecov-action@v4
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          directory: ./coverage/
-          flags: unittests
-          name: codecov-umbrella
-          fail_ci_if_error: true
-          verbose: true
 
       - name: Check coverage thresholds
         run: |

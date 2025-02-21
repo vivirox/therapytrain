@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: Preview
-      url: https://test.therapytrain.com
+      url: https://preview.vercel.app
 
     steps:
       - name: No-op step
@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: Production
-      url: https://therapytrain.com
+      url: https://vercel.app
 
     steps:
       - name: No-op step
