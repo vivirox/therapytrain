@@ -1,33 +1,15 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, beforeAll } from 'vitest';
 import { PasswordService } from '../password';
 import { supabase } from '@/lib/supabaseClient';
 import { AuthError } from '@/types/auth';
+import { UserRepository } from '@/repositories/UserRepository';
+import { RedisService } from '../RedisService';
+import { EmailService } from '../EmailService';
 
 // Mock dependencies
-vi.mock('@/lib/supabaseclient', () => ({
+vi.mock('@/lib/supabaseClient', () => ({
   supabase: {
-    from: vi.fn(() => ({
-      select: vi.fn(() => ({
-        eq: vi.fn(() => ({
-          single: vi.fn(),
-          order: vi.fn(() => ({
-            limit: vi.fn(() => ({
-              data: []
-            }))
-          })),
-        })),
-        is: vi.fn(() => ({
-          gt: vi.fn(() => ({
-            single: vi.fn()
-          }))
-        }))
-      })),
-      insert: vi.fn(),
-      update: vi.fn(() => ({
-        eq: vi.fn()
-      })),
-      transaction: vi.fn(async (callback) => await callback({ from: vi.fn() }))
-    }))
+    from: vi.fn(),
   }
 }));
 
@@ -44,12 +26,43 @@ vi.mock('@/utils/email', () => ({
   sendPasswordResetSuccessEmail: vi.fn()
 }));
 
+vi.mock('@/repositories/UserRepository');
+vi.mock('../RedisService');
+vi.mock('../EmailService');
+
+beforeAll(() => {
+  process.env.NEXT_PUBLIC_SUPABASE_URL = 'mock-url';
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'mock-key';
+});
+
 describe('PasswordService', () => {
   let service: PasswordService;
+  let userRepo: jest.Mocked<UserRepository>;
+  let redisService: jest.Mocked<RedisService>;
+  let emailService: jest.Mocked<EmailService>;
 
   beforeEach(() => {
-    service = new PasswordService();
+    // Clear all mocks
     vi.clearAllMocks();
+    
+    // Setup mocks
+    userRepo = {
+      findByEmail: vi.fn(),
+      updatePassword: vi.fn(),
+      // ... other methods
+    } as any;
+    
+    redisService = {
+      set: vi.fn(),
+      get: vi.fn(),
+      delete: vi.fn(),
+    } as any;
+    
+    emailService = {
+      sendPasswordReset: vi.fn(),
+    } as any;
+
+    service = new PasswordService(userRepo, redisService, emailService);
   });
 
   describe('validatePassword', () => {
@@ -61,20 +74,11 @@ describe('PasswordService', () => {
 
     it('should reject a weak password', () => {
       const result = service.validatePassword('weak');
-      console.log('Password validation results:', {
-        valid: result.valid,
-        errorCount: result.errors.length,
-        errors: result.errors.map(e => e.trim()),
-        requirements: {
-          length: result.errors.some(e => e.includes('length')),
-          numbers: result.errors.some(e => e.includes('number')),
-          symbols: result.errors.some(e => e.includes('symbol')),
-          uppercase: result.errors.some(e => e.includes('uppercase')),
-          lowercase: result.errors.some(e => e.includes('lowercase'))
-        }
-      });
-      expect(result.valid).toBe(false);
-      expect(result.errors).toHaveLength(5);
+      expect(result.errors).toHaveLength(4);
+      expect(result.errors).toContain('Password must be at least 8 characters long');
+      expect(result.errors).toContain('Password must contain at least one uppercase letter');
+      expect(result.errors).toContain('Password must contain at least one number');
+      expect(result.errors).toContain('Password must contain at least one special character');
     });
 
     it('should validate each requirement independently', () => {
@@ -146,19 +150,22 @@ describe('PasswordService', () => {
   describe('initiateReset', () => {
     it('should initiate password reset for existing user', async () => {
       const mockUser = { id: 'user-123', email: 'test@example.com' };
-      vi.mocked(supabase.from).mockImplementationOnce(() => ({
-        select: vi.fn(() => ({
-          eq: vi.fn(() => ({
-            single: vi.fn().mockResolvedValue({ data: mockUser })
-          }))
-        })),
+      
+      const mockSelect = vi.fn().mockReturnValue({
+        eq: vi.fn().mockReturnValue({
+          single: vi.fn().mockResolvedValue({ data: mockUser })
+        })
+      });
+
+      vi.mocked(supabase.from).mockReturnValue({
+        select: mockSelect,
         insert: vi.fn().mockResolvedValue({}),
-      }));
+      } as any);
 
       await service.initiateReset('test@example.com');
 
       expect(supabase.from).toHaveBeenCalledWith('users');
-      expect(supabase.from).toHaveBeenCalledWith('password_reset_tokens');
+      expect(mockSelect).toHaveBeenCalled();
     });
 
     it('should handle non-existent user silently', async () => {

@@ -1,152 +1,18 @@
+/* Import external styles first */
+@import './rtl.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
-    :root {
-        --background: 0 0% 100%;
-        --foreground: 222.2 84% 4.9%;
-        --card: 0 0% 100%;
-        --card-foreground: 222.2 84% 4.9%;
-        --popover: 0 0% 100%;
-        --popover-foreground: 222.2 84% 4.9%;
-        --primary: 222.2 47.4% 11.2%;
-        --primary-foreground: 210 40% 98%;
-        --secondary: 210 40% 96.1%;
-        --secondary-foreground: 222.2 47.4% 11.2%;
-        --muted: 210 40% 96.1%;
-        --muted-foreground: 215.4 16.3% 46.9%;
-        --accent: 210 40% 96.1%;
-        --accent-foreground: 222.2 47.4% 11.2%;
-        --destructive: 0 84.2% 60.2%;
-        --destructive-foreground: 210 40% 98%;
-        --border: 214.3 31.8% 91.4%;
-        --input: 214.3 31.8% 91.4%;
-        --ring: 222.2 84% 4.9%;
-        --radius: 0.5rem;
-        --focus-ring-color: hsl(var(--primary));
-        --focus-ring-offset: hsl(var(--background));
-    }
-
-    .dark {
-        --background: 222.2 84% 4.9%;
-        --foreground: 210 40% 98%;
-        --card: 222.2 84% 4.9%;
-        --card-foreground: 210 40% 98%;
-        --popover: 222.2 84% 4.9%;
-        --popover-foreground: 210 40% 98%;
-        --primary: 210 40% 98%;
-        --primary-foreground: 222.2 47.4% 11.2%;
-        --secondary: 217.2 32.6% 17.5%;
-        --secondary-foreground: 210 40% 98%;
-        --muted: 217.2 32.6% 17.5%;
-        --muted-foreground: 215 20.2% 65.1%;
-        --accent: 217.2 32.6% 17.5%;
-        --accent-foreground: 210 40% 98%;
-        --destructive: 0 62.8% 30.6%;
-        --destructive-foreground: 210 40% 98%;
-        --border: 217.2 32.6% 17.5%;
-        --input: 217.2 32.6% 17.5%;
-        --ring: 212.7 26.8% 83.9%;
-        --focus-ring-color: hsl(var(--primary-foreground));
-        --focus-ring-offset: hsl(var(--background));
-    }
-
-    * {
-        @apply border-border;
-    }
-
-    body {
-        @apply bg-background text-foreground;
-    }
-
-    *:focus-visible {
-        outline: none;
-    }
-
-    /* High contrast mode overrides */
-    @media (forced-colors: active) {
-        :root {
-            --focus-ring-color: Highlight;
-            --focus-ring-offset: Canvas;
-        }
-
-        .focus-ring {
-            outline: 2px solid Highlight !important;
-            outline-offset: 2px !important;
-        }
-    }
-
-    /* Color blind mode filters */
-    [data-color-blind="protanopia"] {
-        filter: url('#protanopia-filter');
-    }
-
-    [data-color-blind="deuteranopia"] {
-        filter: url('#deuteranopia-filter');
-    }
-
-    [data-color-blind="tritanopia"] {
-        filter: url('#tritanopia-filter');
-    }
-
-    /* RTL Support */
-    [dir="rtl"] {
-        /* Margins */
-        .ml-1, .ml-2, .ml-3, .ml-4 { margin-left: 0 !important; }
-        .mr-1, .mr-2, .mr-3, .mr-4 { margin-right: 0 !important; }
-        
-        /* Specific margin values */
-        .ml-1 { margin-right: 0.25rem !important; }
-        .ml-2 { margin-right: 0.5rem !important; }
-        .ml-3 { margin-right: 0.75rem !important; }
-        .ml-4 { margin-right: 1rem !important; }
-        
-        .mr-1 { margin-left: 0.25rem !important; }
-        .mr-2 { margin-left: 0.5rem !important; }
-        .mr-3 { margin-left: 0.75rem !important; }
-        .mr-4 { margin-left: 1rem !important; }
-        
-        /* Paddings */
-        .pl-1 { padding-right: 0.25rem !important; padding-left: 0 !important; }
-        .pl-2 { padding-right: 0.5rem !important; padding-left: 0 !important; }
-        .pl-3 { padding-right: 0.75rem !important; padding-left: 0 !important; }
-        .pl-4 { padding-right: 1rem !important; padding-left: 0 !important; }
-        
-        .pr-1 { padding-left: 0.25rem !important; padding-right: 0 !important; }
-        .pr-2 { padding-left: 0.5rem !important; padding-right: 0 !important; }
-        .pr-3 { padding-left: 0.75rem !important; padding-right: 0 !important; }
-        .pr-4 { padding-left: 1rem !important; padding-right: 0 !important; }
-        
-        /* Borders */
-        .border-l { border-left: none !important; border-right: 1px solid; }
-        .border-r { border-right: none !important; border-left: 1px solid; }
-        
-        /* Transforms */
-        .rotate-90 { transform: rotate(-90deg) !important; }
-        .rotate-180 { transform: rotate(-180deg) !important; }
-        .rotate-270 { transform: rotate(-270deg) !important; }
-        
-        /* Positions */
-        .left-0 { left: auto !important; right: 0 !important; }
-        .right-0 { right: auto !important; left: 0 !important; }
-        
-        /* Text alignment */
-        .text-left { text-align: right !important; }
-        .text-right { text-align: left !important; }
-    }
-}
-
-/* SVG Filters for color blind modes */
-@layer utilities {
-    .color-blind-filters {
-        position: absolute;
-        height: 0;
-        width: 0;
-        overflow: hidden;
-    }
+    /* Your base styles */
 }
 
 @layer components {
-    /* Your component classes here */
+    /* Your component styles */
+}
+
+@layer utilities {
+    /* Your utility styles */
 }

@@ -105,3 +105,14 @@ export { customRender as render };
 
 // Extend Vitest's expect with testing-library matchers
 expect.extend(matchers);
+
+// Mock environment variables
+process.env = {
+  ...process.env,
+  UPSTASH_REDIS_REST_URL: 'mock-url',
+  UPSTASH_REDIS_REST_TOKEN: 'mock-token',
+  NEXT_PUBLIC_SUPABASE_URL: 'mock-url',
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: 'mock-key'
+};
+
+// Add any global test setup here

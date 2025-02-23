@@ -9,6 +9,11 @@ jest.mock('@supabase/supabase-js');
 jest.mock('nodemailer');
 jest.mock('@slack/web-api');
 
+beforeAll(() => {
+  process.env.UPSTASH_REDIS_REST_URL = 'mock-url';
+  process.env.UPSTASH_REDIS_REST_TOKEN = 'mock-token';
+});
+
 describe('AutomatedNotificationService', () => {
   let service: AutomatedNotificationService;
   let mockSupabase: any;

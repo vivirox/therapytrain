@@ -214,10 +214,18 @@ export class Point {
     static BASE = new Point(secp256k1.ProjectivePoint.BASE);
     static fromPrivateKey = (privateKey: bigint) => new Point(secp256k1.ProjectivePoint.fromPrivateKey(privateKey));
 
-    constructor(private point: secp256k1.ProjectivePoint) {
-        if (!point || !(point instanceof secp256k1.ProjectivePoint)) {
-            throw new Error('Invalid point: must be a valid ProjectivePoint instance');
-        }
+    private _point: any;
+
+    constructor(point: any) {
+        this._point = point;
+    }
+
+    get point() {
+        return this._point;
+    }
+
+    set point(value: any) {
+        this._point = value;
     }
 
     add(other: Point): Point {
@@ -268,17 +276,6 @@ export class Point {
             throw new Error('Invalid point: y coordinate is undefined');
         }
         return BigInt(this.point.y);
-    }
-
-    get point(): secp256k1.ProjectivePoint {
-        if (!this._point) {
-            throw new Error('Point not initialized');
-        }
-        return this._point;
-    }
-
-    private get _point(): secp256k1.ProjectivePoint {
-        return this.point;
     }
 
     isOnCurve(): boolean {

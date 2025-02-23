@@ -1,6 +1,6 @@
 import { groth16 } from 'snarkjs';
 import { buildPoseidon } from 'circomlibjs';
-import { expect, describe, it, beforeAll } from 'bun:test';
+import { expect, test, describe, beforeAll } from 'vitest';
 describe('SessionValidator Circuit', () => {
     let poseidon: any;
     beforeAll(async () => {

@@ -2,6 +2,9 @@
 export default {
   darkMode: ["class", '[data-theme="dark"]'],
   content: ["./src/**/*.{js,jsx,ts,tsx}"],
+  safelist: [
+    // Add any dynamic classes that might be generated
+  ],
   theme: {
     container: {
       center: true,
