@@ -1,5 +1,6 @@
 import { Timestamps, Metadata, Auditable, Statusable } from '@/common';
-import type { Database } from './database'
+import type { Database } from '../database.types';
+import type { Metadata as CommonMetadata } from '../common';
 
 /**
  * Enum for user roles
@@ -45,21 +46,31 @@ export interface UserPreferences {
     };
 }
 
+export interface UserBase {
+    id: string;
+    email: string;
+    role: string;
+    status: string;
+    metadata: Record<string, unknown>;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface User extends UserBase {
+    profile?: UserProfile;
+}
+
 /**
  * Interface for user profile
  */
 export interface UserProfile {
     id: string;
-    user_id: string;
-    first_name: string;
-    last_name: string;
-    avatar_url?: string;
+    userId: string;
+    firstName: string;
+    lastName: string;
+    avatar?: string;
     bio?: string;
-    specialties?: string[];
-    certifications?: string[];
-    preferences?: Record<string, unknown>;
-    created_at: string;
-    updated_at: string;
+    metadata: Record<string, unknown>;
 }
 
 /**
@@ -184,9 +195,9 @@ export function isUserProfile(obj: unknown): obj is UserProfile {
         typeof obj === 'object' &&
         obj !== null &&
         'id' in obj &&
-        'user_id' in obj &&
-        'first_name' in obj &&
-        'last_name' in obj
+        'userId' in obj &&
+        'firstName' in obj &&
+        'lastName' in obj
     );
 }
 

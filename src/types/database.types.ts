@@ -130,6 +130,8 @@ export interface Database {
           name: string | null;
           avatar_url: string | null;
           role: "user" | "therapist" | "admin";
+          status: string;
+          metadata: Record<string, unknown>;
         };
         Insert: {
           id?: string;
@@ -139,6 +141,8 @@ export interface Database {
           name?: string | null;
           avatar_url?: string | null;
           role?: "user" | "therapist" | "admin";
+          status?: string;
+          metadata?: Record<string, unknown>;
         };
         Update: {
           id?: string;
@@ -148,67 +152,157 @@ export interface Database {
           name?: string | null;
           avatar_url?: string | null;
           role?: "user" | "therapist" | "admin";
+          status?: string;
+          metadata?: Record<string, unknown>;
         };
       };
       sessions: {
         Row: {
           id: string;
+          title: string;
+          description: string;
           created_at: string;
           updated_at: string;
-          user_id: string;
-          client_id: string;
-          status: "active" | "ended" | "expired";
-          expires_at: string;
-          metadata: Record<string, unknown> | null;
+          mode: string;
+          status: string;
+          start_time: string;
+          end_time: string;
+          metadata: Record<string, unknown>;
         };
         Insert: {
           id?: string;
-          created_at?: string;
-          updated_at?: string;
-          user_id: string;
-          client_id: string;
-          status?: "active" | "ended" | "expired";
-          expires_at?: string;
-          metadata?: Record<string, unknown> | null;
+          title: string;
+          description?: string;
+          mode?: string;
+          status?: string;
+          start_time?: string;
+          end_time?: string;
+          metadata?: Record<string, unknown>;
         };
         Update: {
           id?: string;
-          created_at?: string;
-          updated_at?: string;
+          title?: string;
+          description?: string;
+          mode?: string;
+          status?: string;
+          start_time?: string;
+          end_time?: string;
+          metadata?: Record<string, unknown>;
+        };
+      };
+      session_messages: {
+        Row: {
+          id: string;
+          session_id: string;
+          sender_id: string;
+          content: string;
+          created_at: string;
+          updated_at: string;
+          type: string;
+          status: string;
+          metadata: Record<string, unknown>;
+        };
+        Insert: {
+          id?: string;
+          session_id: string;
+          sender_id: string;
+          content: string;
+          type?: string;
+          status?: string;
+          metadata?: Record<string, unknown>;
+        };
+        Update: {
+          id?: string;
+          session_id?: string;
+          sender_id?: string;
+          content?: string;
+          type?: string;
+          status?: string;
+          metadata?: Record<string, unknown>;
+        };
+      };
+      session_participants: {
+        Row: {
+          id: string;
+          session_id: string;
+          user_id: string;
+          role: string;
+          joined_at: string;
+          left_at: string | null;
+          created_at: string;
+          updated_at: string;
+          metadata: Record<string, unknown>;
+        };
+        Insert: {
+          id?: string;
+          session_id: string;
+          user_id: string;
+          role?: string;
+          joined_at?: string;
+          left_at?: string | null;
+          metadata?: Record<string, unknown>;
+        };
+        Update: {
+          id?: string;
+          session_id?: string;
           user_id?: string;
-          client_id?: string;
-          status?: "active" | "ended" | "expired";
-          expires_at?: string;
-          metadata?: Record<string, unknown> | null;
+          role?: string;
+          joined_at?: string;
+          left_at?: string | null;
+          metadata?: Record<string, unknown>;
         };
       };
       messages: {
         Row: {
           id: string;
-          created_at: string;
-          session_id: string;
+          thread_id: string;
           sender_id: string;
           content: string;
-          type: "text" | "system" | "intervention";
-          metadata: Record<string, unknown> | null;
+          created_at: string;
+          updated_at: string;
+          type: string;
+          status: string;
+          metadata: Record<string, unknown>;
         };
         Insert: {
           id?: string;
-          created_at?: string;
-          session_id: string;
+          thread_id: string;
           sender_id: string;
           content: string;
-          type?: "text" | "system" | "intervention";
-          metadata?: Record<string, unknown> | null;
+          type?: string;
+          status?: string;
+          metadata?: Record<string, unknown>;
         };
         Update: {
           id?: string;
-          created_at?: string;
-          session_id?: string;
+          thread_id?: string;
           sender_id?: string;
           content?: string;
-          type?: "text" | "system" | "intervention";
-          metadata?: Record<string, unknown> | null;
+          type?: string;
+          status?: string;
+          metadata?: Record<string, unknown>;
+        };
+      };
+      threads: {
+        Row: {
+          id: string;
+          title: string;
+          created_at: string;
+          updated_at: string;
+          status: string;
+          metadata: Record<string, unknown>;
+        };
+        Insert: {
+          id?: string;
+          title: string;
+          status?: string;
+          metadata?: Record<string, unknown>;
+        };
+        Update: {
+          id?: string;
+          title?: string;
+          status?: string;
+          metadata?: Record<string, unknown>;
         };
       };
       audit_logs: {

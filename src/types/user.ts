@@ -1,92 +1,96 @@
-import { BaseEntity, Metadata } from './common';
+import type { Database } from './database.types'
+import type { Timestamps, Metadata, Auditable, Statusable } from './common'
 
-export interface UserProfile extends BaseEntity {
-  email: string;
-  name: string | null;
-  avatar_url: string | null;
-  role: 'admin' | 'user' | 'therapist';
-  preferences?: UserPreferences;
-  metadata?: Metadata;
+// User roles
+export const UserRoles = {
+  ADMIN: 'admin',
+  THERAPIST: 'therapist',
+  CLIENT: 'client',
+  GUEST: 'guest'
+} as const
+
+export type UserRole = typeof UserRoles[keyof typeof UserRoles]
+
+// User status
+export const UserStatus = {
+  ACTIVE: 'active',
+  INACTIVE: 'inactive',
+  PENDING: 'pending',
+  SUSPENDED: 'suspended'
+} as const
+
+export type UserStatus = typeof UserStatus[keyof typeof UserStatus]
+
+// Base user interface
+export interface User extends Timestamps, Auditable, Statusable {
+  id: string
+  email: string
+  role: UserRole
+  metadata: Metadata
 }
 
-export interface UserPreferences {
-  notifications: {
-    email: boolean;
-    push: boolean;
-    sms: boolean;
-  };
-  theme: 'light' | 'dark' | 'system';
-  language: string;
-  timezone: string;
-  [key: string]: unknown;
+// User profile interface
+export interface UserProfile extends User {
+  firstName?: string
+  lastName?: string
+  avatar?: string
+  phoneNumber?: string
+  timezone?: string
+  language?: string
+  preferences: UserPreferences
 }
 
+// User credentials
+export interface UserCredentials {
+  email: string
+  password: string
+}
+
+// User session
 export interface UserSession {
-  id: string;
-  user: UserProfile;
-  created_at: string;
-  expires_at: string;
-  last_active_at: string;
-  metadata?: Metadata;
+  id: string
+  userId: string
+  token: string
+  expiresAt: Date
+  metadata: Metadata
 }
 
-export interface UserActivity {
-  id: string;
-  user_id: string;
-  type: string;
-  details: Record<string, unknown>;
-  created_at: string;
-  metadata?: Metadata;
+// User preferences
+export interface UserPreferences {
+  theme: 'light' | 'dark' | 'system'
+  notifications: boolean
+  emailNotifications: boolean
+  language: string
+  timezone: string
 }
 
-export interface UserSettings {
-  id: string;
-  user_id: string;
-  preferences: UserPreferences;
-  security: {
-    two_factor_enabled: boolean;
-    login_history_enabled: boolean;
-    notification_on_login: boolean;
-  };
-  privacy: {
-    profile_visibility: 'public' | 'private' | 'contacts';
-    activity_visibility: 'public' | 'private' | 'contacts';
-    show_online_status: boolean;
-  };
-  created_at: string;
-  updated_at: string;
-  metadata?: Metadata;
-}
-
+// User stats
 export interface UserStats {
-  total_sessions: number;
-  total_clients: number;
-  average_session_duration: number;
-  completion_rate: number;
-  satisfaction_score: number;
-  last_active_at: string;
-  metadata?: Metadata;
+  totalSessions: number
+  completedSessions: number
+  averageRating: number
+  lastActive: Date
 }
 
-export interface TherapistProfile extends UserProfile {
-  specializations: string[];
-  certifications: string[];
-  experience_years: number;
-  education: {
-    degree: string;
-    institution: string;
-    year: number;
-  }[];
-  availability: {
-    schedule: {
-      [day: string]: {
-        start: string;
-        end: string;
-      }[];
-    };
-    timezone: string;
-  };
-  rating: number;
-  total_sessions: number;
-  languages: string[];
-} 
+// Database types
+export type UserRow = Database['public']['Tables']['users']['Row']
+export type UserInsert = Database['public']['Tables']['users']['Insert']
+export type UserUpdate = Database['public']['Tables']['users']['Update']
+
+// Type guards
+export function isUser(obj: unknown): obj is User {
+  return (
+    typeof obj === 'object' &&
+    obj !== null &&
+    'id' in obj &&
+    'email' in obj &&
+    'role' in obj
+  )
+}
+
+export function isUserProfile(obj: unknown): obj is UserProfile {
+  return isUser(obj) && 'preferences' in obj
+}
+
+// Re-export common types
+export type { Timestamps, Metadata, Auditable, Statusable }

@@ -3,6 +3,8 @@ import type { AnalyticsEvent, AnalyticsConfig } from './analytics';
 import type { HIPAAEvent, HIPAAComplianceReport, HIPAAQueryFilters } from './hipaa';
 import type { SecurityIncident, SecurityConfig } from './security';
 import type { WebSocketMessage, WebSocketError } from './common';
+import type { Session, SessionParticipant, SessionMessage } from './core/session';
+import type { User, UserProfile } from './core/user';
 
 // Service status
 export type ServiceStatus = 'active' | 'inactive' | 'error' | 'initializing';
@@ -45,6 +47,13 @@ export interface SessionService {
     getMode(sessionId: string): Promise<SessionMode>;
     getMetrics(sessionId: string): Promise<SessionMetrics>;
     getConfig(sessionId: string): Promise<SessionConfig>;
+    createSession(session: Session): Promise<Session>;
+    getSession(sessionId: string): Promise<Session>;
+    updateSession(sessionId: string, update: Partial<Session>): Promise<Session>;
+    deleteSession(sessionId: string): Promise<void>;
+    listSessions(userId: string): Promise<Session[]>;
+    getSessionHistory(userId: string): Promise<SessionState[]>;
+    getSessionState(sessionId: string): Promise<SessionState>;
 }
 
 export interface WebSocketService {
@@ -216,4 +225,43 @@ export interface SessionManagerService {
   endSession(sessionId: string): Promise<void>;
   getSessionState(sessionId: string): Promise<SessionState>;
   updateSessionMode(sessionId: string, mode: SessionMode): Promise<void>;
+}
+
+export interface SessionState {
+    id: string;
+    status: string;
+    participants: SessionParticipant[];
+    messages: SessionMessage[];
+    metadata: Record<string, unknown>;
+}
+
+export interface HIPAAAuditEvent {
+    id: string;
+    timestamp: string;
+    eventType: string;
+    actionType: string;
+    userId: string;
+    resourceId: string;
+    resourceType: string;
+    details: Record<string, unknown>;
+}
+
+export interface RiskMetrics {
+    sessionId: string;
+    timestamp: string;
+    riskLevel: 'low' | 'medium' | 'high';
+    factors: string[];
+    score: number;
+    confidence: number;
+    metadata: Record<string, unknown>;
+}
+
+export interface AuditService {
+    logEvent(event: HIPAAAuditEvent): Promise<void>;
+    getAuditLog(filters: HIPAAQueryFilters): Promise<HIPAAAuditEvent[]>;
+}
+
+export interface RiskService {
+    predictRisk(sessionId: string): Promise<RiskMetrics>;
+    generateAlert(risk: RiskMetrics): Promise<void>;
 } 

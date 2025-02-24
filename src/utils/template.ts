@@ -2,9 +2,14 @@ import { readFile } from 'fs/promises';
 import { readdir } from 'fs/promises';
 import { join } from 'path';
 import Handlebars from 'handlebars';
+import { readFileSync } from 'fs';
+import { compile } from 'handlebars';
+import mjml2html from 'mjml';
+import { Logger } from '@/lib/logger';
 
 const TEMPLATE_DIR = join(process.cwd(), 'src/templates/email');
 const partialsCache = new Map<string, HandlebarsTemplateDelegate>();
+const logger = Logger.getInstance();
 
 // Register common helpers
 Handlebars.registerHelper('currentYear', () => new Date().getFullYear());
@@ -31,7 +36,7 @@ Handlebars.registerHelper('ifEquals', function(this: any, arg1: any, arg2: any, 
 // Add localization helper
 Handlebars.registerHelper('t', function(key: string, context: any) {
   const locale = context.data.root.locale || 'en';
-  return localeMessages[locale]?.[key] || key;
+  return TemplateManager.getInstance().getMessage(key, locale);
 });
 
 // Default template context that's available to all templates
@@ -183,4 +188,86 @@ export function unregisterPartial(name: string): void {
  */
 export function unregisterHelper(name: string): void {
   Handlebars.unregisterHelper(name);
-} 
+}
+
+interface TemplateOptions {
+    locale?: string;
+    data?: Record<string, unknown>;
+}
+
+class TemplateManager {
+    [x: string]: any;
+    private static instance: TemplateManager;
+    private templates: Map<string, HandlebarsTemplateDelegate>;
+    private localeMessages: Record<string, Record<string, string>>;
+
+    private constructor() {
+        this.templates = new Map();
+        this.localeMessages = {};
+        this.loadLocaleMessages();
+    }
+
+    public static getInstance(): TemplateManager {
+        if (!TemplateManager.instance) {
+            TemplateManager.instance = new TemplateManager();
+        }
+        return TemplateManager.instance;
+    }
+
+    private loadLocaleMessages(): void {
+        const localesPath = join(process.cwd(), 'locales');
+        const locales = ['en', 'es', 'fr'];
+
+        for (const locale of locales) {
+            const filePath = join(localesPath, `${locale}.json`);
+            try {
+                const content = readFileSync(filePath, 'utf-8');
+                this.localeMessages[locale] = JSON.parse(content);
+            } catch (error) {
+                logger.error(`Failed to load locale messages for ${locale}`, error as Error);
+            }
+        }
+    }
+
+    public getMessage(key: string, locale = 'en'): string {
+        return this.localeMessages[locale]?.[key] || key;
+    }
+
+    public async render(template: string, options: TemplateOptions = {}): Promise<string> {
+        const { locale = 'en', data = {} } = options;
+
+        try {
+            let compiledTemplate = this.templates.get(template);
+
+            if (!compiledTemplate) {
+                const templatePath = join(process.cwd(), 'templates', `${template}.hbs`);
+                const templateContent = readFileSync(templatePath, 'utf-8');
+                compiledTemplate = compile(templateContent);
+                this.templates.set(template, compiledTemplate);
+            }
+
+            const templateData = {
+                ...data,
+                t: (key: string) => this.getMessage(key, locale),
+            };
+
+            const renderedHtml = compiledTemplate(templateData);
+            const { html, errors } = mjml2html(renderedHtml);
+
+            if (errors.length > 0) {
+                throw new Error(`MJML errors: ${errors.map(e => e.message).join(', ')}`);
+            }
+
+            return html;
+        } catch (error) {
+            logger.error('Template rendering error', error as Error, {
+                template,
+                locale,
+                data,
+            });
+            throw error;
+        }
+    }
+}
+
+export const templateManager = TemplateManager.getInstance();

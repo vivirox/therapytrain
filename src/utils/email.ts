@@ -1,15 +1,20 @@
 import { Resend } from 'resend';
+import type { SendEmailOptions } from 'resend/build/src/interfaces';
 import { render } from '@/utils/template';
 
 interface EmailOptions {
-  to: string | string[];
+  to: string;
+  from: string;
   subject: string;
-  template: string;
-  context: Record<string, any>;
-  tags?: Array<{ name: string; value: string }>;
+  text?: string;
+  html?: string;
   replyTo?: string;
-  cc?: string | string[];
-  bcc?: string | string[];
+  cc?: string[];
+  bcc?: string[];
+  attachments?: Array<{
+    filename: string;
+    content: Buffer;
+  }>;
 }
 
 interface EmailError extends Error {
@@ -17,7 +22,7 @@ interface EmailError extends Error {
   statusCode?: number;
 }
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resend = new Resend(process.env.RESEND_API_KEY || '');
 
 // Email error codes
 export const EMAIL_ERROR_CODES = {
@@ -63,81 +68,35 @@ function validateEmails(emails: string | string[]): string[] {
   return emailArray;
 }
 
-/**
- * Send an email using a template
- */
-export async function sendEmail({
-  to,
-  subject,
-  template,
-  context,
-  tags = [],
-  replyTo,
-  cc,
-  bcc
-}: EmailOptions): Promise<void> {
-  try {
-    validateConfig();
-    
-    // Validate email addresses
-    const toEmails = validateEmails(to);
-    const ccEmails = cc ? validateEmails(cc) : undefined;
-    const bccEmails = bcc ? validateEmails(bcc) : undefined;
-    
-    // Add default tags
-    const defaultTags = [
-      { name: 'template', value: template },
-      { name: 'environment', value: process.env.NODE_ENV || 'development' }
-    ];
-    
-    // Render template
-    const html = await render(template, context).catch(error => {
-      throw createEmailError(
-        `Failed to render template ${template}: ${error.message}`,
-        EMAIL_ERROR_CODES.RENDER_ERROR
-      );
-    });
-    
-    // Send email
-    const { error } = await resend.emails.send({
-      from: process.env.EMAIL_FROM || 'noreply@gemcity.xyz',
-      to: toEmails,
-      subject,
-      html,
-      reply_to: replyTo,
-      cc: ccEmails,
-      bcc: bccEmails,
-      tags: [...defaultTags, ...tags]
-    });
+export async function sendEmail(options: EmailOptions): Promise<void> {
+  const { to, from, subject, text, html, replyTo, cc, bcc, attachments } = options;
 
-    if (error) {
-      // Handle specific error cases
-      if (error.statusCode === 429) {
-        throw createEmailError(
-          'Rate limit exceeded',
-          EMAIL_ERROR_CODES.RATE_LIMIT,
-          429
-        );
-      }
-      
-      throw createEmailError(
-        `Failed to send email: ${error.message}`,
-        EMAIL_ERROR_CODES.SEND_ERROR,
-        error.statusCode
-      );
-    }
-  } catch (error) {
-    // Log error for monitoring
-    console.error('Email error:', {
-      error,
-      template,
+  try {
+    const emailOptions: SendEmailOptions = {
+      from,
       to,
       subject,
-      timestamp: new Date().toISOString()
-    });
-    
-    // Rethrow error
-    throw error;
+      text,
+      html,
+      replyTo,
+      cc,
+      bcc,
+      attachments,
+    };
+
+    await resend.emails.send(emailOptions);
+  } catch (error) {
+    if (error instanceof Error) {
+      if ((error as any).statusCode === 429) {
+        // Handle rate limiting
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        await sendEmail(options);
+      } else {
+        throw new Error(`Failed to send email: ${(error as any).statusCode} - ${error.message}`);
+      }
+    } else {
+      throw new Error('Failed to send email: Unknown error');
+    }
   }
 }
 

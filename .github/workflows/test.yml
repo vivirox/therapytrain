@@ -2,59 +2,100 @@ name: Test
 
 on: [push, pull_request]
 
+permissions:
+  contents: read
+  actions: read
+  checks: write # Required for test reporter
+
 jobs:
   test:
     runs-on: ubuntu-latest
-    
+
     steps:
       - uses: actions/checkout@v4
-      
-      # Add system dependencies for Sharp
+
+      # Install Rust for Circom
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+
+      # Add system dependencies for Sharp and ZK tools
       - name: Install system dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y build-essential libvips-dev
-      
+
+          # Install Circom
+          git clone https://github.com/iden3/circom.git
+          cd circom
+          cargo build --release
+          cargo install --path circom
+          cd ..
+
+          # Install Snarkjs globally
+          npm install -g snarkjs
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          
+          node-version: "20"
+
       - name: Install pnpm
         uses: pnpm/action-setup@v2
         with:
           version: 8
-          
+
       # Add caching
       - name: Get pnpm store directory
         id: pnpm-cache
         shell: bash
         run: |
-          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+          echo "dir=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
 
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         name: Setup pnpm cache
         with:
-          path: ${{ env.STORE_PATH }}
+          path: ${{ steps.pnpm-cache.outputs.dir }}
           key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
-          
-      # Install with frozen lockfile and production deps only
+
+      # Install all dependencies including dev dependencies
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile --prod
-        
+        run: pnpm install --frozen-lockfile
+
+      # Create test environment with all required variables
       - name: Create test env file
         run: |
           cat > .env.test << EOF
           UPSTASH_REDIS_REST_URL=http://test-redis-url
           UPSTASH_REDIS_REST_TOKEN=test-token
-          # Add other required test env vars
+          NEXT_PUBLIC_SUPABASE_URL=http://test-supabase-url
+          NEXT_PUBLIC_SUPABASE_ANON_KEY=test-anon-key
+          SUPABASE_SERVICE_ROLE_KEY=test-service-role-key
+          NEXT_PUBLIC_SITE_URL=http://localhost:3000
+          RESEND_API_KEY=test-resend-key
+          OPENAI_API_KEY=test-openai-key
+          SENTRY_DSN=test-sentry-dsn
+          NODE_ENV=test
           EOF
-          
-      - name: Run tests
-        run: pnpm test
-        
+
+      # Set up ZK environment
+      - name: Setup ZK environment
+        run: pnpm setup:zk
+
+      # Run type checking before tests
+      - name: Type check
+        run: pnpm type-check
+
+      # Run tests in groups to better identify failures
+      - name: Run unit tests
+        run: pnpm test "src/**/*.test.{ts,tsx}" --exclude "src/test/zk/**"
+
+      - name: Run ZK tests
+        run: pnpm test:zk
+
       - name: Upload coverage
         uses: actions/upload-artifact@v4
         with:
@@ -89,9 +130,10 @@ jobs:
           check_coverage "branches" 70
 
       - name: Generate test report
+        if: always() # Run even if tests fail
         uses: dorny/test-reporter@v1
         with:
           name: Vitest Tests
           path: coverage/junit.xml
           reporter: jest-junit
-          fail-on-error: false 
+          fail-on-error: false
