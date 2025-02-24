@@ -1,0 +1,10 @@
+# Browsers that we support
+
+# Last 2 versions of each browser
+last 2 versions
+# Browser versions with more than 1% market share
+> 1%
+# Not dead browsers (browsers without official support or updates for 24 months or more)
+not dead
+# Include Firefox ESR (Extended Support Release)
+Firefox ESR 

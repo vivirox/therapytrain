@@ -4,6 +4,10 @@ export default {
   content: ["./src/**/*.{js,jsx,ts,tsx}"],
   safelist: [
     // Add any dynamic classes that might be generated
+    {
+      pattern: /^[-:.]/,
+      variants: ['hover', 'focus', 'active']
+    }
   ],
   theme: {
     container: {
@@ -70,5 +74,13 @@ export default {
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [
+    require("tailwindcss-animate"),
+    // Add plugin to handle special characters
+    function({ addUtilities }) {
+      addUtilities({
+        '.-': { '-': '.' }
+      })
+    }
+  ],
 } 
