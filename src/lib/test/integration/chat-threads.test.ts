@@ -307,4 +307,4 @@ describe('Chat Thread Integration Tests', () => {
       });
     });
   });
-}); 
+});
