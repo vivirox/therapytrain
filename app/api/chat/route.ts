@@ -293,9 +293,37 @@ export async function POST(req: NextRequest) {
       return response;
     }
 
+<<<<<<< HEAD
+    // Encrypt and store message
+    const encryptedMessage = await encryptionService.encryptMessage(
+      message,
+      session.user.id,
+      recipientId
+    );
+
+    await encryptionService.storeMessage(encryptedMessage);
+
+    // Create streaming response
+    const { stream, handlers } = LangChainStream();
+
+    // Initialize chat model
+    const chat = new ChatOpenAI({
+      modelName: 'gpt-4',
+      streaming: true,
+      temperature: 0.7,
+    });
+
+    // Convert message to LangChain format
+    const langchainMessages = [new HumanMessage(message)];
+
+    // Start AI response generation
+    chat.call(langchainMessages, {}, [handlers]);
+
+<<<<<<< HEAD
+=======
     // Encrypt and store user message
     const messageId = generateMessageId();
-    const encryptedPayload = await encrypt(message, session.user.id, recipientId);
+    const encryptedPayload = await encrypt(messages[messages.length - 1].content, sharedKey);
 
     const message: ZKMessage = {
       id: messageId,
@@ -305,12 +333,13 @@ export async function POST(req: NextRequest) {
       iv: encryptedPayload.iv,
       timestamp: Date.now(),
       thread_id: threadId,
-      parent_message_id: null,
+      parent_message_id: parentMessageId,
     };
 
     // Store message in Supabase
     await supabase.from('messages').insert([message]);
 
+>>>>>>> origin/main
     // Invalidate cache for both participants
     await Promise.all([
       invalidateByPattern(`chat:${session.user.id}:*`, true),
@@ -339,6 +368,7 @@ export async function POST(req: NextRequest) {
     addRateLimitHeaders(response.headers, rateLimitInfo);
     return response;
   } catch (error) {
+<<<<<<< HEAD
     console.error('Chat error:', error);
     return new NextResponse('Internal Server Error', { status: 500 });
   }

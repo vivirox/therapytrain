@@ -558,8 +558,6 @@ export class AttachmentService implements AttachmentManager {
     });
 
     return signedUrl.signedUrl;
-  }
-
   public async getAttachments(threadId: string, options?: {
     limit?: number;
     offset?: number;
@@ -646,6 +644,19 @@ export class AttachmentService implements AttachmentManager {
       .eq('id', attachmentId);
 
     if (error) throw error;
+  }
+
+  public async getPreviewUrl(attachmentId: string, size?: {
+    width: number;
+    height: number;
+  }): Promise<string> {
+    // TODO: Implement preview URL generation
+    throw new Error('Method not implemented.');
+  }
+
+  public async getDownloadUrl(attachmentId: string): Promise<string> {
+    // TODO: Implement download URL generation
+    throw new Error('Method not implemented.');
   }
 
   public async getAccessLogs(attachmentId: string): Promise<AttachmentAccessLog[]> {
