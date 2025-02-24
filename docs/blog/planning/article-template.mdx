@@ -1,0 +1,203 @@
+---
+title: 'Article Template'
+description: 'Template and guidelines for Gradiant blog articles'
+---
+
+# Article Template
+
+## Metadata Structure
+```yaml
+---
+title: 'Your Article Title'
+description: 'A compelling description of your article (150-160 characters)'
+author: 'Your Name'
+date: 'YYYY-MM-DD'
+readingTime: 'XX min'
+tags: ['tag1', 'tag2', 'tag3', 'tag4']
+series: 'Series Name'
+seriesOrder: X
+---
+```
+
+## Article Components
+
+### Header Section
+```jsx
+<ArticleHeader 
+  title="Your Article Title"
+  author="Your Name"
+  date="YYYY-MM-DD"
+  readingTime="XX min"
+  tags={['tag1', 'tag2', 'tag3', 'tag4']}
+/>
+
+<TableOfContents />
+```
+
+### Main Content Structure
+
+#### Introduction
+- Hook the reader with a compelling opening
+- Present the problem or topic
+- Establish relevance
+- Preview main points
+
+#### Body Sections
+- Use clear headings (H2, H3)
+- Include practical examples
+- Add relevant research
+- Provide actionable insights
+
+#### Clinical Insights
+- Professional perspective
+- Evidence-based information
+- Treatment approaches
+- Best practices
+
+#### Practical Applications
+- Concrete strategies
+- Step-by-step guidance
+- Real-world examples
+- Implementation tips
+
+#### Reflection Questions
+- Self-assessment prompts
+- Discussion points
+- Growth challenges
+- Action steps
+
+### Footer Components
+
+#### Share Section
+```jsx
+<Divider />
+
+## Share This Article
+
+<SocialShare 
+  platforms={['twitter', 'linkedin', 'facebook', 'email']}
+  title="Your Article Title"
+  description="Brief description for sharing"
+  url="/blog/series-name/article-slug"
+/>
+```
+
+#### Author Bio
+```jsx
+## About the Author
+
+<AuthorBio
+  name="Your Name"
+  image="/authors/your-image.jpg"
+  credentials="Your Credentials"
+  specialties={['Specialty 1', 'Specialty 2', 'Specialty 3']}
+  bio="Your professional bio (2-3 sentences)"
+/>
+```
+
+#### Related Articles
+```jsx
+## Related Articles
+
+<RelatedArticles
+  articles={[
+    {
+      title: "Related Article 1",
+      url: "/blog/path-to-article",
+      description: "Brief description"
+    },
+    {
+      title: "Related Article 2",
+      url: "/blog/path-to-article",
+      description: "Brief description"
+    },
+    {
+      title: "Related Article 3",
+      url: "/blog/path-to-article",
+      description: "Brief description"
+    }
+  ]}
+/>
+```
+
+#### Series Navigation
+```jsx
+## Continue Learning
+
+<SeriesNavigation
+  series="Series Name"
+  current="Current Article Title"
+  previous={{
+    title: "Previous Article Title",
+    url: "/blog/path-to-previous"
+  }}
+  next={{
+    title: "Next Article Title",
+    url: "/blog/path-to-next"
+  }}
+/>
+```
+
+#### Engagement Section
+```jsx
+## Join the Discussion
+
+<Comments />
+
+## Stay Updated
+
+Subscribe to receive notifications about new articles and resources:
+
+<Subscribe />
+```
+
+## Writing Guidelines
+
+### Voice and Tone
+- Professional yet accessible
+- Compassionate and understanding
+- Evidence-based approach
+- Trauma-informed language
+- Inclusive perspective
+
+### Content Structure
+- Clear headings and subheadings
+- Short, focused paragraphs
+- Engaging examples
+- Practical takeaways
+- Action steps
+
+### Clinical Accuracy
+- Evidence-based information
+- Current research citations
+- Professional best practices
+- Ethical considerations
+- Clinical guidelines
+
+### Formatting
+- Use markdown for text formatting
+- Include relevant images/diagrams
+- Add blockquotes for emphasis
+- Use lists for clarity
+- Include code blocks for structured content
+
+## Submission Process
+
+1. Use this template for your article
+2. Follow the style guide
+3. Include all metadata
+4. Add author information
+5. Submit for review
+
+## Review Checklist
+
+- [ ] Metadata complete
+- [ ] Structure follows template
+- [ ] Content meets guidelines
+- [ ] Citations included
+- [ ] Images/media added
+- [ ] Links verified
+- [ ] Tags appropriate
+- [ ] Series information correct
+- [ ] Author bio updated
+- [ ] Related articles identified 

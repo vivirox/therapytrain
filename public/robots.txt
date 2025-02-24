@@ -1,0 +1,15 @@
+# Allow all crawlers
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://gemcity.xyz/sitemap.xml
+
+# Disallow sensitive routes
+Disallow: /auth
+Disallow: /dashboard
+Disallow: /chat
+Disallow: /education
+Disallow: /client-selection
+Disallow: /api/
+Disallow: /admin/ 

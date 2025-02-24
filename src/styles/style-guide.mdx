@@ -1,0 +1,222 @@
+# Gradiant Style Guide
+
+## Core Principles
+
+1. **Consistency First**
+   - Use design tokens for colors, spacing, typography
+   - Follow established component patterns
+   - Maintain visual hierarchy
+
+2. **Accessibility Always**
+   - Support high contrast mode
+   - Ensure proper color contrast
+   - Implement reduced motion options
+   - Provide keyboard navigation
+
+3. **Performance Focused**
+   - Use CSS-in-JS sparingly
+   - Leverage Tailwind's utility classes
+   - Implement efficient animations
+   - Optimize asset delivery
+
+4. **Responsive by Default**
+   - Mobile-first approach
+   - Fluid typography
+   - Adaptive layouts
+   - Touch-friendly interactions
+
+## Design Tokens
+
+### Colors
+
+We use HSL color values with CSS custom properties for better theming:
+
+```css
+--background: 0 0% 100%;
+--foreground: 222.2 84% 4.9%;
+--primary: 222.2 47.4% 11.2%;
+--secondary: 210 40% 96.1%;
+--accent: 210 40% 96.1%;
+--muted: 210 40% 96.1%;
+```
+
+### Typography
+
+Font scale using relative units:
+
+```css
+--font-xs: 0.75rem;
+--font-sm: 0.875rem;
+--font-base: 1rem;
+--font-lg: 1.125rem;
+--font-xl: 1.25rem;
+--font-2xl: 1.5rem;
+```
+
+### Spacing
+
+Consistent spacing scale:
+
+```css
+--space-1: 0.25rem;
+--space-2: 0.5rem;
+--space-3: 0.75rem;
+--space-4: 1rem;
+--space-6: 1.5rem;
+--space-8: 2rem;
+```
+
+### Animations
+
+Smooth transitions with reduced motion support:
+
+```css
+.theme-transition {
+  @apply transition-colors duration-200;
+  @media (prefers-reduced-motion: reduce) {
+    @apply transition-none;
+  }
+}
+```
+
+## Component Patterns
+
+### Buttons
+
+```tsx
+<Button
+  variant="primary"
+  className="dark-hover dark-focus-ring high-contrast-focus"
+>
+  Click Me
+</Button>
+```
+
+### Cards
+
+```tsx
+<Card className="dark-glass dark-shadow high-contrast-border">
+  <CardHeader>Title</CardHeader>
+  <CardContent>Content</CardContent>
+</Card>
+```
+
+### Forms
+
+```tsx
+<Input
+  className="dark-focus-ring high-contrast-focus"
+  aria-label="Email"
+/>
+```
+
+## Utility Classes
+
+### Theme Transitions
+
+- `theme-transition`: Base transition for theme changes
+- `theme-content-transition`: Content-specific transitions
+- `theme-switch-transition`: Theme switch animations
+
+### Dark Mode
+
+- `dark-glass`: Glass morphism effect
+- `dark-hover`: Hover state styles
+- `dark-focus-ring`: Focus ring styles
+- `dark-shadow`: Shadow styles
+- `dark-gradient`: Gradient backgrounds
+- `dark-border`: Border styles
+- `dark-divide`: Divider styles
+- `dark-scrollbar`: Scrollbar styles
+
+### Accessibility
+
+- `high-contrast-focus`: High contrast focus styles
+- `high-contrast-border`: High contrast borders
+- `high-contrast-text`: High contrast text
+- `high-contrast-link`: High contrast links
+- `high-contrast-button`: High contrast buttons
+- `high-contrast-icon`: High contrast icons
+
+### Motion
+
+- `reduced-motion`: Disable animations
+- `reduced-motion-safe`: Safe animation fallbacks
+- `animate-theme-switch`: Theme switch animation
+- `animate-theme-content`: Content transition
+- `animate-theme-icon`: Icon animation
+
+## Best Practices
+
+1. **Component Structure**
+   ```tsx
+   export function Component() {
+     return (
+       <div className="theme-transition dark-hover">
+         <h2 className="high-contrast-text">Title</h2>
+         <p className="dark-text">Content</p>
+       </div>
+     );
+   }
+   ```
+
+2. **Responsive Design**
+   ```tsx
+   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+     <Card />
+   </div>
+   ```
+
+3. **Animation**
+   ```tsx
+   <div className="theme-content-transition reduced-motion-safe">
+     {content}
+   </div>
+   ```
+
+4. **Accessibility**
+   ```tsx
+   <button
+     className="high-contrast-focus reduced-motion"
+     aria-label="Menu"
+   >
+     <Icon className="high-contrast-icon" />
+   </button>
+   ```
+
+## Implementation Guidelines
+
+1. Always use design tokens instead of hard-coded values
+2. Implement dark mode for all components
+3. Add high contrast support for critical UI elements
+4. Include reduced motion alternatives for animations
+5. Test components across all breakpoints
+6. Validate color contrast ratios
+7. Ensure keyboard navigation works properly
+8. Use semantic HTML elements
+9. Include proper ARIA attributes
+10. Test with screen readers
+
+## Tools and Resources
+
+1. **Color Contrast**
+   - [WCAG Color Contrast Checker](https://webaim.org/resources/contrastchecker/)
+   - [Colorable](https://colorable.jxnblk.com/)
+
+2. **Accessibility**
+   - [WAVE Web Accessibility Tool](https://wave.webaim.org/)
+   - [axe DevTools](https://www.deque.com/axe/)
+
+3. **Performance**
+   - [Lighthouse](https://developers.google.com/web/tools/lighthouse)
+   - [WebPageTest](https://www.webpagetest.org/)
+
+## Maintenance
+
+1. Regular accessibility audits
+2. Performance monitoring
+3. Style guide updates
+4. Component library maintenance
+5. Design token reviews
+
+Remember: The style guide is a living document. Update it as new patterns emerge and best practices evolve. 

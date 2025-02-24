@@ -1,0 +1,27 @@
+name: Initialize Environments
+
+on:
+  workflow_dispatch:
+
+jobs:
+  init-test:
+    name: Initialize Test
+    runs-on: ubuntu-latest
+    environment:
+      name: Preview
+      url: https://preview.vercel.app
+
+    steps:
+      - name: No-op step
+        run: echo "Initializing test environment"
+
+  init-prod:
+    name: Initialize Production
+    runs-on: ubuntu-latest
+    environment:
+      name: Production
+      url: https://vercel.app
+
+    steps:
+      - name: No-op step
+        run: echo "Initializing production environment" 

@@ -1,0 +1,97 @@
+name: Test
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      # Add system dependencies for Sharp
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential libvips-dev
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+          
+      # Add caching
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - uses: actions/cache@v3
+        name: Setup pnpm cache
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+          
+      # Install with frozen lockfile and production deps only
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --prod
+        
+      - name: Create test env file
+        run: |
+          cat > .env.test << EOF
+          UPSTASH_REDIS_REST_URL=http://test-redis-url
+          UPSTASH_REDIS_REST_TOKEN=test-token
+          # Add other required test env vars
+          EOF
+          
+      - name: Run tests
+        run: pnpm test
+        
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage/
+
+      - name: Check coverage thresholds
+        run: |
+          COVERAGE_FILE="./coverage/coverage-summary.json"
+          if [ ! -f "$COVERAGE_FILE" ]; then
+            echo "Coverage file not found!"
+            exit 1
+          fi
+
+          # Function to check coverage against threshold
+          check_coverage() {
+            local type=$1
+            local threshold=$2
+            local actual=$(jq ".$type.pct" $COVERAGE_FILE)
+            
+            if (( $(echo "$actual < $threshold" | bc -l) )); then
+              echo "$type coverage ($actual%) is below threshold ($threshold%)"
+              return 1
+            fi
+            return 0
+          }
+
+          # Check each coverage type
+          check_coverage "lines" 70 && \
+          check_coverage "functions" 70 && \
+          check_coverage "statements" 70 && \
+          check_coverage "branches" 70
+
+      - name: Generate test report
+        uses: dorny/test-reporter@v1
+        with:
+          name: Vitest Tests
+          path: coverage/junit.xml
+          reporter: jest-junit
+          fail-on-error: false 

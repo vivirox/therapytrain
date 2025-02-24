@@ -1,0 +1,32 @@
+{
+    "version": "0.2",
+    "ignorePaths": [],
+    "dictionaryDefinitions": [],
+    "dictionaries": [],
+    "words": [
+        "backstep",
+        "cmdk",
+        "embla",
+        "Hardlink",
+        "Hardlinked",
+        "isnum",
+        "njsproj",
+        "npath",
+        "ntvs",
+        "originalfstat",
+        "pjson",
+        "pnpapi",
+        "postlayout",
+        "ppath",
+        "prelayout",
+        "shadcn",
+        "snarkjs",
+        "sonner",
+        "supabase",
+        "therapytrain",
+        "vaul",
+        "vercel"
+    ],
+    "ignoreWords": [],
+    "import": []
+}

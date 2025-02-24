@@ -1,0 +1,357 @@
+---
+title: 'Session Management'
+description: 'Understanding Gradiant's session management system'
+---
+
+## Overview
+
+Gradiant's session management system handles real-time communication, state management, and message persistence for therapy sessions. The system supports multiple communication modes and ensures secure, reliable interactions.
+
+## Session Types
+
+### Communication Modes
+
+<CardGroup cols={3}>
+  <Card title="Text Chat" icon="message">
+    Real-time text-based communication with AI assistance
+  </Card>
+  <Card title="Voice Call" icon="microphone">
+    Audio communication with real-time transcription
+  </Card>
+  <Card title="Video Call" icon="video">
+    Face-to-face sessions with video analysis
+  </Card>
+</CardGroup>
+
+## Session Lifecycle
+
+<Frame>
+  ```mermaid
+  stateDiagram-v2
+    [*] --> Created
+    Created --> Active: Start Session
+    Active --> Paused: Pause
+    Paused --> Active: Resume
+    Active --> Completed: End Session
+    Active --> Cancelled: Cancel
+    Paused --> Cancelled: Cancel
+    Completed --> [*]
+    Cancelled --> [*]
+  ```
+</Frame>
+
+## WebSocket Communication
+
+### Connection Setup
+
+```typescript
+const socket = new WebSocket('wss://api.gemcity.xyz/ws', {
+  headers: {
+    Authorization: `Bearer ${token}`
+  }
+})
+
+socket.onopen = () => {
+  console.log('Connected to session')
+}
+
+socket.onmessage = (event) => {
+  const message = JSON.parse(event.data)
+  handleMessage(message)
+}
+```
+
+### Message Types
+
+```typescript
+interface Message {
+  type: 'text' | 'system' | 'ai' | 'action';
+  content: string;
+  metadata?: {
+    sentiment?: number;
+    topics?: string[];
+    suggestions?: string[];
+  };
+  timestamp: string;
+}
+```
+
+### Heartbeat Mechanism
+
+```typescript
+// Send heartbeat every 30 seconds
+setInterval(() => {
+  if (socket.readyState === WebSocket.OPEN) {
+    socket.send(JSON.stringify({ type: 'ping' }))
+  }
+}, 30000)
+
+// Handle heartbeat response
+socket.onmessage = (event) => {
+  const message = JSON.parse(event.data)
+  if (message.type === 'pong') {
+    updateLastHeartbeat()
+  }
+}
+```
+
+## Session Data Model
+
+```typescript
+interface Session {
+  id: string;
+  clientId: string;
+  mode: 'chat' | 'voice' | 'video';
+  status: 'active' | 'completed' | 'cancelled';
+  startTime: string;
+  endTime?: string;
+  metrics?: {
+    duration: number;
+    messageCount: number;
+    responseTime: number;
+  };
+  created_at: string;
+  updated_at: string;
+}
+```
+
+## State Management
+
+### Session Context
+
+```typescript
+interface SessionContext {
+  messages: Message[];
+  participants: Participant[];
+  status: SessionStatus;
+  metrics: SessionMetrics;
+}
+
+const SessionContext = createContext<{
+  session: SessionContext;
+  sendMessage: (content: string) => void;
+  updateStatus: (status: SessionStatus) => void;
+}>()
+```
+
+### Message Queue
+
+```typescript
+class MessageQueue {
+  private queue: Message[] = [];
+  private processing = false;
+
+  async add(message: Message) {
+    this.queue.push(message);
+    if (!this.processing) {
+      this.process();
+    }
+  }
+
+  private async process() {
+    this.processing = true;
+    while (this.queue.length > 0) {
+      const message = this.queue.shift();
+      await this.sendMessage(message);
+    }
+    this.processing = false;
+  }
+}
+```
+
+## AI Integration
+
+### Message Processing
+
+<Frame>
+  ```mermaid
+  graph LR
+    Message[New Message] --> Analysis[AI Analysis]
+    Analysis --> Sentiment[Sentiment Analysis]
+    Analysis --> Topics[Topic Extraction]
+    Analysis --> Crisis[Crisis Detection]
+    Sentiment --> Response[Response]
+    Topics --> Response
+    Crisis --> Alert[Crisis Alert]
+    Response --> Queue[Message Queue]
+  ```
+</Frame>
+
+### AI Features
+
+1. **Sentiment Analysis**
+```typescript
+interface SentimentAnalysis {
+  score: number;  // -1 to 1
+  labels: string[];
+  confidence: number;
+}
+```
+
+2. **Topic Extraction**
+```typescript
+interface TopicAnalysis {
+  topics: string[];
+  relevance: number[];
+  context: string;
+}
+```
+
+3. **Crisis Detection**
+```typescript
+interface CrisisDetection {
+  risk_level: 'none' | 'low' | 'medium' | 'high';
+  triggers: string[];
+  recommended_action: string;
+}
+```
+
+## Error Handling
+
+### Connection Recovery
+
+```typescript
+class ConnectionManager {
+  private retryCount = 0;
+  private maxRetries = 5;
+  private backoffMs = 1000;
+
+  async reconnect() {
+    while (this.retryCount < this.maxRetries) {
+      try {
+        await this.connect();
+        this.retryCount = 0;
+        return;
+      } catch (error) {
+        this.retryCount++;
+        await this.wait(this.backoffMs * Math.pow(2, this.retryCount));
+      }
+    }
+    throw new Error('Connection failed');
+  }
+}
+```
+
+### Message Recovery
+
+```typescript
+async function recoverMessages(sessionId: string, lastMessageId: string) {
+  const { data, error } = await supabase
+    .from('messages')
+    .select('*')
+    .eq('session_id', sessionId)
+    .gt('id', lastMessageId)
+    .order('created_at', { ascending: true });
+
+  if (error) throw error;
+  return data;
+}
+```
+
+## Performance Optimization
+
+### Message Batching
+
+```typescript
+class MessageBatcher {
+  private batch: Message[] = [];
+  private batchSize = 10;
+  private flushInterval = 1000;
+
+  constructor() {
+    setInterval(() => this.flush(), this.flushInterval);
+  }
+
+  add(message: Message) {
+    this.batch.push(message);
+    if (this.batch.length >= this.batchSize) {
+      this.flush();
+    }
+  }
+
+  private async flush() {
+    if (this.batch.length === 0) return;
+    const messages = [...this.batch];
+    this.batch = [];
+    await this.persistMessages(messages);
+  }
+}
+```
+
+### Connection Pooling
+
+```typescript
+const pool = {
+  max: 20,
+  min: 5,
+  idle: 10000,
+  acquire: 30000,
+  evict: 1000
+};
+```
+
+## Monitoring
+
+### Metrics Collection
+
+```typescript
+interface SessionMetrics {
+  messageCount: number;
+  averageResponseTime: number;
+  aiUsage: {
+    requests: number;
+    processingTime: number;
+    errorRate: number;
+  };
+  networkMetrics: {
+    latency: number;
+    bandwidth: number;
+    packetLoss: number;
+  };
+}
+```
+
+### Performance Monitoring
+
+```typescript
+const monitor = {
+  collectMetrics: async (session: Session) => {
+    const metrics = await calculateMetrics(session);
+    await persistMetrics(metrics);
+    checkThresholds(metrics);
+  },
+  
+  checkHealth: async () => {
+    const status = await getSystemStatus();
+    if (status.hasIssues) {
+      alertOperations(status);
+    }
+  }
+};
+```
+
+## Next Steps
+
+<CardGroup>
+  <Card
+    title="AI Integration"
+    icon="robot"
+    href="/core/ai-integration"
+  >
+    Learn about AI capabilities
+  </Card>
+  <Card
+    title="API Reference"
+    icon="code"
+    href="/api-reference/sessions"
+  >
+    View session management API
+  </Card>
+  <Card
+    title="WebSocket Guide"
+    icon="bolt"
+    href="/api-reference/websocket"
+  >
+    WebSocket implementation details
+  </Card>
+</CardGroup>

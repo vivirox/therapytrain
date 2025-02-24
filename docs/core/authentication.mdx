@@ -1,0 +1,283 @@
+---
+title: 'Authentication'
+description: 'Understanding Gradiant's authentication and authorization system'
+---
+
+## Overview
+
+Gradiant uses Supabase Auth for secure user authentication and authorization. This system provides robust security features while maintaining a smooth user experience.
+
+## Authentication Flow
+
+<Frame>
+  ```mermaid
+  sequenceDiagram
+    participant User
+    participant Client
+    participant API
+    participant Supabase
+    
+    User->>Client: Enter Credentials
+    Client->>Supabase: Sign In Request
+    Supabase-->>Client: JWT Token
+    Client->>API: API Request + Token
+    API->>Supabase: Verify Token
+    Supabase-->>API: Token Valid
+    API-->>Client: Response
+    Client-->>User: Update UI
+  ```
+</Frame>
+
+## Authentication Methods
+
+### Email and Password
+
+```typescript
+const { data, error } = await supabase.auth.signInWithPassword({
+  email: 'user@example.com',
+  password: 'secure-password'
+})
+```
+
+### Magic Link
+
+```typescript
+const { data, error } = await supabase.auth.signInWithOtp({
+  email: 'user@example.com'
+})
+```
+
+### OAuth Providers
+
+```typescript
+const { data, error } = await supabase.auth.signInWithOAuth({
+  provider: 'google'
+})
+```
+
+## Session Management
+
+### Token Lifecycle
+
+1. **Access Token**
+   - JWT format
+   - Short expiration (1 hour)
+   - Contains user claims
+
+2. **Refresh Token**
+   - Long-lived (7 days)
+   - Used to obtain new access tokens
+   - Secure storage required
+
+### Session Refresh
+
+```typescript
+const { data, error } = await supabase.auth.refreshSession()
+```
+
+## Authorization
+
+### Role-Based Access Control
+
+Available roles:
+- `client`: Regular user role
+- `therapist`: Professional role
+- `admin`: System administrator
+
+### Row Level Security
+
+```sql
+-- Example RLS policy for sessions
+CREATE POLICY "Users can only access their own sessions"
+ON sessions
+FOR SELECT
+USING (
+  auth.uid() = user_id
+);
+```
+
+## Security Features
+
+### Password Requirements
+
+- Minimum 8 characters
+- At least one uppercase letter
+- At least one number
+- At least one special character
+
+### Rate Limiting
+
+```typescript
+const rateLimit = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100 // limit each IP to 100 requests per windowMs
+});
+```
+
+### JWT Configuration
+
+```typescript
+const jwtConfig = {
+  expiresIn: '1h',
+  algorithm: 'RS256',
+  audience: 'https://api.gemcity.xyz'
+}
+```
+
+## Error Handling
+
+### Common Authentication Errors
+
+```typescript
+try {
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password
+  })
+  
+  if (error) {
+    switch (error.status) {
+      case 400:
+        // Invalid credentials
+        break
+      case 429:
+        // Too many requests
+        break
+      default:
+        // Other errors
+    }
+  }
+} catch (err) {
+  // Handle unexpected errors
+}
+```
+
+## Security Best Practices
+
+### Client-Side
+
+1. **Token Storage**
+   - Use secure storage (httpOnly cookies)
+   - Clear on logout
+   - Refresh automatically
+
+2. **Input Validation**
+   - Sanitize user input
+   - Validate email format
+   - Check password strength
+
+3. **Error Messages**
+   - Generic error messages
+   - No sensitive information
+   - User-friendly guidance
+
+### Server-Side
+
+1. **Request Validation**
+   - Validate all inputs
+   - Check content types
+   - Verify token signatures
+
+2. **Session Management**
+   - Secure session storage
+   - Proper timeout handling
+   - Concurrent session limits
+
+3. **Audit Logging**
+   - Log authentication attempts
+   - Track suspicious activity
+   - Monitor rate limits
+
+## Implementation Guide
+
+### Frontend Setup
+
+1. Initialize Supabase Client:
+```typescript
+import { createClient } from '@supabase/supabase-js'
+
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_ANON_KEY
+)
+```
+
+2. Create Auth Context:
+```typescript
+const AuthContext = createContext<{
+  user: User | null
+  signIn: (email: string, password: string) => Promise<void>
+  signOut: () => Promise<void>
+}>()
+```
+
+3. Implement Protected Routes:
+```typescript
+const ProtectedRoute = ({ children }) => {
+  const { user } = useAuth()
+  
+  if (!user) {
+    return <Navigate to="/login" />
+  }
+  
+  return children
+}
+```
+
+### Backend Setup
+
+1. Configure Middleware:
+```typescript
+app.use(async (req, res, next) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1]
+    if (!token) throw new Error('No token provided')
+    
+    const { user, error } = await supabase.auth.getUser(token)
+    if (error) throw error
+    
+    req.user = user
+    next()
+  } catch (error) {
+    res.status(401).json({ error: 'Unauthorized' })
+  }
+})
+```
+
+2. Implement Role Checks:
+```typescript
+const requireRole = (role: string) => {
+  return (req, res, next) => {
+    if (req.user?.role !== role) {
+      return res.status(403).json({ error: 'Forbidden' })
+    }
+    next()
+  }
+}
+```
+
+## Next Steps
+
+<CardGroup>
+  <Card
+    title="Sessions"
+    icon="messages"
+    href="/core/sessions"
+  >
+    Learn about session management
+  </Card>
+  <Card
+    title="API Reference"
+    icon="code"
+    href="/api-reference/authentication"
+  >
+    View authentication API endpoints
+  </Card>
+  <Card
+    title="Security"
+    icon="shield"
+    href="/deployment/security"
+  >
+    Review security measures
+  </Card>
+</CardGroup>
