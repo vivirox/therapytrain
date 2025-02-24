@@ -1,10 +1,10 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { useDebounce } from '../../hooks/useDebounce';
 import { SearchOptions } from '../../types/chat';
-import { Button } from '../ui/Button';
+import { Button } from '@/components/ui';
 import { Spinner } from '../ui/Spinner';
-import { useSupabase } from '../../hooks/useSupabase';
-import { useRedis } from '../../hooks/useRedis';
+import { useSupabase } from '@/hooks/useSupabase';
+import { useRedis } from '@/hooks/useRedis';
 import { MessageSearchService } from '../../services/chat/MessageSearchService';
 
 interface SearchBarProps {

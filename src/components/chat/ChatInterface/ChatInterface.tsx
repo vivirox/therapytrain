@@ -1,5 +1,25 @@
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { useAuth } from '@/lib/auth';
+import { useToast } from '@/hooks/useToast';
+import { useSupabaseClient } from '@/lib/supabase';
+import { useWebSocket } from '@/hooks/useWebSocket';
+import { ZKService } from '@/lib/zk/ZKService';
+import { ChatService } from '@/lib/chat/ChatService';
+import { MessageSearchService } from '@/lib/search/MessageSearchService';
+import { ThreadManagementService } from '@/lib/chat/ThreadManagementService';
 import { ThreadList, ThreadCreateDialog } from '../ThreadList';
-import { ThreadWithMetadata } from '../../../types/thread';
+import { Message, MessageSearchResult, SearchOptions, ThreadWithMetadata } from '@/types/chat';
+import { UserProfile } from '@/types/user';
+import {
+  Button,
+  ChatBubble,
+  SearchBar,
+  SearchResults,
+  AttachmentManager,
+  TypingIndicator,
+  MessageRecoveryStatus,
+  Spinner
+} from '@/components/ui';
 
 interface ChatInterfaceProps {
   className?: string;
@@ -33,8 +53,8 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ className }) => {
   const supabase = useSupabaseClient();
   const zkService = ZKService.getInstance();
   const chatService = ChatService.getInstance();
-  const searchService = MessageSearchService.getInstance(supabase, redis);
-  const threadService = ThreadManagementService.getInstance(supabase, redis);
+  const searchService = MessageSearchService.getInstance(supabase);
+  const threadService = ThreadManagementService.getInstance(supabase);
   
   const wsUrl = `${process.env.NEXT_PUBLIC_WS_URL}/chat`;
   const { sendMessage, lastMessage, connectionStatus } = useWebSocket(wsUrl, {

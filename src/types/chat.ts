@@ -8,6 +8,20 @@ export interface Message extends BaseEntity {
   role: MessageRole;
   metadata?: MessageMetadata;
   reactions?: MessageReactionCount[];
+  id: string;
+  sender: string;
+  timestamp: string;
+  thread_id?: string;
+  recipientId?: string;
+  status?: MessageStatus;
+  attachments?: Array<{
+    id: string;
+    name: string;
+    type: string;
+    url: string;
+    size: number;
+  }>;
+  user_id?: string;
 }
 
 export type MessageRole = 'user' | 'assistant' | 'system';
@@ -139,13 +153,10 @@ export interface ChatManager {
 
 export enum MessageStatus {
   PENDING = 'pending',
+  SENDING = 'sending',
   SENT = 'sent',
-  DELIVERED = 'delivered',
-  READ = 'read',
   FAILED = 'failed',
-  RECOVERED = 'recovered',
-  TRANSITION_PENDING = 'transition_pending',
-  TRANSITION_FAILED = 'transition_failed'
+  QUEUED = 'queued'
 }
 
 export interface FailedMessage {
@@ -209,27 +220,21 @@ export interface ReactionAuditLog {
 }
 
 export interface MessageSearchResult {
-  id: string;
-  thread_id: string;
-  content: string;
-  created_at: string;
-  sender_id: string;
-  highlighted_content: string;
-  rank: number;
-  previous_message?: string;
-  next_message?: string;
+  message: Message;
+  score: number;
+  context?: {
+    before: Message[];
+    after: Message[];
+  };
 }
 
 export interface SearchOptions {
   query: string;
-  thread_id?: string;
+  threadId?: string;
+  startDate?: string;
+  endDate?: string;
   limit?: number;
   offset?: number;
-  start_date?: string;
-  end_date?: string;
-  sender_id?: string;
-  sort?: 'rank' | 'date_asc' | 'date_desc';
-  include_context?: boolean;
 }
 
 export interface SearchStatistics {
@@ -258,5 +263,26 @@ export interface SearchAuditLog {
     };
     filters?: Record<string, unknown>;
     [key: string]: unknown;
+  };
+}
+
+export interface ThreadWithMetadata {
+  id: string;
+  title: string;
+  created_at: string;
+  updated_at: string;
+  participants: Array<{
+    user: {
+      id: string;
+      name: string;
+      avatar?: string;
+    };
+    role: string;
+  }>;
+  metadata?: {
+    type?: string;
+    icon?: string;
+    color?: string;
+    [key: string]: any;
   };
 }

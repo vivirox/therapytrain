@@ -6,6 +6,10 @@ import { getSession, getOrCreateSharedKey } from '@/lib/zk/session';
 import { cache, invalidateByPattern } from '@/lib/redis';
 import { cacheConfig } from '@/config/cache.config';
 import { ChatEncryptionService } from '@/app/chat/ChatEncryptionService';
+import { LangChainStream } from '@/lib/langchain/stream';
+import { ChatOpenAI } from '@/lib/langchain/chat-openai';
+import { HumanMessage } from '@/lib/langchain/human-message';
+import { StreamingTextResponse } from '@/lib/streaming-text-response';
 
 // Enable edge runtime
 export const runtime = 'edge';
@@ -293,7 +297,6 @@ export async function POST(req: NextRequest) {
       return response;
     }
 
-<<<<<<< HEAD
     // Encrypt and store message
     const encryptedMessage = await encryptionService.encryptMessage(
       message,
@@ -319,27 +322,6 @@ export async function POST(req: NextRequest) {
     // Start AI response generation
     chat.call(langchainMessages, {}, [handlers]);
 
-<<<<<<< HEAD
-=======
-    // Encrypt and store user message
-    const messageId = generateMessageId();
-    const encryptedPayload = await encrypt(messages[messages.length - 1].content, sharedKey);
-
-    const message: ZKMessage = {
-      id: messageId,
-      senderId: session.user.id,
-      recipientId,
-      encryptedContent: encryptedPayload.content,
-      iv: encryptedPayload.iv,
-      timestamp: Date.now(),
-      thread_id: threadId,
-      parent_message_id: parentMessageId,
-    };
-
-    // Store message in Supabase
-    await supabase.from('messages').insert([message]);
-
->>>>>>> origin/main
     // Invalidate cache for both participants
     await Promise.all([
       invalidateByPattern(`chat:${session.user.id}:*`, true),
@@ -360,62 +342,13 @@ export async function POST(req: NextRequest) {
       userId: session.user.id,
       recipientId,
       threadId,
-      messageId
+      messageId: encryptedMessage.id
     });
 
     // Return streaming response
     const response = new StreamingTextResponse(stream);
     addRateLimitHeaders(response.headers, rateLimitInfo);
     return response;
-  } catch (error) {
-<<<<<<< HEAD
-    console.error('Chat error:', error);
-    return new NextResponse('Internal Server Error', { status: 500 });
-  }
-}
-
-export async function GET(req: NextRequest) {
-  try {
-    const { searchParams } = new URL(req.url);
-    const recipientId = searchParams.get('recipientId');
-    const threadId = searchParams.get('threadId');
-    const { data: { session } } = await supabase.auth.getSession();
-
-    if (!session) {
-      return new NextResponse('Unauthorized', { status: 401 });
-    }
-
-    const cacheKey = generateCacheKey(session.user.id, threadId);
-
-    return await cache(
-      cacheKey,
-      async () => {
-        // Get messages from encryption service
-        const messages = await encryptionService.getMessages(
-          session.user.id,
-          recipientId!
-        );
-
-        // Decrypt messages
-        const decryptedMessages = await Promise.all(
-          messages.map(async (message) => {
-            const decryptedContent = await encryptionService.decryptMessage(
-              message,
-              session.user.id
-            );
-
-            return {
-              ...message,
-              content: decryptedContent,
-            };
-          })
-        );
-
-        return { messages: decryptedMessages };
-      },
-      cacheConfig.redis.ttl.messages,
-      true // Use edge runtime
-    );
   } catch (error) {
     console.error('Chat error:', error);
     return new NextResponse('Internal Server Error', { status: 500 });

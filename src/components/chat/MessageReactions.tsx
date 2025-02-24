@@ -1,8 +1,7 @@
 import React, { useCallback, useState } from 'react';
 import { MessageReactionCount } from '../../types/chat';
 import { useAuth } from '../../hooks/useAuth';
-import { Button } from '../ui/Button';
-import { Tooltip } from '../ui/Tooltip';
+import { Button, Tooltip } from '@/components/ui';
 import { EmojiPicker } from './EmojiPicker';
 
 interface MessageReactionsProps {

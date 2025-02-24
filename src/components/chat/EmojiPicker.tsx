@@ -1,6 +1,5 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { Button } from '../ui/Button';
-import { Popover } from '../ui/Popover';
+import { Button, Popover } from '@/components/ui';
 
 // Common emoji categories with frequently used emojis
 const EMOJI_CATEGORIES = {

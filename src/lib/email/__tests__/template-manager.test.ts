@@ -7,26 +7,6 @@ import { createClient } from '@supabase/supabase-js';
 vi.mock('@supabase/supabase-js', () => ({
   createClient: vi.fn(() => ({
     from: vi.fn(() => ({
-      insert: vi.fn(() => ({
-        select: vi.fn(() => ({
-          single: vi.fn(() => ({
-            data: {
-              id: 'test-id',
-              name: 'test-template',
-              version: '1.0.0',
-              html: '<html><body>Test</body></html>',
-              text: 'Test',
-              subject: 'Test Subject',
-              variables: [],
-              category: 'transactional',
-              locale: 'en',
-              created_at: new Date(),
-              updated_at: new Date(),
-            },
-            error: null,
-          })),
-        })),
-      })),
       select: vi.fn(() => ({
         eq: vi.fn(() => ({
           eq: vi.fn(() => ({
@@ -36,32 +16,29 @@ vi.mock('@supabase/supabase-js', () => ({
                   data: {
                     id: 'test-id',
                     name: 'test-template',
-                    version: '1.0.0',
                     html: '<html><body>Test</body></html>',
                     text: 'Test',
                     subject: 'Test Subject',
-                    variables: [],
-                    category: 'transactional',
                     locale: 'en',
-                    created_at: new Date(),
-                    updated_at: new Date(),
+                    version: '1.0.0',
+                    variables: []
                   },
-                  error: null,
-                })),
-              })),
-            })),
-          })),
-        })),
-      })),
-    }),
-  })),
+                  error: null
+                }))
+              }))
+            }))
+          }))
+        }))
+      }))
+    }))
+  }))
 }));
 
 vi.mock('mjml', () => ({
   default: vi.fn((mjml) => ({
     html: '<html><body>Converted MJML</body></html>',
-    errors: [],
-  })),
+    errors: []
+  }))
 }));
 
 vi.mock('fs/promises', () => ({

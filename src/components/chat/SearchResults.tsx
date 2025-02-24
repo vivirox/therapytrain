@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
 import { MessageSearchResult } from '../../types/chat';
-import { Button } from '../ui/Button';
-import { formatDate } from '../../utils/format';
+import { Button } from '@/components/ui';
+import { formatDate } from '@/utils/format';
 
 interface SearchResultsProps {
   results: MessageSearchResult[];

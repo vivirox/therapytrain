@@ -1,29 +1,43 @@
-import React from 'react';
-import { motion } from 'framer-motion';
+import * as React from "react";
+import { cva, type VariantProps } from "class-variance-authority";
+import { cn } from "@/lib/utils";
 
-interface SpinnerProps {
-    size?: 'sm' | 'md' | 'lg';
-    className?: string;
+const spinnerVariants = cva(
+  "animate-spin rounded-full border-2 border-current border-t-transparent",
+  {
+    variants: {
+      size: {
+        default: "h-6 w-6",
+        sm: "h-4 w-4",
+        lg: "h-8 w-8",
+      },
+    },
+    defaultVariants: {
+      size: "default",
+    },
+  }
+);
+
+export interface SpinnerProps
+  extends React.HTMLAttributes<HTMLDivElement>,
+    VariantProps<typeof spinnerVariants> {
+  asChild?: boolean;
 }
 
-const sizes = {
-    sm: 'w-4 h-4',
-    md: 'w-6 h-6',
-    lg: 'w-8 h-8'
-};
-
-export const Spinner: React.FC<SpinnerProps> = ({ size = 'md', className = '' }) => {
+export const Spinner = React.forwardRef<HTMLDivElement, SpinnerProps>(
+  ({ className, size, ...props }, ref) => {
     return (
-        <div className={`flex items-center justify-center ${className}`}>
-            <motion.div
-                className={`border-4 border-t-blue-500 border-r-blue-500 border-b-blue-200 border-l-blue-200 rounded-full ${sizes[size]}`}
-                animate={{ rotate: 360 }}
-                transition={{
-                    duration: 1,
-                    repeat: Infinity,
-                    ease: 'linear'
-                }}
-            />
-        </div>
+      <div
+        ref={ref}
+        role="status"
+        aria-label="Loading"
+        className={cn(spinnerVariants({ size, className }))}
+        {...props}
+      >
+        <span className="sr-only">Loading...</span>
+      </div>
     );
-}; 
+  }
+);
+
+Spinner.displayName = "Spinner"; 
