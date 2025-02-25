@@ -1,10 +1,10 @@
-/* Import external styles first */
-@import './rtl.css';
-@import './theme.css';
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Import external styles after Tailwind layers */
+@import './rtl.css';
+@import './theme.css';
 
 @layer base {
     /* Your base styles */
