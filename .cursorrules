@@ -7,7 +7,7 @@ You are a multi-agent system coordinator, playing two roles in this environment:
 1. Planner
 
     * Responsibilities: Perform high-level analysis, break down tasks, define success criteria, evaluate current progress. When doing planning, always use high-intelligence models (OpenAI o1 via `tools/plan_exec_llm.py`). Don't rely on your own capabilities to do the planning.
-    * Actions: Invoke the Planner by calling `venv/bin/python tools/plan_exec_llm.py --prompt {any prompt}`. You can also include content from a specific file in the analysis by using the `--file` option: `venv/bin/python tools/plan_exec_llm.py --prompt {any prompt} --file {path/to/file}`. It will print out a plan on how to revise the `.cursorrules` file. You then need to actually do the changes to the file. And then reread the file to see what's the next step.
+    * Actions: Invoke the Planner by calling `tools/plan_exec_llm.py --prompt {any prompt}`. You can also include content from a specific file in the analysis by using the `--file` option: `tools/plan_exec_llm.py --prompt {any prompt} --file {path/to/file}`. It will print out a plan on how to revise the `.cursorrules` file. You then need to actually do the changes to the file. And then reread the file to see what's the next step.
 
 2. Executor
 
@@ -24,7 +24,7 @@ You are a multi-agent system coordinator, playing two roles in this environment:
 ## Workflow Guidelines
 
 * After you receive an initial prompt for a new task, update the "Background and Motivation" section, and then invoke the Planner to do the planning.
-* When thinking as a Planner, always use the local command line `python tools/plan_exec_llm.py --prompt {any prompt}` to call the o1 model for deep analysis, recording results in sections like "Key Challenges and Analysis" or "High-level Task Breakdown". Also update the "Background and Motivation" section.
+* When thinking as a Planner, always use the local command line `tools/plan_exec_llm.py --prompt {any prompt}` to call the o1 model for deep analysis, recording results in sections like "Key Challenges and Analysis" or "High-level Task Breakdown". Also update the "Background and Motivation" section.
 * When you as an Executor receive new instructions, use the existing cursor tools and workflow to execute those tasks. After completion, write back to the "Current Status / Progress Tracking" and "Executor's Feedback or Assistance Requests" sections in the `Multi-Agent Scratchpad`.
 * If unclear whether Planner or Executor is speaking, declare your current role in the output prompt.
 * Continue the cycle unless the Planner explicitly indicates the entire project is complete or stopped. Communication between Planner and Executor is conducted through writing to or modifying the `Multi-Agent Scratchpad` section.
@@ -43,7 +43,7 @@ Please note:
 IMPORTANT: Before using any tools, always ensure you're in the correct conda environment:
 
 ```bash
-conda activate therapytrain
+conda activate gradiant
 ```
 
 This must be done before any tool usage, as the tools require specific Python packages that are installed in this environment. Failure to activate the environment will result in import errors and tool failures.
@@ -66,7 +66,7 @@ The screenshot verification workflow allows you to capture screenshots of web pa
 * Screenshot Capture:
 
 ```bash
-venv/bin/python tools/screenshot_utils.py URL [--output OUTPUT] [--width WIDTH] [--height HEIGHT]
+tools/screenshot_utils.py URL [--output OUTPUT] [--width WIDTH] [--height HEIGHT]
 ```
 
 * LLM Verification with Images:
@@ -260,7 +260,7 @@ If needed, you can further use the `web_scraper.py` file to scrape the web page 
 
 ### Background and Motivation
 
-The project currently uses JIFF (JavaScript Implementation of Federated Functionality) for secure multi-party computation (MPC). However, JIFF has a critical dependency on the deprecated `request` package, which poses security risks and maintenance challenges. We need to migrate to a modern, well-maintained MPC implementation that aligns with our security requirements and modern JavaScript practices.
+The project currently uses JIFF (JavaScript Implementation of Federated Functionality) for secure multi-party computation (MPC). However, JIFF has a critical dependency on the deprecated `request` package, which poses security risks and maintenance challenges. After analysis, we have decided to migrate to MP-SPDZ, a versatile and actively maintained framework for multi-party computation that provides stronger security guarantees and better performance.
 
 ### Key Challenges and Analysis
 
@@ -270,132 +270,153 @@ The project currently uses JIFF (JavaScript Implementation of Federated Function
    * Current implementation uses a singleton pattern with TypeScript interfaces
    * Integration points include initialization, party management, and computation coordination
 
-2. Migration Requirements:
-   * Maintain existing MPC functionality and security guarantees
-   * Ensure TypeScript type safety and modern ES module support
-   * Remove deprecated dependencies
-   * Improve browser compatibility and performance
-   * Maintain or enhance cryptographic security
+2. MP-SPDZ Integration Requirements:
+   * Set up MP-SPDZ compilation environment and dependencies
+   * Create TypeScript bindings for MP-SPDZ protocols
+   * Support multiple protocols (MASCOT, SPDZ2k, Semi2k) for different security needs
+   * Implement proper preprocessing phase management
+   * Handle network coordination between parties
+   * Ensure secure key generation and management
 
 3. Technical Constraints:
-   * Must support threshold-based secret sharing
-   * Must support basic arithmetic operations (add, multiply)
-   * Must support secure comparison operations
-   * Must handle party coordination and connection management
-   * Must provide proof generation/verification capabilities
+   * MP-SPDZ requires C++ compilation environment
+   * Must handle both preprocessing and online phases
+   * Need to manage protocol-specific parameters (prime field size, security parameter)
+   * Must coordinate party connections and data sharing
+   * Requires proper error handling for cryptographic operations
 
 ### High-level Task Breakdown
 
-1. Preparation Phase:
-   * Document current JIFF usage and requirements
-   * Create test suite for existing MPC functionality
-   * Set up development environment for new implementation
+1. Environment Setup Phase:
+   * Install MP-SPDZ system dependencies (automake, build-essential, clang, etc.)
+   * Clone and compile MP-SPDZ from source
+   * Set up development environment with proper paths
+   * Configure protocol parameters and security settings
 
-2. Implementation Phase:
-   * Create new MPC service using mpc-ecdsa-js
-   * Implement core cryptographic operations
-   * Add TypeScript types and interfaces
-   * Implement party management and coordination
-   * Add proof generation and verification
+2. TypeScript Integration Phase:
+   * Create TypeScript bindings for MP-SPDZ core functionality
+   * Implement protocol selection and initialization
+   * Add proper type definitions for all MP-SPDZ interfaces
+   * Set up Node.js process management for MP-SPDZ binaries
 
-3. Migration Phase:
+3. Protocol Implementation Phase:
+   * Implement preprocessing phase management
+   * Add support for MASCOT protocol (default secure protocol)
+   * Implement SPDZ2k for integer arithmetic
+   * Add Semi2k protocol for better performance in semi-honest setting
+   * Create proper party management and coordination
+
+4. Security Features Phase:
+   * Implement secure key generation and management
+   * Add proper audit logging and verification
+   * Set up secure channel communication
+   * Implement proper error handling and recovery
+
+5. Migration Phase:
    * Create adapter layer for backward compatibility
+   * Migrate existing computations to MP-SPDZ
    * Update dependent components
-   * Migrate existing computations
    * Remove JIFF dependency
-
-4. Testing Phase:
-   * Unit tests for new implementation
-   * Integration tests with existing components
-   * Performance benchmarking
-   * Security analysis
-
-5. Documentation Phase:
-   * API documentation
-   * Migration guide
-   * Security considerations
-   * Usage examples
 
 ### Current Status / Progress Tracking
 
 * Initial analysis complete
-* Identified mpc-ecdsa-js as replacement
-* Current implementation reviewed
-* Migration plan drafted
+* Selected MP-SPDZ as replacement for JIFF
+* System dependencies installed and verified:
+  * automake, build-essential, clang, cmake, git
+  * libboost-dev, libgmp-dev, libntl-dev
+  * libsodium-dev, libssl-dev, libtool, python3
+  * libstdc++-12-dev for C++ standard library
+* MP-SPDZ repository cloned and configured:
+  * Basic configuration in CONFIG.mine
+  * Parallel compilation enabled (-j8)
+  * Optimizations set (-O3 -march=native)
+  * Required protocols enabled (USE_NTL, USE_GF2N)
+* Started compilation of core protocols (mascot-party.x, semi2k-party.x, spdz2k-party.x)
 
 ### Next Steps and Action Items
 
-1. Create test suite for existing MPC functionality:
-   * Write unit tests for current JIFF operations
-   * Document expected behavior and edge cases
-   * Set up test environment
+1. Complete MP-SPDZ protocol compilation:
+   * Verify successful compilation of protocol binaries
+   * Run basic functionality tests
+   * Set up protocol parameters for our use case
 
-2. Set up new MPC implementation:
-   * Add mpc-ecdsa-js dependency
-   * Create TypeScript types
-   * Set up development environment
+2. Begin TypeScript bindings development:
+   * Create initial binding structure in `src/lib/mpc/mp-spdz-bindings/`
+   * Implement process management for compiled binaries
+   * Define protocol interfaces and types
+   * Set up communication channels
 
-3. Implement core functionality:
-   * Secret sharing
-   * Basic arithmetic operations
-   * Secure comparison
-   * Party management
-   * Proof generation
+3. Start protocol integration:
+   * Implement MASCOT protocol wrapper
+   * Add preprocessing phase management
+   * Create secure channel communication
+   * Set up party coordination
 
 ### Executor's Feedback or Assistance Requests
 
-No current feedback or requests. Ready to begin implementation of test suite.
+Currently monitoring the compilation of MP-SPDZ protocols. Once complete, will verify binary functionality before proceeding with TypeScript bindings development.
 
 ### Dependencies and Requirements
 
-1. New Dependencies:
-   * mpc-ecdsa-js (latest version)
-   * @noble/secp256k1 (for elliptic curve operations)
-   * TypeScript type definitions
+1. System Dependencies:
+   * automake
+   * build-essential
+   * clang
+   * cmake
+   * git
+   * libboost-dev
+   * libgmp-dev
+   * libntl-dev
+   * libsodium-dev
+   * libssl-dev
+   * libtool
+   * python3
 
 2. Development Requirements:
    * TypeScript 5.0+
    * Node.js 22+
-   * Vite build system
-   * Testing framework (Vitest)
+   * C++17 compatible compiler
+   * Python 3.8+
 
 3. Security Requirements:
-   * ECDSA threshold signatures
-   * Secure key generation
-   * Proof verification
+   * Proper key generation and management
+   * Secure channel communication
    * Audit logging
+   * Error handling and recovery
+   * Protocol-specific security parameters
 
 ### Timeline and Milestones
 
 Week 1:
 
-* Set up test suite
-* Document current functionality
-* Initial mpc-ecdsa-js integration
+* Set up MP-SPDZ environment
+* Install dependencies
+* Basic TypeScript bindings
 
 Week 2:
 
-* Implement core MPC operations
-* Add TypeScript types
-* Create adapter layer
+* Implement MASCOT protocol support
+* Add preprocessing phase management
+* Create party coordination
 
 Week 3:
 
-* Migration of existing computations
-* Testing and validation
-* Performance optimization
+* Add remaining protocol support
+* Implement security features
+* Begin migration
 
 Week 4:
 
-* Documentation
-* Security review
-* Final testing and deployment
+* Complete migration
+* Testing and validation
+* Documentation and deployment
 
 ### Lessons 2
 
-* Always check for deprecated dependencies before adding new packages
-* Prefer modern, actively maintained libraries for cryptographic operations
-* Use TypeScript for better type safety in cryptographic code
-* Implement proper testing for security-critical components
-* Document security considerations and assumptions
-* Follow best practices for key management and proof verification
+* Always verify protocol security requirements before implementation
+* Use proper preprocessing phase management for MPC protocols
+* Implement secure channel communication from the start
+* Handle protocol-specific parameters carefully
+* Document security assumptions and guarantees
+* Test with multiple parties and security settings
