@@ -48,3 +48,13 @@ integrate/*
 
 # Sentry Config File
 .env.sentry-build-plugin
+
+# npm
+package-lock.json
+.npm
+
+# yarn
+yarn.lock
+.yarn
+.yarnrc
+.yarnrc.yml

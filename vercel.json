@@ -62,5 +62,10 @@
             "source": "/:path*",
             "destination": "/index.html"
         }
-    ]
+    ],
+    "build": {
+        "env": {
+            "PACKAGE_MANAGER": "pnpm"
+        }
+    }
 }
