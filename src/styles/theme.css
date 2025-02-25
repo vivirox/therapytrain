@@ -387,12 +387,7 @@
   }
 
   .reduced-motion-safe {
-    @media (prefers-reduced-motion: reduce) {
-      @apply transition-none transform-none animate-none;
-    }
-    [data-reduced-motion="true"] & {
-      @apply transition-none transform-none animate-none;
-    }
+    @apply transition-none transform-none animate-none;
   }
 
   .focus-visible-ring {
@@ -410,8 +405,7 @@
       outline-offset: var(--focus-ring-offset);
     }
 
-    [data-reduced-motion="true"] &,
-    @media (prefers-reduced-motion: reduce) & {
+    &.no-motion {
       @apply transition-none;
     }
   }
@@ -431,8 +425,7 @@
       outline-offset: var(--focus-ring-offset);
     }
 
-    [data-reduced-motion="true"] &,
-    @media (prefers-reduced-motion: reduce) & {
+    &.no-motion {
       @apply transition-none;
     }
   }
@@ -453,8 +446,7 @@
       outline-offset: var(--focus-ring-offset);
     }
 
-    [data-reduced-motion="true"] &,
-    @media (prefers-reduced-motion: reduce) & {
+    &.no-motion {
       @apply transition-none;
     }
   }
@@ -475,10 +467,21 @@
       outline-offset: var(--focus-ring-offset);
     }
 
-    [data-reduced-motion="true"] &,
-    @media (prefers-reduced-motion: reduce) & {
+    &.no-motion {
       @apply transition-none;
     }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reduced-motion-safe,
+  .focus-visible-ring,
+  .focus-visible-within,
+  .focus-visible-before,
+  .focus-visible-after {
+    transition: none !important;
+    transform: none !important;
+    animation: none !important;
   }
 }
 
