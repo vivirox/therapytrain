@@ -1,5 +1,6 @@
 /* Import external styles first */
 @import './rtl.css';
+@import './theme.css';
 
 @tailwind base;
 @tailwind components;
