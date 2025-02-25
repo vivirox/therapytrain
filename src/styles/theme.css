@@ -133,19 +133,13 @@
 
   @media (prefers-reduced-motion: reduce) {
     * {
-      animation-duration: 0.01ms !important;
-      animation-iteration-count: 1 !important;
-      transition-duration: 0.01ms !important;
-      scroll-behavior: auto !important;
+      @apply transition-none transform-none animate-none;
     }
   }
 
   [data-reduced-motion="true"] {
     * {
-      animation-duration: 0.01ms !important;
-      animation-iteration-count: 1 !important;
-      transition-duration: 0.01ms !important;
-      scroll-behavior: auto !important;
+      @apply transition-none transform-none animate-none;
     }
   }
 
@@ -154,7 +148,7 @@
   }
 
   body {
-    @apply bg-background text-foreground theme-switch-transition;
+    @apply bg-background text-foreground;
   }
 
   ::selection {
@@ -163,14 +157,6 @@
 
   :focus-visible {
     @apply outline-none dark-focus-ring;
-  }
-
-  [data-theme] {
-    @apply theme-switch-transition;
-  }
-
-  [data-theme-content] {
-    @apply theme-content-transition;
   }
 }
 
@@ -245,46 +231,21 @@
   }
 
   .theme-switch-transition {
-    @apply transition-all duration-500;
-  }
-  .theme-switch-transition:not(.no-motion) {
-    animation: theme-fade-in 0.5s ease-out, theme-scale-in 0.5s ease-out;
-    transform-origin: center center;
-    backface-visibility: hidden;
-    perspective: 1000px;
-    will-change: transform, opacity;
+    @apply transition-all duration-500 animate-theme-fade-in animate-theme-scale-in;
   }
 
   .theme-content-transition {
-    @apply transition-all duration-300;
-  }
-  .theme-content-transition:not(.no-motion) {
-    animation: theme-fade-in 0.3s ease-out, theme-slide-in 0.3s ease-out;
-  }
-
-  .theme-bg-transition {
-    @apply transition-all duration-700;
-    background-image: radial-gradient(
-      circle at center,
-      var(--theme-transition-from) 0%,
-      var(--theme-transition-to) 100%
-    );
-    background-size: 400% 400%;
-    background-position: 100% 100%;
-  }
-  .theme-bg-transition.transitioning {
-    background-position: 0% 0%;
+    @apply transition-all duration-300 animate-theme-fade-in animate-theme-slide-in;
   }
 
   .theme-icon-spin {
     @apply transition-transform duration-500;
-    transform-style: preserve-3d;
   }
   .theme-icon-spin.spin-enter {
-    transform: rotate(180deg);
+    @apply rotate-180;
   }
   .theme-icon-spin.spin-exit {
-    transform: rotate(-180deg);
+    @apply -rotate-180;
   }
 
   .theme-switch-overlay {
@@ -343,17 +304,6 @@
   }
   [data-high-contrast="true"] .high-contrast-icon {
     @apply stroke-2;
-  }
-
-  .reduced-motion {
-    @apply transition-none;
-  }
-  [data-reduced-motion="true"] .reduced-motion {
-    @apply transform-none animate-none;
-  }
-
-  .reduced-motion-safe {
-    @apply transition-none transform-none animate-none;
   }
 
   .focus-visible-ring {

@@ -3,30 +3,32 @@
 @import 'tailwindcss/utilities';
 
 @import './tailwind-custom.css';
+@import './styles/theme.css';
 
 :root {
-  --chatgpt-main: #343541;
-  --chatgpt-hover: #40414f;
-  --chatgpt-hover-rgb: 64, 65, 79;
-  --chatgpt-border: #565869;
+  --app-main: var(--background);
+  --app-hover: var(--accent);
+  --app-border: var(--border);
+  --app-text: var(--foreground);
 }
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-body {
-  @apply bg-chatgpt-main text-white;
-  font-family: 'Inter', sans-serif;
-  line-height: 1.6;
+@layer base {
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', sans-serif;
+    line-height: 1.6;
+  }
 }
 
-.sidebar-item {
-  @apply flex items-center gap-3 rounded-md px-3 py-3 text-sm transition-colors duration-200 hover:bg-chatgpt-hover cursor-pointer;
-  font-weight: 500;
-}
+@layer components {
+  .sidebar-item {
+    @apply flex items-center gap-3 rounded-md px-3 py-3 text-sm transition-colors duration-200
+           hover:bg-accent/10 cursor-pointer font-medium;
+  }
 
-.action-button {
-  @apply flex items-center gap-2 rounded-md px-3 py-2 text-sm hover:bg-chatgpt-hover/50 border border-transparent hover:border-chatgpt-border transition-all duration-200;
-  font-weight: 600;
+  .action-button {
+    @apply flex items-center gap-2 rounded-md px-3 py-2 text-sm
+           hover:bg-accent/10 border border-border/50
+           hover:border-border transition-all duration-200 font-semibold;
+  }
 }

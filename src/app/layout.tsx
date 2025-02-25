@@ -8,6 +8,8 @@ import { ServiceWorkerUpdater } from '../components/ServiceWorkerUpdater';
 import { OfflineIndicator } from '../components/OfflineIndicator';
 import { ThemeProvider } from '@/components/theme/theme-provider';
 import { ThemeToggle } from '@/components/theme/theme-toggle';
+import { Analytics } from '@vercel/analytics/react';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 
 // ... existing imports ...
 
@@ -64,6 +66,8 @@ export default function RootLayout({
         <Toaster />
         <ServiceWorkerUpdater />
         <OfflineIndicator />
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
