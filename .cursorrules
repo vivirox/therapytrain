@@ -256,167 +256,146 @@ If needed, you can further use the `web_scraper.py` file to scrape the web page 
   * Check for markdown lint warnings and errors before committing changes
   * Maintain consistent bullet point style throughout the document
 
-## Scratchpad
+## Multi-Agent Scratchpad
 
 ### Background and Motivation
 
-Phase 4 (User Experience) has been completed with comprehensive accessibility features. Phase 5 (Integration and Extension) is 65% complete, with notification system, plugin architecture, calendar integration, and some third-party API support already implemented. Moving forward with implementing the remaining critical integration features and starting Phase 6 (DevOps and Infrastructure).
+The project currently uses JIFF (JavaScript Implementation of Federated Functionality) for secure multi-party computation (MPC). However, JIFF has a critical dependency on the deprecated `request` package, which poses security risks and maintenance challenges. We need to migrate to a modern, well-maintained MPC implementation that aligns with our security requirements and modern JavaScript practices.
 
 ### Key Challenges and Analysis
 
-1. DevOps Pipeline (Priority: High)
-   * Need to set up proper CI/CD workflow
-   * GitHub Actions environment configuration
-   * Infrastructure as Code implementation
-   * Automated testing and deployment
-   * Monitoring and observability setup
+1. Current Implementation Analysis:
+   * JIFF is used in `src/lib/mpc/secure-computation.ts` for secure multi-party computation
+   * Core functionality includes secret sharing, secure addition, multiplication, and comparison
+   * Current implementation uses a singleton pattern with TypeScript interfaces
+   * Integration points include initialization, party management, and computation coordination
 
-2. Infrastructure Management (Priority: High)
-   * Container orchestration setup
-   * Terraform configuration
-   * Monitoring stack deployment
-   * Security hardening
-   * Backup and disaster recovery
+2. Migration Requirements:
+   * Maintain existing MPC functionality and security guarantees
+   * Ensure TypeScript type safety and modern ES module support
+   * Remove deprecated dependencies
+   * Improve browser compatibility and performance
+   * Maintain or enhance cryptographic security
 
-3. Documentation (Priority: Medium)
+3. Technical Constraints:
+   * Must support threshold-based secret sharing
+   * Must support basic arithmetic operations (add, multiply)
+   * Must support secure comparison operations
+   * Must handle party coordination and connection management
+   * Must provide proof generation/verification capabilities
+
+### High-level Task Breakdown
+
+1. Preparation Phase:
+   * Document current JIFF usage and requirements
+   * Create test suite for existing MPC functionality
+   * Set up development environment for new implementation
+
+2. Implementation Phase:
+   * Create new MPC service using mpc-ecdsa-js
+   * Implement core cryptographic operations
+   * Add TypeScript types and interfaces
+   * Implement party management and coordination
+   * Add proof generation and verification
+
+3. Migration Phase:
+   * Create adapter layer for backward compatibility
+   * Update dependent components
+   * Migrate existing computations
+   * Remove JIFF dependency
+
+4. Testing Phase:
+   * Unit tests for new implementation
+   * Integration tests with existing components
+   * Performance benchmarking
+   * Security analysis
+
+5. Documentation Phase:
    * API documentation
-   * Architecture records
-   * Deployment guides
-   * Runbooks
-   * Contributing guidelines
-
-4. Performance Optimization (Priority: Medium)
-   * Load testing setup
-   * Performance monitoring
-   * Resource optimization
-   * Caching strategies
-   * CDN configuration
-
-### Implementation Plan
-
-#### Phase 5C: Infrastructure (COMPLETED)
-
-1. CQRS Implementation ✓
-   * Event store implementation
-   * Command handling
-   * Query optimization
-   * Testing and performance
-
-2. API Management ✓
-   * API gateway setup
-   * GraphQL federation
-   * Rate limiting
-   * Monitoring and analytics
-
-#### Phase 6A: DevOps Pipeline (IN PROGRESS)
-
-1. CI/CD Setup (IN PROGRESS)
-   * GitHub Actions configuration
-   * Environment setup
-   * Deployment automation
-   * Testing integration
-
-2. Infrastructure as Code (PLANNED)
-   * Terraform configuration
-   * Resource provisioning
-   * State management
-   * Security configuration
+   * Migration guide
+   * Security considerations
+   * Usage examples
 
 ### Current Status / Progress Tracking
 
-* Infrastructure Integration (100% Complete)
-  * CQRS Implementation completed
-  * API Management completed
-  * GraphQL Federation implemented
-  * Rate limiting and monitoring in place
-
-* DevOps Pipeline (25% Complete)
-  * Basic GitHub Actions workflow created
-  * Environment configuration in progress
-  * Deployment scripts partially implemented
-  * Testing integration pending
+* Initial analysis complete
+* Identified mpc-ecdsa-js as replacement
+* Current implementation reviewed
+* Migration plan drafted
 
 ### Next Steps and Action Items
 
-1. DevOps Pipeline (Priority: High)
-   * Complete environment setup
-   * Implement deployment automation
-   * Set up testing integration
-   * Configure monitoring
+1. Create test suite for existing MPC functionality:
+   * Write unit tests for current JIFF operations
+   * Document expected behavior and edge cases
+   * Set up test environment
 
-2. Infrastructure as Code (Priority: High)
-   * Create Terraform configurations
-   * Set up state management
-   * Implement security measures
-   * Create resource provisioning
+2. Set up new MPC implementation:
+   * Add mpc-ecdsa-js dependency
+   * Create TypeScript types
+   * Set up development environment
 
-3. Documentation (Priority: Medium)
-   * Create API documentation
-   * Write architecture records
-   * Develop deployment guides
-   * Create runbooks
+3. Implement core functionality:
+   * Secret sharing
+   * Basic arithmetic operations
+   * Secure comparison
+   * Party management
+   * Proof generation
 
 ### Executor's Feedback or Assistance Requests
 
-1. DevOps Pipeline:
-   * Need to resolve GitHub environment setup issues
-   * Request guidance on deployment automation
-   * Need input on testing strategy
-
-2. Infrastructure as Code:
-   * Need decision on state management approach
-   * Request input on resource organization
-   * Need specifications for security requirements
+No current feedback or requests. Ready to begin implementation of test suite.
 
 ### Dependencies and Requirements
 
-1. Development Dependencies
-   * GitHub Actions
-   * Terraform
-   * Docker
-   * Monitoring tools:
-     * Prometheus
-     * Grafana
-   * Testing frameworks
+1. New Dependencies:
+   * mpc-ecdsa-js (latest version)
+   * @noble/secp256k1 (for elliptic curve operations)
+   * TypeScript type definitions
 
-2. Infrastructure Requirements
-   * Cloud provider access
-   * Container registry
-   * Monitoring system
-   * CI/CD pipeline
-   * Test environment requirements:
-     * GitHub environments
-     * Vercel deployment
-     * Docker support
+2. Development Requirements:
+   * TypeScript 5.0+
+   * Node.js 22+
+   * Vite build system
+   * Testing framework (Vitest)
 
-3. Security Requirements
-   * Environment secrets
-   * Access controls
+3. Security Requirements:
+   * ECDSA threshold signatures
+   * Secure key generation
+   * Proof verification
    * Audit logging
-   * Compliance checks
 
 ### Timeline and Milestones
 
-Week 1-2:
+Week 1:
 
-* Complete GitHub Actions setup
-* Finalize environment configuration
-* Implement deployment automation
+* Set up test suite
+* Document current functionality
+* Initial mpc-ecdsa-js integration
 
-Week 3-4:
+Week 2:
 
-* Set up Terraform configurations
-* Implement resource provisioning
-* Configure state management
+* Implement core MPC operations
+* Add TypeScript types
+* Create adapter layer
 
-Week 5-6:
+Week 3:
 
-* Create monitoring setup
-* Implement security measures
-* Set up backup systems
+* Migration of existing computations
+* Testing and validation
+* Performance optimization
 
-Week 7-8:
+Week 4:
 
-* Complete documentation
-* Perform security audits
-* Conduct performance testing
+* Documentation
+* Security review
+* Final testing and deployment
+
+### Lessons 2
+
+* Always check for deprecated dependencies before adding new packages
+* Prefer modern, actively maintained libraries for cryptographic operations
+* Use TypeScript for better type safety in cryptographic code
+* Implement proper testing for security-critical components
+* Document security considerations and assumptions
+* Follow best practices for key management and proof verification
