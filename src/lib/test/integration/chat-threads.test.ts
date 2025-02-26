@@ -135,10 +135,10 @@ describe('Chat Thread Integration Tests', () => {
         // Retrieve thread with messages
         const { data: threadData, error } = await supabase
           .from(TABLES.THREADS)
-          .select(\`
+          .select(`
             *,
             messages:messages(*)
-          \`)
+          `)
           .eq('id', thread.id)
           .single();
 

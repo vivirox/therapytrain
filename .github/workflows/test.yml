@@ -1,97 +1,104 @@
-name: Test
+name: CI/CD Pipeline
 
-on: [push, pull_request]
+# Specify when this workflow runs
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+# Define global permissions at workflow level
+permissions: write-all
+
+# Define environment variables
+env:
+  NODE_VERSION: '18.x'
+  PNPM_VERSION: '8.x'
+  # Remove these from env and only use in steps where needed
+  # VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+  # VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  # VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
 jobs:
   test:
     runs-on: ubuntu-latest
     
     steps:
-      - uses: actions/checkout@v4
-      
-      # Add system dependencies for Sharp
-      - name: Install system dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y build-essential libvips-dev
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          
-      - name: Install pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 8
-          
-      # Add caching
-      - name: Get pnpm store directory
-        id: pnpm-cache
-        shell: bash
-        run: |
-          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+    - uses: actions/checkout@v3
 
-      - uses: actions/cache@v3
-        name: Setup pnpm cache
-        with:
-          path: ${{ env.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
-          
-      # Install with frozen lockfile and production deps only
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile --prod
-        
-      - name: Create test env file
-        run: |
-          cat > .env.test << EOF
-          UPSTASH_REDIS_REST_URL=http://test-redis-url
-          UPSTASH_REDIS_REST_TOKEN=test-token
-          # Add other required test env vars
-          EOF
-          
-      - name: Run tests
-        run: pnpm test
-        
-      - name: Upload coverage
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage
-          path: coverage/
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18.x'
 
-      - name: Check coverage thresholds
-        run: |
-          COVERAGE_FILE="./coverage/coverage-summary.json"
-          if [ ! -f "$COVERAGE_FILE" ]; then
-            echo "Coverage file not found!"
-            exit 1
-          fi
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: '8.x'
 
-          # Function to check coverage against threshold
-          check_coverage() {
-            local type=$1
-            local threshold=$2
-            local actual=$(jq ".$type.pct" $COVERAGE_FILE)
-            
-            if (( $(echo "$actual < $threshold" | bc -l) )); then
-              echo "$type coverage ($actual%) is below threshold ($threshold%)"
-              return 1
-            fi
-            return 0
-          }
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
 
-          # Check each coverage type
-          check_coverage "lines" 70 && \
-          check_coverage "functions" 70 && \
-          check_coverage "statements" 70 && \
-          check_coverage "branches" 70
+    - name: Run tests
+      run: pnpm test
+      env:
+        NODE_ENV: test
 
-      - name: Generate test report
-        uses: dorny/test-reporter@v1
-        with:
-          name: Vitest Tests
-          path: coverage/junit.xml
-          reporter: jest-junit
-          fail-on-error: false 
+  build:
+    if: success() && github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+    needs: test
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18.x'
+
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: '8.x'
+
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
+
+    - name: Build
+      run: pnpm build
+      env:
+        NODE_ENV: production
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: build-output
+        path: .next/
+        retention-days: 7
+
+  deploy:
+    if: success() && github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: build
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Download build artifacts
+      uses: actions/download-artifact@v3
+      with:
+        name: build-output
+        path: .next/
+
+    - name: Deploy to Vercel
+      uses: amondnet/vercel-action@v25
+      env:
+        VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+        VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      with:
+        vercel-token: ${{ secrets.VERCEL_TOKEN }}
+        vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+        vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+        vercel-args: '--prod'

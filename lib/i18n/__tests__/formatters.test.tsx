@@ -1,16 +1,18 @@
 import { renderHook } from '@testing-library/react'
 import { useFormatters } from '../formatters'
 import { I18nProvider } from '../i18n-context'
+import { ReactNode } from 'react'
+import { describe, it, expect } from 'vitest'
 
-describe('Formatters', () => {
+describe('formatters', () => {
   const testDate = new Date('2024-03-15T14:30:00Z')
   const testNumber = 1234.56
 
   const renderFormatters = (locale = 'en') => {
     return renderHook(() => useFormatters(), {
-      wrapper: ({ children }) => (
+      wrapper: ({ children }: { children: ReactNode }) => (
         <I18nProvider locale={locale}>{children}</I18nProvider>
-      ),
+      )
     })
   }
 
@@ -94,4 +96,4 @@ describe('Formatters', () => {
       expect(result.current.formatRelativeTime(3, 'month')).toBe('en 3 meses')
     })
   })
-}) 
+})

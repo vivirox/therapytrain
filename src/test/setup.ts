@@ -83,9 +83,9 @@ Object.defineProperty(window, 'sessionStorage', { value: sessionStorageMock });
 // Mock framer-motion
 vi.mock('framer-motion', () => ({
   motion: {
-    div: ({ children, ...props }: any) => <div {...props}>{children}</div>,
-    nav: ({ children, ...props }: any) => <nav {...props}>{children}</nav>,
-    aside: ({ children, ...props }: any) => <aside {...props}>{children}</aside>,
+    div: ({ children, ...props }) => <div {...props}>{children}</div>,
+    nav: ({ children, ...props }) => <nav {...props}>{children}</nav>,
+    aside: ({ children, ...props }) => <aside {...props}>{children}</aside>,
   },
   AnimatePresence: ({ children }: any) => <>{children}</>,
 }));

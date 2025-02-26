@@ -1,4 +1,4 @@
-import { describe, test, expect, beforeAll, afterAll, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import {
   cleanupTestData,
   createTestUser,
@@ -8,31 +8,25 @@ import {
   verifyDataIntegrity,
   TABLES,
 } from '../db-utils';
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
+import { createClient } from '@supabase/supabase-js';
+
+// Replace auth-helpers-nextjs with direct client creation
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
 describe('User Profile Integration Tests', () => {
   let testUser: any;
-  let supabase: any;
 
   // Setup test environment
-  beforeAll(async () => {
-    testUser = await createTestUser();
-    supabase = createRouteHandlerClient({ cookies });
-  });
-
-  // Clean up after each test
   beforeEach(async () => {
-    await cleanupTestData();
-  });
-
-  // Clean up after all tests
-  afterAll(async () => {
+    testUser = await createTestUser();
     await cleanupTestData();
   });
 
   describe('Profile Creation', () => {
-    test('should create profile with default values', async () => {
+    it('should create profile with default values', async () => {
       await withTransaction(async () => {
         const profile = await createTestProfile(testUser.id);
 
@@ -51,7 +45,7 @@ describe('User Profile Integration Tests', () => {
       });
     });
 
-    test('should create profile with custom data', async () => {
+    it('should create profile with custom data', async () => {
       await withTransaction(async () => {
         const customData = {
           display_name: 'Custom Name',
@@ -74,7 +68,7 @@ describe('User Profile Integration Tests', () => {
       });
     });
 
-    test('should enforce unique user_id constraint', async () => {
+    it('should enforce unique user_id constraint', async () => {
       await withTransaction(async () => {
         // Create first profile
         await createTestProfile(testUser.id);
@@ -90,13 +84,13 @@ describe('User Profile Integration Tests', () => {
           });
 
         expect(error).toBeDefined();
-        expect(error.code).toBe('23505'); // Unique violation
+        expect((error as any).code).toBe('23505'); // Unique violation
       });
     });
   });
 
   describe('Profile Retrieval', () => {
-    test('should retrieve profile by user ID', async () => {
+    it('should retrieve profile by user ID', async () => {
       await withTransaction(async () => {
         const createdProfile = await createTestProfile(testUser.id);
 
@@ -113,16 +107,16 @@ describe('User Profile Integration Tests', () => {
       });
     });
 
-    test('should retrieve profile with related data', async () => {
+    it('should retrieve profile with related data', async () => {
       await withTransaction(async () => {
         const profile = await createTestProfile(testUser.id);
 
         const { data: profileWithUser, error } = await supabase
           .from(TABLES.PROFILES)
-          .select(\`
+          .select(`
             *,
             user:users!inner(*)
-          \`)
+          `)
           .eq('id', profile.id)
           .single();
 
@@ -135,7 +129,7 @@ describe('User Profile Integration Tests', () => {
   });
 
   describe('Profile Updates', () => {
-    test('should update profile fields', async () => {
+    it('should update profile fields', async () => {
       await withTransaction(async () => {
         // Create initial profile
         const profile = await createTestProfile(testUser.id);
@@ -157,10 +151,10 @@ describe('User Profile Integration Tests', () => {
       });
     });
 
-    test('should update profile preferences', async () => {
+    it('should update profile preferences', async () => {
       await withTransaction(async () => {
         // Create initial profile
-        const profile = await createTestProfile(testUser.id);
+        await createTestProfile(testUser.id);
 
         // Update preferences
         const newPreferences = {
@@ -178,7 +172,7 @@ describe('User Profile Integration Tests', () => {
       });
     });
 
-    test('should handle partial preference updates', async () => {
+    it('should handle partial preference updates', async () => {
       await withTransaction(async () => {
         // Create initial profile
         const profile = await createTestProfile(testUser.id);
@@ -206,7 +200,7 @@ describe('User Profile Integration Tests', () => {
   });
 
   describe('Profile Deletion', () => {
-    test('should delete profile', async () => {
+    it('should delete profile', async () => {
       await withTransaction(async () => {
         // Create profile
         const profile = await createTestProfile(testUser.id);
@@ -225,7 +219,7 @@ describe('User Profile Integration Tests', () => {
       });
     });
 
-    test('should cascade delete profile when user is deleted', async () => {
+    it('should cascade delete profile when user is deleted', async () => {
       await withTransaction(async () => {
         // Create profile
         const profile = await createTestProfile(testUser.id);
@@ -242,7 +236,7 @@ describe('User Profile Integration Tests', () => {
   });
 
   describe('Profile Validation', () => {
-    test('should validate required fields', async () => {
+    it('should validate required fields', async () => {
       await withTransaction(async () => {
         const { error } = await supabase
           .from(TABLES.PROFILES)
@@ -252,11 +246,11 @@ describe('User Profile Integration Tests', () => {
           });
 
         expect(error).toBeDefined();
-        expect(error.code).toBe('23502'); // Not null violation
+        expect((error as any).code).toBe('23502'); // Not null violation
       });
     });
 
-    test('should validate preference schema', async () => {
+    it('should validate preference schema', async () => {
       await withTransaction(async () => {
         // Create profile with invalid preferences
         const { error } = await supabase
@@ -267,11 +261,11 @@ describe('User Profile Integration Tests', () => {
           });
 
         expect(error).toBeDefined();
-        expect(error.code).toBe('22023'); // Invalid parameter value
+        expect((error as any).code).toBe('22023'); // Invalid parameter value
       });
     });
 
-    test('should handle long text fields', async () => {
+    it('should handle long text fields', async () => {
       await withTransaction(async () => {
         const longBio = 'a'.repeat(1000); // Assuming max length is less than this
         const { error } = await supabase
@@ -282,7 +276,7 @@ describe('User Profile Integration Tests', () => {
           });
 
         expect(error).toBeDefined();
-        expect(error.code).toBe('22001'); // String data right truncation
+        expect((error as any).code).toBe('22001'); // String data right truncation
       });
     });
   });
