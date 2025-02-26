@@ -258,7 +258,7 @@ const areEqual = await adapter.equals(a, b);
 const equalResult = await adapter.open(areEqual); // 0 (false)
 ```
 
-### Error Handling
+## Error Handling2
 
 ```typescript
 try {
