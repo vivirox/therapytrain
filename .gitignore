@@ -11,7 +11,6 @@ test_token_logs/
 
 node_modules
 dist
-dist-ssr
 *.local
 *.development
 *.production
@@ -27,23 +26,21 @@ dist-ssr
 *.sln
 *.sw?
 
-.venv
 .env
 .vercel
-src/utils/supabase.
-.env.staging
-
+.env.test
 .env*.local
-
-.pnpm-store/*
-
-# python stuff
-.cursorrules
-.windsurfrules
-
-integrate
-integrate/*
 
 
 # Sentry Config File
 .env.sentry-build-plugin
+
+# npm
+package-lock.json
+.npm
+
+# yarn
+yarn.lock
+.yarn
+.yarnrc
+.yarnrc.yml

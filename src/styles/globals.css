@@ -1,5 +1,6 @@
-/* Import external styles first */
+/* Import external styles */
 @import './rtl.css';
+@import './theme.css';
 
 @tailwind base;
 @tailwind components;

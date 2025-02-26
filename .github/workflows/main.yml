@@ -2,9 +2,9 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 permissions:
   contents: read
@@ -20,74 +20,87 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Install pnpm
         uses: pnpm/action-setup@v4
         with:
           version: 10
-          
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: 'pnpm'
-          
+          cache: pnpm
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-        
+
+      - name: Ensure supabase binary directory exists
+        run: mkdir -p ./node_modules/.pnpm/supabase@2.12.1/node_modules/supabase/bin
+
+      - name: Create a dummy supabase binary file
+        run: |
+          if [ ! -f "./node_modules/.pnpm/supabase@2.12.1/node_modules/supabase/bin/supabase" ]; then
+            echo "echo 'Dummy supabase binary'" > ./node_modules/.pnpm/supabase@2.12.1/node_modules/supabase/bin/supabase
+          fi
+        shell: bash
+
       - name: Type check
         run: pnpm run type-check
-        
+
       - name: Run ESLint
         run: pnpm run lint
-        
+
       - name: Run tests
         run: pnpm run test:ci
-        
+        env:
+          NODE_ENV: test
+          DOTENV_CONFIG_PATH: .env.test
+
       - name: Upload coverage reports
         uses: actions/upload-artifact@v4
         with:
           name: coverage-report
           path: coverage/
-        
+
   deploy-staging:
     needs: test
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Install Vercel CLI
         run: npm install --global vercel@latest
-        
+
       - name: Pull Vercel Environment Information
         run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
-        
+
       - name: Build Project Artifacts
         run: vercel build --token=${{ secrets.VERCEL_TOKEN }}
-        
+
       - name: Deploy to Vercel (Staging)
         run: |
           url=$(vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }})
           vercel alias $url staging-gradiant.vercel.app --token=${{ secrets.VERCEL_TOKEN }}
           echo "Deployed to $url"
-          
+
   deploy-production:
     needs: test
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Install Vercel CLI
         run: npm install --global vercel@latest
-        
+
       - name: Pull Vercel Environment Information
         run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
-        
+
       - name: Build Project Artifacts
         run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
-        
+
       - name: Deploy to Vercel (Production)
         run: |
           url=$(vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }})

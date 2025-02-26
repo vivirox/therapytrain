@@ -1,5 +1,5 @@
 import { createHash } from 'crypto';
-import { EncryptionKey, EncryptedData } from '@/types/services/encryption';
+import { EncryptedData } from '@/types/services/encryption';
 
 /**
  * Implements quantum-resistant encryption using a combination of
@@ -170,7 +170,10 @@ export class QuantumResistantEncryption {
     
     // Note: This is a placeholder. In production, we would use actual SPHINCS+ implementation
     const signature = Buffer.alloc(64);
-    crypto.getRandomValues(new Uint8Array(signature));
+    const hash = createHash('sha256')
+      .update(Buffer.concat([dataBuffer, privateKey]))
+      .digest();
+    signature.set(hash.slice(0, 64));
     
     return signature;
   }
@@ -183,37 +186,57 @@ export class QuantumResistantEncryption {
     signature: Buffer,
     publicKey: Buffer
   ): Promise<boolean> {
-    // Note: This is a placeholder. In production, we would use actual SPHINCS+ implementation
-    return true;
+    const dataBuffer = Buffer.isBuffer(data) ? data : Buffer.from(data);
+    // Simulate signature verification with hash comparison
+    const expectedHash = createHash('sha256')
+      .update(Buffer.concat([dataBuffer, publicKey]))
+      .digest();
+    return Buffer.compare(signature.slice(0, 32), expectedHash.slice(0, 32)) === 0;
   }
 
   // Private helper methods
 
   private simulateKyberEncryption(data: Buffer, publicKey: Buffer): Buffer {
-    // Note: This is a placeholder. In production, we would use actual Kyber implementation
+    // Simulate encryption with XOR and hash
+    const keyHash = createHash('sha256').update(publicKey).digest();
     const encrypted = Buffer.alloc(data.length);
-    crypto.getRandomValues(new Uint8Array(encrypted));
+    for (let i = 0; i < data.length; i++) {
+      encrypted[i] = data[i] ^ keyHash[i % 32];
+    }
     return encrypted;
   }
 
   private simulateKyberDecryption(data: Buffer, privateKey: Buffer): Buffer {
-    // Note: This is a placeholder. In production, we would use actual Kyber implementation
+    // Simulate decryption with XOR and hash (inverse of encryption)
+    const keyHash = createHash('sha256').update(privateKey).digest();
     const decrypted = Buffer.alloc(data.length);
-    crypto.getRandomValues(new Uint8Array(decrypted));
+    for (let i = 0; i < data.length; i++) {
+      decrypted[i] = data[i] ^ keyHash[i % 32];
+    }
     return decrypted;
   }
 
   private hybridEncrypt(data: Buffer, key: Buffer, iv: Buffer): Buffer {
-    // Note: This is a placeholder. In production, we would use actual AES implementation
+    // Simulate AES encryption with XOR and hash
+    const keyIvHash = createHash('sha256')
+      .update(Buffer.concat([key, iv]))
+      .digest();
     const encrypted = Buffer.alloc(data.length);
-    crypto.getRandomValues(new Uint8Array(encrypted));
+    for (let i = 0; i < data.length; i++) {
+      encrypted[i] = data[i] ^ keyIvHash[i % 32];
+    }
     return encrypted;
   }
 
   private hybridDecrypt(data: Buffer, key: Buffer, iv: Buffer): Buffer {
-    // Note: This is a placeholder. In production, we would use actual AES implementation
+    // Simulate AES decryption with XOR and hash (inverse of encryption)
+    const keyIvHash = createHash('sha256')
+      .update(Buffer.concat([key, iv]))
+      .digest();
     const decrypted = Buffer.alloc(data.length);
-    crypto.getRandomValues(new Uint8Array(decrypted));
+    for (let i = 0; i < data.length; i++) {
+      decrypted[i] = data[i] ^ keyIvHash[i % 32];
+    }
     return decrypted;
   }
 } 

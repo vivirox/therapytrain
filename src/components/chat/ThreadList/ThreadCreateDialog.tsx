@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { useSupabase } from '../../../hooks/useSupabase';
-import { useRedis } from '../../../hooks/useRedis';
-import { useToast } from '../../../hooks/useToast';
+import { useSupabase } from '@/hooks/useSupabase';
+import { useRedis } from '@/hooks/useRedis';
+import { useToast } from '@/hooks/useToast';
 import { ThreadManagementService } from '../../../services/chat/ThreadManagementService';
 import { Dialog } from '../../ui/Dialog';
 import { Button } from '../../ui/Button';

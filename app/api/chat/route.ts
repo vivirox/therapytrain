@@ -6,6 +6,10 @@ import { getSession, getOrCreateSharedKey } from '@/lib/zk/session';
 import { cache, invalidateByPattern } from '@/lib/redis';
 import { cacheConfig } from '@/config/cache.config';
 import { ChatEncryptionService } from '@/app/chat/ChatEncryptionService';
+import { LangChainStream } from '@/lib/langchain/stream';
+import { ChatOpenAI } from '@/lib/langchain/chat-openai';
+import { HumanMessage } from '@/lib/langchain/human-message';
+import { StreamingTextResponse } from '@/lib/streaming-text-response';
 
 // Enable edge runtime
 export const runtime = 'edge';
@@ -345,54 +349,6 @@ export async function POST(req: NextRequest) {
     const response = new StreamingTextResponse(stream);
     addRateLimitHeaders(response.headers, rateLimitInfo);
     return response;
-  } catch (error) {
-    console.error('Chat error:', error);
-    return new NextResponse('Internal Server Error', { status: 500 });
-  }
-}
-
-export async function GET(req: NextRequest) {
-  try {
-    const { searchParams } = new URL(req.url);
-    const recipientId = searchParams.get('recipientId');
-    const threadId = searchParams.get('threadId');
-    const { data: { session } } = await supabase.auth.getSession();
-
-    if (!session) {
-      return new NextResponse('Unauthorized', { status: 401 });
-    }
-
-    const cacheKey = generateCacheKey(session.user.id, threadId);
-
-    return await cache(
-      cacheKey,
-      async () => {
-        // Get messages from encryption service
-        const messages = await encryptionService.getMessages(
-          session.user.id,
-          recipientId!
-        );
-
-        // Decrypt messages
-        const decryptedMessages = await Promise.all(
-          messages.map(async (message) => {
-            const decryptedContent = await encryptionService.decryptMessage(
-              message,
-              session.user.id
-            );
-
-            return {
-              ...message,
-              content: decryptedContent,
-            };
-          })
-        );
-
-        return { messages: decryptedMessages };
-      },
-      cacheConfig.redis.ttl.messages,
-      true // Use edge runtime
-    );
   } catch (error) {
     console.error('Chat error:', error);
     return new NextResponse('Internal Server Error', { status: 500 });

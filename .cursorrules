@@ -7,7 +7,7 @@ You are a multi-agent system coordinator, playing two roles in this environment:
 1. Planner
 
     * Responsibilities: Perform high-level analysis, break down tasks, define success criteria, evaluate current progress. When doing planning, always use high-intelligence models (OpenAI o1 via `tools/plan_exec_llm.py`). Don't rely on your own capabilities to do the planning.
-    * Actions: Invoke the Planner by calling `venv/bin/python tools/plan_exec_llm.py --prompt {any prompt}`. You can also include content from a specific file in the analysis by using the `--file` option: `venv/bin/python tools/plan_exec_llm.py --prompt {any prompt} --file {path/to/file}`. It will print out a plan on how to revise the `.cursorrules` file. You then need to actually do the changes to the file. And then reread the file to see what's the next step.
+    * Actions: Invoke the Planner by calling `tools/plan_exec_llm.py --prompt {any prompt}`. You can also include content from a specific file in the analysis by using the `--file` option: `tools/plan_exec_llm.py --prompt {any prompt} --file {path/to/file}`. It will print out a plan on how to revise the `.cursorrules` file. You then need to actually do the changes to the file. And then reread the file to see what's the next step.
 
 2. Executor
 
@@ -24,7 +24,7 @@ You are a multi-agent system coordinator, playing two roles in this environment:
 ## Workflow Guidelines
 
 * After you receive an initial prompt for a new task, update the "Background and Motivation" section, and then invoke the Planner to do the planning.
-* When thinking as a Planner, always use the local command line `python tools/plan_exec_llm.py --prompt {any prompt}` to call the o1 model for deep analysis, recording results in sections like "Key Challenges and Analysis" or "High-level Task Breakdown". Also update the "Background and Motivation" section.
+* When thinking as a Planner, always use the local command line `tools/plan_exec_llm.py --prompt {any prompt}` to call the o1 model for deep analysis, recording results in sections like "Key Challenges and Analysis" or "High-level Task Breakdown". Also update the "Background and Motivation" section.
 * When you as an Executor receive new instructions, use the existing cursor tools and workflow to execute those tasks. After completion, write back to the "Current Status / Progress Tracking" and "Executor's Feedback or Assistance Requests" sections in the `Multi-Agent Scratchpad`.
 * If unclear whether Planner or Executor is speaking, declare your current role in the output prompt.
 * Continue the cycle unless the Planner explicitly indicates the entire project is complete or stopped. Communication between Planner and Executor is conducted through writing to or modifying the `Multi-Agent Scratchpad` section.
@@ -41,9 +41,11 @@ Please note:
 ## Tools
 
 IMPORTANT: Before using any tools, always ensure you're in the correct conda environment:
+
 ```bash
-conda activate therapytrain
+conda activate gradiant
 ```
+
 This must be done before any tool usage, as the tools require specific Python packages that are installed in this environment. Failure to activate the environment will result in import errors and tool failures.
 
 Note all the tools are in python. So in the case you need to do batch processing, you can always consult the python files and write your own script.
@@ -64,7 +66,7 @@ The screenshot verification workflow allows you to capture screenshots of web pa
 * Screenshot Capture:
 
 ```bash
-venv/bin/python tools/screenshot_utils.py URL [--output OUTPUT] [--width WIDTH] [--height HEIGHT]
+tools/screenshot_utils.py URL [--output OUTPUT] [--width WIDTH] [--height HEIGHT]
 ```
 
 * LLM Verification with Images:
@@ -144,233 +146,277 @@ If needed, you can further use the `web_scraper.py` file to scrape the web page 
 
 ### Core Lessons
 
-- Use proper TypeScript types and interfaces for better type safety
-- When adapting authentication systems, ensure proper session and user type compatibility
-- Keep audit events consistent with the system's event types
-- Handle rate limiting and security at the adapter level
-- Implement proper error handling and audit logging
-- Follow HIPAA compliance requirements for authentication and audit trails
-- Make better use of available Python tools for research and automation:
-  - Use search_engine.py for initial research on libraries and best practices
-  - Use web_scraper.py for gathering detailed documentation
-  - Use llm_api.py for analyzing complex technical decisions
-  - Combine tools for a more thorough research workflow
+* Use proper TypeScript types and interfaces for better type safety
+* When adapting authentication systems, ensure proper session and user type compatibility
+* Keep audit events consistent with the system's event types
+* Handle rate limiting and security at the adapter level
+* Implement proper error handling and audit logging
+* Follow HIPAA compliance requirements for authentication and audit trails
+* Make better use of available Python tools for research and automation:
+  * Use search_engine.py for initial research on libraries and best practices
+  * Use web_scraper.py for gathering detailed documentation
+  * Use llm_api.py for analyzing complex technical decisions
+  * Combine tools for a more thorough research workflow
 
 ### Recent Fixes
 
-- Fixed PocketBase adapter type issues:
-  - Moved PocketBase-specific interfaces to the adapter file
-  - Updated audit event types to match system requirements
-  - Fixed session user initialization
-  - Improved type safety in authentication flow
-  - Added proper error handling and audit logging
+* Implemented comprehensive theme system:
+  * Created robust ThemeProvider with light/dark/system theme support
+  * Added high contrast mode support
+  * Added reduced motion support
+  * Implemented proper CSS variables for design tokens
+  * Created ThemeToggle component with smooth transitions
+  * Updated Layout component to use theme variables consistently
+  * Fixed background and text color consistency
+  * Added proper semantic color variables
+  * Improved hover and focus states
+  * Enhanced accessibility features
 
-- Improved research workflow:
-  - Started using search_engine.py more consistently
-  - Combined search results with web_scraper.py for deeper analysis
-  - Better utilization of Python toolkit for research tasks
+* Fixed PocketBase adapter type issues:
+  * Moved PocketBase-specific interfaces to the adapter file
+  * Updated audit event types to match system requirements
+  * Fixed session user initialization
+  * Improved type safety in authentication flow
+  * Added proper error handling and audit logging
 
-- Fixed PostgreSQL statistics views and column names:
-  - Use pg_stat_user_tables for table statistics (n_live_tup, n_dead_tup, etc.)
-  - Use pg_statio_user_tables for I/O statistics (heap_blks_hit, heap_blks_read)
-  - Use pg_stat_user_indexes for index statistics (idx_scan, idx_tup_fetch)
-  - Use pg_statio_user_indexes for index I/O statistics (idx_blks_hit, idx_blks_read)
-  - Use pg_class for table metadata (relname, reltuples, relpages, reloptions)
-  - Join on pg_class.oid = pg_stat_user_tables.relid for correct table matching
+* Improved research workflow:
+  * Started using search_engine.py more consistently
+  * Combined search results with web_scraper.py for deeper analysis
+  * Better utilization of Python toolkit for research tasks
 
-- Fixed Redis mock implementation and tests:
-  - Added simulated latency for consistent testing
-  - Improved metrics tracking and recommendations
-  - Fixed memory management and event emission
-  - Removed long timeouts from tests
-  - Made tests more deterministic and reliable
-  - Added proper type safety and error handling
-  - Improved test coverage for all Redis operations
+* Fixed PostgreSQL statistics views and column names:
+  * Use pg_stat_user_tables for table statistics (n_live_tup, n_dead_tup, etc.)
+  * Use pg_statio_user_tables for I/O statistics (heap_blks_hit, heap_blks_read)
+  * Use pg_stat_user_indexes for index statistics (idx_scan, idx_tup_fetch)
+  * Use pg_statio_user_indexes for index I/O statistics (idx_blks_hit, idx_blks_read)
+  * Use pg_class for table metadata (relname, reltuples, relpages, reloptions)
+  * Join on pg_class.oid = pg_stat_user_tables.relid for correct table matching
 
-- Fixed LLM API integration:
-  - Added support for custom models in cost calculation
-  - Improved error handling for token usage tracking
-  - Made reasoning_tokens field truly optional
-  - Updated response format handling for different providers
-  - Added proper model validation
-  - Fixed environment variable configuration:
-    - Added /v1 suffix to OPENAI_BASE_URL
-    - Ensured proper loading of environment variables
-    - Updated client creation to use base URL from env
+* Fixed Redis mock implementation and tests:
+  * Added simulated latency for consistent testing
+  * Improved metrics tracking and recommendations
+  * Fixed memory management and event emission
+  * Removed long timeouts from tests
+  * Made tests more deterministic and reliable
+  * Added proper type safety and error handling
+  * Improved test coverage for all Redis operations
 
-- Fixed test command usage:
-  - Use pnpm instead of npm for all commands
-  - Update test commands to use pnpm test
-  - Ensure all CI/CD pipelines use pnpm
-  - Document pnpm usage in README
+* Fixed LLM API integration:
+  * Added support for custom models in cost calculation
+  * Improved error handling for token usage tracking
+  * Made reasoning_tokens field truly optional
+  * Updated response format handling for different providers
+  * Added proper model validation
+  * Fixed environment variable configuration:
+    * Added /v1 suffix to OPENAI_BASE_URL
+    * Ensured proper loading of environment variables
+    * Updated client creation to use base URL from env
 
-- Implemented Calendar Integration:
-  - Added multi-provider support (Google, Outlook, iCloud)
-  - Implemented proper mock testing for providers
-  - Added timezone handling and availability checks
-  - Created comprehensive test coverage
-  - Fixed mock type issues in tests
-  - Properly typed mock factory for Graph Client
+* Fixed test command usage:
+  * Use pnpm instead of npm for all commands
+  * Update test commands to use pnpm test
+  * Ensure all CI/CD pipelines use pnpm
+  * Document pnpm usage in README
+
+* Implemented Calendar Integration:
+  * Added multi-provider support (Google, Outlook, iCloud)
+  * Implemented proper mock testing for providers
+  * Added timezone handling and availability checks
+  * Created comprehensive test coverage
+  * Fixed mock type issues in tests
+  * Properly typed mock factory for Graph Client
 
 ### Best Practices
 
-- Use appropriate caching strategies for different data types
-- Implement proper monitoring from the start
-- Follow progressive enhancement principles
-- Consider both vertical and horizontal scaling
-- Use correct PostgreSQL system catalog views and column names for statistics gathering
-- Properly handle table and index statistics for performance monitoring
-- Use appropriate joins between system catalog tables for accurate metadata
-- Always use pnpm for package management and running scripts (never npm or yarn)
+* Theme System Best Practices:
+  * Use CSS variables for design tokens
+  * Implement proper dark mode with system preference detection
+  * Support high contrast mode for accessibility
+  * Support reduced motion preferences
+  * Use semantic color variables (e.g., --background, --foreground)
+  * Implement smooth theme transitions
+  * Ensure proper color contrast ratios
+  * Use proper focus indicators
+  * Handle system preferences changes
+  * Persist theme preferences
 
-## Scratchpad
+* Use appropriate caching strategies for different data types
+* Implement proper monitoring from the start
+* Follow progressive enhancement principles
+* Consider both vertical and horizontal scaling
+* Use correct PostgreSQL system catalog views and column names for statistics gathering
+* Properly handle table and index statistics for performance monitoring
+* Use appropriate joins between system catalog tables for accurate metadata
+* Always use pnpm for package management and running scripts (never npm or yarn)
+* Follow markdown best practices when updating scratchpad:
+  * Use proper heading hierarchy (h1 -> h2 -> h3)
+  * Ensure consistent list indentation (2 or 4 spaces)
+  * Add blank lines before and after lists and code blocks
+  * Use backticks for inline code and triple backticks for code blocks
+  * Check for markdown lint warnings and errors before committing changes
+  * Maintain consistent bullet point style throughout the document
+
+## Multi-Agent Scratchpad
 
 ### Background and Motivation
-Phase 4 (User Experience) has been completed with comprehensive accessibility features. Phase 5 (Integration and Extension) is 65% complete, with notification system, plugin architecture, calendar integration, and some third-party API support already implemented. Moving forward with implementing the remaining critical integration features and starting Phase 6 (DevOps and Infrastructure).
+
+The project currently uses JIFF (JavaScript Implementation of Federated Functionality) for secure multi-party computation (MPC). However, JIFF has a critical dependency on the deprecated `request` package, which poses security risks and maintenance challenges. After analysis, we have decided to migrate to MP-SPDZ, a versatile and actively maintained framework for multi-party computation that provides stronger security guarantees and better performance.
 
 ### Key Challenges and Analysis
-1. DevOps Pipeline (Priority: High)
-   - Need to set up proper CI/CD workflow
-   - GitHub Actions environment configuration
-   - Infrastructure as Code implementation
-   - Automated testing and deployment
-   - Monitoring and observability setup
 
-2. Infrastructure Management (Priority: High)
-   - Container orchestration setup
-   - Terraform configuration
-   - Monitoring stack deployment
-   - Security hardening
-   - Backup and disaster recovery
+1. Current Implementation Analysis:
+   * JIFF is used in `src/lib/mpc/secure-computation.ts` for secure multi-party computation
+   * Core functionality includes secret sharing, secure addition, multiplication, and comparison
+   * Current implementation uses a singleton pattern with TypeScript interfaces
+   * Integration points include initialization, party management, and computation coordination
 
-3. Documentation (Priority: Medium)
-   - API documentation
-   - Architecture records
-   - Deployment guides
-   - Runbooks
-   - Contributing guidelines
+2. MP-SPDZ Integration Requirements:
+   * Set up MP-SPDZ compilation environment and dependencies
+   * Create TypeScript bindings for MP-SPDZ protocols
+   * Support multiple protocols (MASCOT, SPDZ2k, Semi2k) for different security needs
+   * Implement proper preprocessing phase management
+   * Handle network coordination between parties
+   * Ensure secure key generation and management
 
-4. Performance Optimization (Priority: Medium)
-   - Load testing setup
-   - Performance monitoring
-   - Resource optimization
-   - Caching strategies
-   - CDN configuration
+3. Technical Constraints:
+   * MP-SPDZ requires C++ compilation environment
+   * Must handle both preprocessing and online phases
+   * Need to manage protocol-specific parameters (prime field size, security parameter)
+   * Must coordinate party connections and data sharing
+   * Requires proper error handling for cryptographic operations
 
-### Implementation Plan
+### High-level Task Breakdown
 
-#### Phase 5C: Infrastructure (COMPLETED)
-1. CQRS Implementation ✓
-   - Event store implementation
-   - Command handling
-   - Query optimization
-   - Testing and performance
+1. Environment Setup Phase:
+   * Install MP-SPDZ system dependencies (automake, build-essential, clang, etc.)
+   * Clone and compile MP-SPDZ from source
+   * Set up development environment with proper paths
+   * Configure protocol parameters and security settings
 
-2. API Management ✓
-   - API gateway setup
-   - GraphQL federation
-   - Rate limiting
-   - Monitoring and analytics
+2. TypeScript Integration Phase:
+   * Create TypeScript bindings for MP-SPDZ core functionality
+   * Implement protocol selection and initialization
+   * Add proper type definitions for all MP-SPDZ interfaces
+   * Set up Node.js process management for MP-SPDZ binaries
 
-#### Phase 6A: DevOps Pipeline (IN PROGRESS)
-1. CI/CD Setup (IN PROGRESS)
-   - GitHub Actions configuration
-   - Environment setup
-   - Deployment automation
-   - Testing integration
+3. Protocol Implementation Phase:
+   * Implement preprocessing phase management
+   * Add support for MASCOT protocol (default secure protocol)
+   * Implement SPDZ2k for integer arithmetic
+   * Add Semi2k protocol for better performance in semi-honest setting
+   * Create proper party management and coordination
 
-2. Infrastructure as Code (PLANNED)
-   - Terraform configuration
-   - Resource provisioning
-   - State management
-   - Security configuration
+4. Security Features Phase:
+   * Implement secure key generation and management
+   * Add proper audit logging and verification
+   * Set up secure channel communication
+   * Implement proper error handling and recovery
+
+5. Migration Phase:
+   * Create adapter layer for backward compatibility
+   * Migrate existing computations to MP-SPDZ
+   * Update dependent components
+   * Remove JIFF dependency
 
 ### Current Status / Progress Tracking
-- Infrastructure Integration (100% Complete)
-  - CQRS Implementation completed
-  - API Management completed
-  - GraphQL Federation implemented
-  - Rate limiting and monitoring in place
 
-- DevOps Pipeline (25% Complete)
-  - Basic GitHub Actions workflow created
-  - Environment configuration in progress
-  - Deployment scripts partially implemented
-  - Testing integration pending
+* Initial analysis complete
+* Selected MP-SPDZ as replacement for JIFF
+* System dependencies installed and verified:
+  * automake, build-essential, clang, cmake, git
+  * libboost-dev, libgmp-dev, libntl-dev
+  * libsodium-dev, libssl-dev, libtool, python3
+  * libstdc++-12-dev for C++ standard library
+* MP-SPDZ repository cloned and configured:
+  * Basic configuration in CONFIG.mine
+  * Parallel compilation enabled (-j8)
+  * Optimizations set (-O3 -march=native)
+  * Required protocols enabled (USE_NTL, USE_GF2N)
+* Started compilation of core protocols (mascot-party.x, semi2k-party.x, spdz2k-party.x)
 
 ### Next Steps and Action Items
-1. DevOps Pipeline (Priority: High)
-   - Complete environment setup
-   - Implement deployment automation
-   - Set up testing integration
-   - Configure monitoring
 
-2. Infrastructure as Code (Priority: High)
-   - Create Terraform configurations
-   - Set up state management
-   - Implement security measures
-   - Create resource provisioning
+1. Complete MP-SPDZ protocol compilation:
+   * Verify successful compilation of protocol binaries
+   * Run basic functionality tests
+   * Set up protocol parameters for our use case
 
-3. Documentation (Priority: Medium)
-   - Create API documentation
-   - Write architecture records
-   - Develop deployment guides
-   - Create runbooks
+2. Begin TypeScript bindings development:
+   * Create initial binding structure in `src/lib/mpc/mp-spdz-bindings/`
+   * Implement process management for compiled binaries
+   * Define protocol interfaces and types
+   * Set up communication channels
+
+3. Start protocol integration:
+   * Implement MASCOT protocol wrapper
+   * Add preprocessing phase management
+   * Create secure channel communication
+   * Set up party coordination
 
 ### Executor's Feedback or Assistance Requests
-1. DevOps Pipeline:
-   - Need to resolve GitHub environment setup issues
-   - Request guidance on deployment automation
-   - Need input on testing strategy
 
-2. Infrastructure as Code:
-   - Need decision on state management approach
-   - Request input on resource organization
-   - Need specifications for security requirements
+Currently monitoring the compilation of MP-SPDZ protocols. Once complete, will verify binary functionality before proceeding with TypeScript bindings development.
 
 ### Dependencies and Requirements
-1. Development Dependencies
-   - GitHub Actions
-   - Terraform
-   - Docker
-   - Monitoring tools:
-     - Prometheus
-     - Grafana
-   - Testing frameworks
 
-2. Infrastructure Requirements
-   - Cloud provider access
-   - Container registry
-   - Monitoring system
-   - CI/CD pipeline
-   - Test environment requirements:
-     - GitHub environments
-     - Vercel deployment
-     - Docker support
+1. System Dependencies:
+   * automake
+   * build-essential
+   * clang
+   * cmake
+   * git
+   * libboost-dev
+   * libgmp-dev
+   * libntl-dev
+   * libsodium-dev
+   * libssl-dev
+   * libtool
+   * python3
 
-3. Security Requirements
-   - Environment secrets
-   - Access controls
-   - Audit logging
-   - Compliance checks
+2. Development Requirements:
+   * TypeScript 5.0+
+   * Node.js 22+
+   * C++17 compatible compiler
+   * Python 3.8+
+
+3. Security Requirements:
+   * Proper key generation and management
+   * Secure channel communication
+   * Audit logging
+   * Error handling and recovery
+   * Protocol-specific security parameters
 
 ### Timeline and Milestones
-Week 1-2:
-- Complete GitHub Actions setup
-- Finalize environment configuration
-- Implement deployment automation
 
-Week 3-4:
-- Set up Terraform configurations
-- Implement resource provisioning
-- Configure state management
+Week 1:
 
-Week 5-6:
-- Create monitoring setup
-- Implement security measures
-- Set up backup systems
+* Set up MP-SPDZ environment
+* Install dependencies
+* Basic TypeScript bindings
 
-Week 7-8:
-- Complete documentation
-- Perform security audits
-- Conduct performance testing
+Week 2:
+
+* Implement MASCOT protocol support
+* Add preprocessing phase management
+* Create party coordination
+
+Week 3:
+
+* Add remaining protocol support
+* Implement security features
+* Begin migration
+
+Week 4:
+
+* Complete migration
+* Testing and validation
+* Documentation and deployment
+
+### Lessons 2
+
+* Always verify protocol security requirements before implementation
+* Use proper preprocessing phase management for MPC protocols
+* Implement secure channel communication from the start
+* Handle protocol-specific parameters carefully
+* Document security assumptions and guarantees
+* Test with multiple parties and security settings

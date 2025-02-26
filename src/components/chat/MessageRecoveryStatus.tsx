@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { MessageStatus } from '../../types/chat';
 import { MessageRecoveryService } from '../../services/chat/MessageRecoveryService';
-import { useSupabase } from '../../hooks/useSupabase';
-import { useRedis } from '../../hooks/useRedis';
-import { Alert, Progress, Button, Spinner } from '../ui';
+import { useSupabase } from '@/hooks/useSupabase';
+import { useRedis } from '@/hooks/useRedis';
+import { Alert, Progress, Button, Spinner } from '@/components/ui';
 
 interface MessageRecoveryStatusProps {
   threadId: string;

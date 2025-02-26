@@ -3,12 +3,13 @@
 import type { Database } from './database.types';
 import { createClient } from '@supabase/supabase-js';
 import { AppointmentStatus } from './common';
+import type { SupabaseClient, SupabaseClientOptions } from '@supabase/supabase-js';
 
 // Re-export the generated Database type
 export type { Database };
 
 // Utility type to get a table's row type
-export type Tables<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Row'];
+export type Tables<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T];
 
 // Utility type to get a table's insert type
 export type InsertTables<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Insert'];
@@ -19,7 +20,10 @@ export type UpdateTables<T extends keyof Database['public']['Tables']> = Databas
 // Table types
 export type User = Tables<'users'>;
 export type Session = Tables<'sessions'>;
+export type SessionMessage = Tables<'session_messages'>;
+export type SessionParticipant = Tables<'session_participants'>;
 export type Message = Tables<'messages'>;
+export type Thread = Tables<'threads'>;
 export type AuditLog = Tables<'audit_logs'>;
 export type Client = Tables<'clients'>;
 export type ClientProfile = Tables<'client_profiles'>;
@@ -67,29 +71,19 @@ export type Profile = Tables<'profiles'>;
 export type Note = Tables<'notes'>;
 export type Document = Tables<'documents'>;
 
+export type DbClient = SupabaseClient<Database>;
+export type DbClientOptions = SupabaseClientOptions<'public'>;
+
 export interface SupabaseConfig {
     url: string;
     anonKey: string;
-    serviceRole?: string;
-    options?: {
-        auth?: {
-            autoRefreshToken?: boolean;
-            persistSession?: boolean;
-            detectSessionInUrl?: boolean;
-        };
-        global?: {
-            headers?: { [key: string]: string };
-            fetch?: typeof fetch;
-        };
-        realtime?: {
-            channels?: string[];
-            config?: {
-                broadcast?: {
-                    self?: boolean;
-                };
-            };
-        };
-    };
+    options?: DbClientOptions;
+}
+
+export interface AppointmentDetails extends Appointment {
+    client: Client;
+    intervention?: Intervention;
+    assessment?: Assessment;
 }
 
 export const createSupabaseClient = (config: SupabaseConfig) => {

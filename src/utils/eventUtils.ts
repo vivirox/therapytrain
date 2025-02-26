@@ -18,24 +18,49 @@ export function supportsPassiveEvents(): boolean {
 }
 // Get event listener options based on browser support
 export const getEventListenerOptions = (wantsPassive: boolean = true) => supportsPassiveEvents() ? { passive: wantsPassive } : false;
-// Utility function to add event listener with passive option
-export function addPassiveEventListener(
-    element: HTMLElement | Window | Document,
-    eventName: string,
-    handler: EventListener,
-    wantsPassive: boolean = false
-): void {
-    element.addEventListener(eventName, handler, {
-        passive: wantsPassive,
-    });
+
+interface EventOptions {
+    passive?: boolean;
+    capture?: boolean;
 }
-// Utility function to remove event listener with passive option
-export function removePassiveEventListener(
-    element: HTMLElement | Window | Document,
+
+export function addPassiveEventListener(
+    element: Window | Element,
     eventName: string,
-    handler: EventListener
+    handler: EventListenerOrEventListenerObject,
+    options: EventOptions = {}
 ): void {
-    element.removeEventListener(eventName, handler);
+    let supportsPassive = false;
+    try {
+        const opts = Object.defineProperty({}, 'passive', {
+            get: function() {
+                supportsPassive = true;
+                return true;
+            },
+        });
+        window.addEventListener('test', null as any, opts);
+    } catch (e) {
+        // Do nothing
+    }
+
+    element.addEventListener(
+        eventName,
+        handler,
+        supportsPassive ? { ...options, passive: true } : options.capture
+    );
+}
+
+export function removePassiveEventListener(
+    element: Window | Element,
+    eventName: string,
+    handler: EventListenerOrEventListenerObject,
+    options: EventOptions = {}
+): void {
+    element.removeEventListener(
+        eventName,
+        handler,
+        options.capture
+    );
 }
 
 export function preventDefault(event: Event): void {

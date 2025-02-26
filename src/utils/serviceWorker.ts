@@ -1,195 +1,127 @@
-import { serviceWorkerConfig } from '../config/serviceWorker.config';
+import { serviceWorkerConfig } from "../config/serviceWorker.config";
 
-class ServiceWorkerManager {
-    private static instance: ServiceWorkerManager;
-    private registration: ServiceWorkerRegistration | null = null;
+export class ServiceWorker {
+  private registration: ServiceWorkerRegistration | null = null;
+  private debug: boolean;
 
-    private constructor() {}
+  constructor() {
+    this.debug = serviceWorkerConfig.debug.enabled;
+  }
 
-    public static getInstance(): ServiceWorkerManager {
-        if (!ServiceWorkerManager.instance) {
-            ServiceWorkerManager.instance = new ServiceWorkerManager();
-        }
-        return ServiceWorkerManager.instance;
+  public async register(): Promise<void> {
+    if (!serviceWorkerConfig.enabled) {
+      return;
     }
 
-    /**
-     * Register the service worker
-     */
-    public async register(): Promise<void> {
-        if (!('serviceWorker' in navigator)) {
-            console.warn('Service workers are not supported');
-            return;
-        }
-
-        try {
-            this.registration = await navigator.serviceWorker.register('/service-worker.js', {
-                scope: '/',
+    try {
+      if ("serviceWorker" in navigator) {
+        if (
+          serviceWorkerConfig.registration.strategy === "registerWhenStable"
+        ) {
+          if ("serviceWorker" in navigator) {
+            window.addEventListener("load", async () => {
+              await this.registerServiceWorker();
             });
-
-            if (serviceWorkerConfig.debug.enabled) {
-                console.log('Service Worker registered successfully');
-            }
-
-            await this.setupFeatures();
-        } catch (error) {
-            console.error('Service Worker registration failed:', error);
+          }
+        } else {
+          await this.registerServiceWorker();
         }
+      }
+    } catch (error) {
+      this.logError("Failed to register service worker", error);
     }
+  }
 
-    /**
-     * Setup service worker features
-     */
-    private async setupFeatures(): Promise<void> {
-        if (!this.registration) return;
+  private async registerServiceWorker(): Promise<void> {
+    try {
+      this.registration = await navigator.serviceWorker.register("/sw.js", {
+        scope: serviceWorkerConfig.scope,
+      });
 
-        // Setup background sync
-        if (serviceWorkerConfig.backgroundSync.enabled) {
-            try {
-                await this.registration.sync.register(serviceWorkerConfig.backgroundSync.queueName);
-                if (serviceWorkerConfig.debug.enabled) {
-                    console.log('Background sync registered successfully');
-                }
-            } catch (error) {
-                console.error('Background sync registration failed:', error);
-            }
-        }
+      if (this.debug) {
+        console.log("Service Worker registered successfully");
+      }
 
-        // Setup push notifications
-        if (serviceWorkerConfig.pushNotifications.enabled) {
-            try {
-                const subscription = await this.registration.pushManager.subscribe(
-                    serviceWorkerConfig.pushNotifications.options
-                );
-                if (serviceWorkerConfig.debug.enabled) {
-                    console.log('Push notification subscription:', subscription);
-                }
-            } catch (error) {
-                console.error('Push notification subscription failed:', error);
-            }
-        }
-    }
-
-    /**
-     * Update the service worker
-     */
-    public async update(): Promise<void> {
-        if (!this.registration) return;
-
-        try {
-            await this.registration.update();
-            if (serviceWorkerConfig.debug.enabled) {
-                console.log('Service Worker updated successfully');
-            }
-        } catch (error) {
-            console.error('Service Worker update failed:', error);
-        }
-    }
-
-    /**
-     * Unregister the service worker
-     */
-    public async unregister(): Promise<void> {
-        if (!this.registration) return;
-
-        try {
-            await this.registration.unregister();
-            if (serviceWorkerConfig.debug.enabled) {
-                console.log('Service Worker unregistered successfully');
-            }
-        } catch (error) {
-            console.error('Service Worker unregistration failed:', error);
-        }
-    }
-
-    /**
-     * Check if service worker is supported
-     */
-    public isSupported(): boolean {
-        return 'serviceWorker' in navigator;
-    }
-
-    /**
-     * Get the service worker registration
-     */
-    public getRegistration(): ServiceWorkerRegistration | null {
-        return this.registration;
-    }
-
-    /**
-     * Add a request to background sync queue
-     */
-    public async addToSyncQueue(request: Request): Promise<void> {
-        if (!this.registration || !serviceWorkerConfig.backgroundSync.enabled) return;
-
-        const cache = await caches.open('sync-cache');
-        await cache.put(request.url, request);
-
-        try {
-            await this.registration.sync.register(serviceWorkerConfig.backgroundSync.queueName);
-        } catch (error) {
-            console.error('Failed to register sync:', error);
-        }
-    }
-
-    /**
-     * Subscribe to push notifications
-     */
-    public async subscribeToPushNotifications(): Promise<PushSubscription | null> {
-        if (!this.registration || !serviceWorkerConfig.pushNotifications.enabled) return null;
-
-        try {
-            const subscription = await this.registration.pushManager.subscribe(
-                serviceWorkerConfig.pushNotifications.options
-            );
-            return subscription;
-        } catch (error) {
-            console.error('Push notification subscription failed:', error);
-            return null;
-        }
-    }
-
-    /**
-     * Unsubscribe from push notifications
-     */
-    public async unsubscribeFromPushNotifications(): Promise<boolean> {
-        if (!this.registration) return false;
-
-        try {
-            const subscription = await this.registration.pushManager.getSubscription();
-            if (subscription) {
-                await subscription.unsubscribe();
-                return true;
-            }
-            return false;
-        } catch (error) {
-            console.error('Push notification unsubscribe failed:', error);
-            return false;
-        }
-    }
-
-    /**
-     * Check if push notifications are supported and enabled
-     */
-    public isPushNotificationsSupported(): boolean {
-        return (
-            'Notification' in window &&
-            'serviceWorker' in navigator &&
-            'PushManager' in window &&
-            serviceWorkerConfig.pushNotifications.enabled
+      if (
+        serviceWorkerConfig.backgroundSync.enabled &&
+        "sync" in this.registration &&
+        this.registration !== null &&
+        "sync" in this.registration
+      ) {
+        const registration = this.registration as ServiceWorkerRegistration & {
+          sync: { register(tag: string): Promise<void> };
+        };
+        await registration.sync.register(
+          serviceWorkerConfig.backgroundSync.queueName,
         );
-    }
-
-    /**
-     * Request push notification permission
-     */
-    public async requestNotificationPermission(): Promise<NotificationPermission> {
-        if (!this.isPushNotificationsSupported()) {
-            throw new Error('Push notifications are not supported');
+        if (this.debug) {
+          console.log("Background sync registered successfully");
         }
+      }
 
-        return await Notification.requestPermission();
+      if (serviceWorkerConfig.pushNotifications.enabled) {
+        await this.registerPushNotifications();
+      }
+    } catch (error) {
+      this.logError("Service Worker registration failed", error);
     }
-}
+  }
 
-export const serviceWorkerManager = ServiceWorkerManager.getInstance(); 
+  private async registerPushNotifications(): Promise<void> {
+    try {
+      const subscription = await this.registration?.pushManager.subscribe({
+        userVisibleOnly:
+          serviceWorkerConfig.pushNotifications.options.userVisibleOnly,
+        applicationServerKey: serviceWorkerConfig.pushNotifications.publicKey,
+      });
+
+      if (this.debug) {
+        console.log("Push notification subscription:", subscription);
+      }
+    } catch (error) {
+      this.logError("Push notification registration failed", error);
+    }
+  }
+
+  public async unregister(): Promise<void> {
+    try {
+      if (this.registration) {
+        await this.registration.unregister();
+        if (this.debug) {
+          console.log("Service Worker unregistered successfully");
+        }
+      }
+    } catch (error) {
+      this.logError("Service Worker unregistration failed", error);
+    }
+  }
+
+  public async addToCache(request: Request): Promise<void> {
+    try {
+      const cache = await caches.open("app-cache");
+      const response = await fetch(request.clone());
+      await cache.put(request, response);
+
+      if (
+        serviceWorkerConfig.backgroundSync.enabled &&
+        this.registration &&
+        "sync" in this.registration
+      ) {
+        const registration = this.registration as ServiceWorkerRegistration & {
+          sync: { register: (tag: string) => Promise<void> };
+        };
+        await registration.sync.register(
+          serviceWorkerConfig.backgroundSync.queueName,
+        );
+      }
+    } catch (error) {
+      this.logError("Failed to add to cache", error);
+    }
+  }
+
+  private logError(message: string, error: unknown): void {
+    if (this.debug) {
+      console.error(message, error);
+    }
+  }
+}

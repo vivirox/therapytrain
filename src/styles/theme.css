@@ -1,7 +1,3 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -137,56 +133,30 @@
 
   @media (prefers-reduced-motion: reduce) {
     * {
-      animation-duration: 0.01ms !important;
-      animation-iteration-count: 1 !important;
-      transition-duration: 0.01ms !important;
-      scroll-behavior: auto !important;
+      @apply transition-none transform-none animate-none;
     }
   }
 
   [data-reduced-motion="true"] {
     * {
-      animation-duration: 0.01ms !important;
-      animation-iteration-count: 1 !important;
-      transition-duration: 0.01ms !important;
-      scroll-behavior: auto !important;
+      @apply transition-none transform-none animate-none;
     }
   }
-}
 
-@keyframes theme-fade-in {
-  from {
-    opacity: 0;
+  * {
+    @apply border-border;
   }
-  to {
-    opacity: 1;
-  }
-}
 
-@keyframes theme-fade-out {
-  from {
-    opacity: 1;
+  body {
+    @apply bg-background text-foreground;
   }
-  to {
-    opacity: 0;
-  }
-}
 
-@keyframes theme-scale-in {
-  from {
-    transform: scale(0.95);
+  ::selection {
+    @apply bg-primary/20 text-primary-foreground;
   }
-  to {
-    transform: scale(1);
-  }
-}
 
-@keyframes theme-slide-in {
-  from {
-    transform: translateY(-10px);
-  }
-  to {
-    transform: translateY(0);
+  :focus-visible {
+    @apply outline-none dark-focus-ring;
   }
 }
 
@@ -197,127 +167,85 @@
 
   .dark-glass {
     @apply bg-background/80 backdrop-blur-sm border border-border/50;
-    [data-theme="dark"] & {
-      @apply bg-background/90 border-border/30;
-    }
+  }
+  [data-theme="dark"] .dark-glass {
+    @apply bg-background/90 border-border/30;
   }
 
   .dark-hover {
     @apply hover:bg-accent/10;
-    [data-theme="dark"] & {
-      @apply hover:bg-accent/20;
-    }
+  }
+  [data-theme="dark"] .dark-hover {
+    @apply hover:bg-accent/20;
   }
 
   .dark-focus-ring {
     @apply focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background;
-    [data-theme="dark"] & {
-      @apply focus-visible:ring-offset-1;
-    }
+  }
+  [data-theme="dark"] .dark-focus-ring {
+    @apply focus-visible:ring-offset-1;
   }
 
   .dark-shadow {
     @apply shadow-lg shadow-foreground/5;
-    [data-theme="dark"] & {
-      @apply shadow-foreground/10;
-    }
+  }
+  [data-theme="dark"] .dark-shadow {
+    @apply shadow-foreground/10;
   }
 
   .dark-gradient {
     @apply bg-gradient-to-b from-background to-accent/5;
-    [data-theme="dark"] & {
-      @apply from-background to-accent/10;
-    }
+  }
+  [data-theme="dark"] .dark-gradient {
+    @apply from-background to-accent/10;
   }
 
   .dark-border {
     @apply border border-border/50;
-    [data-theme="dark"] & {
-      @apply border-border/30;
-    }
+  }
+  [data-theme="dark"] .dark-border {
+    @apply border-border/30;
   }
 
   .dark-divide {
     @apply divide-y divide-border/50;
-    [data-theme="dark"] & {
-      @apply divide-border/30;
-    }
+  }
+  [data-theme="dark"] .dark-divide {
+    @apply divide-border/30;
   }
 
   .dark-scrollbar {
     scrollbar-color: hsl(var(--muted)) transparent;
-    &::-webkit-scrollbar {
-      @apply w-2 h-2;
-    }
-    &::-webkit-scrollbar-track {
-      @apply bg-transparent;
-    }
-    &::-webkit-scrollbar-thumb {
-      @apply bg-muted rounded-full;
-      [data-theme="dark"] & {
-        @apply bg-muted/50;
-      }
-    }
+  }
+  .dark-scrollbar::-webkit-scrollbar {
+    @apply w-2 h-2;
+  }
+  .dark-scrollbar::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+  .dark-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-muted rounded-full;
+  }
+  [data-theme="dark"] .dark-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-muted/50;
   }
 
   .theme-switch-transition {
-    @apply transition-all duration-500;
-    animation: theme-fade-in 0.5s ease-out, theme-scale-in 0.5s ease-out;
-    transform-origin: center center;
-    backface-visibility: hidden;
-    perspective: 1000px;
-    will-change: transform, opacity;
-
-    @media (prefers-reduced-motion: reduce) {
-      @apply transition-none transform-none;
-      animation: none;
-    }
-    [data-reduced-motion="true"] & {
-      @apply transition-none transform-none;
-      animation: none;
-    }
+    @apply transition-all duration-500 animate-theme-fade-in animate-theme-scale-in;
   }
 
   .theme-content-transition {
-    @apply transition-all duration-300;
-    animation: theme-fade-in 0.3s ease-out, theme-slide-in 0.3s ease-out;
-
-    @media (prefers-reduced-motion: reduce) {
-      @apply transition-none transform-none;
-      animation: none;
-    }
-    [data-reduced-motion="true"] & {
-      @apply transition-none transform-none;
-      animation: none;
-    }
-  }
-
-  .theme-bg-transition {
-    @apply transition-all duration-700;
-    background-image: radial-gradient(
-      circle at center,
-      var(--theme-transition-from) 0%,
-      var(--theme-transition-to) 100%
-    );
-    background-size: 400% 400%;
-    background-position: 100% 100%;
-
-    &.transitioning {
-      background-position: 0% 0%;
-    }
+    @apply transition-all duration-300 animate-theme-fade-in animate-theme-slide-in;
   }
 
   .theme-icon-spin {
     @apply transition-transform duration-500;
-    transform-style: preserve-3d;
-    
-    &.spin-enter {
-      transform: rotate(180deg);
-    }
-    
-    &.spin-exit {
-      transform: rotate(-180deg);
-    }
+  }
+  .theme-icon-spin.spin-enter {
+    @apply rotate-180;
+  }
+  .theme-icon-spin.spin-exit {
+    @apply -rotate-180;
   }
 
   .theme-switch-overlay {
@@ -327,158 +255,72 @@
       var(--theme-switch-to) 0%,
       var(--theme-switch-from) 100%
     );
-    
-    &.active {
-      @apply opacity-100;
-      transition: opacity 0.5s ease-out;
-
-      @media (prefers-reduced-motion: reduce) {
-        @apply transition-none;
-      }
-      [data-reduced-motion="true"] & {
-        @apply transition-none;
-      }
-    }
+  }
+  .theme-switch-overlay.active {
+    @apply opacity-100;
+    transition: opacity 0.5s ease-out;
+  }
+  .theme-switch-overlay.active.no-motion {
+    @apply transition-none;
   }
 
   .high-contrast-focus {
     @apply focus-visible:ring-2 focus-visible:ring-offset-4;
-    [data-high-contrast="true"] & {
-      @apply focus-visible:ring-foreground focus-visible:ring-offset-background;
-    }
+  }
+  [data-high-contrast="true"] .high-contrast-focus {
+    @apply focus-visible:ring-foreground focus-visible:ring-offset-background;
   }
 
   .high-contrast-border {
     @apply border border-border/50;
-    [data-high-contrast="true"] & {
-      @apply border-2 border-border;
-    }
+  }
+  [data-high-contrast="true"] .high-contrast-border {
+    @apply border-2 border-border;
   }
 
   .high-contrast-text {
-    [data-high-contrast="true"] & {
-      @apply font-medium;
-    }
+    @apply font-normal;
+  }
+  [data-high-contrast="true"] .high-contrast-text {
+    @apply font-medium;
   }
 
   .high-contrast-link {
-    [data-high-contrast="true"] & {
-      @apply underline decoration-2 underline-offset-4;
-    }
+    @apply no-underline;
+  }
+  [data-high-contrast="true"] .high-contrast-link {
+    @apply underline decoration-2 underline-offset-4;
   }
 
   .high-contrast-button {
-    [data-high-contrast="true"] & {
-      @apply border-2 border-current font-bold;
-    }
+    @apply border border-transparent;
+  }
+  [data-high-contrast="true"] .high-contrast-button {
+    @apply border-2 border-current font-bold;
   }
 
   .high-contrast-icon {
-    [data-high-contrast="true"] & {
-      @apply stroke-2;
-    }
+    @apply stroke-1;
   }
-
-  .reduced-motion {
-    @apply transition-none;
-    [data-reduced-motion="true"] & {
-      @apply transform-none animate-none;
-    }
-  }
-
-  .reduced-motion-safe {
-    @media (prefers-reduced-motion: reduce) {
-      @apply transition-none transform-none animate-none;
-    }
-    [data-reduced-motion="true"] & {
-      @apply transition-none transform-none animate-none;
-    }
+  [data-high-contrast="true"] .high-contrast-icon {
+    @apply stroke-2;
   }
 
   .focus-visible-ring {
     @apply outline-none ring-offset-background transition-[outline,box-shadow];
-    
-    &:focus-visible {
-      outline: var(--focus-ring) solid var(--focus-ring-color);
-      outline-offset: var(--focus-ring-offset);
-      @apply ring-0;
-    }
-
-    [data-high-contrast="true"] &:focus-visible {
-      @apply outline-current;
-      outline-width: var(--focus-ring);
-      outline-offset: var(--focus-ring-offset);
-    }
-
-    [data-reduced-motion="true"] &,
-    @media (prefers-reduced-motion: reduce) & {
-      @apply transition-none;
-    }
   }
-
-  .focus-visible-within {
-    @apply outline-none ring-offset-background transition-[outline,box-shadow];
-    
-    &:focus-within {
-      outline: var(--focus-ring) solid var(--focus-ring-color);
-      outline-offset: var(--focus-ring-offset);
-      @apply ring-0;
-    }
-
-    [data-high-contrast="true"] &:focus-within {
-      @apply outline-current;
-      outline-width: var(--focus-ring);
-      outline-offset: var(--focus-ring-offset);
-    }
-
-    [data-reduced-motion="true"] &,
-    @media (prefers-reduced-motion: reduce) & {
-      @apply transition-none;
-    }
+  .focus-visible-ring:focus-visible {
+    outline: var(--focus-ring) solid var(--focus-ring-color);
+    outline-offset: var(--focus-ring-offset);
+    @apply ring-0;
   }
-
-  .focus-visible-before {
-    @apply relative outline-none ring-offset-background transition-[outline,box-shadow];
-    
-    &:focus-visible::before {
-      content: '';
-      @apply absolute inset-[calc(-1*var(--focus-ring-offset))] rounded-[calc(var(--radius)+var(--focus-ring-offset))];
-      outline: var(--focus-ring) solid var(--focus-ring-color);
-      outline-offset: var(--focus-ring-offset);
-    }
-
-    [data-high-contrast="true"] &:focus-visible::before {
-      @apply outline-current;
-      outline-width: var(--focus-ring);
-      outline-offset: var(--focus-ring-offset);
-    }
-
-    [data-reduced-motion="true"] &,
-    @media (prefers-reduced-motion: reduce) & {
-      @apply transition-none;
-    }
+  [data-high-contrast="true"] .focus-visible-ring:focus-visible {
+    @apply outline-current;
+    outline-width: var(--focus-ring);
+    outline-offset: var(--focus-ring-offset);
   }
-
-  .focus-visible-after {
-    @apply relative outline-none ring-offset-background transition-[outline,box-shadow];
-    
-    &:focus-visible::after {
-      content: '';
-      @apply absolute inset-[calc(-1*var(--focus-ring-offset))] rounded-[calc(var(--radius)+var(--focus-ring-offset))];
-      outline: var(--focus-ring) solid var(--focus-ring-color);
-      outline-offset: var(--focus-ring-offset);
-    }
-
-    [data-high-contrast="true"] &:focus-visible::after {
-      @apply outline-current;
-      outline-width: var(--focus-ring);
-      outline-offset: var(--focus-ring-offset);
-    }
-
-    [data-reduced-motion="true"] &,
-    @media (prefers-reduced-motion: reduce) & {
-      @apply transition-none;
-    }
+  .focus-visible-ring.no-motion {
+    @apply transition-none;
   }
 }
 
@@ -496,27 +338,22 @@
   }
 }
 
-@layer base {
-  * {
-    @apply border-border;
-  }
-  body {
-    @apply bg-background text-foreground theme-switch-transition;
-  }
-  
-  ::selection {
-    @apply bg-primary/20 text-primary-foreground;
-  }
+@keyframes theme-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
 
-  :focus-visible {
-    @apply outline-none dark-focus-ring;
-  }
+@keyframes theme-fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
 
-  [data-theme] {
-    @apply theme-switch-transition;
-  }
+@keyframes theme-scale-in {
+  from { transform: scale(0.95); }
+  to { transform: scale(1); }
+}
 
-  [data-theme-content] {
-    @apply theme-content-transition;
-  }
+@keyframes theme-slide-in {
+  from { transform: translateY(-10px); }
+  to { transform: translateY(0); }
 } 

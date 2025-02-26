@@ -1,7 +1,13 @@
 import { withSentryConfig } from "@sentry/nextjs";
 
 /** @type {import('next').NextConfig} */
-const nextConfig = {};
+const nextConfig = {
+  // Enable analytics and speed insights
+  analyticsId: process.env.VERCEL_ANALYTICS_ID,
+  speedInsights: {
+    enabled: true,
+  },
+};
 
 export default withSentryConfig(nextConfig, {
   // For all available options, see:
