@@ -5,60 +5,47 @@ import './styles/globals.css'
 import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/react'
 import { inject } from '@vercel/analytics';
-import { ErrorBoundary } from 'react-error-boundary';
+import { ErrorBoundary, FallbackProps } from 'react-error-boundary';
 import { DevTools } from '@/components/dev/DevTools';
 import { AuthProvider } from '@/components/auth/AuthProvider';
 import { ThemeProvider } from '@/components/ui/theme-provider';
-import { BrowserRouter } from 'react-router-dom';
 import { AccessibilityProvider } from '@/contexts/accessibility-context';
 import { KeyboardNavigationProvider } from '@/contexts/keyboard-navigation';
+
+// Error fallback component
+function ErrorFallback({ error, resetErrorBoundary }: FallbackProps) {
+  return (
+    <div role="alert" className="p-4">
+      <h2 className="text-lg font-semibold text-red-600">Something went wrong:</h2>
+      <pre className="mt-2 text-sm text-red-500">{error.message}</pre>
+      <button
+        onClick={resetErrorBoundary}
+        className="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+      >
+        Try again
+      </button>
+    </div>
+  );
+}
 
 // Create root before any React component initialization
 const root = ReactDOM.createRoot(document.getElementById('root')!);
 
-// Ensure React is initialized before rendering
-const AppWithErrorBoundary: React.FC = () => {
-  useEffect(() => {
-    // Inject analytics manually
-    inject({
-      mode: process.env.NODE_ENV === 'production' ? 'production' : 'development',
-      debug: process.env.NODE_ENV === 'development',
-      beforeSend: (event: any) => {
-        // Only allow pageview and custom events
-        if (event.type === 'pageview' || event.type === 'event') {
-          return event;
-        }
-        return null;
-      },
-    });
-  }, []);
-
-  return (
-    <React.StrictMode>
-      <ErrorBoundary
-        fallback={<div>Something went wrong</div>}
-        onError={(error: unknown, errorInfo: unknown) => {
-          console.error('Error caught by boundary:', error, errorInfo);
-        }}
-      >
-        <BrowserRouter>
-          <ThemeProvider>
-            <AccessibilityProvider>
-              <KeyboardNavigationProvider>
-                <AuthProvider>
-                  <DevTools ></DevTools>
-                  <App ></App>
-                  <Analytics debug={process.env.NODE_ENV === 'development'} ></Analytics>
-                  <SpeedInsights ></SpeedInsights>
-                </AuthProvider>
-              </KeyboardNavigationProvider>
-            </AccessibilityProvider>
-          </ThemeProvider>
-        </BrowserRouter>
-      </ErrorBoundary>
-    </React.StrictMode>
-  );
-};
-
-// Render after everything is initialized
-root.render(<AppWithErrorBoundary ></AppWithErrorBoundary>);
+root.render(
+  <React.StrictMode>
+    <ErrorBoundary FallbackComponent={ErrorFallback}>
+      <ThemeProvider>
+        <AuthProvider>
+          <AccessibilityProvider>
+            <KeyboardNavigationProvider>
+              <App />
+              <Analytics />
+              <SpeedInsights />
+              {process.env.NODE_ENV === 'development' && <DevTools />}
+            </KeyboardNavigationProvider>
+          </AccessibilityProvider>
+        </AuthProvider>
+      </ThemeProvider>
+    </ErrorBoundary>
+  </React.StrictMode>
+);

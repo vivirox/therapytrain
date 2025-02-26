@@ -1,7 +1,7 @@
-import { AIAnalyticsService } from '@/aianalytics';
+import { aiAnalyticsService } from '@/aiAnalytics';
 import { Tutorial, SkillProgression, LearningAnalytics } from '@/types/education';
 
-interface AIAnalyticsService {
+interface aiAnalyticsService {
     generateAIInsights: (userId: string) => Promise<any>;
     generatePersonalizedCurriculum: (userId: string, skills: string[]) => Promise<Module[]>;
     predictLearningChallenges: (userId: string, resources: Resource[]) => Promise<any>;
@@ -61,9 +61,9 @@ interface LearningPath {
 }
 
 export class LearningPathService {
-    private aiAnalytics: AIAnalyticsService;
+    private aiAnalytics: aiAnalyticsService;
     constructor() {
-        this.aiAnalytics = new AIAnalyticsService();
+        this.aiAnalytics = new aiAnalyticsService();
     }
     async generatePersonalizedPath(userId: string, specialization: string, initialSkillLevels: Record<string, number>): Promise<LearningPath> {
         // Get AI insights for the user

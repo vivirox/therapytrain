@@ -1,30 +1,29 @@
-import { type FC, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '@/auth/authprovider';
-import { Loading } from '@/ui/loading';
+import { type FC, useEffect } from "react";
+import { useRouter } from "next/router";
+import { useAuth } from "@/context/authcontext";
+import { Loading } from "@/components/ui/loading";
 
 interface AuthGuardProps {
-    children: React.ReactNode;
-    className?: string;
+  children: React.ReactNode;
+  className?: string;
 }
 
 export const AuthGuard: FC<AuthGuardProps> = ({ children }) => {
-    const { isAuthenticated, user } = useAuth();
-    const navigate = useNavigate();
-    const location = useLocation();
+  const { user } = useAuth();
+  const router = useRouter();
 
-    useEffect(() => {
-        if (!isAuthenticated) {
-            navigate('/auth', {
-                replace: true,
-                state: { from: location }
-            });
-        }
-    }, [isAuthenticated, navigate, location]);
-
+  useEffect(() => {
     if (!user) {
-        return <Loading fullScreen message="Checking authentication..." ></Loading>;
+      router.replace({
+        pathname: '/auth',
+        query: { from: router.asPath }
+      });
     }
+  }, [user, router]);
 
-    return <>{children}</>;
+  if (!user) {
+    return <Loading>Checking authentication...</Loading>;
+  }
+
+  return <>{children}</>;
 };

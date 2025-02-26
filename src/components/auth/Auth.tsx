@@ -1,28 +1,27 @@
 import React from 'react';
 import { useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useRouter } from "next/router";
 import { useAuth } from '@/context/authcontext';
 import { Loading } from '@/components/ui/loading';
 import type { AuthProps } from '@/types';
 
 export const Auth: React.FC = () => {
   const { isAuthenticated } = useAuth();
-  const location = useLocation();
-  const navigate = useNavigate();
+  const router = useRouter();
 
   useEffect(() => {
     // If we're on the callback route and authenticated
-    if (location.pathname === '/callback' && isAuthenticated) {
-      navigate('/dashboard', { replace: true });
+    if (router.pathname === '/callback' && isAuthenticated) {
+      router.replace('/dashboard');
       return;
     }
 
     // If we're authenticated but on the auth page
-    if (location.pathname === '/auth' && isAuthenticated) {
-      navigate('/dashboard', { replace: true });
+    if (router.pathname === '/auth' && isAuthenticated) {
+      router.replace('/dashboard');
       return;
     }
-  }, [isAuthenticated, location.pathname, navigate]);
+  }, [isAuthenticated, router.pathname, router]);
 
   return <Loading fullScreen message="Processing authentication..." ></Loading>;
 };

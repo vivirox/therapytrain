@@ -63,16 +63,16 @@
     "src/**/*.js",
     "src/**/*.jsx",
     "src/**/*.mdx",
-    "*.mdx",
+  "*.mdx",
     "src/types/**/*.d.ts",
-    "src/types/custom.d.ts",
+  "src/types/custom.d.ts",
     "src/types/vitest.d.ts",
     "app/**/*.ts",
     "app/**/*.tsx",
-    "lib/**/*.ts",
+  "lib/**/*.ts",
     "lib/**/*.tsx"
   ],
-  "exclude": [
+    "exclude": [
     "node_modules",
     "build",
     "dist",

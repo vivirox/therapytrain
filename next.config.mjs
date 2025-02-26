@@ -2,10 +2,19 @@ import { withSentryConfig } from "@sentry/nextjs";
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  reactStrictMode: true,
+  transpilePackages: ['lucide-react'],
+  webpack: (config, { isServer }) => {
+    // Add ESM support
+    config.resolve.extensionAlias = {
+      '.js': ['.js', '.ts', '.tsx'],
+      '.jsx': ['.jsx', '.tsx']
+    };
+    return config;
+  },
   // Enable analytics and speed insights
-  analyticsId: process.env.VERCEL_ANALYTICS_ID,
-  speedInsights: {
-    enabled: true,
+  experimental: {
+    webVitalsAttribution: ['CLS', 'LCP'],
   },
 };
 

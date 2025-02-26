@@ -1,40 +1,13 @@
 import { Database } from '@/database.types';
 
 export interface ClientProfile {
-    id: string;
+    id?: string;
     name: string;
     email: string;
-    dateOfBirth: string;
-    gender: string;
-    primaryIssue: string;
-    secondaryIssues: string[];
-    goals: string[];
-    preferences: {
-        communicationStyle: string;
-        interventionPreferences: string[];
-        triggers: string[];
-    };
-    history: {
-        previousTherapy: boolean;
-        medications: string[];
-        traumaHistory: boolean;
-        substanceUse: boolean;
-    };
-    riskFactors: {
-        suicidalIdeation: boolean;
-        selfHarm: boolean;
-        violence: boolean;
-        substanceAbuse: boolean;
-    };
-    supportSystem: {
-        familySupport: boolean;
-        socialNetwork: boolean;
-        communityResources: string[];
-    };
-    status: 'active' | 'inactive' | 'archived';
-    createdAt: string;
-    updatedAt: string;
-    metadata?: Record<string, any>;
+    phone?: string;
+    notes?: string;
+    created_at?: string;
+    updated_at?: string;
 }
 
 export interface ClientSession {

@@ -1,178 +1,327 @@
-# Gradiant EHR Integration API Reference
+# MP-SPDZ TypeScript Bindings API Reference
 
-This documentation provides detailed information about the Gradiant EHR Integration APIs. Each section covers a specific service and its functionality.
+This document provides detailed information about the public API of our MP-SPDZ TypeScript bindings.
 
-## Core Services
+## Table of Contents
 
-### EHR Integration Service
-- [Overview](ehr-integration/overview.md)
-- [Configuration](ehr-integration/configuration.md)
-- [Connection Management](ehr-integration/connection.md)
-- [Error Handling](ehr-integration/errors.md)
-- [Events](ehr-integration/events.md)
+1. [JIFF Adapter](#jiff-adapter)
+2. [Protocol Handlers](#protocol-handlers)
+3. [Types and Interfaces](#types-and-interfaces)
+4. [Configuration](#configuration)
+5. [Error Handling](#error-handling)
 
-### FHIR Resources
-- [Patient](resources/patient.md)
-- [Practitioner](resources/practitioner.md)
-- [Organization](resources/organization.md)
-- [PractitionerRole](resources/practitioner-role.md)
+## JIFF Adapter
 
-## Advanced Services
+The JIFF adapter provides a JIFF-compatible interface for MP-SPDZ operations.
 
-### Data Synchronization
-- [Overview](data-sync/overview.md)
-- [Configuration](data-sync/configuration.md)
-- [Conflict Resolution](data-sync/conflicts.md)
-- [Events](data-sync/events.md)
+### JIFFAdapter
 
-### Webhooks
-- [Overview](webhooks/overview.md)
-- [Registration](webhooks/registration.md)
-- [Event Types](webhooks/events.md)
-- [Security](webhooks/security.md)
-- [Best Practices](webhooks/best-practices.md)
+```typescript
+class JIFFAdapter {
+  constructor(config: JIFFAdapterConfig);
+  
+  // Share Operations
+  async share(value: number | bigint): Promise<JIFFShare>;
+  async open(share: JIFFShare): Promise<bigint>;
+  
+  // Arithmetic Operations
+  async add(a: JIFFShare, b: JIFFShare): Promise<JIFFShare>;
+  async subtract(a: JIFFShare, b: JIFFShare): Promise<JIFFShare>;
+  async multiply(a: JIFFShare, b: JIFFShare): Promise<JIFFShare>;
+  
+  // Comparison Operations
+  async lessThan(a: JIFFShare, b: JIFFShare): Promise<JIFFShare>;
+  async greaterThan(a: JIFFShare, b: JIFFShare): Promise<JIFFShare>;
+  async equals(a: JIFFShare, b: JIFFShare): Promise<JIFFShare>;
+  
+  // Bitwise Operations
+  async xor(a: JIFFShare, b: JIFFShare): Promise<JIFFShare>;
+  async and(a: JIFFShare, b: JIFFShare): Promise<JIFFShare>;
+  async or(a: JIFFShare, b: JIFFShare): Promise<JIFFShare>;
+}
+```
 
-### Batch Processing
-- [Overview](batch/overview.md)
-- [Job Management](batch/jobs.md)
-- [Progress Tracking](batch/progress.md)
-- [Error Handling](batch/errors.md)
+### JIFFAdapterConfig
 
-### Rate Limiting
-- [Overview](rate-limiting/overview.md)
-- [Configuration](rate-limiting/configuration.md)
-- [Provider Limits](rate-limiting/providers.md)
-- [Best Practices](rate-limiting/best-practices.md)
+```typescript
+interface JIFFAdapterConfig {
+  partyId: number;
+  numParties: number;
+  threshold: number;
+  protocol: MPCProtocol;
+  prime?: bigint; // Optional, defaults to 2^64 - 1
+}
+```
 
-### Caching
-- [Overview](caching/overview.md)
-- [Strategies](caching/strategies.md)
-- [Configuration](caching/configuration.md)
-- [Invalidation](caching/invalidation.md)
+### JIFFShare
 
-### Performance Monitoring
-- [Overview](monitoring/overview.md)
-- [Metrics](monitoring/metrics.md)
-- [Alerts](monitoring/alerts.md)
-- [Dashboards](monitoring/dashboards.md)
+```typescript
+interface JIFFShare {
+  value: number | bigint;
+  sender: number;
+  receivers: number[];
+  threshold: number;
+  Zp: bigint;
+}
+```
 
-### Bulk Data Export
-- [Overview](bulk-export/overview.md)
-- [Configuration](bulk-export/configuration.md)
-- [Progress Tracking](bulk-export/progress.md)
-- [Output Formats](bulk-export/formats.md)
+## Protocol Handlers
 
-### Plugin System
-- [Overview](plugins/overview.md)
-- [Plugin API](plugins/api.md)
-- [Lifecycle](plugins/lifecycle.md)
-- [Security](plugins/security.md)
-- [Best Practices](plugins/best-practices.md)
+Protocol handlers implement the core MPC functionality for each supported protocol.
 
-### Plugin Marketplace
-- [Overview](marketplace/overview.md)
-- [Publishing](marketplace/publishing.md)
-- [Discovery](marketplace/discovery.md)
-- [Reviews](marketplace/reviews.md)
+### ProtocolHandler
 
-## Security & Compliance
+```typescript
+interface ProtocolHandler {
+  protocol: MPCProtocol;
+  
+  // Message Handlers
+  handleShare(message: NetworkMessage<MPCShare>): Promise<void>;
+  handleMultiplication(message: NetworkMessage<{a: MPCShare, b: MPCShare}>): Promise<MPCShare>;
+  handleComparison(message: NetworkMessage<{a: MPCShare, b: MPCShare}>): Promise<MPCShare>;
+  handlePreprocessing(message: NetworkMessage<{type: string, data: Uint8Array}>): Promise<void>;
+  handleSync(message: NetworkMessage): Promise<void>;
+  handleProof(message: NetworkMessage<ProofData>): Promise<boolean>;
+  
+  // Validation
+  validateMessage(message: NetworkMessage): boolean;
+}
+```
 
-### Authentication
-- [Overview](security/auth/overview.md)
-- [OAuth 2.0](security/auth/oauth2.md)
-- [SMART on FHIR](security/auth/smart.md)
-- [Token Management](security/auth/tokens.md)
+### Protocol-Specific Handlers
 
-### Authorization
-- [Overview](security/authz/overview.md)
-- [Roles](security/authz/roles.md)
-- [Permissions](security/authz/permissions.md)
-- [Scopes](security/authz/scopes.md)
+#### MASCOTHandler
 
-### Audit Logging
-- [Overview](security/audit/overview.md)
-- [Event Types](security/audit/events.md)
-- [HIPAA Compliance](security/audit/hipaa.md)
-- [Monitoring](security/audit/monitoring.md)
+```typescript
+class MASCOTHandler implements ProtocolHandler {
+  // Implements ProtocolHandler interface with MASCOT-specific logic
+  // Provides malicious security with MAC-based verification
+}
+```
 
-### Data Protection
-- [Overview](security/data/overview.md)
-- [Encryption](security/data/encryption.md)
-- [Key Management](security/data/keys.md)
-- [Data Retention](security/data/retention.md)
+#### SPDZ2kHandler
 
-## API Reference
+```typescript
+class SPDZ2kHandler implements ProtocolHandler {
+  // Implements ProtocolHandler interface with SPDZ2k-specific logic
+  // Optimized for k-bit integer arithmetic
+}
+```
 
-### REST API
-- [Overview](rest/overview.md)
-- [Authentication](rest/auth.md)
-- [Resources](rest/resources.md)
-- [Endpoints](rest/endpoints.md)
-- [Error Codes](rest/errors.md)
+#### Semi2kHandler
 
-### GraphQL API
-- [Overview](graphql/overview.md)
-- [Schema](graphql/schema.md)
-- [Queries](graphql/queries.md)
-- [Mutations](graphql/mutations.md)
-- [Subscriptions](graphql/subscriptions.md)
+```typescript
+class Semi2kHandler implements ProtocolHandler {
+  // Implements ProtocolHandler interface with Semi2k-specific logic
+  // Provides semi-honest security without MACs
+}
+```
 
-### WebSocket API
-- [Overview](websocket/overview.md)
-- [Events](websocket/events.md)
-- [Authentication](websocket/auth.md)
-- [Error Handling](websocket/errors.md)
+## Types and Interfaces
 
-## SDKs & Tools
+### MPCProtocol
 
-### JavaScript/TypeScript SDK
-- [Overview](sdk/js/overview.md)
-- [Installation](sdk/js/installation.md)
-- [Usage](sdk/js/usage.md)
-- [Examples](sdk/js/examples.md)
+```typescript
+enum MPCProtocol {
+  MASCOT = 'mascot',
+  SPDZ2K = 'spdz2k',
+  SEMI2K = 'semi2k'
+}
+```
 
-### CLI Tools
-- [Overview](cli/overview.md)
-- [Installation](cli/installation.md)
-- [Commands](cli/commands.md)
-- [Configuration](cli/configuration.md)
+### MPCShare
 
-## Best Practices
+```typescript
+interface MPCShare {
+  id: string;
+  partyId: number;
+  value: Uint8Array;
+  metadata: {
+    type: string;
+    bitLength: number;
+    verified: boolean;
+  };
+}
+```
 
-- [API Design](best-practices/api-design.md)
-- [Error Handling](best-practices/error-handling.md)
-- [Performance](best-practices/performance.md)
-- [Security](best-practices/security.md)
-- [Testing](best-practices/testing.md)
-- [Documentation](best-practices/documentation.md)
+### NetworkMessage
 
-## Examples
+```typescript
+interface NetworkMessage<T = any> {
+  type: ProtocolMessageType;
+  sender: number;
+  receiver?: number;
+  data: T;
+  metadata: MessageMetadata;
+}
+```
 
-- [Basic Integration](examples/basic-integration.md)
-- [Webhook Implementation](examples/webhooks.md)
-- [Plugin Development](examples/plugins.md)
-- [Batch Processing](examples/batch.md)
-- [Data Synchronization](examples/sync.md)
-- [Error Handling](examples/errors.md)
+### MessageMetadata
 
-## Support
+```typescript
+interface MessageMetadata {
+  timestamp: number;
+  sequence: number;
+  sessionId: string;
+}
+```
 
-- [FAQ](support/faq.md)
-- [Troubleshooting](support/troubleshooting.md)
-- [Known Issues](support/known-issues.md)
-- [Contact](support/contact.md)
+### ProofData
 
-## Contributing
+```typescript
+interface ProofData {
+  type: string;
+  data: Uint8Array;
+  challenge?: Uint8Array;
+  response?: Uint8Array;
+}
+```
 
-- [Guidelines](contributing/guidelines.md)
-- [Code Style](contributing/code-style.md)
-- [Testing](contributing/testing.md)
-- [Documentation](contributing/documentation.md)
-- [Pull Requests](contributing/pull-requests.md)
+## Configuration
 
-## Release Notes
+### TestConfig
 
-- [Latest Version](releases/latest.md)
-- [Version History](releases/history.md)
-- [Migration Guide](releases/migration.md)
-- [Deprecation Policy](releases/deprecation.md) 
+```typescript
+interface TestConfig {
+  protocol: MPCProtocol;
+  numParties: number;
+  basePort: number;
+  preprocessingDir: string;
+  binaryDir: string;
+}
+```
+
+## Error Handling
+
+### MPCError
+
+```typescript
+class MPCError extends Error {
+  constructor(type: MPCErrorType, message: string);
+  readonly type: MPCErrorType;
+}
+```
+
+### MPCErrorType
+
+```typescript
+enum MPCErrorType {
+  PROTOCOL_ERROR = 'protocol_error',
+  NETWORK_ERROR = 'network_error',
+  SECURITY_ERROR = 'security_error',
+  INITIALIZATION_ERROR = 'initialization_error'
+}
+```
+
+## Usage Examples
+
+### Basic Share Operations
+
+```typescript
+const adapter = new JIFFAdapter({
+  partyId: 0,
+  numParties: 3,
+  threshold: 1,
+  protocol: MPCProtocol.SEMI2K
+});
+
+// Share a value
+const share = await adapter.share(42);
+
+// Open a share
+const value = await adapter.open(share);
+```
+
+### Arithmetic Operations
+
+```typescript
+// Multiplication
+const a = await adapter.share(5);
+const b = await adapter.share(3);
+const product = await adapter.multiply(a, b);
+const result = await adapter.open(product); // 15
+
+// Addition
+const sum = await adapter.add(a, b);
+const sumResult = await adapter.open(sum); // 8
+```
+
+### Comparison Operations
+
+```typescript
+// Greater than
+const isGreater = await adapter.greaterThan(a, b);
+const result = await adapter.open(isGreater); // 1 (true)
+
+// Equality
+const areEqual = await adapter.equals(a, b);
+const equalResult = await adapter.open(areEqual); // 0 (false)
+```
+
+### Error Handling
+
+```typescript
+try {
+  const share = await adapter.share(42);
+  const result = await adapter.multiply(share, share);
+} catch (error) {
+  if (error instanceof MPCError) {
+    switch (error.type) {
+      case MPCErrorType.PROTOCOL_ERROR:
+        // Handle protocol errors
+        break;
+      case MPCErrorType.NETWORK_ERROR:
+        // Handle network errors
+        break;
+      case MPCErrorType.SECURITY_ERROR:
+        // Handle security violations
+        break;
+    }
+  }
+}
+```
+
+## Performance Considerations
+
+1. **Batch Processing**
+
+   ```typescript
+   // Process multiple values in parallel
+   const shares = await Promise.all(
+     values.map(value => adapter.share(value))
+   );
+   ```
+
+2. **Protocol Selection**
+   - Use SEMI2K for best performance in semi-honest settings
+   - Use SPDZ2K for integer-heavy computations
+   - Use MASCOT when malicious security is required
+
+3. **Memory Management**
+   - Clean up shares when no longer needed
+   - Monitor memory usage during large computations
+   - Use preprocessing data efficiently
+
+## Security Guidelines
+
+1. **Protocol Selection**
+   - Choose protocols based on security requirements
+   - Document security assumptions
+   - Use MASCOT for maximum security
+
+2. **Network Security**
+   - Use TLS for all connections
+   - Implement proper key management
+   - Validate all messages
+
+3. **Error Handling**
+   - Never ignore security-related errors
+   - Log security events appropriately
+   - Handle timeouts and failures gracefully
+
+## Further Resources
+
+- [Protocol Documentation](../protocols/README.md)
+- [JIFF Migration Guide](../migration/jiff-to-mpspdz.md)
+- [Security Analysis](../protocols/security/)
+- [Performance Benchmarks](../protocols/benchmarks/)

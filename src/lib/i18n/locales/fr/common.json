@@ -1,0 +1,25 @@
+{
+  "auth": {
+    "signIn": "Se Connecter",
+    "signUp": "S'inscrire",
+    "signOut": "Se Déconnecter",
+    "email": "Email",
+    "password": "Mot de Passe",
+    "forgotPassword": "Mot de Passe Oublié ?",
+    "noAccount": "Vous n'avez pas de compte ?",
+    "hasAccount": "Vous avez déjà un compte ?",
+    "chooseLanguage": "Choisissez Votre Langue",
+    "languageDescription": "Sélectionnez votre langue préférée pour une meilleure expérience"
+  },
+  "common": {
+    "loading": "Chargement...",
+    "error": "Erreur",
+    "success": "Succès",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "create": "Créer",
+    "submit": "Soumettre"
+  }
+} 

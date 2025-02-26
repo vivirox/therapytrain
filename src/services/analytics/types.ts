@@ -99,7 +99,7 @@ export interface UserAnalytics {
   preferences: Record<string, unknown>;
 }
 
-export interface AIAnalytics {
+export interface aiAnalytics {
   timestamp: number;
   modelId: string;
   inputTokens: number;

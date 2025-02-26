@@ -1,81 +1,57 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
-import { MdAccessTime, MdMenuBook, MdGroups, MdStar } from 'react-icons/md';
-import type { Tutorial as FullTutorial } from '@/types/education';
+import { Button } from '@/components/ui/button';
+import { Book, CheckCircle } from 'lucide-react';
 
-interface TutorialCardProps {
-    tutorial: FullTutorial;
-    progress?: boolean;
-    onClick?: () => void;
-    className?: string;
+interface Tutorial {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  duration: string;
+  level: 'Beginner' | 'Intermediate' | 'Advanced';
 }
 
-export const TutorialCard: React.FC = ({ tutorial, progress, onClick }: TutorialCardProps) => {
-    const getDifficultyColor = (difficulty: string) => {
-        switch (difficulty) {
-            case 'beginner':
-                return 'bg-green-100 text-green-800';
-            case 'intermediate':
-                return 'bg-yellow-100 text-yellow-800';
-            case 'advanced':
-                return 'bg-red-100 text-red-800';
-            default:
-                return 'bg-gray-100 text-gray-800';
-        }
-    };
+interface TutorialCardProps {
+  tutorial: Tutorial;
+  progress?: boolean;
+  onClick: () => void;
+}
 
-    const getTypeIcon = (type: string) => {
-        switch (type) {
-            case 'interactive':
-                return <MdGroups className="h-4 w-4" />;
-            case 'video':
-                return <MdMenuBook className="h-4 w-4" />;
-            case 'simulation':
-                return <MdStar className="h-4 w-4" />;
-            default:
-                return <MdMenuBook className="h-4 w-4" />;
-        }
-    };
-
-    return (
-        <Card 
-            className={`hover:shadow-lg transition-shadow cursor-pointer ${progress ? 'border-green-500' : ''}`} 
+export function TutorialCard({ tutorial, progress, onClick }: TutorialCardProps) {
+  return (
+    <Card className="overflow-hidden">
+      <CardHeader>
+        <CardTitle className="flex items-center justify-between">
+          <span className="flex items-center gap-2">
+            <Book className="h-5 w-5" />
+            {tutorial.title}
+          </span>
+          {progress && <CheckCircle className="h-5 w-5 text-green-500" />}
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          <p className="text-sm text-muted-foreground">{tutorial.description}</p>
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-muted-foreground">{tutorial.duration}</span>
+            <span className={`px-2 py-1 rounded-full text-xs ${
+              tutorial.level === 'Beginner' ? 'bg-green-100 text-green-700' :
+              tutorial.level === 'Intermediate' ? 'bg-yellow-100 text-yellow-700' :
+              'bg-red-100 text-red-700'
+            }`}>
+              {tutorial.level}
+            </span>
+          </div>
+          <Button
+            variant="outline"
+            className="w-full"
             onClick={onClick}
-        >
-            <CardHeader className="pb-2">
-                <div className="flex justify-between items-start">
-                    <CardTitle className="text-lg font-semibold">{tutorial.title}</CardTitle>
-                    {getTypeIcon(tutorial.type)}
-                </div>
-            </CardHeader>
-            <CardContent>
-                <p className="text-sm text-gray-600 mb-4">{tutorial.description}</p>
-                
-                <div className="flex items-center space-x-2 mb-3">
-                    <MdAccessTime className="h-4 w-4 text-gray-500" />
-                    <span className="text-sm text-gray-600">{tutorial.estimatedDuration} min</span>
-                    <Badge className={getDifficultyColor(tutorial.difficulty)}>
-                        {tutorial.difficulty}
-                    </Badge>
-                </div>
-
-                <div className="flex flex-wrap gap-2 mb-4">
-                    {tutorial.tags.map((tag: any) => (
-                        <Badge key={tag} variant="secondary" className="text-xs">
-                            {tag}
-                        </Badge>
-                    ))}
-                </div>
-
-                {progress && (
-                    <div className="mt-4">
-                        <Progress value={100} className="h-2" />
-                        <p className="text-xs text-green-600 mt-1">Completed</p>
-                    </div>
-                )}
-            </CardContent>
-        </Card>
-    );
-};
+          >
+            {progress ? 'Continue Tutorial' : 'Start Tutorial'}
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+} 

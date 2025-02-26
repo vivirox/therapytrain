@@ -36,7 +36,7 @@ export type {
 // Service types
 export type {
     ApiService,
-    AIAnalyticsService,
+    aiAnalyticsService,
     DataService,
     ServiceConfig,
     ServiceStatus,

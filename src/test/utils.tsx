@@ -1,19 +1,41 @@
 import React from 'react';
-import { render as rtlRender } from '@testing-library/react';
-import { BrowserRouter } from 'react-router-dom';
+import { render } from '@testing-library/react';
+import { ThemeProvider } from '@/components/ui/theme-provider';
+import { AuthProvider } from '@/components/auth/AuthProvider';
+import { AccessibilityProvider } from '@/contexts/accessibility-context';
+import { KeyboardNavigationProvider } from '@/contexts/keyboard-navigation';
 
-function render(ui: React.ReactElement, { route = '/' }: any = {}) {
-  window.history.pushState({}, 'Test page', route);
+// Mock next/router
+jest.mock('next/router', () => ({
+  useRouter: () => ({
+    pathname: '/',
+    query: {},
+    asPath: '/',
+    push: jest.fn(),
+    replace: jest.fn(),
+    back: jest.fn(),
+  }),
+}));
 
-  return rtlRender(
-    <BrowserRouter>
-      {ui}
-    </BrowserRouter>
+const AllTheProviders: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  return (
+    <ThemeProvider>
+      <AuthProvider>
+        <AccessibilityProvider>
+          <KeyboardNavigationProvider>
+            {children}
+          </KeyboardNavigationProvider>
+        </AccessibilityProvider>
+      </AuthProvider>
+    </ThemeProvider>
   );
-}
+};
+
+const customRender = (ui: React.ReactElement, options = {}) =>
+  render(ui, { wrapper: AllTheProviders, ...options });
 
 // re-export everything
 export * from '@testing-library/react';
 
 // override render method
-export { render };
+export { customRender as render };

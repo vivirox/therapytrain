@@ -7,7 +7,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { LearningPathService } from '@/services/learningpath';
-import { AIAnalyticsService } from '@/services/aianalytics';
+import { aiAnalyticsService } from '@/services/aiAnalytics';
 import { Loading } from '@/components/ui/loading';
 import type { LearningPathViewProps } from '@/types';
 
@@ -24,7 +24,7 @@ export const LearningPathView: React.FC = ({ userId, specialization, initialSkil
     const [currentNode, setCurrentNode] = useState<any>(null);
     const [error, setError] = useState<string | null>(null);
     const learningPathService = new LearningPathService();
-    const aiAnalytics = new AIAnalyticsService();
+    const aiAnalytics = new aiAnalyticsService();
     useEffect(() => {
         loadPath();
     }, [userId, specialization]);

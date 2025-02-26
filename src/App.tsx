@@ -1,65 +1,45 @@
 /** @jsxImportSource @emotion/react */
-import { type FC, ComponentType } from 'react';
-import { Suspense, lazy } from 'react';
-import { Routes, Route } from 'react-router-dom';
-import { Loading } from '@/components/ui/loading';
+import React from 'react';
+import { useRouter } from 'next/router';
 import { Layout } from '@/components/layout/Layout';
-import { MDXProvider } from '@mdx-js/react';
-import { Card } from '@/components/ui/card';
-import { ProgressBar } from '@/components/ui/progress-bar';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ThemeProvider } from '@/components/ThemeProvider';
+import { AuthGuard } from '@/components/AuthGuard';
+import { useAuth } from '@/context/authcontext';
 
-// Lazy load components
-const Index = lazy(() => import("./pages/Index"));
-const Features = lazy(() => import("./pages/Features"));
-const Benefits = lazy(() => import("./pages/Benefits"));
-const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
-const TermsOfService = lazy(() => import("./pages/TermsOfService"));
-const AdminDashboard = lazy(() => import("./pages/admin/Dashboard"));
-const Unauthorized = lazy(() => import("./pages/Unauthorized"));
-const NotFound: FC = () => <h1>404 - Page Not Found</h1>;
+// Pages
+import Home from '@/pages/Home';
+import Education from '@/pages/Education';
+import Unauthorized from '@/pages/Unauthorized';
+import ClientProfiles from '@/pages/ClientProfiles';
+import Evaluation from '@/pages/Evaluation';
 
-const components: Record<string, ComponentType<any>> = {
-  h1: (props) => <h1 className="text-4xl font-bold mb-6" {...props} />,
-  h2: (props) => <h2 className="text-2xl font-bold mb-4" {...props} />,
-  h3: (props) => <h3 className="text-xl font-bold mb-3" {...props} />,
-  p: (props) => <p className="mb-4 text-muted-foreground" {...props} />,
-  a: (props) => <a className="text-primary hover:text-primary/90 underline-offset-4 hover:underline" {...props} />,
-  ul: (props) => <ul className="list-disc pl-5 mb-4 text-muted-foreground" {...props} />,
-  ol: (props) => <ol className="list-decimal pl-5 mb-4 text-muted-foreground" {...props} />,
-  li: (props) => <li className="mb-2" {...props} />,
-  strong: (props) => <strong className="font-bold text-foreground" {...props} />,
-  Card,
-  ProgressBar,
-  Checkbox,
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} as const;
+const App: React.FC = () => {
+  const router = useRouter();
+  const { user } = useAuth();
 
-const App: FC = () => {
+  // Define routes and their components
+  const routes = {
+    '/': <Home />,
+    '/education': <Education />,
+    '/unauthorized': <Unauthorized />,
+    '/client-profiles': <ClientProfiles />,
+    '/evaluation': <Evaluation />
+  };
+
+  // Get the current route component
+  const Component = routes[router.pathname as keyof typeof routes];
+
   return (
-    <ThemeProvider defaultTheme="system" storageKey="app-theme">
-      <MDXProvider components={components}>
-        <Suspense fallback={<Loading />}>
-          <Layout>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/features" element={<Features />} />
-              <Route path="/benefits" element={<Benefits />} />
-              <Route path="/privacy" element={<PrivacyPolicy />} />
-              <Route path="/terms" element={<TermsOfService />} />
-              <Route path="/admin/*" element={<AdminDashboard />} />
-              <Route path="/unauthorized" element={<Unauthorized />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Layout>
-        </Suspense>
-      </MDXProvider>
-    </ThemeProvider>
+    <Layout>
+      {Component ? (
+        router.pathname === '/unauthorized' ? (
+          Component
+        ) : (
+          <AuthGuard>{Component}</AuthGuard>
+        )
+      ) : (
+        <div>404 - Page not found</div>
+      )}
+    </Layout>
   );
 };
 

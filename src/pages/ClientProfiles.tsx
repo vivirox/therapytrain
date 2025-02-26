@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
-import ClientProfileCard from '@/components/clientprofilecard';
-import ClientProfileDialog from '@/components/clientprofiledialog';
+import { Plus, Trash2 } from 'lucide-react';
+import { ClientProfileCard } from '@/components/client/ClientProfileCard';
+import { ClientProfileDialog } from '@/components/client/ClientProfileDialog';
 import { useToast } from '@/components/ui/use-toast';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, } from '@/components/ui/alert-dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import type { ClientProfile } from '@/types/clientprofile';
-import { supabase } from '@/integrations/supabase/client';
+import { createClient } from '@/integrations/supabase/client';
 import { ErrorBoundary } from '@/components/errorboundary';
 export default function ClientProfiles(): JSX.Element {
     const [profiles, setProfiles] = useState<ClientProfile[]>([]);
@@ -22,7 +22,7 @@ export default function ClientProfiles(): JSX.Element {
     }, []);
     const loadProfiles = async () => {
         try {
-            const { data, error } = await supabase
+            const { data, error } = await createClient
                 .from('client_profiles')
                 .select('*')
                 .order('created_at', { ascending: false });
@@ -63,7 +63,7 @@ export default function ClientProfiles(): JSX.Element {
     const handleProfileSubmit = async (data: Omit<ClientProfile, 'id' | 'created_at' | 'updated_at'>) => {
         try {
             if (editingProfile) {
-                const { data: updatedProfile, error } = await supabase
+                const { data: updatedProfile, error } = await createClient
                     .from('client_profiles')
                     .update(data)
                     .eq('id', editingProfile.id)
@@ -78,7 +78,7 @@ export default function ClientProfiles(): JSX.Element {
                 });
             }
             else {
-                const { data: newProfile, error } = await supabase
+                const { data: newProfile, error } = await createClient
                     .from('client_profiles')
                     .insert([data])
                     .select()
@@ -106,7 +106,7 @@ export default function ClientProfiles(): JSX.Element {
         if (!profileToDelete)
             return;
         try {
-            const { error } = await supabase
+            const { error } = await createClient
                 .from('client_profiles')
                 .delete()
                 .eq('id', profileToDelete.id);

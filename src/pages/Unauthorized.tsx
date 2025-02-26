@@ -1,11 +1,11 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/router';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MdLock, MdArrowBack } from 'react-icons/md';
 
 const Unauthorized: React.FC = () => {
-  const navigate = useNavigate();
+  const router = useRouter();
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-900 p-4">
@@ -24,7 +24,7 @@ const Unauthorized: React.FC = () => {
           <div className="flex justify-center">
             <Button
               variant="outline"
-              onClick={() => navigate(-1)}
+              onClick={() => router.back()}
               className="flex items-center gap-2"
             >
               <MdArrowBack className="w-4 h-4" />

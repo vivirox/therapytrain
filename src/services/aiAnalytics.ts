@@ -38,7 +38,7 @@ interface TherapeuticCompetency {
     cultural: number;
     documentation: number;
 }
-interface AIAnalytics {
+interface aiAnalytics {
     learningStyle: LearningStyle;
     cognitiveDomain: CognitiveDomain;
     emotionalIntelligence: EmotionalIntelligence;
@@ -52,9 +52,9 @@ interface AIAnalytics {
         milestones: string[];
     }>;
 }
-export class AIAnalyticsService {
+export class aiAnalyticsService {
     private static readonly AI_ENDPOINT = '/api/ai-analytics';
-    static async generateAIInsights(userId: string): Promise<AIAnalytics> {
+    static async generateAIInsights(userId: string): Promise<aiAnalytics> {
         try {
             // Fetch all necessary data
             const [learningMetrics, skillGrowth, tutorialHistory, caseStudyInteractions, peerInteractions, assessmentResults] = await Promise.all([
@@ -81,7 +81,7 @@ export class AIAnalyticsService {
             throw error;
         }
     }
-    private static async processWithAI(data: any): Promise<AIAnalytics> {
+    private static async processWithAI(data: any): Promise<aiAnalytics> {
         const response = await fetch(this.AI_ENDPOINT, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },

@@ -39,7 +39,7 @@ export * from './integration';
 // Analytics
 export * from './realtimeanalytics';
 export * from './sessionanalytics';
-export * from './aianalytics';
+export * from './aiAnalytics';
 export * from './sentimentanalysis';
 
 // Chat

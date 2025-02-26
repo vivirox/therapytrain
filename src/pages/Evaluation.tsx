@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { supabase } from '@/lib/supabase';
+import { useRouter } from 'next/router';
+import { createClient } from '@/integrations/supabase/client';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import type { ClientProfile } from '@/types/common';
+import type { ClientProfile } from '@/types/clientprofile';
 import { ProgressVisualization } from '@/components/progress/ProgressVisualization';
 import { ProgressTrackingService } from '@/services/progress/ProgressTrackingService';
 
@@ -109,8 +109,7 @@ interface ClientProfile {
 }
 
 const EvaluationPage: React.FC = () => {
-    const location = useLocation();
-    const navigate = useNavigate();
+    const router = useRouter();
     const [sessionData, setSessionData] = useState<SessionData | null>(null);
     const [client, setClient] = useState<ClientProfile | null>(null);
     const [evaluation, setEvaluation] = useState<EvaluationCriteria[]>(evaluationCriteria);
@@ -126,16 +125,16 @@ const EvaluationPage: React.FC = () => {
 
     useEffect(() => {
         const loadSessionData = async () => {
-            if (!location.state) {
-                navigate('/clients');
+            if (!router.query) {
+                router.push('/clients');
                 return;
             }
-            setSessionData(location.state as SessionData);
+            setSessionData(router.query as unknown as SessionData);
             // Fetch client data
-            const { data: clientData, error } = await supabase
+            const { data: clientData, error } = await createClient
                 .from('client_profiles')
                 .select('*')
-                .eq('id', location.state.clientId)
+                .eq('id', router.query.clientId)
                 .single();
             if (error || !clientData) {
                 console.error('Error fetching client:', error);
@@ -148,9 +147,9 @@ const EvaluationPage: React.FC = () => {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        messages: location.state.messages,
+                        messages: router.query.messages,
                         client: clientData,
-                        sessionStartTime: location.state.sessionStartTime
+                        sessionStartTime: router.query.sessionStartTime
                     })
                 });
                 if (response.ok) {
@@ -165,24 +164,24 @@ const EvaluationPage: React.FC = () => {
             setIsLoading(false);
         };
         loadSessionData();
-    }, [location.state, navigate]);
+    }, [router.query, router.push]);
 
     useEffect(() => {
         const fetchData = async () => {
             try {
                 // Fetch messages
-                const messagesResponse = await fetch(`/api/sessions/${sessionId}/messages`);
+                const messagesResponse = await fetch(`/api/sessions/${router.query.sessionId}/messages`);
                 if (!messagesResponse.ok) throw new Error('Failed to fetch messages');
                 const messagesData = await messagesResponse.json();
                 setMessages(messagesData);
 
                 // Fetch progress metrics
                 const progressService = new ProgressTrackingService();
-                const metrics = await progressService.trackProgress(clientId, sessionId);
+                const metrics = await progressService.trackProgress(router.query.clientId, router.query.sessionId);
                 setProgressMetrics(metrics);
 
                 // Fetch treatment alignment
-                const alignment = await progressService.checkTreatmentAlignment(clientId, sessionId);
+                const alignment = await progressService.checkTreatmentAlignment(router.query.clientId, router.query.sessionId);
                 setTreatmentAlignment(alignment);
             } catch (err) {
                 setError(err instanceof Error ? err : new Error('Failed to fetch data'));
@@ -192,7 +191,7 @@ const EvaluationPage: React.FC = () => {
         };
 
         fetchData();
-    }, [sessionId, clientId]);
+    }, [router.query.clientId, router.query.sessionId]);
 
     const calculateOverallScore = () => {
         let total = 0;
@@ -218,7 +217,7 @@ const EvaluationPage: React.FC = () => {
         setError(null);
 
         try {
-            const response = await fetch(`/api/sessions/${sessionId}/analyze`, {
+            const response = await fetch(`/api/sessions/${router.query.sessionId}/analyze`, {
                 method: 'POST',
             });
 
@@ -453,7 +452,7 @@ const EvaluationPage: React.FC = () => {
             </div>
           </Card>
 
-          <Button className="w-full" onClick={() => navigate('/clients')}>
+          <Button className="w-full" onClick={() => router.push('/clients')}>
             Start New Session
           </Button>
         </div>

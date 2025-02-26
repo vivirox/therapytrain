@@ -9,7 +9,7 @@ export interface ApiService {
     getStatus(): Promise<ServiceStatus>;
 }
 
-export interface AIAnalyticsService {
+export interface aiAnalyticsService {
     analyzeMessage(message: Message): Promise<{
         sentiment: number;
         topics: string[];

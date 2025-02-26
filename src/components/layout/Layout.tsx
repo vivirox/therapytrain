@@ -1,5 +1,6 @@
 import React from 'react';
-import { Link, useNavigate } from "react-router-dom";
+import Link from "next/link";
+import { useRouter } from "next/router";
 import { MdPsychology } from "react-icons/md";
 import { cn } from '@/lib/utils';
 import { ThemeToggle } from '../ThemeToggle';
@@ -10,7 +11,7 @@ interface LayoutProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 export const Layout: React.FC<LayoutProps> = ({ children, className, ...props }) => {
-  const navigate = useNavigate();
+  const navigate = useRouter();
   const { reducedMotion } = useTheme();
   const docsBaseUrl = process.env.NODE_ENV === 'production' ? '/docs' : 'http://localhost:3001';
 

@@ -2,7 +2,7 @@
 export * from '../types/services/analytics';
 export * from '../types/services/realtimeanalytics';
 export * from '../types/services/sessionanalytics';
-export * from '../types/services/aianalytics';
+export * from '../types/services/aiAnalytics';
 export * from '../types/services/sentimentanalysis';
 
 // Chat Services

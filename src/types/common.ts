@@ -34,7 +34,7 @@ export interface SkillGrowth {
   milestones: string[];
 }
 
-export interface AIAnalyticsService {
+export interface aiAnalyticsService {
   generateAIInsights: (userId: string) => Promise<any>;
   generatePersonalizedCurriculum: (userId: string, skills: string[]) => Promise<Module[]>;
   predictLearningChallenges: (userId: string, resources: Resource[]) => Promise<any>;

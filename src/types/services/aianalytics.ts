@@ -22,7 +22,7 @@ export interface ModelPerformanceMetrics {
   latencyPercentiles: Record<string, number>;
 }
 
-export interface AIAnalyticsService {
+export interface aiAnalyticsService {
   trackModelUsage(metrics: AIModelMetrics): Promise<void>;
   getModelMetrics(modelId: string, startDate: Date, endDate: Date): Promise<AIModelMetrics[]>;
   getPerformanceMetrics(modelId: string): Promise<ModelPerformanceMetrics>;
@@ -30,7 +30,7 @@ export interface AIAnalyticsService {
   getModelCosts(startDate: Date, endDate: Date): Promise<Record<string, number>>;
 }
 
-export interface AIAnalyticsConfig {
+export interface aiAnalyticsConfig {
   enableDetailedLogging: boolean;
   costTracking: boolean;
   performanceMonitoring: boolean;

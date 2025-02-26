@@ -213,7 +213,7 @@ export interface AIInsight {
   data: Record<string, unknown>;
 }
 
-export interface AIAnalyticsService {
+export interface aiAnalyticsService {
   generateAIInsights(data: unknown): Promise<unknown>;
   generatePersonalizedCurriculum(userId: string): Promise<unknown>;
   predictLearningChallenges(userId: string): Promise<unknown>;

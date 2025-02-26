@@ -1,0 +1,52 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build output
+dist/
+build/
+*.tsbuildinfo
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+debug.log
+
+# Operating System
+.DS_Store
+Thumbs.db
+
+# MP-SPDZ specific
+Player-Data/
+*.x
+*.o
+*.so
+*.a
+
+# TypeScript
+*.js
+*.js.map
+*.d.ts
+!jest.config.js
+
+# Test artifacts
+__snapshots__/
+*.snap 

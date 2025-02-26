@@ -6,7 +6,7 @@ import { Badge } from '@/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/ui/tabs';
 import { MdPublic as Globe, MdGroups as Users, MdMenuBook as BookOpen, MdMessage as MessageCircle, MdFavorite as Heart, MdCheckCircle as Check, MdWarning as AlertTriangle, MdPsychology as Brain } from 'react-icons/md';
 import { AnalyticsService } from '@/services/analytics';
-import { AIAnalyticsService } from '@/services/aianalytics';
+import { aiAnalyticsService } from '@/services/aiAnalytics';
 interface CulturalContext {
     id: string;
     name: string;
@@ -94,7 +94,7 @@ export const CulturalCompetencyTutorial: React.FC = ({ userId, caseStudyId, onCo
             return;
         const generateFeedback = async () => {
             try {
-                const adaptiveFeedback = await AIAnalyticsService.generateAdaptiveFeedback(userId, {
+                const adaptiveFeedback = await aiAnalyticsService.generateAdaptiveFeedback(userId, {
                     metrics,
                     selectedOptions,
                     currentChallenge: caseStudy.challengePoints[currentChallenge]
@@ -159,7 +159,7 @@ export const CulturalCompetencyTutorial: React.FC = ({ userId, caseStudyId, onCo
             completedAt: new Date()
         };
         try {
-            const skillAnalysis = await AIAnalyticsService.analyzeCognitiveDevelopment(userId, results);
+            const skillAnalysis = await aiAnalyticsService.analyzeCognitiveDevelopment(userId, results);
             // Track completion in analytics
             AnalyticsService.trackTutorialProgress(userId, caseStudyId, 100);
             onComplete({

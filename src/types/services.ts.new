@@ -27,7 +27,7 @@ export interface ApiService {
     };
 }
 
-export interface AIAnalyticsService {
+export interface aiAnalyticsService {
     generateAIInsights: (data: any) => Promise<any>;
     generatePersonalizedCurriculum: (userId: string) => Promise<any>;
     predictLearningChallenges: (userId: string) => Promise<any>;
