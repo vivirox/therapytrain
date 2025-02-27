@@ -6,7 +6,6 @@ import { MessageRecoveryService } from './MessageRecoveryService';
 import { logger } from '../../lib/logger';
 
 export class ChatService {
-  private static instance: ChatService;
   private clients: Map<string, ChatClient>;
   private messageHistory: Map<string, ChatMessage[]>;
   private messageNumbers: Map<string, number>; // threadId -> messageNumber
@@ -14,13 +13,16 @@ export class ChatService {
   private recoveryService: MessageRecoveryService;
   private supabase: SupabaseClient;
 
-  private constructor(supabaseClient: SupabaseClient) {
+  constructor() {
     this.clients = new Map();
     this.messageHistory = new Map();
     this.messageNumbers = new Map();
-    this.zkService = ZKService.getInstance();
-    this.recoveryService = MessageRecoveryService.getInstance(supabaseClient);
+    this.zkService = new ZKService();
+  }
+  
+  public setSupabaseClient(supabaseClient: SupabaseClient) {
     this.supabase = supabaseClient;
+    this.recoveryService = new MessageRecoveryService(supabaseClient);
   }
 
   public async sendMessage(message: ChatMessage): Promise<void> {

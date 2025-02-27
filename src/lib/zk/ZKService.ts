@@ -23,7 +23,6 @@ interface SessionKeyMetadata {
 }
 
 export class ZKService {
-  private static instance: ZKService;
   private securityAudit: SecurityAuditService;
   private supabase: SupabaseClient;
   private forwardSecrecy: ForwardSecrecyService;
@@ -43,14 +42,11 @@ export class ZKService {
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
       );
     }
-    this.forwardSecrecy = ForwardSecrecyService.getInstance();
+    this.forwardSecrecy = new ForwardSecrecyService();
   }
 
-  public static getInstance(supabaseClient?: SupabaseClient, securityAudit?: SecurityAuditService): ZKService {
-    if (!ZKService.instance) {
-      ZKService.instance = new ZKService(supabaseClient, securityAudit);
-    }
-    return ZKService.instance;
+  public setSupabaseClient(supabaseClient: SupabaseClient): void {
+    this.supabase = supabaseClient;
   }
 
   public getVersion(): string {

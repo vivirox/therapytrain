@@ -14,7 +14,6 @@ interface RatchetState {
 }
 
 export class ForwardSecrecyService {
-  private static instance: ForwardSecrecyService;
   private securityAudit: SecurityAuditService;
   private supabase: SupabaseClient;
   private ratchetStates: Map<string, RatchetState>;
@@ -36,12 +35,9 @@ export class ForwardSecrecyService {
     }
     this.ratchetStates = new Map();
   }
-
-  public static getInstance(supabaseClient?: SupabaseClient, securityAudit?: SecurityAuditService): ForwardSecrecyService {
-    if (!ForwardSecrecyService.instance) {
-      ForwardSecrecyService.instance = new ForwardSecrecyService(supabaseClient, securityAudit);
-    }
-    return ForwardSecrecyService.instance;
+  
+  public setSupabaseClient(supabaseClient: SupabaseClient): void {
+    this.supabase = supabaseClient;
   }
 
   public async initializeRatchet(
