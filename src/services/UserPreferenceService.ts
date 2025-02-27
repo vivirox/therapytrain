@@ -1,6 +1,7 @@
 import { Redis } from '@upstash/redis';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { cacheConfig } from '../config/cache.config';
+import { Database } from '@/types/database';
 
 export interface UserPreferences {
   language: string;
@@ -20,15 +21,15 @@ interface CacheOperation {
 export class UserPreferenceService {
   private static instance: UserPreferenceService;
   private redis: Redis;
-  private supabase: SupabaseClient;
+  private supabase: SupabaseClient<Database>;
   private readonly PREFERENCE_KEY_PREFIX = cacheConfig.redis.patterns.userPreferences;
 
-  private constructor(supabaseClient: SupabaseClient, redis: Redis) {
+  private constructor(supabaseClient: SupabaseClient<Database>, redis: Redis) {
     this.supabase = supabaseClient;
     this.redis = redis;
   }
 
-  public static getInstance(supabaseClient: SupabaseClient, redis: Redis): UserPreferenceService {
+  public static getInstance(supabaseClient: SupabaseClient<Database>, redis: Redis): UserPreferenceService {
     if (!UserPreferenceService.instance) {
       UserPreferenceService.instance = new UserPreferenceService(supabaseClient, redis);
     }

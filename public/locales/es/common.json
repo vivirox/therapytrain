@@ -1,0 +1,23 @@
+{
+  "preferences": {
+    "title": "Preferencias de Usuario",
+    "language": "Idioma",
+    "theme": "Tema",
+    "notifications": "Notificaciones",
+    "timezone": "Zona Horaria",
+    "dateFormat": "Formato de Fecha",
+    "timeFormat": "Formato de Hora",
+    "themes": {
+      "light": "Claro",
+      "dark": "Oscuro",
+      "system": "Sistema"
+    },
+    "timeFormats": {
+      "12h": "12 horas",
+      "24h": "24 horas"
+    },
+    "save": "Guardar Cambios",
+    "saved": "Cambios guardados exitosamente",
+    "error": "Error al guardar los cambios"
+  }
+} 

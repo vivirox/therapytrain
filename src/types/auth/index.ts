@@ -1,6 +1,7 @@
 import { User, Session } from '@supabase/supabase-js';
 import { Database } from '@/types/database';
 import { Metadata } from '@/common';
+import { SupabaseClient } from '@supabase/supabase-js';
 
 /**
  * Core authentication types for PocketBase integration
@@ -99,7 +100,13 @@ export interface AuthState {
   error: AuthError | null;
 }
 
-export interface AuthContextType extends AuthState {
+export interface SupabaseContextType {
+  supabase: SupabaseClient<Database>;
+  session: Session | null;
+  loading: boolean;
+}
+
+export interface AuthContextType extends SupabaseContextType {
   signIn: (credentials: AuthCredentials) => Promise<AuthResponse>;
   signOut: () => Promise<void>;
   signUp: (credentials: AuthCredentials) => Promise<AuthResponse>;

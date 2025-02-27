@@ -1,7 +1,10 @@
+"use client";
+
 import { type FC, createContext, useContext, type ReactNode, useEffect, useState, useMemo } from 'react';
-import { type User, type Session, type AuthChangeEvent, SupabaseClient } from '@supabase/supabase-js';
-import { Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { supabase } from '@/lib/supabase';
+import { type User, type Session, type AuthChangeEvent } from '@supabase/supabase-js';
+import { useRouter } from 'next/navigation';
+import { createClient } from '@/lib/supabase';
+import { type SupabaseContextType } from '@/types/auth';
 
 interface Permission {
     id: string;
@@ -50,14 +53,30 @@ interface AuthContextType {
     getFeatureFlag: (flag: string) => boolean;
 }
 
-const AuthContext = createContext<AuthContextType | null>(null);
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export const useAuth = () => {
+    const context = useContext(AuthContext);
+    if (!context) {
+        throw new Error('useAuth must be used within an AuthProvider');
+    }
+    return context;
+};
+
+const SupabaseContext = createContext<SupabaseContextType | undefined>(undefined);
+
+export const useSupabase = () => {
+    const context = useContext(SupabaseContext);
+    if (!context) {
+        throw new Error('useSupabase must be used within a SupabaseProvider');
+    }
+    return context;
+};
 
 interface AuthProviderProps {
     children: ReactNode;
-    className?: string;
 }
 
-// Main Auth Provider component
 export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
     const [user, setUser] = useState<User | null>(null);
     const [organizations, setOrganizations] = useState<Array<Organization>>([]);
@@ -65,14 +84,14 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
     const [featureFlags, setFeatureFlags] = useState<Record<string, boolean>>({});
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<Error | null>(null);
-    const navigate = useNavigate();
+    const router = useRouter();
+    const supabase = createClient();
 
     useEffect(() => {
-        // Set up Supabase auth state listener
         const { data: { subscription } } = supabase.auth.onAuthStateChange((event: AuthChangeEvent, session: Session | null) => {
             setUser(session?.user ?? null);
             if (event === 'SIGNED_IN') {
-                navigate('/dashboard');
+                router.push('/dashboard');
             }
         });
 
@@ -85,7 +104,7 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
         return () => {
             subscription.unsubscribe();
         };
-    }, [navigate]);
+    }, [router]);
 
     useEffect(() => {
         if (!user) {
@@ -173,7 +192,7 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
         if (error) {
             throw error;
         }
-        navigate('/auth');
+        router.push('/auth');
     };
     const register = async (email: string, password: string) => {
         const { error } = await supabase.auth.signUp({
@@ -232,17 +251,46 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
         hasPermission,
         isOrgAdmin,
         getFeatureFlag,
-    }), [user, permissions, organizations, featureFlags]);
+    }), [user, permissions, organizations, featureFlags, loading, error]);
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
-// Auth context hook
-export const useAuth = () => {
-    const context = useContext(AuthContext);
-    if (!context) {
-        throw new Error('useAuth must be used within an AuthProvider');
-    }
-    return context;
+interface SupabaseProviderProps {
+    children: ReactNode;
+}
+
+export const SupabaseProvider: FC<SupabaseProviderProps> = ({ children }) => {
+    const [session, setSession] = useState<Session | null>(null);
+    const [loading, setLoading] = useState<boolean>(true);
+    const supabase = createClient();
+
+    useEffect(() => {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: AuthChangeEvent, session: Session | null) => {
+            setSession(session);
+        });
+
+        // Initial session check
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            setSession(session);
+            setLoading(false);
+        });
+
+        return () => {
+            subscription.unsubscribe();
+        };
+    }, []);
+
+    const value = useMemo(() => ({
+        supabase,
+        session,
+        loading
+    }), [session, loading]);
+
+    return (
+        <SupabaseContext.Provider value={value}>
+            {children}
+        </SupabaseContext.Provider>
+    );
 };
 
 // Protected route component with optional permission check
@@ -254,16 +302,16 @@ interface ProtectedRouteProps {
 }
 
 export const ProtectedRoute: FC<ProtectedRouteProps> = ({ children, requiredPermission, requireOrgAdmin }) => {
-    const location = useLocation();
+    const router = useRouter();
     const { isAuthenticated, hasPermission, isOrgAdmin: checkIsOrgAdmin } = useAuth();
     if (!isAuthenticated) {
-        return <Navigate to="/auth" state={{ from: location }} replace></Navigate>;
+        router.push('/auth');
     }
     if (requiredPermission && !hasPermission(requiredPermission)) {
-        return <Navigate to="/unauthorized" replace></Navigate>;
+        router.push('/unauthorized');
     }
     if (requireOrgAdmin && !checkIsOrgAdmin()) {
-        return <Navigate to="/unauthorized" replace></Navigate>;
+        router.push('/unauthorized');
     }
     return <>{children}</>;
 };

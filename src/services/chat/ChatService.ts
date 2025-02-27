@@ -1,7 +1,7 @@
 import { SupabaseClient } from '@supabase/supabase-js';
 import { WebSocket } from 'ws';
 import { ChatMessage, MessageStatus, ChatClient } from '../../types/chat';
-import { ZKService } from '../zk/ZKService';
+import { ZKService } from '@/lib/zk/ZKService';
 import { MessageRecoveryService } from './MessageRecoveryService';
 import { logger } from '../../lib/logger';
 

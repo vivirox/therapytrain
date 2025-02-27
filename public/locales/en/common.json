@@ -1,0 +1,23 @@
+{
+  "preferences": {
+    "title": "User Preferences",
+    "language": "Language",
+    "theme": "Theme",
+    "notifications": "Notifications",
+    "timezone": "Timezone",
+    "dateFormat": "Date Format",
+    "timeFormat": "Time Format",
+    "themes": {
+      "light": "Light",
+      "dark": "Dark",
+      "system": "System"
+    },
+    "timeFormats": {
+      "12h": "12-hour",
+      "24h": "24-hour"
+    },
+    "save": "Save Changes",
+    "saved": "Changes saved successfully",
+    "error": "Failed to save changes"
+  }
+} 

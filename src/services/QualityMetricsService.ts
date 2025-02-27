@@ -21,10 +21,10 @@ import { EthicsService } from './ethics/EthicsService';
 import { SafetyService } from './safety/SafetyService';
 import { DocumentationService } from './documentation/DocumentationService';
 import { PrivacyService } from './privacy/PrivacyService';
-import { AssessmentService } from './assessment/AssessmentService';
-import { AlignmentService } from './alignment/AlignmentService';
-import { RiskAssessmentService } from './risk/RiskAssessmentService';
-import { InteractionAnalysisService } from './interaction/InteractionAnalysisService';
+import { AssessmentService } from '@/services/assessment/AssessmentService';
+import { AlignmentService } from '@/services/alignment/AlignmentService';
+import { RiskAssessmentService } from '@/services/risk/RiskAssessmentService';
+import { InteractionAnalysisService } from '@/services/interaction/InteractionAnalysisService';
 import { ProgressTrackingService } from './progress/ProgressTrackingService';
 
 export class QualityMetricsService extends EventEmitter implements QualityMetricsManager {

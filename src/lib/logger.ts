@@ -166,4 +166,6 @@ export class Logger {
       averageResponseTime: newAverage,
     });
   }
-} 
+}
+
+export const logger = Logger.getInstance(); 

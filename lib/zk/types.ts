@@ -62,4 +62,32 @@ export interface UserKeys {
   public_key: string;
   created_at: string;
   updated_at: string;
+}
+
+export interface SecureMessage {
+  id: string;
+  encryptedContent: string;
+  iv: string;
+  proof: ZKProof;
+  metadata: MessageMetadata;
+}
+
+export interface ZKProof {
+  signature: string;
+  publicKey: string;
+  timestamp: number;
+}
+
+export interface ValidationResult {
+  isValid: boolean;
+  error?: string;
+}
+
+export interface MessageMetadata {
+  senderId: string;
+  recipientId: string;
+  threadId: string;
+  timestamp: number;
+  type: 'text' | 'file' | 'image';
+  status: 'sent' | 'delivered' | 'read';
 } 

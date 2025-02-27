@@ -53,7 +53,7 @@ yarn add @gradiant/mp-spdz-bindings
 pnpm add @gradiant/mp-spdz-bindings
 ```
 
-2. **Build MP-SPDZ Binaries**
+- **Build MP-SPDZ Binaries**
 
 ```bash
 # Clone MP-SPDZ repository
@@ -72,7 +72,7 @@ make spdz2k-party.x
 make semi2k-party.x
 ```
 
-3. **Set Environment Variables**
+- **Set Environment Variables**
 
 ```bash
 # Add to your .bashrc or .zshrc
@@ -102,6 +102,7 @@ const adapter = new JIFFAdapter(config);
 Choose the appropriate protocol based on your security requirements:
 
 1. **MASCOT** (Maximum Security)
+
    ```typescript
    const config: JIFFAdapterConfig = {
      // ... other config ...
@@ -110,6 +111,7 @@ Choose the appropriate protocol based on your security requirements:
    ```
 
 2. **SPDZ2k** (Integer Arithmetic)
+
    ```typescript
    const config: JIFFAdapterConfig = {
      // ... other config ...
@@ -118,6 +120,7 @@ Choose the appropriate protocol based on your security requirements:
    ```
 
 3. **Semi2k** (Best Performance)
+
    ```typescript
    const config: JIFFAdapterConfig = {
      // ... other config ...
@@ -128,6 +131,7 @@ Choose the appropriate protocol based on your security requirements:
 ### Network Configuration
 
 1. **Port Configuration**
+
    ```typescript
    const testConfig: TestConfig = {
      protocol: MPCProtocol.SEMI2K,
@@ -194,7 +198,7 @@ EXPOSE 14000-14010
 CMD ["npm", "start"]
 ```
 
-2. **Docker Compose**
+- **Docker Compose**
 
 ```yaml
 version: '3.8'
@@ -280,7 +284,7 @@ spec:
           claimName: preprocessing-pvc
 ```
 
-2. **Service YAML**
+- **Service YAML**
 
 ```yaml
 apiVersion: v1
@@ -320,13 +324,13 @@ spec:
 
 ### Prometheus Integration
 
-1. **Install Dependencies**
+- **Install Dependencies**
 
 ```bash
 npm install prom-client
 ```
 
-2. **Add Metrics**
+- **Add Metrics**
 
 ```typescript
 import { Registry, Counter, Histogram } from 'prom-client';
@@ -376,21 +380,27 @@ if (process.env.NODE_ENV !== 'production') {
 ### Common Issues
 
 1. **Binary Not Found**
-   ```
+
+   ```bash
    Error: Required binary mascot-party.x not found
    ```
+
    Solution: Check MP_SPDZ_BINARY_DIR environment variable and binary compilation
 
 2. **Network Connection Failed**
-   ```
+
+   ```bash
    Error: Failed to connect to party 1
    ```
+
    Solution: Check firewall rules and port configurations
 
 3. **Memory Issues**
-   ```
+
+   ```bash
    Error: JavaScript heap out of memory
    ```
+
    Solution: Increase Node.js memory limit with --max-old-space-size
 
 ### Debug Mode
@@ -434,4 +444,4 @@ const config: JIFFAdapterConfig = {
 - [Protocol Documentation](../protocols/README.md)
 - [API Reference](../api/README.md)
 - [Security Guidelines](../security/README.md)
-- [Performance Tuning](../performance/README.md) 
+- [Performance Tuning](../performance/README.md)

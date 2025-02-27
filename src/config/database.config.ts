@@ -1,4 +1,99 @@
-export const databaseConfig = {
+// Database configuration types
+export interface DatabasePerformanceConfig {
+    slowQueryThreshold: number;
+    errorRateThreshold: number;
+    slowQueryRateThreshold: number;
+    maxConcurrentQueries: number;
+}
+
+export interface DatabaseCachePattern {
+    ttl: number;
+    invalidateOnWrite: boolean;
+}
+
+export interface DatabaseCacheConfig {
+    enabled: boolean;
+    defaultTTL: number;
+    maxEntries: number;
+    patterns: {
+        sessions: DatabaseCachePattern;
+        profiles: DatabaseCachePattern;
+        messages: DatabaseCachePattern;
+    };
+}
+
+export interface DatabaseOptimizationConfig {
+    batchSize: number;
+    maxRetries: number;
+    retryDelay: number;
+    indexes: {
+        sessions: string[];
+        profiles: string[];
+        messages: string[];
+    };
+}
+
+export interface DatabaseMonitoringConfig {
+    enabled: boolean;
+    metrics: {
+        collection: {
+            interval: number;
+            retention: number;
+        };
+        aggregation: {
+            interval: number;
+            types: string[];
+        };
+    };
+    alerts: {
+        slowQuery: {
+            threshold: number;
+            cooldown: number;
+        };
+        errorRate: {
+            threshold: number;
+            interval: number;
+        };
+        concurrency: {
+            threshold: number;
+            interval: number;
+        };
+    };
+}
+
+export interface DatabasePoolConfig {
+    min: number;
+    max: number;
+    idleTimeoutMillis: number;
+    connectionTimeoutMillis: number;
+    maxUses: number;
+}
+
+export interface DatabaseTimeoutConfig {
+    default: number;
+    long: number;
+    transaction: number;
+}
+
+export interface DatabaseFeatureConfig {
+    monitoring: boolean;
+    caching: boolean;
+    queryOptimization: boolean;
+    connectionPooling: boolean;
+    autoIndexing: boolean;
+}
+
+export interface DatabaseConfig {
+    performance: DatabasePerformanceConfig;
+    cache: DatabaseCacheConfig;
+    optimization: DatabaseOptimizationConfig;
+    monitoring: DatabaseMonitoringConfig;
+    pool: DatabasePoolConfig;
+    timeouts: DatabaseTimeoutConfig;
+    features: DatabaseFeatureConfig;
+}
+
+export const databaseConfig: DatabaseConfig = {
     // Query performance thresholds
     performance: {
         slowQueryThreshold: 1000, // 1 second

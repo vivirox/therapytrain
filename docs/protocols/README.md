@@ -15,6 +15,7 @@ We support three main protocols, each with different security guarantees and per
 Choose the appropriate protocol based on your security and performance requirements:
 
 ### MASCOT Protocol
+
 - **Security Level**: Highest (malicious security)
 - **Use Case**: When security is the top priority
 - **Performance**: Moderate
@@ -25,6 +26,7 @@ Choose the appropriate protocol based on your security and performance requireme
   - Supports all arithmetic operations
 
 ### SPDZ2k Protocol
+
 - **Security Level**: High (malicious security)
 - **Use Case**: Integer arithmetic applications
 - **Performance**: Good
@@ -35,6 +37,7 @@ Choose the appropriate protocol based on your security and performance requireme
   - Native support for integer comparison
 
 ### Semi2k Protocol
+
 - **Security Level**: Moderate (semi-honest security)
 - **Use Case**: When performance is critical
 - **Performance**: Excellent
@@ -55,16 +58,19 @@ Choose the appropriate protocol based on your security and performance requireme
 ## Security Considerations
 
 ### Trust Assumptions
+
 - **MASCOT**: Requires honest majority, secure against active adversaries
 - **SPDZ2k**: Requires honest majority, secure against active adversaries
 - **Semi2k**: Assumes all parties follow the protocol honestly
 
 ### Network Requirements
+
 - All protocols require reliable, low-latency network connections
 - TLS 1.3 is used for secure channel communication
 - Proper key management and session handling is essential
 
 ### Data Privacy
+
 - All protocols guarantee input privacy
 - Output privacy depends on the application logic
 - Side-channel protections vary by protocol
@@ -72,12 +78,14 @@ Choose the appropriate protocol based on your security and performance requireme
 ## Implementation Details
 
 ### Common Components
+
 - All protocols use the same network layer
 - Share format is consistent across protocols
 - Error handling follows the same patterns
 - Preprocessing data management is protocol-specific
 
 ### Protocol-Specific Features
+
 - **MASCOT**:
   - Full MAC verification
   - Triple generation with active security
@@ -119,4 +127,4 @@ Choose the appropriate protocol based on your security and performance requireme
 - [Security Analysis](./security/)
 - [Performance Benchmarks](./benchmarks/)
 - [Network Requirements](./network/)
-- [Error Handling](./errors/) 
+- [Error Handling](./errors/)

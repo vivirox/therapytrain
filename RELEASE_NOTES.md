@@ -62,6 +62,7 @@ This is the initial release, so there are no breaking changes to document. Howev
 ### Migrating from JIFF
 
 1. Update Dependencies:
+
    ```json
    {
      "dependencies": {
@@ -71,6 +72,7 @@ This is the initial release, so there are no breaking changes to document. Howev
    ```
 
 2. Update Imports:
+
    ```typescript
    // Old JIFF import
    import * as jiff from 'jiff';
@@ -80,6 +82,7 @@ This is the initial release, so there are no breaking changes to document. Howev
    ```
 
 3. Update Configuration:
+
    ```typescript
    // Old JIFF config
    const jiffInstance = new jiff.JIFFClient(...);
@@ -95,6 +98,7 @@ This is the initial release, so there are no breaking changes to document. Howev
    ```
 
 4. Update Operations:
+
    ```typescript
    // Old JIFF operations
    const share = jiffInstance.share(value);
@@ -108,11 +112,13 @@ This is the initial release, so there are no breaking changes to document. Howev
 ## Installation
 
 1. Install the package:
+
    ```bash
    npm install @gradiant/mp-spdz-bindings
    ```
 
 2. Install system dependencies:
+
    ```bash
    # Ubuntu/Debian
    sudo apt-get install automake build-essential clang cmake git \
@@ -121,6 +127,7 @@ This is the initial release, so there are no breaking changes to document. Howev
    ```
 
 3. Set up environment variables:
+
    ```bash
    export MP_SPDZ_BINARY_DIR=/path/to/MP-SPDZ
    export MP_SPDZ_PREPROCESSING_DIR=/path/to/preprocessing/data
@@ -190,4 +197,4 @@ Please read our [Contributing Guide](CONTRIBUTING.md) for details on our code of
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details. 
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

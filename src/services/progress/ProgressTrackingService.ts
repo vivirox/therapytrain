@@ -1,4 +1,5 @@
-import { singleton } from 'tsyringe';
+import 'reflect-metadata';
+import { injectable, singleton } from 'tsyringe';
 import { dataService } from '@/lib/data';
 import { NLPService } from '../nlp/NLPService';
 import { QualityMetricsService } from '../QualityMetricsService';
@@ -37,6 +38,15 @@ interface TreatmentAlignment {
   recommendations: string[];
 }
 
+interface ProgressReport {
+  userId: string;
+  metrics: ProgressMetrics;
+  strengths: string[];
+  weaknesses: string[];
+  recommendations: string[];
+}
+
+@injectable()
 @singleton()
 export class ProgressTrackingService {
   constructor(

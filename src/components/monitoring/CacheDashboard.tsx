@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useState } from 'react';
 import { getCacheAnalytics } from '@/lib/redis';
 import { CacheMetrics, CacheAlert } from '@/services/CacheMonitoringService';

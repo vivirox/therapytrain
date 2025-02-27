@@ -1,40 +1,44 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { AuthState } from '@/types/auth';
+import { type Session, type User } from '@supabase/supabase-js';
+import { type SupabaseContextType } from '@/types/auth';
+import { createClient } from '@/lib/supabase';
 
-interface AuthStore extends AuthState {
-  setUser: (user: AuthState['user']) => void;
-  setToken: (token: AuthState['token']) => void;
-  logout: () => void;
+interface AuthStore extends SupabaseContextType {
+  setSession: (session: Session | null) => void;
+  setLoading: (loading: boolean) => void;
+  logout: () => Promise<void>;
 }
 
-const initialState: AuthState = {
-  user: null,
-  token: null,
-  isAuthenticated: false,
+const supabase = createClient();
+
+const initialState: Omit<SupabaseContextType, 'supabase'> = {
+  session: null,
+  loading: true,
 };
 
 export const useAuth = create<AuthStore>()(
   persist(
     (set) => ({
       ...initialState,
-      setUser: (user) => set((state) => ({ 
+      supabase,
+      setSession: (session) => set((state) => ({ 
         ...state, 
-        user, 
-        isAuthenticated: !!user 
+        session,
       })),
-      setToken: (token) => set((state) => ({ 
+      setLoading: (loading) => set((state) => ({ 
         ...state, 
-        token 
+        loading 
       })),
-      logout: () => set(initialState),
+      logout: async () => {
+        await supabase.auth.signOut();
+        set(initialState);
+      },
     }),
     {
       name: 'auth-storage',
       partialize: (state) => ({
-        user: state.user,
-        token: state.token,
-        isAuthenticated: state.isAuthenticated,
+        session: state.session,
       }),
     }
   )

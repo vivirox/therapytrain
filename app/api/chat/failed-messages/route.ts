@@ -1,63 +1,40 @@
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { ChatService } from '@/services/chat/ChatService';
 import { logger } from '@/lib/logger';
 
-export async function GET(request: Request) {
+export async function GET() {
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return cookies().get(name)?.value;
+        },
+        set(name: string, value: string, options: any) {
+          cookies().set(name, value, options);
+        },
+        remove(name: string, options: any) {
+          cookies().set(name, '', options);
+        },
+      },
+    }
+  );
+
   try {
-    const { searchParams } = new URL(request.url);
-    const threadId = searchParams.get('threadId');
-
-    if (!threadId) {
-      return NextResponse.json(
-        { error: 'Thread ID is required' },
-        { status: 400 }
-      );
-    }
-
-    const supabase = createRouteHandlerClient({ cookies });
-    
-    // Check authentication
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-
-    if (!session) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-
-    // Get failed messages
     const { data: messages, error } = await supabase
       .from('failed_messages')
       .select('*')
-      .eq('thread_id', threadId)
-      .eq('status', 'failed')
-      .order('created_at', { ascending: true });
+      .order('created_at', { ascending: false });
 
-    if (error) {
-      throw error;
-    }
+    if (error) throw error;
 
-    await logger.info('Retrieved failed messages', {
-      userId: session.user.id,
-      threadId,
-      count: messages?.length ?? 0
-    });
-
-    return NextResponse.json({ messages: messages ?? [] });
+    return NextResponse.json({ messages });
   } catch (error) {
-    await logger.error('Failed to get failed messages', {
-      error: error instanceof Error ? error.message : 'Unknown error'
-    });
-
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    console.error('Error fetching failed messages:', error);
+    return NextResponse.json({ error: 'Failed to fetch messages' }, { status: 500 });
   }
 }
 
@@ -73,7 +50,23 @@ export async function POST(request: Request) {
       );
     }
 
-    const supabase = createRouteHandlerClient({ cookies });
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          get(name: string) {
+            return cookies().get(name)?.value;
+          },
+          set(name: string, value: string, options: any) {
+            cookies().set(name, value, options);
+          },
+          remove(name: string, options: any) {
+            cookies().set(name, '', options);
+          },
+        },
+      }
+    );
     
     // Check authentication
     const {

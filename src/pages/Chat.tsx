@@ -1,4 +1,4 @@
-import SimpleChat from "frontend/src/components/SimpleChat";
+import SimpleChat from "@/components/SimpleChat";
 
 const ChatPage = () => {
   return (

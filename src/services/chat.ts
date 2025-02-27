@@ -1,7 +1,17 @@
 import { supabase } from '@/integrations/supabase/client'
 import { Message, ChatSession } from '@/types/chat'
 
-export const chatService = {
+export class ChatService {
+  private static instance: ChatService;
+  private constructor() {}
+
+  public static getInstance(): ChatService {
+    if (!ChatService.instance) {
+      ChatService.instance = new ChatService();
+    }
+    return ChatService.instance;
+  }
+
   async createSession(userId: string): Promise<ChatSession> {
     const { data, error } = await supabase
       .from('chat_sessions')
@@ -14,7 +24,7 @@ export const chatService = {
     
     if (error) throw error
     return data
-  },
+  }
 
   async sendMessage(message: Omit<Message, 'id' | 'createdAt'>): Promise<Message> {
     const { data, error } = await supabase
@@ -28,7 +38,7 @@ export const chatService = {
     
     if (error) throw error
     return data
-  },
+  }
 
   async getSessions(userId: string): Promise<Array<ChatSession>> {
     const { data, error } = await supabase
@@ -39,7 +49,7 @@ export const chatService = {
     
     if (error) throw error
     return data
-  },
+  }
 
   async getSessionMessages(sessionId: string): Promise<Array<Message>> {
     const { data, error } = await supabase
@@ -52,3 +62,5 @@ export const chatService = {
     return data
   }
 }
+
+export const chatService = ChatService.getInstance();

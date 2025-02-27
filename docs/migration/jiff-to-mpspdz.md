@@ -5,6 +5,7 @@ This guide helps you migrate your existing JIFF-based secure multi-party computa
 ## Overview
 
 The migration process involves:
+
 1. Replacing JIFF dependencies with MP-SPDZ bindings
 2. Using the JIFF adapter for compatibility
 3. Optimizing for MP-SPDZ protocols
@@ -142,6 +143,7 @@ Choose the appropriate protocol based on your needs:
 1. **MASCOT** (Maximum Security)
    - Use for applications requiring malicious security
    - Best when security is the top priority
+
    ```typescript
    const config: JIFFAdapterConfig = {
      // ... other config ...
@@ -152,6 +154,7 @@ Choose the appropriate protocol based on your needs:
 2. **SPDZ2k** (Integer Arithmetic)
    - Use for applications with heavy integer computations
    - Good balance of security and performance
+
    ```typescript
    const config: JIFFAdapterConfig = {
      // ... other config ...
@@ -162,6 +165,7 @@ Choose the appropriate protocol based on your needs:
 3. **Semi2k** (Best Performance)
    - Use when all parties are trusted
    - Fastest execution time
+
    ```typescript
    const config: JIFFAdapterConfig = {
      // ... other config ...
@@ -172,6 +176,7 @@ Choose the appropriate protocol based on your needs:
 ## Performance Optimization
 
 1. **Batch Operations**
+
    ```typescript
    // Process multiple shares in batches
    const shares = await Promise.all(
@@ -180,6 +185,7 @@ Choose the appropriate protocol based on your needs:
    ```
 
 2. **Preprocessing**
+
    ```typescript
    // Generate preprocessing data before computation
    await adapter.generatePreprocessing({
@@ -277,4 +283,4 @@ describe('MPC Operations', () => {
 - [Protocol Documentation](../protocols/README.md)
 - [Security Analysis](../protocols/security/)
 - [Performance Benchmarks](../protocols/benchmarks/)
-- [Example Applications](../examples/) 
+- [Example Applications](../examples/)

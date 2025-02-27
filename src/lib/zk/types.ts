@@ -1,5 +1,13 @@
 import { Message } from 'ai'
 
+export interface ZKMessage extends Message {
+  id: string
+  content: string
+  role: 'user' | 'assistant'
+  proof?: ZKProof
+  metadata?: MessageMetadata
+}
+
 export interface SecureMessage extends Message {
   encryptedContent: string
   proof: ZKProof

@@ -7,9 +7,22 @@ import { cache, invalidateByPattern } from '@/lib/redis';
 import { cacheConfig } from '@/config/cache.config';
 import { ChatEncryptionService } from '@/app/chat/ChatEncryptionService';
 import { LangChainStream } from '@/lib/langchain/stream';
-import { ChatOpenAI } from '@/lib/langchain/chat-openai';
-import { HumanMessage } from '@/lib/langchain/human-message';
+import { ChatOpenAI } from '@langchain/openai';
+import { HumanMessage } from '@langchain/core/messages';
 import { StreamingTextResponse } from '@/lib/streaming-text-response';
+import { MetricsService } from '@/lib/metrics';
+import { Logger } from '@/lib/logger';
+import { ResourceMonitor } from '@/lib/monitoring';
+
+// Initialize services
+const metrics = new MetricsService();
+const logger = new Logger('chat-api');
+const resourceMonitor = new ResourceMonitor();
+
+// Resource limits
+const MAX_MESSAGE_LENGTH = 4000;
+const MAX_CONCURRENT_REQUESTS = 50;
+const REQUEST_TIMEOUT = 30000; // 30 seconds
 
 // Enable edge runtime
 export const runtime = 'edge';
@@ -278,48 +291,88 @@ export async function GET(req: NextRequest) {
 // POST handler for sending messages
 export async function POST(req: NextRequest) {
   const startTime = Date.now();
+  const requestId = generateMessageId();
   
   try {
+    // Start monitoring request
+    await resourceMonitor.startRequest(requestId);
+    
     const json = await req.json();
     const { message, recipientId, threadId } = json;
+
+    // Validate message length
+    if (message.length > MAX_MESSAGE_LENGTH) {
+      throw new Error('Message exceeds maximum length');
+    }
+
+    // Check concurrent requests
+    if (!await resourceMonitor.canAcceptRequest()) {
+      throw new Error('Too many concurrent requests');
+    }
+
     const { data: { session } } = await supabase.auth.getSession();
 
     if (!session) {
-      await logger.warn('Unauthorized message send attempt', { recipientId, threadId });
+      await logger.warn('Unauthorized message send attempt', { recipientId, threadId, requestId });
       return new NextResponse('Unauthorized', { status: 401 });
     }
 
-    // Check rate limit for sending messages
+    // Check rate limit with enhanced monitoring
     const rateLimitInfo = await rateLimiter.checkLimit(session.user.id, 'messages');
+    await metrics.incrementCounter('rate_limit_check', { userId: session.user.id });
+    
     if (rateLimitInfo.remaining === 0) {
+      await metrics.incrementCounter('rate_limit_exceeded', { userId: session.user.id });
       const response = new NextResponse('Rate limit exceeded', { status: 429 });
       addRateLimitHeaders(response.headers, rateLimitInfo);
       return response;
     }
 
-    // Encrypt and store message
-    const encryptedMessage = await encryptionService.encryptMessage(
-      message,
-      session.user.id,
-      recipientId
+    // Set up request timeout
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Request timeout')), REQUEST_TIMEOUT)
     );
 
+    // Encrypt and store message with timeout
+    const messagePromise = Promise.race([
+      encryptionService.encryptMessage(message, session.user.id, recipientId),
+      timeoutPromise
+    ]);
+
+    const encryptedMessage = await messagePromise;
+    await metrics.timing('message_encryption', Date.now() - startTime);
+
     await encryptionService.storeMessage(encryptedMessage);
+    await metrics.incrementCounter('message_stored');
 
-    // Create streaming response
-    const { stream, handlers } = LangChainStream();
+    // Create streaming response with monitoring
+    const { stream, handlers } = LangChainStream({
+      onToken: () => metrics.incrementCounter('tokens_generated'),
+      onComplete: () => metrics.incrementCounter('responses_completed'),
+      onError: (error) => {
+        metrics.incrementCounter('stream_errors');
+        logger.error('Streaming error', error);
+      }
+    });
 
-    // Initialize chat model
+    // Initialize chat model with monitoring
     const chat = new ChatOpenAI({
       modelName: 'gpt-4',
       streaming: true,
       temperature: 0.7,
+      callbacks: [{
+        handleLLMStart: () => metrics.incrementCounter('llm_requests'),
+        handleLLMError: (error) => {
+          metrics.incrementCounter('llm_errors');
+          logger.error('LLM error', error);
+        }
+      }]
     });
 
     // Convert message to LangChain format
     const langchainMessages = [new HumanMessage(message)];
 
-    // Start AI response generation
+    // Start AI response generation with monitoring
     chat.call(langchainMessages, {}, [handlers]);
 
     // Invalidate cache for both participants
@@ -331,26 +384,61 @@ export async function POST(req: NextRequest) {
     // Increment message rate limit counter
     await rateLimiter.incrementCounter(session.user.id, 'messages');
 
-    // Track request duration
+    // Track request metrics
     const duration = Date.now() - startTime;
     await Promise.all([
-      logger.trackRequest(duration),
-      resourceMonitor.trackRequest(duration)
+      metrics.timing('request_duration', duration),
+      resourceMonitor.trackRequest(duration),
+      logger.info('Message sent successfully', { 
+        userId: session.user.id,
+        recipientId,
+        threadId,
+        messageId: encryptedMessage.id,
+        duration,
+        requestId
+      })
     ]);
 
-    await logger.info('Message sent successfully', { 
-      userId: session.user.id,
-      recipientId,
-      threadId,
-      messageId: encryptedMessage.id
-    });
-
-    // Return streaming response
+    // Return streaming response with monitoring headers
     const response = new StreamingTextResponse(stream);
     addRateLimitHeaders(response.headers, rateLimitInfo);
+    response.headers.set('X-Request-ID', requestId);
+    response.headers.set('X-Response-Time', duration.toString());
     return response;
   } catch (error) {
-    console.error('Chat error:', error);
-    return new NextResponse('Internal Server Error', { status: 500 });
+    // Enhanced error handling with monitoring
+    const duration = Date.now() - startTime;
+    await Promise.all([
+      metrics.incrementCounter('errors', { type: error.name }),
+      logger.error('Chat error', {
+        error,
+        requestId,
+        duration,
+        stack: error.stack
+      }),
+      resourceMonitor.trackError(error)
+    ]);
+
+    // Clean up resources
+    await resourceMonitor.endRequest(requestId);
+
+    return new NextResponse(
+      JSON.stringify({ 
+        error: 'Internal Server Error',
+        requestId,
+        message: error.message
+      }), 
+      { 
+        status: 500,
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Request-ID': requestId,
+          'X-Response-Time': duration.toString()
+        }
+      }
+    );
+  } finally {
+    // Ensure resources are cleaned up
+    await resourceMonitor.endRequest(requestId);
   }
 } 

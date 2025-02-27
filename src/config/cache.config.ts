@@ -1,4 +1,110 @@
-export const cacheConfig = {
+// Cache configuration types
+export interface RedisTTLConfig {
+    session: number;
+    branch: number;
+    metrics: number;
+    messages: number;
+    default: number;
+    sessions: number;
+    templates: number;
+    preferences: number;
+    rateLimit: number;
+}
+
+export interface RedisPatternConfig {
+    activeSessions: string;
+    completedSessions: string;
+    sessionBranches: string;
+    metrics: string;
+    messages: string;
+    userPreferences: string;
+    chatSessions: string;
+    failedMessages: string;
+    rateLimit: string;
+}
+
+export interface RedisPerformanceConfig {
+    minHitRate: number;
+    maxLatency: number;
+    maxInvalidationRate: number;
+    metricsHistoryLength: number;
+    metricsCollectionInterval: number;
+}
+
+export interface RedisCleanupConfig {
+    interval: number;
+    inactiveTimeout: number;
+    maxKeys: number;
+}
+
+export interface RedisMemoryConfig {
+    maxMemoryPolicy: 'allkeys-lru' | 'volatile-lru' | 'allkeys-random' | 'volatile-random';
+    maxMemoryBytes: number;
+    warningThreshold: number;
+}
+
+export interface RedisSmartCachingConfig {
+    enabled: boolean;
+    patternThreshold: number;
+    warmInterval: number;
+    maxHistory: number;
+    confidenceThreshold: number;
+    ttlMultiplier: number;
+    categories: {
+        hot: {
+            minAccessCount: number;
+            maxInactiveTime: number;
+        };
+        cold: {
+            minInactiveTime: number;
+            maxAccessCount: number;
+        };
+    };
+    optimization: {
+        interval: number;
+        maxPredictions: number;
+        maxWarmingConcurrency: number;
+    };
+}
+
+export interface RedisConfig {
+    connection: {
+        maxRetriesPerRequest: number;
+        connectTimeout: number;
+        commandTimeout: number;
+        enableOfflineQueue: boolean;
+        retryStrategy: (times: number) => number;
+    };
+    ttl: RedisTTLConfig;
+    patterns: RedisPatternConfig;
+    performance: RedisPerformanceConfig;
+    cleanup: RedisCleanupConfig;
+    memory: RedisMemoryConfig;
+    smartCaching: RedisSmartCachingConfig;
+}
+
+export interface MonitoringConfig {
+    enabled: boolean;
+    alertThresholds: {
+        hitRate: number;
+        latency: number;
+        errorRate: number;
+        memoryUsage: number;
+    };
+    metrics: {
+        collection: {
+            interval: number;
+            retention: number;
+        };
+    };
+}
+
+export interface CacheConfig {
+    redis: RedisConfig;
+    monitoring: MonitoringConfig;
+}
+
+export const cacheConfig: CacheConfig = {
     redis: {
         // Connection settings
         connection: {
@@ -14,11 +120,12 @@ export const cacheConfig = {
             session: 3600, // 1 hour
             branch: 1800, // 30 minutes
             metrics: 86400, // 24 hours
-            messages: 60 * 60 * 24 * 7, // 7 days
+            messages: 604800, // 7 days
             default: 3600, // 1 hour
-            sessions: 60 * 60 * 24 * 30, // 30 days
+            sessions: 86400, // 24 hours
             templates: 60 * 60 * 24 * 365, // 1 year
-            preferences: 60 * 60 * 24 * 365, // 1 year for user preferences
+            preferences: 3600, // 1 hour
+            rateLimit: 60, // 1 minute
         },
 
         // Patterns for grouped cache management
@@ -26,9 +133,12 @@ export const cacheConfig = {
             activeSessions: 'active-sessions',
             completedSessions: 'completed-sessions',
             sessionBranches: 'session-branches',
-            metrics: 'performance-metrics',
-            messages: 'chat-messages',
-            userPreferences: 'user-preferences',
+            metrics: 'metrics',
+            messages: 'messages',
+            userPreferences: 'user:preferences',
+            chatSessions: 'chat:sessions',
+            failedMessages: 'failed:messages',
+            rateLimit: 'rate:limit',
         },
 
         // Performance thresholds

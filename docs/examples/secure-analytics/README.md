@@ -5,6 +5,7 @@ This example demonstrates how to use MP-SPDZ TypeScript bindings to perform secu
 ## Overview
 
 The application performs the following analytics operations securely:
+
 1. Mean calculation
 2. Standard deviation
 3. Correlation coefficient
@@ -296,4 +297,4 @@ describe('Secure Analytics', () => {
 - [Protocol Documentation](../../protocols/README.md)
 - [JIFF Migration Guide](../../migration/jiff-to-mpspdz.md)
 - [Security Analysis](../../protocols/security/)
-- [Performance Benchmarks](../../protocols/benchmarks/) 
+- [Performance Benchmarks](../../protocols/benchmarks/)

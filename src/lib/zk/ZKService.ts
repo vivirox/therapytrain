@@ -5,7 +5,7 @@ import { SecurityAuditService } from '@/services/SecurityAuditService';
 import { SupabaseClient, createClient } from '@supabase/supabase-js';
 import { ForwardSecrecyService } from './ForwardSecrecyService';
 import { cache } from 'react';
-import { createECDH, randomBytes } from 'crypto';
+import { createECDH, randomBytes, createHash } from 'crypto';
 
 // Constants
 const ENCRYPTION_VERSION = '1.0.0';
@@ -402,39 +402,9 @@ export class ZKService {
 
   // Key generation
   private async generateKeyPair(): Promise<{ publicKey: string; privateKey: string }> {
-    // Use Node.js crypto in test environment, browser crypto in browser
-    if (typeof window === 'undefined') {
-      const ecdh = createECDH('prime256v1');
-      ecdh.generateKeys();
-      
-      return {
-        publicKey: ecdh.getPublicKey('base64'),
-        privateKey: ecdh.getPrivateKey('base64')
-      };
-    } else {
-      const keyPair = await window.crypto.subtle.generateKey(
-        {
-          name: 'ECDH',
-          namedCurve: 'P-256'
-        },
-        true,
-        ['deriveKey', 'deriveBits']
-      );
-
-      const publicKey = await window.crypto.subtle.exportKey(
-        'spki',
-        keyPair.publicKey
-      );
-      const privateKey = await window.crypto.subtle.exportKey(
-        'pkcs8',
-        keyPair.privateKey
-      );
-
-      return {
-        publicKey: Buffer.from(publicKey).toString('base64'),
-        privateKey: Buffer.from(privateKey).toString('base64')
-      };
-    }
+    const privateKey = randomBytes(32).toString('hex');
+    const publicKey = createHash('sha256').update(privateKey).digest('hex');
+    return { privateKey, publicKey };
   }
 
   private async generateIV(): Promise<string> {
