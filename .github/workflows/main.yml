@@ -74,13 +74,19 @@ jobs:
           NEXT_PUBLIC_ANALYTICS_ENABLED=false
           EOL
       
+      - name: Check env files
+        run: |
+          ls -la
+          echo "Current directory: $(pwd)"
+          find . -name ".env.test" -o -name ".env.example"
+      
       - name: Upload env files
         uses: actions/upload-artifact@v4
         with:
           name: env-files
           path: |
-            .env.test
-            .env.example
+            ./.env.test
+            ./.env.example
 
   js-tests:
     runs-on: ubuntu-latest
@@ -92,6 +98,12 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: env-files
+          
+      - name: Check downloaded files
+        run: |
+          ls -la
+          echo "Current directory: $(pwd)"
+          find . -name ".env.test" -o -name ".env.example" || true
       
       - name: Install pnpm
         uses: pnpm/action-setup@v4
