@@ -2,17 +2,14 @@ import { KeyPair, EncryptionContext } from '@/lib/zk/types'
 import { createHash } from 'crypto'
 
 export class ChatEncryptionService {
-  private static instance: ChatEncryptionService
   private keyPairs: Map<string, KeyPair> = new Map()
   private sharedSecrets: Map<string, Uint8Array> = new Map()
 
-  private constructor() {}
+  constructor() {}
 
+  // For backward compatibility
   public static getInstance(): ChatEncryptionService {
-    if (!ChatEncryptionService.instance) {
-      ChatEncryptionService.instance = new ChatEncryptionService()
-    }
-    return ChatEncryptionService.instance
+    return new ChatEncryptionService()
   }
 
   async getOrCreateSharedKey(userId: string, recipientId: string): Promise<Uint8Array> {
@@ -80,7 +77,39 @@ export class ChatEncryptionService {
     return pair
   }
 
-  async encryptMessage(message: string, context: EncryptionContext): Promise<string> {
+  async encryptMessage(
+    message: string,
+    sender: string | EncryptionContext,
+    recipient?: string,
+    threadId?: string
+  ): Promise<any> {
+    // Handle the new signature used in chat route
+    if (typeof sender === 'string' && recipient) {
+      const sharedSecret = await this.getOrCreateSharedKey(sender, recipient);
+      const context: EncryptionContext = {
+        senderId: sender,
+        recipientId: recipient,
+        threadId: threadId || '',
+        sharedSecret
+      };
+      const encryptedContent = await this.encryptWithContext(message, context);
+
+      return {
+        id: this.generateMessageId(),
+        encryptedContent,
+        senderId: sender,
+        recipientId: recipient,
+        threadId: threadId || '',
+        timestamp: new Date().toISOString()
+      };
+    }
+
+    // Original method for existing callers
+    return this.encryptWithContext(message, sender as EncryptionContext);
+  }
+
+  // Original encryption logic moved to this internal method
+  private async encryptWithContext(message: string, context: EncryptionContext): Promise<string> {
     const iv = crypto.getRandomValues(new Uint8Array(12))
     const data = new TextEncoder().encode(message)
 
@@ -132,5 +161,12 @@ export class ChatEncryptionService {
     )
 
     return new TextDecoder().decode(decrypted)
+  }
+
+  /**
+   * Generate a unique message ID
+   */
+  private generateMessageId(): string {
+    return `msg_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
   }
 } 

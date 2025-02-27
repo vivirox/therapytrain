@@ -1,6 +1,7 @@
 import { collectDefaultMetrics, register } from 'prom-client';
 import * as metrics from './metrics';
 import { logger } from './logger';
+import { MetricsService } from './metrics';
 
 class Monitoring {
   private static instance: Monitoring;
@@ -94,4 +95,41 @@ class Monitoring {
   }
 }
 
-export const monitoring = Monitoring.getInstance(); 
+export const monitoring = Monitoring.getInstance();
+
+export class ResourceMonitor {
+  private metrics: MetricsService;
+  private activeRequests: Map<string, number> = new Map();
+  private maxConcurrentRequests: number = 50;
+
+  constructor() {
+    this.metrics = new MetricsService();
+  }
+
+  async startRequest(requestId: string): Promise<void> {
+    this.activeRequests.set(requestId, Date.now());
+    this.metrics.setGauge('active_connections', this.activeRequests.size);
+  }
+
+  async endRequest(requestId: string): Promise<void> {
+    const startTime = this.activeRequests.get(requestId);
+    if (startTime) {
+      const duration = Date.now() - startTime;
+      this.metrics.timing('http_request_duration', duration);
+      this.activeRequests.delete(requestId);
+      this.metrics.setGauge('active_connections', this.activeRequests.size);
+    }
+  }
+
+  async canAcceptRequest(): Promise<boolean> {
+    return this.activeRequests.size < this.maxConcurrentRequests;
+  }
+
+  async trackRequest(duration: number): Promise<void> {
+    this.metrics.timing('http_request_duration', duration);
+  }
+
+  async trackError(error: Error): Promise<void> {
+    this.metrics.incrementCounter('errors', { type: error.name || 'unknown' });
+  }
+}

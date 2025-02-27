@@ -15,10 +15,20 @@ const nextConfig = {
     if (!isServer) {
       config.resolve.fallback = {
         ...config.resolve.fallback,
-        crypto: 'crypto-browserify',
-        stream: 'stream-browserify',
-        util: 'util'
+        stream: require.resolve('stream-browserify'),
+        crypto: require.resolve('crypto-browserify'),
+        buffer: require.resolve('buffer/'),
+        dns: false,
+        net: false,
+        tls: false,
+        fs: false,
+        path: false
       };
+      config.plugins.push(
+        new config.webpack.ProvidePlugin({
+          Buffer: ['buffer', 'Buffer'],
+        })
+      );
     }
 
     return config;

@@ -46,4 +46,26 @@ export function createStream(): TransformStream<Uint8Array, string> {
       controller.enqueue(text)
     },
   })
+}
+
+interface StreamCallbacks {
+  onToken?: () => void;
+  onComplete?: () => void;
+  onError?: (error: Error) => void;
+}
+
+export function LangChainStream(callbacks?: StreamCallbacks) {
+  const stream = createStream();
+  const handler = new StreamingHandler(stream.writable);
+
+  if (callbacks) {
+    if (callbacks.onToken) handler.handleLLMNewToken = async () => callbacks.onToken?.();
+    if (callbacks.onComplete) handler.handleLLMEnd = async () => callbacks.onComplete?.();
+    if (callbacks.onError) handler.handleLLMError = async (error) => callbacks.onError?.(error);
+  }
+
+  return {
+    stream: stream.readable,
+    handlers: handler,
+  };
 } 

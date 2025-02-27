@@ -173,4 +173,16 @@ export class SessionManager {
   }
 }
 
-export const sessionManager = SessionManager.getInstance(); 
+export const sessionManager = SessionManager.getInstance();
+
+export const getSession = async (threadId: string) => {
+  return sessionManager.getSession(threadId);
+};
+
+export const getOrCreateSharedKey = async (threadId: string) => {
+  const session = await sessionManager.getSession(threadId);
+  if (!session) {
+    throw new Error('Session not found');
+  }
+  return session.privateKey;
+};

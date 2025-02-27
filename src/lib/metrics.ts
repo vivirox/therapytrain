@@ -80,4 +80,60 @@ export const transactionCount = new Counter({
   name: 'transaction_total',
   help: 'Total number of transactions',
   labelNames: ['type', 'status'],
-}); 
+});
+
+export class MetricsService {
+  incrementCounter(name: string, labels: Record<string, string> = {}) {
+    switch (name) {
+      case 'http_requests':
+        httpRequestsTotal.inc(labels);
+        break;
+      case 'cache_hits':
+        cacheHits.inc(labels);
+        break;
+      case 'cache_misses':
+        cacheMisses.inc(labels);
+        break;
+      case 'errors':
+        errorCount.inc(labels);
+        break;
+      case 'transactions':
+        transactionCount.inc(labels);
+        break;
+    }
+  }
+
+  timing(name: string, duration: number, labels: Record<string, string> = {}) {
+    switch (name) {
+      case 'http_request_duration':
+        httpRequestDurationMicroseconds.observe(labels, duration);
+        break;
+      case 'message_processing':
+        messageProcessingTime.observe(duration);
+        break;
+      case 'database_query':
+        databaseQueryDuration.observe(labels, duration);
+        break;
+    }
+  }
+
+  setGauge(name: string, value: number) {
+    switch (name) {
+      case 'system_memory':
+        systemMemoryUsage.set(value);
+        break;
+      case 'system_cpu':
+        systemCpuUsage.set(value);
+        break;
+      case 'active_connections':
+        activeConnections.set(value);
+        break;
+      case 'db_pool_size':
+        databaseConnectionPool.set(value);
+        break;
+      case 'active_users':
+        activeUsers.set(value);
+        break;
+    }
+  }
+}

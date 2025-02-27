@@ -22,13 +22,13 @@ export const useAuth = create<AuthStore>()(
     (set) => ({
       ...initialState,
       supabase,
-      setSession: (session) => set((state) => ({ 
-        ...state, 
+      setSession: (session) => set((state) => ({
+        ...state,
         session,
       })),
-      setLoading: (loading) => set((state) => ({ 
-        ...state, 
-        loading 
+      setLoading: (loading) => set((state) => ({
+        ...state,
+        loading
       })),
       logout: async () => {
         await supabase.auth.signOut();

@@ -227,6 +227,9 @@ importers:
       axios:
         specifier: ^1.8.1
         version: 1.8.1(debug@4.4.0)
+      buffer:
+        specifier: ^6.0.3
+        version: 6.0.3
       circomlibjs:
         specifier: ^0.1.7
         version: 0.1.7(bufferutil@4.0.9)(utf-8-validate@5.0.10)
@@ -455,7 +458,7 @@ importers:
         version: 3.1.0(acorn@8.14.0)(rollup@3.29.5)
       '@microsoft/microsoft-graph-client':
         specifier: ^3.0.7
-        version: 3.0.7(stream-browserify@3.0.0)
+        version: 3.0.7(buffer@6.0.3)(stream-browserify@3.0.0)
       '@playwright/test':
         specifier: ^1.50.1
         version: 1.50.1
@@ -5143,6 +5146,9 @@ packages:
 
   buffer@5.7.1:
     resolution: {integrity: sha512-EHcyIPBQ4BSGlvjB16k5KgAJ27CIsHY/2JBmCRReo48y9rQ3MaUzWX3KVlBa4U7MyX02HdVj0K7C3WaB3ju7FQ==}
+
+  buffer@6.0.3:
+    resolution: {integrity: sha512-FTiCpNxtwiZZHEZbcbTIcZjERVICn9yq/pDFkTl95/AxzD1naBctN7YO68riM/gLSDY7sdrMby8hofADYuuqOA==}
 
   bufferutil@4.0.9:
     resolution: {integrity: sha512-WDtdLmJvAuNNPzByAYpRo2rF1Mmradw6gvWsQKf63476DDXmomT9zUiGypLcG4ibIM67vhAj8jJRdbmEws2Aqw==}
@@ -13072,11 +13078,12 @@ snapshots:
 
   '@mediapipe/tasks-vision@0.10.21': {}
 
-  '@microsoft/microsoft-graph-client@3.0.7(stream-browserify@3.0.0)':
+  '@microsoft/microsoft-graph-client@3.0.7(buffer@6.0.3)(stream-browserify@3.0.0)':
     dependencies:
       '@babel/runtime': 7.26.9
       tslib: 2.8.1
     optionalDependencies:
+      buffer: 6.0.3
       stream-browserify: 3.0.0
 
   '@mui/core-downloads-tracker@6.4.5': {}
@@ -16233,6 +16240,11 @@ snapshots:
   buffer-xor@1.0.3: {}
 
   buffer@5.7.1:
+    dependencies:
+      base64-js: 1.5.1
+      ieee754: 1.2.1
+
+  buffer@6.0.3:
     dependencies:
       base64-js: 1.5.1
       ieee754: 1.2.1

@@ -1,6 +1,6 @@
-import { createClient } from '@supabase/supabase-js';
-import { UserSession, SharedKey } from './types';
-import { generateKey, generateKeyPair } from './crypto';
+import { createClient } from "@supabase/supabase-js";
+import { UserSession, SharedKey } from "./types";
+import { generateKey, generateKeyPair } from "./crypto";
 
 // Initialize Supabase client
 const supabase = createClient(
@@ -11,7 +11,7 @@ const supabase = createClient(
       persistSession: false,
       detectSessionInUrl: false,
     },
-  }
+  },
 );
 
 // In-memory session cache
@@ -30,13 +30,13 @@ export async function getSession(userId: string): Promise<UserSession | null> {
 
   // Get session from database
   const { data: sessionData, error } = await supabase
-    .from('user_sessions')
-    .select('*')
-    .eq('user_id', userId)
+    .from("user_sessions")
+    .select("*")
+    .eq("user_id", userId)
     .single();
 
-  if (error && error.code !== 'PGRST116') {
-    console.error('Error fetching session:', error);
+  if (error && error.code !== "PGRST116") {
+    console.error("Error fetching session:", error);
     return null;
   }
 
@@ -58,16 +58,16 @@ export async function getSession(userId: string): Promise<UserSession | null> {
     publicKey: keyPair.publicKey,
   };
 
-  const { error: insertError } = await supabase
-    .from('user_sessions')
-    .insert([{
+  const { error: insertError } = await supabase.from("user_sessions").insert([
+    {
       user_id: userId,
       private_key: keyPair.privateKey,
       public_key: keyPair.publicKey,
-    }]);
+    },
+  ]);
 
   if (insertError) {
-    console.error('Error creating session:', insertError);
+    console.error("Error creating session:", insertError);
     return null;
   }
 
@@ -77,11 +77,55 @@ export async function getSession(userId: string): Promise<UserSession | null> {
 
 /**
  * Get or create a shared key between two users
+
+ * This overload supports direct user ID input (used by chat route)
  */
 export async function getOrCreateSharedKey(
+  userId: string,
+  recipientId: string,
+): Promise<Uint8Array>;
+
+/**
+ * Get or create a shared key between two users
+
+ * This overload supports UserSession object input
+ */
+export async function getOrCreateSharedKey(
+  userSessionOrId: UserSession | string,
+  recipientId: string,
+  recipientPublicKey?: string,
+): Promise<string | Uint8Array> {
+  // Handle the case where the first parameter is a string (userId)
+  if (typeof userSessionOrId === "string") {
+    const userSession = await getSession(userSessionOrId);
+    if (!userSession) {
+      throw new Error("Failed to get or create user session");
+    }
+
+    // For direct userId call, return typed array format
+    const key = await getOrCreateSharedKeyInternal(
+      userSession,
+      recipientId,
+      "",
+    );
+    return Buffer.from(key, "base64");
+  }
+
+  // Handle the case where the first parameter is a UserSession object
+  return getOrCreateSharedKeyInternal(
+    userSessionOrId,
+    recipientId,
+    recipientPublicKey || "",
+  );
+}
+
+/**
+ * Internal implementation of getOrCreateSharedKey
+ */
+async function getOrCreateSharedKeyInternal(
   userSession: UserSession,
   recipientId: string,
-  recipientPublicKey: string
+  recipientPublicKey: string,
 ): Promise<string> {
   const cacheKey = `${userSession.id}-${recipientId}`;
   const cachedKey = sharedKeyCache.get(cacheKey);
@@ -91,14 +135,14 @@ export async function getOrCreateSharedKey(
 
   // Get shared key from database
   const { data: keyData, error } = await supabase
-    .from('shared_keys')
-    .select('*')
-    .eq('user_id', userSession.id)
-    .eq('recipient_id', recipientId)
+    .from("shared_keys")
+    .select("*")
+    .eq("user_id", userSession.id)
+    .eq("recipient_id", recipientId)
     .single();
 
-  if (error && error.code !== 'PGRST116') {
-    console.error('Error fetching shared key:', error);
+  if (error && error.code !== "PGRST116") {
+    console.error("Error fetching shared key:", error);
     throw error;
   }
 
@@ -114,16 +158,16 @@ export async function getOrCreateSharedKey(
 
   // Create new shared key if none exists
   const sharedKey = generateKey();
-  const { error: insertError } = await supabase
-    .from('shared_keys')
-    .insert([{
+  const { error: insertError } = await supabase.from("shared_keys").insert([
+    {
       user_id: userSession.id,
       recipient_id: recipientId,
       key: sharedKey,
-    }]);
+    },
+  ]);
 
   if (insertError) {
-    console.error('Error creating shared key:', insertError);
+    console.error("Error creating shared key:", insertError);
     throw insertError;
   }
 
@@ -147,4 +191,4 @@ export function clearSessionCache(userId: string) {
       sharedKeyCache.delete(key);
     }
   }
-} 
+}

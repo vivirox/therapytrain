@@ -26,7 +26,7 @@ export class Logger {
   private metricsKey = 'chat:metrics';
   private logsKey = 'chat:logs';
 
-  private constructor() {
+  constructor() {
     this.redis = new Redis({
       url: process.env.UPSTASH_REDIS_REST_URL!,
       token: process.env.UPSTASH_REDIS_REST_TOKEN!,

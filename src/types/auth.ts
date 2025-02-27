@@ -153,6 +153,12 @@ export interface AuthStoreState extends AuthState {
 
 export type UserRole = 'client' | 'therapist' | 'admin';
 
+export interface SupabaseContextType {
+  session: Session | null;
+  loading: boolean;
+  supabase: SupabaseClient<Database>;
+}
+
 export interface Database {
     public: { Tables: { [key: string]: any } };
 }

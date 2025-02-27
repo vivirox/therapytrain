@@ -1,6 +1,26 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
+import { ChatOpenAI } from '@langchain/openai';
+import { HumanMessage } from '@langchain/core/messages';
+import { StreamingTextResponse } from 'ai';
+
+import { ZKMessage } from '@/lib/zk/types';
+import { encrypt, decrypt, generateMessageId } from '@/lib/zk/crypto';
+import { getSession, getOrCreateSharedKey } from '@/lib/zk/session';
+import { cache, invalidateByPattern } from '@/lib/redis';
+import { cacheConfig } from '@/config/cache.config';
+import { ChatEncryptionService } from '@/app/chat/ChatEncryptionService';
+import { LangChainStream } from '@/lib/langchain/stream';
+import { MetricsService } from '@/lib/metrics';
+import { Logger } from '@/lib/logger';
+import { ResourceMonitor } from '@/lib/monitoring';
+import { ConnectionStore } from '@/lib/ConnectionStore';
+import { RateLimiter } from '@/lib/RateLimiter';
+import { InstanceManager } from '@/lib/InstanceManager';
+import { streamToAsyncIterable } from '@/lib/stream-utils';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
-import { OpenAIStream, StreamingTextResponse } from 'ai';
+import { OpenAIStream, StreamingTextResponse as EdgeStreamingTextResponse } from 'ai';
 import { Configuration, OpenAIApi } from 'openai-edge';
 import { Message } from 'ai';
 import { getRateLimit, isTooManyRequests, createRateLimitResponse } from '@/lib/edge/rate-limit';
@@ -10,13 +30,19 @@ import { logMessageEncryption, logMessageDecryption, logMessageAccess } from '@/
 import { ZKService } from '@/lib/zk/ZKService';
 import { ChatService } from '@/services/chat/ChatService';
 import { SecurityAuditService } from '@/services/SecurityAuditService';
-import { cache } from 'react';
+import { cache as reactCache } from 'react';
 import { ChatSession, Message as ChatMessage } from '@/types/chat';
 
 // Initialize services
 const zkService = new ZKService();
 const chatService = new ChatService();
 const securityAudit = new SecurityAuditService();
+const metrics = new MetricsService();
+const logger = Logger.getInstance('chat-api');
+const resourceMonitor = new ResourceMonitor();
+const connectionStore = new ConnectionStore();
+const rateLimiter = new RateLimiter();
+const instanceManager = new InstanceManager();
 
 // Create an OpenAI API client (that's edge friendly!)
 const config = new Configuration({
@@ -25,13 +51,13 @@ const config = new Configuration({
 const openai = new OpenAIApi(config);
 
 // Cache the session check for 1 minute
-const getSession = cache(async () => {
+const getSession = reactCache(async () => {
   const supabase = createRouteHandlerClient({ cookies });
   return await supabase.auth.getSession();
 });
 
 // HIPAA-compliant message storage with encryption
-const storeMessage = cache(async (supabase: any, message: any) => {
+const storeMessage = reactCache(async (supabase: any, message: any) => {
   // Generate ZK proof for message storage
   const proof = await zkService.generateMessageProof(message);
   
@@ -198,8 +224,13 @@ export async function POST(req: Request) {
       }
     });
 
-    // Return a StreamingTextResponse, which can be consumed by the client
-    return new StreamingTextResponse(stream);
+    // Return streaming response with monitoring headers
+    const asyncIterable = await streamToAsyncIterable(stream);
+    const response = new StreamingTextResponse(asyncIterable);
+    addRateLimitHeaders(response.headers, rateLimitInfo);
+    response.headers.set("X-Request-ID", requestId);
+    response.headers.set("X-Response-Time", duration.toString());
+    return response;
   } catch (error) {
     await securityAudit.logError({
       operation: 'chat_api',

@@ -6,8 +6,8 @@ module.exports = {
     // Add any dynamic classes that might be generated
     {
       pattern: /^(bg|text|border|ring|shadow|divide)-/,
-      variants: ['hover', 'focus', 'active', 'dark']
-    }
+      variants: ["hover", "focus", "active", "dark"],
+    },
   ],
   theme: {
     container: {
@@ -52,6 +52,13 @@ module.exports = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        chart: {
+          1: "hsl(var(--chart-1))",
+          2: "hsl(var(--chart-2))",
+          3: "hsl(var(--chart-3))",
+          4: "hsl(var(--chart-4))",
+          5: "hsl(var(--chart-5))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -60,28 +67,52 @@ module.exports = {
       },
       keyframes: {
         "accordion-down": {
-          from: { height: 0 },
-          to: { height: "var(--radix-accordion-content-height)" },
+          from: {
+            height: 0,
+          },
+          to: {
+            height: "var(--radix-accordion-content-height)",
+          },
         },
         "accordion-up": {
-          from: { height: "var(--radix-accordion-content-height)" },
-          to: { height: 0 },
+          from: {
+            height: "var(--radix-accordion-content-height)",
+          },
+          to: {
+            height: 0,
+          },
         },
         "theme-fade-in": {
-          from: { opacity: 0 },
-          to: { opacity: 1 },
+          from: {
+            opacity: 0,
+          },
+          to: {
+            opacity: 1,
+          },
         },
         "theme-fade-out": {
-          from: { opacity: 1 },
-          to: { opacity: 0 },
+          from: {
+            opacity: 1,
+          },
+          to: {
+            opacity: 0,
+          },
         },
         "theme-scale-in": {
-          from: { transform: "scale(0.95)" },
-          to: { transform: "scale(1)" },
+          from: {
+            transform: "scale(0.95)",
+          },
+          to: {
+            transform: "scale(1)",
+          },
         },
         "theme-slide-in": {
-          from: { transform: "translateY(-10px)" },
-          to: { transform: "translateY(0)" },
+          from: {
+            transform: "translateY(-10px)",
+          },
+          to: {
+            transform: "translateY(0)",
+          },
         },
       },
       animation: {
@@ -94,7 +125,5 @@ module.exports = {
       },
     },
   },
-  plugins: [
-    require("tailwindcss-animate")
-  ],
-} 
+  plugins: [require("tailwindcss-animate")],
+};

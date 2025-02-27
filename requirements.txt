@@ -3,6 +3,7 @@
 # Web scraping
 pyppeteer>=2.0.0
 html5lib>=1.1
+playwright
 
 # Search engine
 duckduckgo-search>=7.2.1
@@ -17,11 +18,11 @@ pytest>=8.0.0
 pytest-asyncio>=0.23.5
 
 # Google Generative AI
-google-generativeai
+google-generativeai>=0.7.0 # o1 support
 
 # gRPC, for Google Generative AI preventing WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
-grpcio
-grpcio-status
+grpcio>=1.53.3
+grpcio-status>=1.53.3
 
 # Data processing and visualization
 yfinance>=0.2.36

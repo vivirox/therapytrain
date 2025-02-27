@@ -1,6 +1,7 @@
 import { Redis } from '@upstash/redis';
 import { cacheConfig } from '@/config/cache.config';
 import { env } from '@/utils/env';
+import { MetricsService } from './metrics';
 
 interface LogEntry {
   level: 'info' | 'warn' | 'error' | 'debug';
@@ -26,17 +27,21 @@ export class Logger {
   private redis: Redis;
   private metricsKey = 'chat:metrics';
   private logsKey = 'chat:logs';
+  private context: string;
+  private metrics: MetricsService;
 
-  private constructor() {
+  private constructor(context: string) {
     this.redis = new Redis({
       url: env.UPSTASH_REDIS_REST_URL,
       token: env.UPSTASH_REDIS_REST_TOKEN,
     });
+    this.context = context;
+    this.metrics = new MetricsService();
   }
 
-  public static getInstance(): Logger {
+  public static getInstance(context: string): Logger {
     if (!Logger.instance) {
-      Logger.instance = new Logger();
+      Logger.instance = new Logger(context);
     }
     return Logger.instance;
   }
@@ -74,22 +79,26 @@ export class Logger {
   /**
    * Log info level message
    */
-  async info(message: string, context?: Record<string, any>) {
-    await this.log({ level: 'info', message, context });
+  async info(message: string, data?: Record<string, any>) {
+    console.log(`[${this.context}] INFO:`, message, data || '');
+    await this.log({ level: 'info', message, context: data });
   }
 
   /**
    * Log warning level message
    */
-  async warn(message: string, context?: Record<string, any>) {
-    await this.log({ level: 'warn', message, context });
+  async warn(message: string, data?: Record<string, any>) {
+    console.warn(`[${this.context}] WARN:`, message, data || '');
+    await this.log({ level: 'warn', message, context: data });
   }
 
   /**
    * Log error level message
    */
-  async error(message: string, error?: Error, context?: Record<string, any>) {
-    await this.log({ level: 'error', message, error, context });
+  async error(message: string, error?: Error, data?: Record<string, any>) {
+    console.error(`[${this.context}] ERROR:`, message, error?.message || '', data || '');
+    this.metrics.incrementCounter('errors', { type: error?.name || 'unknown' });
+    await this.log({ level: 'error', message, error, context: data });
   }
 
   /**
@@ -105,6 +114,7 @@ export class Logger {
    * Track request metrics
    */
   async trackRequest(duration: number) {
+    this.metrics.timing('http_request_duration', duration, { context: this.context });
     await this.incrementMetric('totalRequests');
     await this.updateAverageResponseTime(duration);
   }
@@ -168,4 +178,4 @@ export class Logger {
   }
 }
 
-export const logger = Logger.getInstance(); 
+export const logger = Logger.getInstance('default');
