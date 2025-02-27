@@ -80,13 +80,32 @@ jobs:
           echo "Current directory: $(pwd)"
           find . -name ".env.test" -o -name ".env.example"
       
+      - name: Create local env files
+        run: |
+          cat > env-test.txt << EOL
+          # Test Environment Configuration for CI
+          NODE_ENV=test
+          NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
+          NEXT_PUBLIC_SUPABASE_ANON_KEY=test-anon-key
+          EOL
+          
+          cat > env-example.txt << EOL
+          # Example Configuration for CI
+          NODE_ENV=production
+          NEXT_PUBLIC_SUPABASE_URL=your-url
+          NEXT_PUBLIC_SUPABASE_ANON_KEY=your-key
+          EOL
+          
+          ls -la
+          cat env-test.txt
+          
       - name: Upload env files
         uses: actions/upload-artifact@v4
         with:
           name: env-files
           path: |
-            ./.env.test
-            ./.env.example
+            env-test.txt
+            env-example.txt
 
   js-tests:
     runs-on: ubuntu-latest
@@ -99,11 +118,18 @@ jobs:
         with:
           name: env-files
           
-      - name: Check downloaded files
+      - name: Check downloaded files and prepare environment
         run: |
           ls -la
-          echo "Current directory: $(pwd)"
-          find . -name ".env.test" -o -name ".env.example" || true
+          echo "Downloaded files:"
+          cat env-test.txt
+          
+          # Create .env.test from the downloaded file
+          cp env-test.txt .env.test
+          cp env-example.txt .env.example
+          
+          echo "Environment files created:"
+          ls -la .env*
       
       - name: Install pnpm
         uses: pnpm/action-setup@v4
