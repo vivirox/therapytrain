@@ -218,3 +218,32 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - HL7 for the FHIR standard
 
 [![Deploy](https://github.com/vivirox/gradiant/actions/workflows/deploy.yml/badge.svg)](https://github.com/vivirox/gradiant/actions/workflows/deploy.yml)
+[![CI/CD Pipeline](https://github.com/vivirox/gradiant/actions/workflows/main.yml/badge.svg)](https://github.com/vivirox/gradiant/actions/workflows/main.yml)
+
+## CI/CD Pipeline
+
+This project uses GitHub Actions for continuous integration and deployment. The main workflow (`main.yml`) handles:
+
+1. **Environment Setup**: Creates necessary environment files for testing
+2. **JavaScript Tests**: Runs type checking, linting, and unit tests
+3. **Python Tests**: Runs Python-based tests if applicable
+4. **End-to-End Tests**: (Currently disabled) Runs Playwright tests
+5. **Deployment**:
+   - **Staging**: Deploys preview builds for pull requests
+   - **Production**: Deploys to production when code is merged to main
+
+### Troubleshooting GitHub Actions
+
+If you encounter GitHub Action failures, check the following:
+
+1. **Environment Files**: Make sure `.env.example` and `.env.test` are present
+2. **MP-SPDZ Setup**: The workflow includes basic MP-SPDZ directory setup
+3. **Dependency Installation**: Check if all package installations succeed
+4. **Test Failures**: Review test output for specific error messages
+
+### Requirements Update
+
+- Node.js 22 or later (updated from 18)
+- pnpm 10 or later (updated from 8)
+- PostgreSQL 14 or later
+- Redis 6 or later

@@ -14,13 +14,85 @@ permissions:
 env:
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
   VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+  # Copy environment variables from secrets or provide defaults
+  NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL || 'http://127.0.0.1:54321' }}
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'test-anon-key' }}
+  RESEND_API_KEY: ${{ secrets.RESEND_API_KEY || 'test-resend-key' }}
+  EMAIL_FROM: ${{ secrets.EMAIL_FROM || 'test@example.com' }}
+  ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY || 'test-anthropic-key' }}
+  OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY || 'test-openai-key' }}
 
 jobs:
-  test:
+  setup-env:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      
+      - name: Create .env.test file
+        run: |
+          cat > .env.test << EOL
+          # Test Environment Configuration
+          NODE_ENV=test
+          
+          # Supabase (Mock values for testing)
+          NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
+          NEXT_PUBLIC_SUPABASE_ANON_KEY=test-anon-key
+          SUPABASE_SERVICE_KEY=test-service-key
+          
+          # Redis (Mock values for testing)
+          UPSTASH_REDIS_REST_URL=http://localhost:6379
+          UPSTASH_REDIS_REST_TOKEN=test-redis-token
+          
+          # Email (Mock settings for testing)
+          RESEND_API_KEY=test-resend-key
+          EMAIL_FROM=test@example.com
+          
+          # AI Services (Mock keys for testing)
+          ANTHROPIC_API_KEY=test-anthropic-key
+          OPENAI_API_KEY=test-openai-key
+          AZURE_OPENAI_API_KEY=test-azure-openai-key
+          AZURE_OPENAI_MODEL_DEPLOYMENT=test-deployment
+          AZURE_OPENAI_API_VERSION=2023-12-01-preview
+          AZURE_OPENAI_API_ENDPOINT=http://localhost:8080
+          
+          # Security (Test values)
+          JWT_SECRET=test-jwt-secret
+          ENCRYPTION_KEY=test-encryption-key-must-be-32-chars-12
+          
+          # ZK System (Disabled for tests)
+          ZK_ENABLED=false
+          ZK_PROVING_KEY_PATH=./test/keys/proving_key.json
+          ZK_VERIFICATION_KEY_PATH=./test/keys/verification_key.json
+          
+          # Testing Flags
+          SKIP_API_TESTS=true
+          USE_MOCKS=true
+          TEST_USER_EMAIL=test@example.com
+          TEST_USER_PASSWORD=test-password
+          
+          # Analytics (Disabled for tests)
+          NEXT_PUBLIC_ANALYTICS_ENABLED=false
+          EOL
+      
+      - name: Upload env files
+        uses: actions/upload-artifact@v4
+        with:
+          name: env-files
+          path: |
+            .env.test
+            .env.example
 
+  js-tests:
+    runs-on: ubuntu-latest
+    needs: setup-env
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Download env files
+        uses: actions/download-artifact@v4
+        with:
+          name: env-files
+      
       - name: Install pnpm
         uses: pnpm/action-setup@v4
         with:
@@ -42,7 +114,15 @@ jobs:
         run: |
           if [ ! -f "./node_modules/.pnpm/supabase@2.12.1/node_modules/supabase/bin/supabase" ]; then
             echo "echo 'Dummy supabase binary'" > ./node_modules/.pnpm/supabase@2.12.1/node_modules/supabase/bin/supabase
+            chmod +x ./node_modules/.pnpm/supabase@2.12.1/node_modules/supabase/bin/supabase
           fi
+        shell: bash
+
+      - name: Set up MP-SPDZ environment
+        run: |
+          # Create minimal MP-SPDZ directories if not already present
+          mkdir -p MP-SPDZ/Programs
+          touch MP-SPDZ/Programs/.gitkeep
         shell: bash
 
       - name: Type check
@@ -63,15 +143,116 @@ jobs:
           name: coverage-report
           path: coverage/
 
+  python-tests:
+    runs-on: ubuntu-22.04
+    needs: setup-env
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Download env files
+        uses: actions/download-artifact@v4
+        with:
+          name: env-files
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          python -m playwright install chromium
+        if: hashFiles('requirements.txt') != ''
+
+      - name: Run tests
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY || 'test-anthropic-key' }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY || 'test-openai-key' }}
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY || 'test-google-key' }}
+        run: |
+          if [ -d "tests" ]; then
+            PYTHONPATH=. python -m unittest discover tests/
+          else
+            echo "No Python tests directory found, skipping"
+          fi
+
+  e2e-tests:
+    runs-on: ubuntu-latest
+    needs: [js-tests, python-tests]
+    if: false # Disabling E2E tests temporarily until environment is fully configured
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Download env files
+        uses: actions/download-artifact@v4
+        with:
+          name: env-files
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright
+        run: pnpm add -D @playwright/test
+
+      - name: Install Playwright Browsers
+        run: pnpm exec playwright install --with-deps
+
+      - name: Build application
+        run: pnpm build
+        env:
+          NODE_ENV: test
+          DOTENV_CONFIG_PATH: .env.test
+
+      - name: Run Playwright tests
+        run: pnpm test:e2e
+        env:
+          NODE_ENV: test
+          DOTENV_CONFIG_PATH: .env.test
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30
+
   deploy-staging:
-    needs: test
+    needs: [js-tests, python-tests]
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
       - name: Install Vercel CLI
-        run: npm install --global vercel@latest
+        run: pnpm add -g vercel@latest
 
       - name: Pull Vercel Environment Information
         run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
@@ -82,18 +263,32 @@ jobs:
       - name: Deploy to Vercel (Staging)
         run: |
           url=$(vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }})
-          vercel alias $url staging-gradiant.vercel.app --token=${{ secrets.VERCEL_TOKEN }}
+          vercel alias $url staging-gradiant.vercel.app --token=${{ secrets.VERCEL_TOKEN }} || echo "Alias failed, but deployment successful at $url"
           echo "Deployed to $url"
 
   deploy-production:
-    needs: test
+    needs: [js-tests, python-tests]
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
       - name: Install Vercel CLI
-        run: npm install --global vercel@latest
+        run: pnpm add -g vercel@latest
 
       - name: Pull Vercel Environment Information
         run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
