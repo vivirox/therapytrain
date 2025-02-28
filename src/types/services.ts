@@ -1,4 +1,4 @@
-import type { SessionStatus, SessionMode, SessionMetrics, SessionConfig } from './session';
+import type { SessionStatus, SessionMetrics, SessionConfig, SessionMode } from './session';
 import type { AnalyticsEvent, AnalyticsConfig } from './analytics';
 import type { HIPAAEvent, HIPAAComplianceReport, HIPAAQueryFilters } from './hipaa';
 import type { SecurityIncident, SecurityConfig } from './security';
@@ -51,8 +51,8 @@ export interface SessionService {
     getSession(sessionId: string): Promise<Session>;
     updateSession(sessionId: string, update: Partial<Session>): Promise<Session>;
     deleteSession(sessionId: string): Promise<void>;
-    listSessions(userId: string): Promise<Session[]>;
-    getSessionHistory(userId: string): Promise<SessionState[]>;
+    listSessions(userId: string): Promise<Array<Session>>;
+    getSessionHistory(userId: string): Promise<Array<SessionState>>;
     getSessionState(sessionId: string): Promise<SessionState>;
 }
 
@@ -72,7 +72,7 @@ export interface BaseResponse {
 }
 
 export interface PaginatedResponse<T> extends BaseResponse {
-  data: T[];
+  data: Array<T>;
   total: number;
   page: number;
   limit: number;
@@ -88,7 +88,7 @@ export interface AnalyticsMetrics {
 
 export interface SessionAnalyticsService {
   analyzeSession(sessionId: string): Promise<SessionMetrics>;
-  getSessionHistory(userId: string): Promise<SessionState[]>;
+  getSessionHistory(userId: string): Promise<Array<SessionState>>;
   generateSessionReport(sessionId: string): Promise<unknown>;
 }
 
@@ -117,7 +117,7 @@ export interface AuditEvent {
 
 export interface AuditLoggerService {
   logEvent(event: HIPAAAuditEvent): Promise<void>;
-  getAuditLog(filters: HIPAAQueryFilters): Promise<HIPAAAuditEvent[]>;
+  getAuditLog(filters: HIPAAQueryFilters): Promise<Array<HIPAAAuditEvent>>;
   generateComplianceReport(): Promise<HIPAAComplianceReport>;
 }
 
@@ -131,7 +131,7 @@ export interface Message {
 
 export interface ChatService {
   sendMessage(sessionId: string, message: string): Promise<void>;
-  getHistory(sessionId: string): Promise<unknown[]>;
+  getHistory(sessionId: string): Promise<Array<unknown>>;
   analyzeChat(sessionId: string): Promise<unknown>;
 }
 
@@ -175,7 +175,7 @@ export interface SkillProgress {
 export interface LearningPathService {
   createPath(userId: string): Promise<void>;
   updateProgress(userId: string, progress: unknown): Promise<void>;
-  getRecommendations(userId: string): Promise<unknown[]>;
+  getRecommendations(userId: string): Promise<Array<unknown>>;
 }
 
 // Contextual Learning Types
@@ -196,7 +196,7 @@ export interface ContextualLearningService {
 export interface RealTimeMetrics {
   activeUsers: number;
   currentSessions: number;
-  recentEvents: AnalyticsEvent[];
+  recentEvents: Array<AnalyticsEvent>;
 }
 
 export interface RealTimeAnalyticsService {
@@ -230,8 +230,8 @@ export interface SessionManagerService {
 export interface SessionState {
     id: string;
     status: string;
-    participants: SessionParticipant[];
-    messages: SessionMessage[];
+    participants: Array<SessionParticipant>;
+    messages: Array<SessionMessage>;
     metadata: Record<string, unknown>;
 }
 
@@ -250,7 +250,7 @@ export interface RiskMetrics {
     sessionId: string;
     timestamp: string;
     riskLevel: 'low' | 'medium' | 'high';
-    factors: string[];
+    factors: Array<string>;
     score: number;
     confidence: number;
     metadata: Record<string, unknown>;
@@ -258,7 +258,7 @@ export interface RiskMetrics {
 
 export interface AuditService {
     logEvent(event: HIPAAAuditEvent): Promise<void>;
-    getAuditLog(filters: HIPAAQueryFilters): Promise<HIPAAAuditEvent[]>;
+    getAuditLog(filters: HIPAAQueryFilters): Promise<Array<HIPAAAuditEvent>>;
 }
 
 export interface RiskService {

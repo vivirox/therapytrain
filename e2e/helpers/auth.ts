@@ -1,4 +1,6 @@
 import { type Page } from '@playwright/test';
+import fs from 'fs/promises';
+import path from 'path';
 import { resetTestDatabase, createResetToken, clearFailedLoginAttempts } from './db';
 
 export interface LoginCredentials {
@@ -16,7 +18,7 @@ export async function login(page: Page, credentials: LoginCredentials = defaultU
   await page.fill('[placeholder="Email"]', credentials.email);
   await page.fill('[placeholder="Password"]', credentials.password);
   await page.click('button[type="submit"]');
-  await page.waitForURL('/dashboard');
+  await page.waitForURL('/profile');
 }
 
 export async function logout(page: Page) {
@@ -31,7 +33,7 @@ export async function createTestUser(page: Page, credentials: LoginCredentials =
   await page.fill('[placeholder="Password"]', credentials.password);
   await page.fill('[placeholder="Confirm Password"]', credentials.password);
   await page.click('button[type="submit"]');
-  await page.waitForURL('/dashboard');
+  await page.waitForURL('/profile');
 }
 
 export async function resetDatabase() {
@@ -94,4 +96,30 @@ export async function fillPasswordForm(page: Page, {
   await page.fill('[placeholder="Current Password"]', currentPassword);
   await page.fill('[placeholder="New Password"]', newPassword);
   await page.fill('[placeholder="Confirm New Password"]', confirmPassword);
+}
+
+export async function setupAuthState(page: Page, storageStatePath: string, credentials: LoginCredentials = defaultUser) {
+  if (!storageStatePath) {
+    throw new Error('Storage state path is required');
+  }
+
+  // Ensure the directory exists
+  await fs.mkdir(path.dirname(storageStatePath), { recursive: true });
+
+  // Create test user if not exists
+  await setupTestUser(page, credentials);
+  
+  // Login and store authentication state
+  await page.goto('/auth/login');
+  await page.fill('[placeholder="Email"]', credentials.email);
+  await page.fill('[placeholder="Password"]', credentials.password);
+  await page.click('button[type="submit"]');
+  
+  // Wait for successful login
+  await page.waitForURL('/profile');
+  
+  // Store authentication state
+  await page.context().storageState({
+    path: storageStatePath,
+  });
 } 

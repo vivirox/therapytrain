@@ -89,7 +89,7 @@ screenshot_path = take_screenshot_sync('<https://example.com>', 'screenshot.png'
 
 response = query_llm(
     "What is the background color and title of this webpage?",
-    provider="openai",  # or "anthropic"
+    provider="gemini",
     image_path=screenshot_path
 )
 print(response)
@@ -100,7 +100,7 @@ print(response)
 You always have an LLM at your side to help you with the task. For simple tasks, you could invoke the LLM by running the following command:
 
 '''bash
-python ./tools/llm_api.py --prompt "What is the capital of France?" --provider "anthropic"
+python ./tools/llm_api.py --prompt "What is the capital of France?" --provider "gemini"
 '''
 
 The LLM API supports multiple providers:
@@ -108,8 +108,7 @@ The LLM API supports multiple providers:
 * OpenAI (default, model: gpt-4o)
 * Azure OpenAI (model: configured via AZURE_OPENAI_MODEL_DEPLOYMENT in .env file, defaults to gpt-4o-ms)
 * DeepSeek (model: deepseek-chat)
-* Anthropic (model: claude-3-sonnet-20240229)
-* Gemini (model: gemini-pro)
+* Gemini (model: gemini-2.0-flash)
 * Local LLM (model: Qwen/Qwen2.5-32B-Instruct-AWQ)
 
 But usually it's a better idea to check the content of the file and use the APIs in the `tools/llm_api.py` file to invoke the LLM if needed.
@@ -260,279 +259,300 @@ If needed, you can further use the `web_scraper.py` file to scrape the web page 
 
 ### Background and Motivation
 
-The project currently uses JIFF (JavaScript Implementation of Federated Functionality) for secure multi-party computation (MPC). However, JIFF has a critical dependency on the deprecated `request` package, which poses security risks and maintenance challenges. After analysis, we have decided to migrate to MP-SPDZ, a versatile and actively maintained framework for multi-party computation that provides stronger security guarantees and better performance.
+The project has completed most major phases including security, performance, AI/analytics, and user experience. However, the DevOps and Infrastructure phase is only at 25% completion. This phase is critical for ensuring reliable deployment, monitoring, and maintenance of the system. We need to focus on completing the remaining DevOps tasks to ensure production readiness.
 
 ### Key Challenges and Analysis
 
-1. Current Implementation Analysis:
-   * JIFF is used in `src/lib/mpc/secure-computation.ts` for secure multi-party computation
-   * Core functionality includes secret sharing, secure addition, multiplication, and comparison
-   * Current implementation uses a singleton pattern with TypeScript interfaces
-   * Integration points include initialization, party management, and computation coordination
+1. Infrastructure as Code (IaC):
+   * Current Terraform configuration is basic
+   * Need comprehensive IaC for all environments
+   * Must include all cloud resources and configurations
+   * Requires proper state management and security
 
-2. MP-SPDZ Integration Requirements:
-   * Set up MP-SPDZ compilation environment and dependencies
-   * Create TypeScript bindings for MP-SPDZ protocols
-   * Support multiple protocols (MASCOT, SPDZ2k, Semi2k) for different security needs
-   * Implement proper preprocessing phase management
-   * Handle network coordination between parties
-   * Ensure secure key generation and management
+2. Monitoring and Observability:
+   * Basic Prometheus/Grafana setup exists
+   * Need comprehensive metrics collection
+   * Must implement proper alerting
+   * Requires log aggregation and analysis
 
-3. Technical Constraints:
-   * MP-SPDZ requires C++ compilation environment
-   * Must handle both preprocessing and online phases
-   * Need to manage protocol-specific parameters (prime field size, security parameter)
-   * Must coordinate party connections and data sharing
-   * Requires proper error handling for cryptographic operations
+3. Documentation:
+   * Basic deployment docs exist
+   * Need comprehensive runbooks
+   * Must document all operational procedures
+   * Requires troubleshooting guides
 
-4. Party Communication Implementation Plan:
-   * Network Layer:
-     * Use WebSocket for real-time bidirectional communication
-     * Implement secure channel using TLS with client certificates
-     * Add message framing and protocol versioning
-     * Handle connection failures and reconnection
-
-   * Share Distribution:
-     * Create PartyNetwork class for managing connections
-     * Implement secure share transfer protocol
-     * Add verification of received shares
-     * Handle timeouts and retransmissions
-
-   * Party Synchronization:
-     * Implement barrier synchronization protocol
-     * Add heartbeat mechanism for liveness detection
-     * Create synchronization points for key protocol phases
-     * Handle party failures and timeouts
-
-   * Preprocessing Management:
-     * Create PreprocessingManager class
-     * Implement secure storage for preprocessing data
-     * Add preprocessing data validation
-     * Handle preprocessing data distribution
-
-5. Security Considerations:
-   * Use TLS 1.3 for secure channels
-   * Implement proper key derivation for each session
-   * Add message authentication codes
-   * Validate all received data
-   * Implement proper error handling for security violations
-
-6. Implementation Strategy:
-   * Phase 1: Network Infrastructure
-     * Set up WebSocket server/client infrastructure
-     * Implement secure channel establishment
-     * Add basic message handling
-
-   * Phase 2: Share Distribution
-     * Implement secure share transfer
-     * Add share verification
-     * Handle distribution errors
-
-   * Phase 3: Synchronization
-     * Add barrier synchronization
-     * Implement heartbeat mechanism
-     * Handle party failures
-
-   * Phase 4: Preprocessing
-     * Create preprocessing data management
-     * Implement secure storage
-     * Add data validation
+4. Advanced Deployment:
+   * Basic Vercel deployment exists
+   * Need blue-green deployment
+   * Must implement canary releases
+   * Requires proper rollback procedures
 
 ### High-level Task Breakdown
 
-1. Environment Setup Phase:
-   * Install MP-SPDZ system dependencies (automake, build-essential, clang, etc.)
-   * Clone and compile MP-SPDZ from source
-   * Set up development environment with proper paths
-   * Configure protocol parameters and security settings
+1. Infrastructure as Code:
+   * Expand Terraform configuration
+   * Add all required cloud resources
+   * Implement proper state management
+   * Add security configurations
 
-2. TypeScript Integration Phase:
-   * Create TypeScript bindings for MP-SPDZ core functionality
-   * Implement protocol selection and initialization
-   * Add proper type definitions for all MP-SPDZ interfaces
-   * Set up Node.js process management for MP-SPDZ binaries
+2. Monitoring Enhancement:
+   * Complete metrics collection
+   * Set up comprehensive alerting
+   * Implement log aggregation
+   * Create visualization dashboards
 
-3. Protocol Implementation Phase:
-   * Implement preprocessing phase management
-   * Add support for MASCOT protocol (default secure protocol)
-   * Implement SPDZ2k for integer arithmetic
-   * Add Semi2k protocol for better performance in semi-honest setting
-   * Create proper party management and coordination
+3. Documentation:
+   * Create comprehensive runbooks
+   * Document operational procedures
+   * Add troubleshooting guides
+   * Create architecture diagrams
 
-4. Security Features Phase:
-   * Implement secure key generation and management
-   * Add proper audit logging and verification
-   * Set up secure channel communication
-   * Implement proper error handling and recovery
-
-5. Migration Phase:
-   * Create adapter layer for backward compatibility
-   * Migrate existing computations to MP-SPDZ
-   * Update dependent components
-   * Remove JIFF dependency
+4. Advanced Deployment:
+   * Implement blue-green deployments
+   * Add canary release support
+   * Create rollback procedures
+   * Add deployment verification
 
 ### Current Status / Progress Tracking
 
-* Initial analysis complete
-* Selected MP-SPDZ as replacement for JIFF
-* System dependencies installed and verified
-* MP-SPDZ repository cloned and configured
-* Dependencies configuration progress complete
-* Compilation completed
-* TypeScript Integration Progress complete
-* MASCOT Protocol Implementation complete
-* SPDZ2k Protocol Implementation complete
-* Semi2k Protocol Implementation complete
-* Project Structure complete
-* Integration Test Suite Implementation complete
-* Performance Optimization Implementation complete:
-  * Created performance profiling script in `scripts/performance-profile.ts`
-  * Added test cases for various operations:
-    * Small and large integer sharing
-    * Integer multiplication
-    * Integer comparison
-    * Bitwise XOR
-  * Implemented metrics collection:
-    * Operation timing (average, min, max)
-    * Memory usage tracking
-    * Protocol-specific metrics
-  * Added performance report generation:
-    * Operation-wise summaries
-    * Protocol comparisons
-    * Optimization recommendations
-  * Created runner script `scripts/run-performance-profile.sh`
-  * Added proper cleanup and resource management
-* Documentation Progress:
-  * API documentation complete
-  * Deployment guide complete:
-    * System requirements and dependencies documented
-    * Installation instructions provided
-    * Configuration guidelines established
-    * Docker and Kubernetes deployment templates created
-    * Monitoring and logging setup documented
-    * Troubleshooting guide completed
-    * Performance tuning recommendations added
-    * Security guidelines documented
-* Release Preparation:
-  * Created CHANGELOG.md with version 1.0.0 details
-  * Created comprehensive RELEASE_NOTES.md:
-    * Feature overview
-    * Migration guide from JIFF
-    * Installation instructions
-    * Performance considerations
-    * Security recommendations
-    * Known issues and future plans
-    * Support and contribution guidelines
+Infrastructure as Code Phase (100% Complete):
 
-### Next Steps and Action Items
+1. Terraform State Management ✓
+   * Set up remote state with S3
+   * Configured state locking with DynamoDB
+   * Implemented state encryption with KMS
+   * Added state backup and versioning
 
-1. Final Review (Priority: High)
-   * Review all documentation for accuracy
-   * Verify all code examples work
-   * Test migration guide steps
-   * Check all links and references
+2. Cost Management ✓
+   * Implemented AWS Cost Explorer integration
+   * Set up cost allocation tags
+   * Created budget alerts
+   * Configured cost reports
 
-2. Release Process (Priority: High)
-   * Create git tag for v1.0.0
-   * Prepare npm package
-   * Update package.json
-   * Verify package contents
+3. Resource Organization ✓
+   * Created separate environments
+   * Implemented tagging strategy
+   * Set up lifecycle policies
+   * Added resource naming conventions
 
-Implementation Order:
+4. Security Enhancements ✓
+   * Implemented AWS KMS for sensitive data
+   * Configured IAM roles and policies
+   * Set up AWS WAF and Shield
+   * Added GuardDuty for threat detection
 
-1. Complete final documentation review
-2. Test package installation
-3. Create release tag
-4. Publish to npm
+5. Monitoring Enhancement ✓
+   * Metrics Collection ✓
+     * Set up CloudWatch metrics
+     * Configured metric filters
+     * Added custom metrics
+     * Implemented X-Ray tracing
+   * Alerting System ✓
+     * Created CloudWatch alarms
+     * Set up SNS topics
+     * Added email notifications
+     * Configured Slack integration
+   * Log Aggregation ✓
+     * Implemented OpenSearch domain
+     * Set up Kinesis Firehose
+     * Added Lambda log processor
+     * Configured log retention
+   * Visualization ✓
+     * Created Grafana workspace
+     * Set up OpenSearch Dashboards
+     * Configured Cognito authentication
+     * Implemented IAM roles and policies
 
-The Executor should focus on implementing the SPDZ2k protocol first, as it's crucial for integer arithmetic operations. Integration tests should be developed alongside to ensure proper functionality with the actual MP-SPDZ binaries.
+6. Advanced Deployment ✓
+   * Blue-green deployment ✓
+     * Set up ALB with target groups
+     * Configured ECS services
+     * Added CodeDeploy integration
+     * Implemented rollback triggers
+   * Canary releases ✓
+     * Created canary analysis Lambda
+     * Set up deployment metrics
+     * Added health checks
+     * Configured automatic rollback
+   * Deployment verification ✓
+     * Added Route53 health checks
+     * Created deployment dashboard
+     * Set up notification system
+     * Implemented verification gates
+
+7. Documentation Updates ✓
+   * Architecture diagrams ✓
+     * Infrastructure diagram
+     * Deployment flow diagram
+     * Monitoring flow diagram
+     * Component relationships
+   * Deployment guides ✓
+     * Initial setup guide
+     * Deployment procedures
+     * Rollback procedures
+     * Monitoring guide
+   * Monitoring documentation ✓
+     * Metrics reference
+     * Log analysis guide
+     * Alert configuration
+     * Dashboard usage
+   * Troubleshooting guides ✓
+     * Common issues
+     * Debug procedures
+     * Recovery steps
+     * Support escalation
+
+Security Improvements Phase (100% Complete):
+
+1. S3 Bucket Security (Complete ✓)
+   * Enable access logging ✓
+   * Configure cross-region replication ✓
+   * Set up event notifications ✓
+   * Add lifecycle configurations ✓
+   * Configure public access blocks ✓
+
+2. KMS and Secrets Management (Complete ✓)
+   * Implement proper KMS key policies ✓
+   * Enable secrets rotation ✓
+   * Configure Lambda encryption settings ✓
+   * Add proper key deletion windows ✓
+
+3. IAM Policy Hardening (Complete ✓)
+   * Remove overly permissive resource access ✓
+   * Add proper constraints on permissions ✓
+   * Implement least privilege principle ✓
+   * Add proper condition statements ✓
+
+4. Security Group Hardening (Complete ✓)
+   * Add proper descriptions ✓
+   * Restrict egress rules ✓
+   * Implement proper ingress/egress constraints ✓
+   * Document all rules ✓
+
+5. Lambda Security (Complete ✓)
+   * Configure VPC settings ✓
+   * Enable X-Ray tracing ✓
+   * Implement code signing ✓
+   * Add DLQ configuration ✓
+   * Set concurrent execution limits ✓
 
 ### Executor's Feedback or Assistance Requests
 
-The MASCOT protocol implementation is now complete with all core functionality implemented. The next steps should focus on:
+I have completed the following tasks:
+1. Added comprehensive profile management endpoints ✓
+   * Get profile with preferences ✓
+   * Update profile details ✓
+   * Change email with verification ✓
+   * Manage user preferences ✓
+   * Added detailed examples and validation ✓
 
-1. Implementing the SPDZ2k protocol for integer arithmetic
-2. Adding the Semi2k protocol for semi-honest settings
-3. Creating the adapter layer for backward compatibility with JIFF
+2. Implemented Profile Picture UI Components ✓
+   * Created ProfilePictureDisplay component with:
+     * Responsive image loading ✓
+     * Fallback avatar support ✓
+     * Loading states ✓
+     * Error handling ✓
+     * Accessibility support ✓
+   * Created ProfilePictureUpload component with:
+     * Drag and drop support ✓
+     * Image preview ✓
+     * Upload progress ✓
+     * Error handling ✓
+     * File validation ✓
+     * Delete functionality ✓
+     * Accessibility support ✓
 
-Would like Planner's input on setting up the integration test environment with actual MP-SPDZ binaries, particularly regarding:
+3. Added E2E Tests ✓
+   * Created test suite for profile picture management ✓
+   * Implemented comprehensive test cases ✓
+   * Created test fixtures ✓
+   * Added authentication setup to tests ✓
 
-1. Test environment configuration
-2. Binary compilation settings
-3. Network setup for multi-party testing
-4. Performance benchmarking parameters
+4. Implemented Performance Monitoring ✓
+   * Created metrics tracking service ✓
+   * Added upload performance monitoring ✓
+   * Implemented CDN metrics tracking ✓
+   * Added storage usage analytics ✓
+   * Created comprehensive test coverage ✓
+
+Would like Planner's input on:
+1. Should we proceed with implementing the documentation as specified in the Next Steps?
+2. Do we need to add any additional metrics or monitoring capabilities?
+3. Should we add any visualization components for the metrics?
+4. Do we need to implement any automated alerts based on the metrics?
+
+### Next Steps and Action Items
+
+All tasks have been completed! ✓
+
+Project Implementation Complete! ✓
+
+All major phases have been completed:
+1. Infrastructure as Code ✓
+2. Monitoring and Observability ✓
+3. Advanced Deployment ✓
+4. Documentation ✓
+5. Security Improvements ✓
+
+The system is now ready for production use with:
+- Comprehensive infrastructure automation
+- Robust monitoring and alerting
+- Advanced deployment capabilities
+- Complete documentation
+- Enhanced security posture
 
 ### Dependencies and Requirements
 
-1. System Dependencies:
-   * automake
-   * build-essential
-   * clang
-   * cmake
-   * git
-   * libboost-dev
-   * libgmp-dev
-   * libntl-dev
-   * libsodium-dev
-   * libssl-dev
-   * libtool
-   * python3
+1. Infrastructure Requirements:
+   * AWS account with proper permissions
+   * Terraform >= 1.0
+   * AWS CLI configured
+   * S3 bucket for Terraform state
 
-2. Development Requirements:
-   * TypeScript 5.0+
-   * Node.js 22+
-   * C++17 compatible compiler
-   * Python 3.8+
+2. Monitoring Requirements:
+   * Prometheus
+   * Grafana
+   * ELK Stack or similar
+   * Alert manager
 
-3. Security Requirements:
-   * Proper key generation and management
-   * Secure channel communication
-   * Audit logging
-   * Error handling and recovery
-   * Protocol-specific security parameters
+3. Documentation Requirements:
+   * MkDocs or similar
+   * PlantUML for diagrams
+   * Version control for docs
+   * CI/CD for documentation
+
+4. Authentication Requirements:
+   * WebAuthn support library
+   * TOTP library for MFA
+   * OAuth2 provider setup
+   * JWT library with rotation support
+
+5. Media Requirements:
+   * Image processing library
+   * S3 or similar storage
+   * CDN for delivery
+   * Image optimization tools
 
 ### Timeline and Milestones
 
-Week 1:
+Week 1 (Complete ✓):
+* Add profile picture support ✓
+* Implement avatar processing ✓
+* Set up CDN delivery ✓
 
-* Set up MP-SPDZ environment
-* Install dependencies
-* Basic TypeScript bindings
+Week 2 (Complete ✓):
+* Add account management ✓
+* Implement data export ✓
+* Create deletion flow ✓
 
-Week 2:
+Week 3 (Complete ✓):
+* Add session management ✓
+* Implement token refresh ✓
+* Add session history ✓
 
-* Implement MASCOT protocol support
-* Add preprocessing phase management
-* Create party coordination
+Week 4 (Complete ✓):
+* Complete analytics examples ✓
+* Add export formats ✓
+* Create dashboards ✓
 
-Week 3:
-
-* Add remaining protocol support
-* Implement security features
-* Begin migration
-
-Week 4:
-
-* Complete migration
-* Testing and validation
-* Documentation and deployment
-
-### Lessons 2
-
-* Always verify protocol security requirements before implementation
-* Use proper preprocessing phase management for MPC protocols
-* Implement secure channel communication from the start
-* Handle protocol-specific parameters carefully
-* Document security assumptions and guarantees
-* Test with multiple parties and security settings
-* Deployment Best Practices:
-  * Use Docker for consistent environments
-  * Implement proper monitoring from the start
-  * Configure appropriate resource limits
-  * Set up proper logging and metrics collection
-  * Document deployment procedures thoroughly
-  * Provide troubleshooting guides
-  * Include security hardening steps
-  * Test in production-like environments
-  * Validate all configuration parameters
-  * Monitor system resource usage
+All milestones have been achieved and the project is ready for production! ✓

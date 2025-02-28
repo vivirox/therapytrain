@@ -27,26 +27,26 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Create .env.test file
         run: |
           cat > .env.test << EOL
           # Test Environment Configuration
           NODE_ENV=test
-          
+
           # Supabase (Mock values for testing)
           NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
           NEXT_PUBLIC_SUPABASE_ANON_KEY=test-anon-key
           SUPABASE_SERVICE_KEY=test-service-key
-          
+
           # Redis (Mock values for testing)
           UPSTASH_REDIS_REST_URL=http://localhost:6379
           UPSTASH_REDIS_REST_TOKEN=test-redis-token
-          
+
           # Email (Mock settings for testing)
           RESEND_API_KEY=test-resend-key
           EMAIL_FROM=test@example.com
-          
+
           # AI Services (Mock keys for testing)
           ANTHROPIC_API_KEY=test-anthropic-key
           OPENAI_API_KEY=test-openai-key
@@ -54,32 +54,32 @@ jobs:
           AZURE_OPENAI_MODEL_DEPLOYMENT=test-deployment
           AZURE_OPENAI_API_VERSION=2023-12-01-preview
           AZURE_OPENAI_API_ENDPOINT=http://localhost:8080
-          
+
           # Security (Test values)
           JWT_SECRET=test-jwt-secret
           ENCRYPTION_KEY=test-encryption-key-must-be-32-chars-12
-          
+
           # ZK System (Disabled for tests)
           ZK_ENABLED=false
           ZK_PROVING_KEY_PATH=./test/keys/proving_key.json
           ZK_VERIFICATION_KEY_PATH=./test/keys/verification_key.json
-          
+
           # Testing Flags
           SKIP_API_TESTS=true
           USE_MOCKS=true
           TEST_USER_EMAIL=test@example.com
           TEST_USER_PASSWORD=test-password
-          
+
           # Analytics (Disabled for tests)
           NEXT_PUBLIC_ANALYTICS_ENABLED=false
           EOL
-      
+
       - name: Check env files
         run: |
           ls -la
           echo "Current directory: $(pwd)"
           find . -name ".env.test" -o -name ".env.example"
-      
+
       - name: Create local env files
         run: |
           cat > env-test.txt << EOL
@@ -88,17 +88,17 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
           NEXT_PUBLIC_SUPABASE_ANON_KEY=test-anon-key
           EOL
-          
+
           cat > env-example.txt << EOL
           # Example Configuration for CI
           NODE_ENV=production
           NEXT_PUBLIC_SUPABASE_URL=your-url
           NEXT_PUBLIC_SUPABASE_ANON_KEY=your-key
           EOL
-          
+
           ls -la
           cat env-test.txt
-          
+
       - name: Upload env files
         uses: actions/upload-artifact@v4
         with:
@@ -112,25 +112,25 @@ jobs:
     needs: setup-env
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Download env files
         uses: actions/download-artifact@v4
         with:
           name: env-files
-          
+
       - name: Check downloaded files and prepare environment
         run: |
           ls -la
           echo "Downloaded files:"
           cat env-test.txt
-          
+
           # Create .env.test from the downloaded file
           cp env-test.txt .env.test
           cp env-example.txt .env.example
-          
+
           echo "Environment files created:"
           ls -la .env*
-      
+
       - name: Install pnpm
         uses: pnpm/action-setup@v4
         with:
@@ -186,7 +186,7 @@ jobs:
     needs: setup-env
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Download env files
         uses: actions/download-artifact@v4
         with:
@@ -195,7 +195,7 @@ jobs:
       - name: Set up Python 3.10
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: "3.10"
           cache: pip
 
       - name: Install dependencies
@@ -217,13 +217,72 @@ jobs:
             echo "No Python tests directory found, skipping"
           fi
 
+  terraform-validation:
+    name: Terraform Validation
+    runs-on: ubuntu-latest
+    needs: setup-env
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.7.0
+          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+
+      - name: Initialize Terraform
+        run: |
+          cd terraform
+          terraform init -backend=false
+
+      - name: Terraform Format
+        run: |
+          cd terraform
+          terraform fmt -check -recursive
+
+      - name: Terraform Validate
+        run: |
+          cd terraform
+          terraform validate
+
+      - name: Run tfsec
+        uses: aquasecurity/tfsec-action@v1.0.0
+        with:
+          working_directory: terraform
+          format: sarif
+          additional_args: "--out tfsec.sarif"
+
+      - name: Upload tfsec scan results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: tfsec.sarif
+
+      - name: Run checkov
+        uses: bridgecrewio/checkov-action@master
+        with:
+          directory: terraform
+          framework: terraform
+          soft_fail: true
+          download_external_modules: true
+          log_level: WARNING
+          quiet: true
+          skip_path: "terraform/examples"
+          output: sarif
+
+      - name: Upload checkov scan results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: results.sarif
+
   e2e-tests:
     runs-on: ubuntu-latest
-    needs: [js-tests, python-tests]
+    needs: [js-tests, python-tests, terraform-validation]
     if: false # Disabling E2E tests temporarily until environment is fully configured
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Download env files
         uses: actions/download-artifact@v4
         with:
@@ -238,7 +297,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: 'pnpm'
+          cache: "pnpm"
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile

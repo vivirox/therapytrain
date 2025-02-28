@@ -883,4 +883,31 @@ export class AdvancedAIService {
       metrics: { ...metrics, sensitiveData: undefined },
     });
   }
-} 
+
+  public async generateResponse(
+    input: string,
+    context: EmotionalContext,
+    config: AIModelConfig
+  ): Promise<EmotionalResponse> {
+    // Use ensemble of models for better response generation
+    const responses = await Promise.all(
+      config.ensembleConfig.models.map(modelId => 
+        this.getModelPrediction(modelId, {
+          input,
+          context,
+          temperature: config.conversationConfig.temperature,
+          maxTokens: config.conversationConfig.maxTokens
+        })
+      )
+    );
+
+    // Apply weighted voting based on model performance
+    const finalResponse = await this.aggregateResponses(
+      responses,
+      config.ensembleConfig.modelWeights
+    );
+
+    // Apply emotional context
+    return this.enrichResponseWithEmotion(finalResponse, context);
+  }
+}

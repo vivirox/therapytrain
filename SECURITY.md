@@ -31,3 +31,21 @@ This information will help us triage your report more quickly.
 ## Preferred Languages
 
 We prefer all communications to be in English.
+
+## Responsible Disclosure
+
+We encourage responsible disclosure of security vulnerabilities. If you discover a vulnerability, please report it to us as described in the "Reporting a Vulnerability" section. We appreciate your efforts to help us improve the security of our project.
+
+## Supported Versions and Security Updates
+
+| Version | Supported          | Security Updates Policy |
+| ------- | ------------------ | ----------------------- |
+| 1.0.x   | :white_check_mark: | We will provide security updates for this version for the next 12 months. |
+
+## PGP Key
+
+We do not currently have a PGP key for secure communication. We will consider adding one in the future.
+
+## Bug Bounty Program
+
+We do not currently have a bug bounty program. We will consider adding one in the future.

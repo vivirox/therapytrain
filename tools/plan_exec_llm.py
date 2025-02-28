@@ -1,57 +1,64 @@
 #!/usr/bin/env python3
 
 import argparse
-import os
-from pathlib import Path
-from openai import OpenAI
-from dotenv import load_dotenv
 import sys
-import time
-from token_tracker import TokenUsage, APIResponse, get_token_tracker
+from pathlib import Path
+
+from dotenv import load_dotenv
 from llm_api import query_llm as llm_query
 
-STATUS_FILE = '.cursorrules'
+STATUS_FILE = ".cursorrules"
+
 
 def load_environment():
     """Load environment variables from .env files"""
-    env_files = ['.env.local', '.env', '.env.example']
+    env_files = [".env.local", ".env", ".env.example"]
     env_loaded = False
-    
+
     for env_file in env_files:
         env_path = Path(env_file)
         if env_path.exists():
             load_dotenv(dotenv_path=env_path)
             env_loaded = True
             break
-    
+
     if not env_loaded:
-        print("Warning: No .env files found. Using system environment variables only.", file=sys.stderr)
+        print(
+            "Warning: No .env files found. Using system environment variables only.",
+            file=sys.stderr,
+        )
+
 
 def read_plan_status():
     """Read the content of the plan status file, only including content after Multi-Agent Scratchpad"""
     status_file = STATUS_FILE
     try:
-        with open(status_file, 'r', encoding='utf-8') as f:
+        with open(status_file, "r", encoding="utf-8") as f:
             content = f.read()
             # Find the Multi-Agent Scratchpad section
             scratchpad_marker = "## Scratchpad"
             if scratchpad_marker in content:
-                return content[content.index(scratchpad_marker):]
+                return content[content.index(scratchpad_marker) :]
             else:
-                print(f"Warning: '{scratchpad_marker}' section not found in {status_file}", file=sys.stderr)
+                print(
+                    f"Warning: '{scratchpad_marker}' section not found in {status_file}",
+                    file=sys.stderr,
+                )
                 return ""
     except Exception as e:
         print(f"Error reading {status_file}: {e}", file=sys.stderr)
         return ""
 
+
 def read_file_content(file_path):
     """Read content from a specified file"""
     try:
-        with open(file_path, 'r', encoding='utf-8') as f:
+        with open(file_path, "r", encoding="utf-8") as f:
             return f.read()
     except Exception as e:
         print(f"Error reading {file_path}: {e}", file=sys.stderr)
         return None
+
 
 def query_llm(plan_content, user_prompt=None, file_content=None):
     """Query the LLM with combined prompts"""
@@ -85,16 +92,29 @@ We will do the actual changes in the .cursorrules file.
 
     try:
         # Use the shared LLM API with OpenAI and smollm2-instruct model
-        response = llm_query(combined_prompt, provider="openai", model="smollm2-instruct")
+        response = llm_query(
+            combined_prompt, provider="openai", model="smollm2-instruct"
+        )
         return response
     except Exception as e:
         print(f"Error querying LLM: {e}", file=sys.stderr)
         return None
 
+
 def main():
-    parser = argparse.ArgumentParser(description='Query LLM with project plan context')
-    parser.add_argument('--prompt', type=str, help='Additional prompt to send to the LLM', required=False)
-    parser.add_argument('--file', type=str, help='Path to a file whose content should be included in the prompt', required=False)
+    parser = argparse.ArgumentParser(description="Query LLM with project plan context")
+    parser.add_argument(
+        "--prompt",
+        type=str,
+        help="Additional prompt to send to the LLM",
+        required=False,
+    )
+    parser.add_argument(
+        "--file",
+        type=str,
+        help="Path to a file whose content should be included in the prompt",
+        required=False,
+    )
     args = parser.parse_args()
 
     # Load environment variables
@@ -113,14 +133,19 @@ def main():
     # Query LLM and output response
     response = query_llm(plan_content, args.prompt, file_content)
     if response:
-        print('Following is the instruction on how to revise the Multi-Agent Scratchpad section in .cursorrules:')
-        print('========================================================')
+        print(
+            "Following is the instruction on how to revise the Multi-Agent Scratchpad section in .cursorrules:"
+        )
+        print("========================================================")
         print(response)
-        print('========================================================')
-        print('Now please do the actual changes in the .cursorrules file. And then switch to the executor role, and read the content of the file to decide what to do next.')
+        print("========================================================")
+        print(
+            "Now please do the actual changes in the .cursorrules file. And then switch to the executor role, and read the content of the file to decide what to do next."
+        )
     else:
         print("Failed to get response from LLM")
         sys.exit(1)
 
+
 if __name__ == "__main__":
-    main() 
+    main()

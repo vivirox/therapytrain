@@ -14,12 +14,21 @@ interface AIModelConfig {
   ensembleConfig: {
     votingStrategy: 'majority' | 'weighted' | 'adaptive';
     weightUpdateInterval: number;
+    modelWeights: Map<string, number>;  // Add weights for ensemble
   };
   onlineLearningConfig: {
     learningRate: number;
     batchSize: number;
     updateThreshold: number;
     maxMemorySize: number;
+  };
+  conversationConfig: {
+    contextWindow: number;
+    temperature: number;
+    maxTokens: number;
+    presencePenalty: number;
+    frequencyPenalty: number;
+    responseFormats: string[];
   };
 }
 

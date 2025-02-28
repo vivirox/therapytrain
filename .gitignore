@@ -45,3 +45,8 @@ yarn.lock
 .yarnrc
 .yarnrc.yml
 MP-SPDZ/
+
+# Playwright
+playwright/.auth/
+playwright-report/
+test-results/

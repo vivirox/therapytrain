@@ -1,14 +1,21 @@
 name: gradiant
 channels:
-  - anaconda
   - conda-forge
   - defaults
 dependencies:
   - python=3.10.16
-  - anaconda
   - pip
-  - pyppeteer
+  - nodejs=22
+  - conda-forge::playwright
+  - conda-forge::pyppeteer
+  - conda-forge::pytest
+  - conda-forge::pytest-asyncio
+  - conda-forge::pytest-cov
+  - conda-forge::black
+  - conda-forge::flake8
+  - conda-forge::mypy
+  - conda-forge::isort
+  - conda-forge::pre-commit
   - pip:
     - -r requirements.txt
     - -r tools/requirements.txt
-    - python-dotenv
