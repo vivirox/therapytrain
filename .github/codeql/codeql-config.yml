@@ -1,0 +1,31 @@
+name: Gradiant CodeQL config
+
+queries:
+  - uses: security-and-quality
+
+paths:
+  - src
+  - app
+  - components
+  - lib
+  - utils
+  - pages
+  - api
+  - hooks
+
+paths-ignore:
+  - "**/*.test.ts"
+  - "**/*.test.tsx"
+  - "**/*.spec.ts"
+  - "**/*.spec.tsx"
+  - "**/node_modules"
+  - "**/dist"
+  - "**/build"
+  - "**/.next"
+  - "**/public"
+  - "**/static"
+  - "**/coverage"
+  - "**/test"
+  - "**/tests"
+  - "**/__tests__"
+  - "**/__mocks__"

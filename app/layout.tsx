@@ -2,7 +2,12 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 
-const inter = Inter({ subsets: ['latin'] });
+// Font must be initialized at the module scope with a const
+const inter = Inter({
+  subsets: ['latin'],
+  display: 'swap',
+  fallback: ['system-ui', 'sans-serif']
+});
 
 export const metadata: Metadata = {
   title: 'Profile Picture Management',
@@ -23,4 +28,4 @@ export default function RootLayout({
       </body>
     </html>
   );
-} 
+}

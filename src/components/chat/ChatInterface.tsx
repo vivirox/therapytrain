@@ -4,7 +4,7 @@ import { useWebSocket } from '@/hooks/useWebSocket';
 import { useAuth } from '@/hooks/useAuth';
 import { Message, ChatSession, MessageStatus } from '@/types/chat';
 import { useToast } from '@/hooks/useToast';
-import { useSupabaseClient } from '@supabase/auth-helpers-react';
+import { createBrowserClient } from '@supabase/ssr';
 import { ZKService } from '@/lib/zk/ZKService';
 import { Spinner } from '@/components/ui/Spinner';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
@@ -49,7 +49,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
   const toast = useToast();
-  const supabase = useSupabaseClient();
+  const supabase = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_KEY);
   const zkService = ZKService.getInstance();
   const chatService = ChatService.getInstance();
   const searchService = MessageSearchService.getInstance(supabase, redis);

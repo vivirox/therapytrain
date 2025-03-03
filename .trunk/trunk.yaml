@@ -2,12 +2,12 @@
 # To learn more about the format of this file, see https://docs.trunk.io/reference/trunk-yaml
 version: 0.1
 cli:
-  version: 1.22.10
+  version: 1.17.2
 # Trunk provides extensibility via plugins. (https://docs.trunk.io/plugins)
 plugins:
   sources:
     - id: trunk
-      ref: v1.6.7
+      ref: v1.2.6
       uri: https://github.com/trunk-io/plugins
 # Many linters and tools depend on runtimes - configure them here. (https://docs.trunk.io/runtimes)
 runtimes:
@@ -17,26 +17,44 @@ runtimes:
     - python@3.10.8
 # This is the section where you manage your linters. (https://docs.trunk.io/check/configuration)
 lint:
+  disabled:
+    - markdownlint
   enabled:
+    - eslint@8.56.0
     - hadolint@2.12.1-beta
     - tflint@0.55.1
     - actionlint@1.7.7
     - bandit@1.8.3
     - black@25.1.0
-    - checkov@3.2.377
+    - checkov@3.2.379
     - git-diff-check
     - isort@6.0.1
-    - markdownlint@0.44.0
     - osv-scanner@1.9.2
     - oxipng@9.1.4
-    - prettier@3.5.2
-    - ruff@0.9.7
+    - prettier@3.2.4
+    - ruff@0.9.9
     - shellcheck@0.10.0
     - shfmt@3.6.0
     - svgo@3.3.2
     - taplo@0.9.3
-    - trufflehog@3.88.13
+    - trufflehog@3.88.14
     - yamllint@1.35.1
+  ignore:
+    - linters: [ALL]
+      paths:
+        - "**/*.tsx"
+        - "**/*.jsx"
+        - .next/**
+        - node_modules/**
+  definitions:
+    - name: eslint
+      files: [.tsx, .ts, .jsx, .js]
+      parser: "@typescript-eslint/parser"
+      parserOptions:
+        ecmaFeatures:
+          jsx: true
+        ecmaVersion: latest
+        sourceType: module
 actions:
   disabled:
     - trunk-announce

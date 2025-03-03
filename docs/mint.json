@@ -1,27 +1,29 @@
 {
   "$schema": "https://mintlify.com/schema.json",
   "name": "Gradiant Documentation",
-  "theme": "quill",
   "logo": {
-    "dark": "/logo/dark.svg",
-    "light": "/logo/light.svg",
-    "href": "/"
+    "light": "/logo/light.png",
+    "dark": "/logo/dark.png"
   },
-  "favicon": "/favicon.svg",
+  "favicon": "/favicon.png",
   "colors": {
-    "primary": "#0A6C74",
-    "light": "#E6F6F7",
-    "dark": "#0A6C74"
+    "primary": "#0D9373",
+    "light": "#07C983",
+    "dark": "#0D9373",
+    "anchors": {
+      "from": "#0D9373",
+      "to": "#07C983"
+    }
   },
   "topbarLinks": [
     {
       "name": "Support",
-      "url": "mailto:support@gemcity.xyz"
+      "url": "mailto:support@gradiant.dev"
     }
   ],
   "topbarCtaButton": {
     "name": "Dashboard",
-    "url": "/dashboard"
+    "url": "https://dashboard.gradiant.dev"
   },
   "tabs": [
     {
@@ -39,65 +41,66 @@
   ],
   "anchors": [
     {
-      "name": "Documentation",
-      "icon": "book-open-cover",
-      "url": "/docs"
+      "name": "API Reference",
+      "icon": "rectangle-terminal",
+      "url": "api"
+    },
+    {
+      "name": "Components",
+      "icon": "cube",
+      "url": "components"
     },
     {
       "name": "GitHub",
       "icon": "github",
-      "url": "https://github.com/vivirox/gradiant"
+      "url": "https://github.com/gradiant"
     }
   ],
   "navigation": [
     {
-      "group": "Get Started",
+      "group": "Getting Started",
       "pages": [
         "introduction",
-        "quickstart",
-        "development"
+        "guides/getting-started",
+        {
+          "group": "Security",
+          "pages": [
+            "security/overview",
+            "security/authentication",
+            "security/encryption",
+            "security/compliance"
+          ]
+        }
       ]
     },
     {
-      "group": "Core Concepts",
+      "group": "API Documentation",
       "pages": [
-        "core/architecture",
-        "core/authentication",
-        "core/sessions",
-        "core/ai-integration"
+        "api/overview",
+        {
+          "group": "Endpoints",
+          "pages": [
+            "api/auth",
+            "api/users",
+            "api/sessions",
+            "api/analytics"
+          ]
+        }
       ]
     },
     {
-      "group": "Testing",
+      "group": "Components",
       "pages": [
-        "testing/overview",
-        "testing/patterns",
-        "testing/execution",
-        "testing/debugging",
-        "testing/coverage"
-      ]
-    },
-    {
-      "group": "Deployment",
-      "pages": [
-        "deployment/requirements",
-        "deployment/setup",
-        "deployment/configuration",
-        "deployment/monitoring"
-      ]
-    },
-    {
-      "group": "API Reference",
-      "pages": [
-        "api-reference/introduction",
-        "api-reference/authentication",
-        "api-reference/sessions",
-        "api-reference/users"
+        "components/overview",
+        "components/chat",
+        "components/analytics",
+        "components/security"
       ]
     }
   ],
   "footerSocials": {
-    "github": "https://github.com/vivirox/gradiant"
+    "github": "https://github.com/gradiant",
+    "discord": "https://discord.gg/gradiant"
   },
   "navigationTabs": {
     "mental": [
@@ -178,5 +181,19 @@
         ]
       }
     ]
-  }
+  },
+  "analytics": {
+    "ga4": {
+      "measurementId": "G-XXXXXXXXXX"
+    }
+  },
+  "feedback": {
+    "thumbs": true,
+    "suggestEdit": true
+  },
+  "modeToggle": {
+    "default": "dark",
+    "isHidden": false
+  },
+  "backgroundImage": "/background.png"
 } 

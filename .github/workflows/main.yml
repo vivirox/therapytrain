@@ -12,15 +12,13 @@ permissions:
   pull-requests: write
 
 env:
-  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-  # Copy environment variables from secrets or provide defaults
-  NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL || 'http://127.0.0.1:54321' }}
-  NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'test-anon-key' }}
+  NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL || 'http://127.0.0.1:54321' }}
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'test-anon-key' }}
   RESEND_API_KEY: ${{ secrets.RESEND_API_KEY || 'test-resend-key' }}
   EMAIL_FROM: ${{ secrets.EMAIL_FROM || 'test@example.com' }}
   ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY || 'test-anthropic-key' }}
   OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY || 'test-openai-key' }}
+  GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY || 'test-google-key' }}
 
 jobs:
   setup-env:
@@ -35,8 +33,8 @@ jobs:
           NODE_ENV=test
 
           # Supabase (Mock values for testing)
-          NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
-          NEXT_PUBLIC_SUPABASE_ANON_KEY=test-anon-key
+          NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY}
           SUPABASE_SERVICE_KEY=test-service-key
 
           # Redis (Mock values for testing)
@@ -44,12 +42,12 @@ jobs:
           UPSTASH_REDIS_REST_TOKEN=test-redis-token
 
           # Email (Mock settings for testing)
-          RESEND_API_KEY=test-resend-key
-          EMAIL_FROM=test@example.com
+          RESEND_API_KEY=${RESEND_API_KEY}
+          EMAIL_FROM=${EMAIL_FROM}
 
           # AI Services (Mock keys for testing)
-          ANTHROPIC_API_KEY=test-anthropic-key
-          OPENAI_API_KEY=test-openai-key
+          ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+          OPENAI_API_KEY=${OPENAI_API_KEY}
           AZURE_OPENAI_API_KEY=test-azure-openai-key
           AZURE_OPENAI_MODEL_DEPLOYMENT=test-deployment
           AZURE_OPENAI_API_VERSION=2023-12-01-preview
@@ -85,8 +83,8 @@ jobs:
           cat > env-test.txt << EOL
           # Test Environment Configuration for CI
           NODE_ENV=test
-          NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
-          NEXT_PUBLIC_SUPABASE_ANON_KEY=test-anon-key
+          NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY}
           EOL
 
           cat > env-example.txt << EOL
@@ -100,7 +98,7 @@ jobs:
           cat env-test.txt
 
       - name: Upload env files
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: env-files
           path: |
@@ -114,22 +112,9 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Download env files
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v3
         with:
           name: env-files
-
-      - name: Check downloaded files and prepare environment
-        run: |
-          ls -la
-          echo "Downloaded files:"
-          cat env-test.txt
-
-          # Create .env.test from the downloaded file
-          cp env-test.txt .env.test
-          cp env-example.txt .env.example
-
-          echo "Environment files created:"
-          ls -la .env*
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
@@ -176,7 +161,7 @@ jobs:
           DOTENV_CONFIG_PATH: .env.test
 
       - name: Upload coverage reports
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: coverage-report
           path: coverage/
@@ -188,12 +173,12 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Download env files
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v3
         with:
           name: env-files
 
       - name: Set up Python 3.10
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v4
         with:
           python-version: "3.10"
           cache: pip
@@ -207,9 +192,9 @@ jobs:
 
       - name: Run tests
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY || 'test-anthropic-key' }}
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY || 'test-openai-key' }}
-          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY || 'test-google-key' }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
         run: |
           if [ -d "tests" ]; then
             PYTHONPATH=. python -m unittest discover tests/
@@ -225,10 +210,10 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+        uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: 1.7.0
-          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+          cli_config_credentials_token: ${{ github.token }}
 
       - name: Initialize Terraform
         run: |
@@ -246,11 +231,11 @@ jobs:
           terraform validate
 
       - name: Run tfsec
-        uses: aquasecurity/tfsec-action@v1.0.0
+        uses: aquasecurity/tfsec-action@v1.0.3
         with:
           working_directory: terraform
           format: sarif
-          additional_args: "--out tfsec.sarif"
+          additional_args: --out tfsec.sarif
 
       - name: Upload tfsec scan results
         uses: github/codeql-action/upload-sarif@v3
@@ -259,7 +244,7 @@ jobs:
           sarif_file: tfsec.sarif
 
       - name: Run checkov
-        uses: bridgecrewio/checkov-action@master
+        uses: bridgecrewio/checkov-action@v12
         with:
           directory: terraform
           framework: terraform
@@ -267,8 +252,8 @@ jobs:
           download_external_modules: true
           log_level: WARNING
           quiet: true
-          skip_path: "terraform/examples"
-          output: sarif
+          skip_path: terraform/examples
+          output_format: sarif
 
       - name: Upload checkov scan results
         uses: github/codeql-action/upload-sarif@v3
@@ -284,7 +269,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Download env files
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v3
         with:
           name: env-files
 
@@ -297,7 +282,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: "pnpm"
+          cache: pnpm
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -320,7 +305,7 @@ jobs:
           NODE_ENV: test
           DOTENV_CONFIG_PATH: .env.test
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v3
         if: always()
         with:
           name: playwright-report
@@ -331,69 +316,38 @@ jobs:
     needs: [js-tests, python-tests]
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
+    environment:
+      name: Preview
+      url: ${{ steps.deploy-preview.outputs.preview-url }}
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
+      - id: deploy-preview
+        uses: amondnet/vercel-action@v25
         with:
-          version: 10
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Install Vercel CLI
-        run: pnpm add -g vercel@latest
-
-      - name: Pull Vercel Environment Information
-        run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
-
-      - name: Build Project Artifacts
-        run: vercel build --token=${{ secrets.VERCEL_TOKEN }}
-
-      - name: Deploy to Vercel (Staging)
-        run: |
-          url=$(vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }})
-          vercel alias $url staging-gradiant.vercel.app --token=${{ secrets.VERCEL_TOKEN }} || echo "Alias failed, but deployment successful at $url"
-          echo "Deployed to $url"
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-comment: true
+          alias-domains: |
+            staging-gradiant.vercel.app
 
   deploy-production:
     needs: [js-tests, python-tests]
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    environment:
+      name: Production
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
+      - id: deploy-production
+        uses: amondnet/vercel-action@v25
         with:
-          version: 10
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Install Vercel CLI
-        run: pnpm add -g vercel@latest
-
-      - name: Pull Vercel Environment Information
-        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
-
-      - name: Build Project Artifacts
-        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
-
-      - name: Deploy to Vercel (Production)
-        run: |
-          url=$(vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }})
-          echo "Deployed to $url"
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          vercel-args: --prod
+          github-comment: true
