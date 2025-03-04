@@ -11,7 +11,7 @@ import { ZKService } from "../zkService";
 
 export interface ChatClient {
     userId: string;
-    ws: WebSocketServer;
+    ws: WebSocket;
     isAlive: boolean;
     sessionId: string;
     lastActivity: number;

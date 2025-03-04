@@ -15,6 +15,13 @@ interface InstanceMetadata {
 
 type StoredInstanceData = Record<string, string | number>;
 
+interface InstanceConfig {
+  host: string;
+  port: number;
+  region: string;
+  // ... other config options ...
+}
+
 export class InstanceManager {
   private static instance: InstanceManager;
   private redis: Redis;
@@ -22,8 +29,9 @@ export class InstanceManager {
   private readonly INSTANCES_KEY = 'instances';
   private readonly HEARTBEAT_INTERVAL = 30000; // 30 seconds
   private readonly INSTANCE_TIMEOUT = 90000; // 90 seconds
-  private readonly instanceId: string;
+  private instanceId: string;
   private heartbeatInterval?: NodeJS.Timeout;
+  private config: InstanceConfig;
 
   private constructor() {
     this.redis = new Redis({
@@ -31,7 +39,13 @@ export class InstanceManager {
       token: process.env.UPSTASH_REDIS_REST_TOKEN!,
     });
     this.logger = Logger.getInstance();
-    this.instanceId = `${process.env.VERCEL_REGION || 'local'}-${Date.now()}`;
+    this.instanceId = `${process.env.REGION || 'local'}-${Date.now()}`;
+    this.config = {
+      host: process.env.HOST || 'localhost',
+      port: parseInt(process.env.PORT || '3000'),
+      region: process.env.REGION || 'local',
+      // ... other config options ...
+    };
   }
 
   public static getInstance(): InstanceManager {
@@ -45,9 +59,9 @@ export class InstanceManager {
     try {
       const metadata: InstanceMetadata = {
         instanceId: this.instanceId,
-        host: process.env.VERCEL_URL || 'localhost',
-        port: parseInt(process.env.PORT || '3000'),
-        region: process.env.VERCEL_REGION || 'local',
+        host: this.config.host,
+        port: this.config.port,
+        region: this.config.region,
         status: 'active',
         lastHeartbeat: Date.now(),
         activeConnections: 0,

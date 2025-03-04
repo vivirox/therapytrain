@@ -3,25 +3,28 @@ name: Initialize Environments
 on:
   workflow_dispatch:
 
+permissions:
+  contents: read
+  actions: write
+
 jobs:
-  init-test:
-    name: Initialize Test
+  init-environments:
     runs-on: ubuntu-latest
-    environment:
-      name: Preview
-      url: https://preview.vercel.app
-
     steps:
-      - name: No-op step
-        run: echo "Initializing test environment"
+      - name: Create Preview Environment
+        run: |
+          gh api \
+            --method PUT \
+            -H "Accept: application/vnd.github+json" \
+            /repos/${{ github.repository }}/environments/preview \
+            -f wait_timer=0 \
+            -f deployment_branch_policy=null
 
-  init-prod:
-    name: Initialize Production
-    runs-on: ubuntu-latest
-    environment:
-      name: Production
-      url: https://vercel.app
-
-    steps:
-      - name: No-op step
-        run: echo "Initializing production environment" 
+      - name: Create Production Environment
+        run: |
+          gh api \
+            --method PUT \
+            -H "Accept: application/vnd.github+json" \
+            /repos/${{ github.repository }}/environments/production \
+            -f wait_timer=30 \
+            -f deployment_branch_policy='{"protected_branches":true,"custom_branch_policies":false}'

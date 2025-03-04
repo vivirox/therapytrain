@@ -8,16 +8,22 @@ on:
     branches: [ main, develop ]
 
 # Define global permissions at workflow level
-permissions: write-all
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+  checks: write
+  pull-requests: write
 
 # Define environment variables
 env:
-  NODE_VERSION: '22.x'
-  PNPM_VERSION: '10.x'
+  NODE_VERSION: 22.x
+  PNPM_VERSION: 10.x
   # Remove these from env and only use in steps where needed
   # VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
   # VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
   # VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+  NODE_ENV: test
 
 jobs:
   test:
@@ -90,7 +96,6 @@ jobs:
           RESEND_API_KEY=test-resend-key
           OPENAI_API_KEY=test-openai-key
           SENTRY_DSN=test-sentry-dsn
-          NODE_ENV=test
           EOF
 
       # Set up ZK environment
@@ -109,7 +114,7 @@ jobs:
         run: pnpm test:zk
 
       - name: Upload coverage
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: coverage
           path: coverage/
@@ -149,3 +154,11 @@ jobs:
           path: coverage/junit.xml
           reporter: jest-junit
           fail-on-error: false
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: test-results/
+          retention-days: 30

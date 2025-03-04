@@ -27,17 +27,21 @@ This project and everyone participating in it is governed by our Code of Conduct
 ## Development Environment
 
 1. Install dependencies:
+
    ```bash
    pnpm install
    ```
 
 2. Set up environment variables:
+
    ```bash
    cp .env.example .env.local
    ```
+
    Fill in the required values in `.env.local`
 
 3. Set up Python environment:
+
    ```bash
    conda env create -f environment.yml
    conda activate gradiant
@@ -60,6 +64,7 @@ This project and everyone participating in it is governed by our Code of Conduct
 ## Testing
 
 1. Run the test suite:
+
    ```bash
    pnpm test           # Unit tests
    pnpm test:e2e      # E2E tests
@@ -133,9 +138,10 @@ This project and everyone participating in it is governed by our Code of Conduct
 ## Questions?
 
 If you have questions, please:
+
 1. Check the documentation
 2. Search for existing issues
 3. Ask in the community Discord
 4. Create a new issue
 
-Thank you for contributing to Gradiant! 
+Thank you for contributing to Gradiant!

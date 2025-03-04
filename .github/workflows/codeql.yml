@@ -16,11 +16,15 @@ permissions:
 jobs:
   analyze:
     runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
 
     strategy:
       fail-fast: false
       matrix:
-        language: ["javascript"] # Only analyze JavaScript/TypeScript
+        language: [javascript]
 
     steps:
       - name: Checkout repository
@@ -30,6 +34,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "22"
+          cache: pnpm
 
       - name: Install pnpm
         uses: pnpm/action-setup@v2
@@ -37,19 +42,13 @@ jobs:
           version: 10
           run_install: false
 
-      - name: Get pnpm store directory
-        id: pnpm-cache
-        shell: bash
-        run: |
-          echo "dir=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
-
-      - name: Setup pnpm cache
+      - name: Setup pnpm store cache
         uses: actions/cache@v4
         with:
-          path: ${{ steps.pnpm-cache.outputs.dir }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          path: ~/.pnpm-store
+          key: pnpm-store-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}
           restore-keys: |
-            ${{ runner.os }}-pnpm-store-
+            pnpm-store-${{ runner.os }}-
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3.24.6
@@ -57,14 +56,21 @@ jobs:
           languages: ${{ matrix.language }}
           queries: security-and-quality
           config-file: ./.github/codeql/codeql-config.yml
+          tools: latest
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm install -g typescript
 
-      - name: Build project
-        run: pnpm run build
+      - name: Build TypeScript
+        run: |
+          pnpm tsc --noEmit
+          pnpm run build
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3.24.6
         with:
           category: "/language:${{matrix.language}}"
+          upload: true
+          output: sarif-results

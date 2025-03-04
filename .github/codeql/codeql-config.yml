@@ -1,5 +1,7 @@
 name: Gradiant CodeQL Config
 
+disable-default-queries: true
+
 queries:
   - uses: security-and-quality
 

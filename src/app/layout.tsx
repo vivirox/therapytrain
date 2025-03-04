@@ -3,15 +3,9 @@ import { KeyboardNavigationProvider } from '@/contexts/keyboard-navigation';
 import { RTLProvider } from '@/lib/i18n/rtl-context';
 import { SkipLinks } from '@/components/ui/skip-links';
 import { ColorBlindFilters } from '@/components/ui/color-blind-filters';
-import { Toaster } from 'react-hot-toast';
-import { ServiceWorkerUpdater } from '../components/ServiceWorkerUpdater';
-import { OfflineIndicator } from '../components/OfflineIndicator';
-import { ThemeProvider } from '@/components/theme/theme-provider';
+import { Toaster } from '@/components/ui/toaster';
+import { ThemeProvider } from '@/components/theme-provider';
 import { ThemeToggle } from '@/components/theme/theme-toggle';
-import { Analytics } from '@vercel/analytics/react';
-import { SpeedInsights } from '@vercel/speed-insights/next';
-
-// ... existing imports ...
 
 export default function RootLayout({
   children,
@@ -29,7 +23,7 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
       </head>
       <body>
-        <ThemeProvider defaultTheme="system" storageKey="ui-theme">
+        <ThemeProvider>
           <RTLProvider>
             <AccessibilityProvider>
               <KeyboardNavigationProvider>
@@ -62,12 +56,8 @@ export default function RootLayout({
               </KeyboardNavigationProvider>
             </AccessibilityProvider>
           </RTLProvider>
+          <Toaster />
         </ThemeProvider>
-        <Toaster />
-        <ServiceWorkerUpdater />
-        <OfflineIndicator />
-        <Analytics />
-        <SpeedInsights />
       </body>
     </html>
   );

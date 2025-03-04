@@ -5,25 +5,12 @@
       "enabled": true,
       "config": ".eslintrc.js",
       "extensions": [".ts", ".tsx", ".js", ".jsx"],
-      "ignore": [
-        "node_modules",
-        "dist",
-        "build",
-        "coverage"
-      ]
+      "ignore": ["node_modules", "dist", "build", "coverage"]
     },
     "prettier": {
       "enabled": true,
       "config": ".prettierrc",
-      "extensions": [
-        ".ts",
-        ".tsx",
-        ".js",
-        ".jsx",
-        ".json",
-        ".md",
-        ".mdx"
-      ]
+      "extensions": [".ts", ".tsx", ".js", ".jsx", ".json", ".md", ".mdx"]
     },
     "typescript": {
       "enabled": true,
@@ -95,11 +82,7 @@
       },
       "e2e": {
         "required": true,
-        "critical": [
-          "auth",
-          "chat",
-          "profile"
-        ]
+        "critical": ["auth", "chat", "profile"]
       }
     },
     "documentation": {
@@ -130,29 +113,16 @@
     }
   },
   "ci": {
-    "checks": [
-      "lint",
-      "type-check",
-      "test",
-      "build",
-      "e2e",
-      "security"
-    ],
+    "checks": ["lint", "type-check", "test", "build", "e2e", "security"],
     "autofix": {
       "enabled": true,
-      "tools": [
-        "eslint",
-        "prettier"
-      ]
+      "tools": ["eslint", "prettier"]
     }
   },
   "reporting": {
     "output": "./reports",
-    "format": [
-      "html",
-      "json"
-    ],
+    "format": ["html", "json"],
     "metrics": true,
     "trends": true
   }
-} 
+}
