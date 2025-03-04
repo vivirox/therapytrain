@@ -1,4 +1,4 @@
-name: Gradiant CodeQL config
+name: Gradiant CodeQL Config
 
 queries:
   - uses: security-and-quality
@@ -8,24 +8,53 @@ paths:
   - app
   - components
   - lib
-  - utils
-  - pages
-  - api
   - hooks
+  - services
+  - types
+  - frontend
+  - backend
+  - integrations
+  - zk
 
 paths-ignore:
-  - "**/*.test.ts"
-  - "**/*.test.tsx"
-  - "**/*.spec.ts"
-  - "**/*.spec.tsx"
-  - "**/node_modules"
-  - "**/dist"
-  - "**/build"
-  - "**/.next"
-  - "**/public"
-  - "**/static"
-  - "**/coverage"
-  - "**/test"
-  - "**/tests"
-  - "**/__tests__"
-  - "**/__mocks__"
+  - '**/node_modules'
+  - '**/dist'
+  - '**/build'
+  - '**/.next'
+  - '**/test'
+  - '**/tests'
+  - '**/e2e'
+  - '**/playwright'
+  - '**/coverage'
+  - '**/public'
+  - '**/docs'
+
+query-filters:
+  - exclude:
+      problem.severity:
+        - warning
+        - recommendation
+      tags contain: maintainability
+
+extraction:
+  javascript:
+    index:
+      include:
+        - "**/*.js"
+        - "**/*.jsx"
+        - "**/*.ts"
+        - "**/*.tsx"
+      exclude:
+        - "**/*.d.ts"
+        - "**/*.test.ts"
+        - "**/*.test.tsx"
+        - "**/*.spec.ts"
+        - "**/*.spec.tsx"
+      dependencies: true
+      typescript: true
+      frameworks: true
+      package-lock: true
+      package-json: true
+      environment: true
+      memory: 4096
+      threads: 4

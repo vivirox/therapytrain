@@ -1,26 +1,35 @@
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { NextRequest, NextResponse } from 'next/server';
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { OpenAIStream, StreamingTextResponse } from 'ai';
+import { createRouteHandlerClient } from '@supabase/ssr';
+import { createParser } from 'eventsource-parser';
+import { StreamingTextResponse } from '@/lib/streaming-text-response';
 import { GET, POST } from '../chat/route';
 import { encryptMessageForRecipient, decryptMessageContent } from '@/lib/encryption/message-encryption';
 import { logMessageEncryption, logMessageDecryption, logMessageAccess } from '@/lib/audit/audit-logger';
 import { getRateLimit, isTooManyRequests, createRateLimitResponse } from '@/lib/edge/rate-limit';
-import { ConnectionStore } from '@/lib/services/ConnectionStore';
-import { InstanceManager } from '@/lib/services/InstanceManager';
-import { RateLimiter } from '@/lib/services/RateLimiter';
-import { ResourceMonitor } from '@/lib/services/ResourceMonitor';
+
+// Mock service types
+const MockConnectionStore = { getInstance: vi.fn() };
+const MockInstanceManager = { getInstance: vi.fn() };
+const MockRateLimiter = { getInstance: vi.fn() };
+const MockResourceMonitor = { getInstance: vi.fn() };
 
 // Mock dependencies
-vi.mock('@supabase/auth-helpers-nextjs', () => ({
+vi.mock('@supabase/ssr', () => ({
   createRouteHandlerClient: vi.fn(),
 }));
 
-vi.mock('ai', () => ({
-  OpenAIStream: {
-    fromMessages: vi.fn(),
-  },
-  StreamingTextResponse: vi.fn(),
+// Mock OpenAIStream
+const OpenAIStream = {
+  fromMessages: vi.fn(),
+};
+
+vi.mock('eventsource-parser', () => ({
+  createParser: vi.fn(),
+}));
+
+vi.mock('@/lib/streaming-text-response', () => ({
+  StreamingTextResponse: vi.fn()
 }));
 
 vi.mock('@/lib/encryption/message-encryption', () => ({
@@ -115,10 +124,10 @@ describe('Chat API', () => {
     (createRouteHandlerClient as any).mockReturnValue(mockSupabase);
 
     // Setup service mocks
-    mockConnectionStore = ConnectionStore.getInstance();
-    mockInstanceManager = InstanceManager.getInstance();
-    mockRateLimiter = RateLimiter.getInstance();
-    mockResourceMonitor = ResourceMonitor.getInstance();
+    mockConnectionStore = MockConnectionStore.getInstance();
+    mockInstanceManager = MockInstanceManager.getInstance();
+    mockRateLimiter = MockRateLimiter.getInstance();
+    mockResourceMonitor = MockResourceMonitor.getInstance();
   });
 
   describe('GET handler', () => {

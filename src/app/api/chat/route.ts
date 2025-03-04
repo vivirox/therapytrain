@@ -2,11 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { ChatOpenAI } from '@langchain/openai';
 import { HumanMessage } from '@langchain/core/messages';
-import { StreamingTextResponse } from 'ai';
+import { StreamingTextResponse } from '@/lib/streaming-text-response';
+import { createRouteHandlerClient } from '@supabase/ssr';
+import { cookies } from 'next/headers';
 
 import { ZKMessage } from '@/lib/zk/types';
 import { encrypt, decrypt, generateMessageId } from '@/lib/zk/crypto';
-import { getSession, getOrCreateSharedKey } from '@/lib/zk/session';
+import { getOrCreateSharedKey } from '@/lib/zk/session';
 import { cache, invalidateByPattern } from '@/lib/redis';
 import { cacheConfig } from '@/config/cache.config';
 import { ChatEncryptionService } from '@/app/chat/ChatEncryptionService';
@@ -18,11 +20,6 @@ import { ConnectionStore } from '@/lib/ConnectionStore';
 import { RateLimiter } from '@/lib/RateLimiter';
 import { InstanceManager } from '@/lib/InstanceManager';
 import { streamToAsyncIterable } from '@/lib/stream-utils';
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
-import { OpenAIStream, StreamingTextResponse as EdgeStreamingTextResponse } from 'ai';
-import { Configuration, OpenAIApi } from 'openai-edge';
-import { Message } from 'ai';
 import { getRateLimit, isTooManyRequests, createRateLimitResponse } from '@/lib/edge/rate-limit';
 import { cacheMessage, getCachedMessages, invalidateMessageCache } from '@/lib/edge/message-cache';
 import { encryptMessageForRecipient, decryptMessageContent } from '@/lib/encryption/message-encryption';
@@ -31,12 +28,12 @@ import { ZKService } from '@/lib/zk/ZKService';
 import { ChatService } from '@/services/chat/ChatService';
 import { SecurityAuditService } from '@/services/SecurityAuditService';
 import { cache as reactCache } from 'react';
-import { ChatSession, Message as ChatMessage } from '@/types/chat';
+import type { Message as ChatMessage } from '@/types/chat';
 
 // Initialize services
 const zkService = new ZKService();
 const chatService = new ChatService();
-const securityAudit = new SecurityAuditService();
+const securityAudit = SecurityAuditService.getInstance();
 const metrics = new MetricsService();
 const logger = Logger.getInstance('chat-api');
 const resourceMonitor = new ResourceMonitor();
@@ -44,14 +41,8 @@ const connectionStore = new ConnectionStore();
 const rateLimiter = new RateLimiter();
 const instanceManager = new InstanceManager();
 
-// Create an OpenAI API client (that's edge friendly!)
-const config = new Configuration({
-  apiKey: process.env.OPENAI_API_KEY
-});
-const openai = new OpenAIApi(config);
-
 // Cache the session check for 1 minute
-const getSession = reactCache(async () => {
+const getSessionData = reactCache(async () => {
   const supabase = createRouteHandlerClient({ cookies });
   return await supabase.auth.getSession();
 });
@@ -62,7 +53,15 @@ const storeMessage = reactCache(async (supabase: any, message: any) => {
   const proof = await zkService.generateMessageProof(message);
   
   // Encrypt message with recipient's public key
-  const encryptedMessage = await zkService.encryptMessage(message);
+  const encryptedMessage = await zkService.encryptMessageWithSessionKey(
+    message.content,
+    message.sessionPublicKey,
+    {
+      senderId: message.user_id,
+      recipientId: message.recipient_id,
+      threadId: message.thread_id
+    }
+  );
   
   const { data, error } = await supabase
     .from('messages')
@@ -79,12 +78,26 @@ const storeMessage = reactCache(async (supabase: any, message: any) => {
     .single();
 
   if (!error && data) {
-    await cacheMessage(data);
-    await securityAudit.logMessageStore({
-      messageId: data.id,
+    await cacheMessage({
+      id: data.id,
+      thread_id: data.thread_id,
+      user_id: data.user_id,
+      content: data.content,
+      created_at: data.created_at,
+      role: data.role || 'user'
+    });
+
+    await securityAudit.logOperation({
+      id: generateMessageId(),
+      type: 'MESSAGE_STORE',
       userId: message.user_id,
-      operation: 'store',
-      status: 'success'
+      sessionId: data.thread_id,
+      status: 'SUCCESS',
+      timestamp: new Date(),
+      metadata: {
+        messageId: data.id,
+        operation: 'store'
+      }
     });
   }
 
@@ -98,7 +111,7 @@ export async function POST(req: Request) {
   
   try {
     // Get session with caching
-    const { data: { session }, error: authError } = await getSession();
+    const { data: { session }, error: authError } = await getSessionData();
 
     if (authError || !session) {
       return new Response('Unauthorized', { status: 401 });
@@ -136,12 +149,18 @@ export async function POST(req: Request) {
     );
 
     // Log message encryption
-    await securityAudit.logMessageEncryption({
-      messageId: encryptedMessage.id,
+    await securityAudit.logOperation({
+      id: generateMessageId(),
+      type: 'MESSAGE_ENCRYPTION',
       userId: session.user.id,
-      recipientId,
-      threadId,
-      status: 'success'
+      sessionId: threadId,
+      status: 'SUCCESS',
+      timestamp: new Date(),
+      metadata: {
+        messageId: encryptedMessage.id,
+        recipientId,
+        operation: 'encrypt'
+      }
     });
 
     // Store the encrypted message
@@ -157,86 +176,50 @@ export async function POST(req: Request) {
     });
 
     if (insertError) {
-      await securityAudit.logError({
-        operation: 'message_store',
-        error: insertError,
+      await securityAudit.logOperation({
+        id: generateMessageId(),
+        type: 'MESSAGE_STORE',
         userId: session.user.id,
-        threadId
+        sessionId: threadId,
+        status: 'FAILURE',
+        timestamp: new Date(),
+        metadata: {
+          error: insertError,
+          operation: 'message_store'
+        }
       });
       return new Response('Failed to store message', { status: 500 });
     }
 
-    // Create streaming response for AI
-    const response = await openai.createChatCompletion({
-      model: 'gpt-4',
-      messages: messages.map((m: any) => ({
-        role: m.role,
-        content: m.content
-      })),
-      stream: true,
+    const chatModel = new ChatOpenAI({
+      modelName: 'gpt-4',
+      streaming: true
     });
+
+    const stream = await chatModel.stream(messages.map((m: any) => new HumanMessage(m.content)));
 
     // Convert the response into a friendly text-stream
-    const stream = OpenAIStream(response, {
-      async onCompletion(completion) {
-        // Encrypt the AI response
-        const aiEncryptedMessage = await zkService.encryptMessageWithSessionKey(
-          completion,
-          sessionKeys.publicKey,
-          {
-            senderId: 'ai',
-            recipientId: session.user.id,
-            threadId
-          }
-        );
-
-        // Log AI message encryption
-        await securityAudit.logMessageEncryption({
-          messageId: aiEncryptedMessage.id,
-          userId: 'ai',
-          recipientId: session.user.id,
-          threadId,
-          status: 'success'
-        });
-
-        // Store the encrypted AI response
-        const { error: aiError } = await storeMessage(supabase, {
-          thread_id: threadId,
-          user_id: 'ai',
-          recipient_id: session.user.id,
-          content: aiEncryptedMessage.encryptedContent,
-          iv: aiEncryptedMessage.iv,
-          proof: aiEncryptedMessage.proof,
-          session_key_id: sessionKeys.id,
-          created_at: new Date().toISOString()
-        });
-
-        if (aiError) {
-          await securityAudit.logError({
-            operation: 'ai_message_store',
-            error: aiError,
-            userId: 'ai',
-            threadId
-          });
-          // Invalidate cache on error to ensure consistency
-          await invalidateMessageCache(threadId);
-        }
-      }
-    });
-
-    // Return streaming response with monitoring headers
     const asyncIterable = await streamToAsyncIterable(stream);
-    const response = new StreamingTextResponse(asyncIterable);
-    addRateLimitHeaders(response.headers, rateLimitInfo);
-    response.headers.set("X-Request-ID", requestId);
-    response.headers.set("X-Response-Time", duration.toString());
+    const response = new StreamingTextResponse(asyncIterable as any);
+
+    // Add monitoring headers
+    response.headers.set('X-RateLimit-Remaining', rateLimit.remaining.toString());
+    response.headers.set('X-RateLimit-Reset', rateLimit.reset.toString());
+    response.headers.set('X-Response-Time', (Date.now() - startTime).toString());
+
     return response;
   } catch (error) {
-    await securityAudit.logError({
-      operation: 'chat_api',
-      error,
+    await securityAudit.logOperation({
+      id: generateMessageId(),
+      type: 'API_ERROR',
       userId: 'system',
-      threadId: 'unknown'
+      sessionId: 'unknown',
+      status: 'FAILURE',
+      timestamp: new Date(),
+      metadata: {
+        error,
+        operation: 'chat_api'
+      }
     });
     return new Response('Internal Server Error', { status: 500 });
   }
@@ -247,11 +230,16 @@ export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
     const threadId = searchParams.get('threadId');
+
+    if (!threadId) {
+      return new Response('Missing threadId', { status: 400 });
+    }
+
     const limit = parseInt(searchParams.get('limit') || '50');
     const before = searchParams.get('before');
 
     // Get session with caching
-    const { data: { session }, error: authError } = await getSession();
+    const { data: { session }, error: authError } = await getSessionData();
 
     if (authError || !session) {
       return new Response('Unauthorized', { status: 401 });
@@ -288,11 +276,17 @@ export async function GET(req: Request) {
       .limit(limit);
 
     if (fetchError) {
-      await securityAudit.logError({
-        operation: 'fetch_messages',
-        error: fetchError,
+      await securityAudit.logOperation({
+        id: generateMessageId(),
+        type: 'MESSAGE_FETCH',
         userId: session.user.id,
-        threadId
+        sessionId: threadId,
+        status: 'FAILURE',
+        timestamp: new Date(),
+        metadata: {
+          error: fetchError,
+          operation: 'fetch_messages'
+        }
       });
       return new Response('Failed to fetch messages', { status: 500 });
     }
@@ -304,14 +298,21 @@ export async function GET(req: Request) {
           const decryptedContent = await zkService.decryptMessageWithSessionKey(
             message.content,
             message.iv,
-            sessionKeys.privateKey
+            sessionKeys.privateKey,
+            message.session_key_id
           );
 
-          await securityAudit.logMessageDecryption({
-            messageId: message.id,
+          await securityAudit.logOperation({
+            id: generateMessageId(),
+            type: 'MESSAGE_DECRYPTION',
             userId: session.user.id,
-            threadId,
-            status: 'success'
+            sessionId: threadId,
+            status: 'SUCCESS',
+            timestamp: new Date(),
+            metadata: {
+              messageId: message.id,
+              operation: 'decrypt'
+            }
           });
 
           return {
@@ -319,14 +320,22 @@ export async function GET(req: Request) {
             content: decryptedContent,
             sender_id: message.user_id,
             recipient_id: message.recipient_id,
-            created_at: message.created_at
+            created_at: message.created_at,
+            role: message.role || 'user'
           };
         } catch (error) {
-          await securityAudit.logError({
-            operation: 'message_decrypt',
-            error,
+          await securityAudit.logOperation({
+            id: generateMessageId(),
+            type: 'MESSAGE_DECRYPTION',
             userId: session.user.id,
-            messageId: message.id
+            sessionId: threadId,
+            status: 'FAILURE',
+            timestamp: new Date(),
+            metadata: {
+              error,
+              messageId: message.id,
+              operation: 'decrypt'
+            }
           });
           return null;
         }
@@ -337,17 +346,23 @@ export async function GET(req: Request) {
     const validMessages = decryptedMessages.filter((m) => m !== null);
 
     // Cache the decrypted messages
-    await cacheMessage(validMessages);
+    await Promise.all(validMessages.map(msg => cacheMessage(msg)));
 
     return new Response(JSON.stringify(validMessages), {
       headers: { 'Content-Type': 'application/json' }
     });
   } catch (error) {
-    await securityAudit.logError({
-      operation: 'get_messages',
-      error,
+    await securityAudit.logOperation({
+      id: generateMessageId(),
+      type: 'API_ERROR',
       userId: 'system',
-      threadId: 'unknown'
+      sessionId: 'unknown',
+      status: 'FAILURE',
+      timestamp: new Date(),
+      metadata: {
+        error,
+        operation: 'get_messages'
+      }
     });
     return new Response('Internal Server Error', { status: 500 });
   }

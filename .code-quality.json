@@ -1,0 +1,158 @@
+{
+  "version": "1.0",
+  "tools": {
+    "eslint": {
+      "enabled": true,
+      "config": ".eslintrc.js",
+      "extensions": [".ts", ".tsx", ".js", ".jsx"],
+      "ignore": [
+        "node_modules",
+        "dist",
+        "build",
+        "coverage"
+      ]
+    },
+    "prettier": {
+      "enabled": true,
+      "config": ".prettierrc",
+      "extensions": [
+        ".ts",
+        ".tsx",
+        ".js",
+        ".jsx",
+        ".json",
+        ".md",
+        ".mdx"
+      ]
+    },
+    "typescript": {
+      "enabled": true,
+      "config": "tsconfig.json",
+      "strict": true
+    },
+    "jest": {
+      "enabled": true,
+      "config": "jest.config.js",
+      "coverage": {
+        "statements": 80,
+        "branches": 80,
+        "functions": 80,
+        "lines": 80
+      }
+    },
+    "playwright": {
+      "enabled": true,
+      "config": "playwright.config.ts"
+    }
+  },
+  "metrics": {
+    "complexity": {
+      "cyclomatic": {
+        "max": 10,
+        "warning": 8
+      },
+      "cognitive": {
+        "max": 15,
+        "warning": 12
+      }
+    },
+    "maintainability": {
+      "index": {
+        "min": 65,
+        "warning": 75
+      }
+    },
+    "duplication": {
+      "threshold": 3,
+      "minLines": 50,
+      "minTokens": 100
+    }
+  },
+  "rules": {
+    "naming": {
+      "components": "^[A-Z][a-zA-Z]+$",
+      "hooks": "^use[A-Z][a-zA-Z]+$",
+      "utils": "^[a-z][a-zA-Z]+$",
+      "types": "^[A-Z][a-zA-Z]+$",
+      "constants": "^[A-Z][A-Z_]+$"
+    },
+    "imports": {
+      "order": [
+        "react",
+        "next",
+        "external",
+        "internal",
+        "parent",
+        "sibling",
+        "index"
+      ],
+      "newlines": true
+    },
+    "testing": {
+      "coverage": {
+        "required": true,
+        "threshold": 80
+      },
+      "e2e": {
+        "required": true,
+        "critical": [
+          "auth",
+          "chat",
+          "profile"
+        ]
+      }
+    },
+    "documentation": {
+      "components": {
+        "required": true,
+        "props": true,
+        "examples": true
+      },
+      "functions": {
+        "required": true,
+        "params": true,
+        "returns": true
+      },
+      "types": {
+        "required": true,
+        "properties": true
+      }
+    },
+    "security": {
+      "audit": {
+        "required": true,
+        "frequency": "daily"
+      },
+      "dependencies": {
+        "scan": true,
+        "update": "weekly"
+      }
+    }
+  },
+  "ci": {
+    "checks": [
+      "lint",
+      "type-check",
+      "test",
+      "build",
+      "e2e",
+      "security"
+    ],
+    "autofix": {
+      "enabled": true,
+      "tools": [
+        "eslint",
+        "prettier"
+      ]
+    }
+  },
+  "reporting": {
+    "output": "./reports",
+    "format": [
+      "html",
+      "json"
+    ],
+    "metrics": true,
+    "trends": true
+  }
+} 

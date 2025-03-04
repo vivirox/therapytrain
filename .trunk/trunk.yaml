@@ -20,7 +20,8 @@ lint:
   disabled:
     - markdownlint
   enabled:
-    - eslint@8.56.0
+    - eslint@8.56.0:
+        files: ["src/**/*.{ts,tsx,js,jsx}"]
     - hadolint@2.12.1-beta
     - tflint@0.55.1
     - actionlint@1.7.7
@@ -46,15 +47,6 @@ lint:
         - "**/*.jsx"
         - .next/**
         - node_modules/**
-  definitions:
-    - name: eslint
-      files: [.tsx, .ts, .jsx, .js]
-      parser: "@typescript-eslint/parser"
-      parserOptions:
-        ecmaFeatures:
-          jsx: true
-        ecmaVersion: latest
-        sourceType: module
 actions:
   disabled:
     - trunk-announce

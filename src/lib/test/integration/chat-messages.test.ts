@@ -1,4 +1,5 @@
-import { describe, test, expect, beforeAll, afterAll, beforeEach } from 'vitest';
+import { describe, it as test, beforeAll, afterAll, beforeEach } from '@vitest/runner';
+import { expect } from 'vitest';
 import {
   cleanupTestData,
   createTestUser,
@@ -8,7 +9,7 @@ import {
   verifyDataIntegrity,
   TABLES,
 } from '../db-utils';
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { createRouteHandlerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { encryptMessageForRecipient, decryptMessageContent } from '@/lib/encryption/message-encryption';
 import { cacheMessage, getCachedMessage, invalidateThread } from '@/lib/edge/chat-cache';
@@ -69,10 +70,14 @@ describe('Chat Message Integration Tests', () => {
 
         // Verify message can be decrypted
         const decryptedContent = await decryptMessageContent(
-          message.content,
-          message.iv,
-          testUser.id,
-          message.sender_public_key
+          {
+            encryptedContent: message.content,
+            iv: message.iv,
+            senderPublicKey: message.sender_public_key,
+            recipientId: testUser.id,
+            timestamp: message.created_at
+          },
+          testUser.id
         );
 
         expect(decryptedContent).toBe(content);
@@ -235,10 +240,14 @@ describe('Chat Message Integration Tests', () => {
 
         // Verify updated content can be decrypted
         const decryptedContent = await decryptMessageContent(
-          updatedMessage.content,
-          updatedMessage.iv,
-          testUser.id,
-          updatedMessage.sender_public_key
+          {
+            encryptedContent: updatedMessage.content,
+            iv: updatedMessage.iv,
+            senderPublicKey: updatedMessage.sender_public_key,
+            recipientId: testUser.id,
+            timestamp: updatedMessage.created_at
+          },
+          testUser.id
         );
 
         expect(decryptedContent).toBe(newContent);

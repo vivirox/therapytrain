@@ -83,7 +83,7 @@ from llm_api import query_llm
 
 ## Take a screenshot
 
-screenshot_path = take_screenshot_sync('<https://example.com>', 'screenshot.png')
+screenshot_path = take_screenshot_sync('<https://gradiantascent.com>', 'screenshot.png')
 
 ## Verify with LLM
 
