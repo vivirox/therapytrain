@@ -1,7 +1,7 @@
 {
     "version": 2,
-    "buildCommand": "pnpm run build",
-    "installCommand": "pnpm install",
+    "buildCommand": "corepack enable && corepack prepare pnpm@10 --activate && pnpm install && pnpm build",
+    "installCommand": "corepack enable && corepack prepare pnpm@10 --activate && pnpm install",
     "outputDirectory": "dist",
     "framework": "vite",
     "headers": [

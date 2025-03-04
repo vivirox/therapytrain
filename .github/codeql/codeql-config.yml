@@ -4,6 +4,8 @@ disable-default-queries: true
 
 queries:
   - uses: security-and-quality
+  - uses: security-extended
+  - uses: github/codeql/javascript/ql/src/experimental/Security/@*
 
 paths:
   - src
@@ -16,7 +18,6 @@ paths:
   - frontend
   - backend
   - integrations
-  - zk
 
 paths-ignore:
   - '**/node_modules'
@@ -30,6 +31,13 @@ paths-ignore:
   - '**/coverage'
   - '**/public'
   - '**/docs'
+  - '**/*.min.js'
+  - '**/*.test.*'
+  - '**/*.spec.*'
+  - '**/__tests__/**'
+  - '**/__mocks__/**'
+  - '**/circuits/**'
+  - build/circuits/**
 
 query-filters:
   - exclude:
@@ -52,11 +60,15 @@ extraction:
         - "**/*.test.tsx"
         - "**/*.spec.ts"
         - "**/*.spec.tsx"
+        - "**/__tests__/**"
+        - "**/__mocks__/**"
       dependencies: true
       typescript: true
       frameworks: true
       package-lock: true
       package-json: true
       environment: true
-      memory: 4096
-      threads: 4
+      memory: 6144
+      threads: 6
+      trap-cache: true
+      experimental-features: true
