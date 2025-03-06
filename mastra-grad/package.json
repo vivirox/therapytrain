@@ -14,6 +14,8 @@
   "dependencies": {
     "@ai-sdk/openai": "^1.1.14",
     "@mastra/core": "^0.4.3",
+    "@smithy/protocol-http": "^5.0.1",
+    "esbuild": "0.25.0",
     "mastra": "^0.2.7",
     "zod": "^3.24.2"
   },
