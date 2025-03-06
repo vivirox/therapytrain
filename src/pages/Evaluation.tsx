@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { ClientProfile } from '@/types/clientprofile';
 import { ProgressVisualization } from '@/components/progress/ProgressVisualization';
 import { ProgressTrackingService } from '@/services/progress/ProgressTrackingService';
+import { validateApiRoute } from '@/lib/validation';
 
 interface EvaluationCriteria {
     category: string;
@@ -169,19 +170,31 @@ const EvaluationPage: React.FC = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                // Fetch messages
-                const messagesResponse = await fetch(`/api/sessions/${router.query.sessionId}/messages`);
-                if (!messagesResponse.ok) throw new Error('Failed to fetch messages');
+                // Validate and sanitize the API routes
+                const validSessionRoute = validateApiRoute('/api/sessions', router.query.sessionId);
+                
+                // Fetch messages with validated route
+                const messagesResponse = await fetch(`${validSessionRoute}/messages`, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+                if (!messagesResponse.ok) {
+                    const error = await messagesResponse.json().catch(() => ({}));
+                    throw new Error(error.message || 'Failed to fetch messages');
+                }
                 const messagesData = await messagesResponse.json();
                 setMessages(messagesData);
 
-                // Fetch progress metrics
+                // Fetch progress metrics with validated client ID
                 const progressService = new ProgressTrackingService();
-                const metrics = await progressService.trackProgress(router.query.clientId, router.query.sessionId);
+                const clientId = validateSessionId(router.query.clientId);
+                const sessionId = validateSessionId(router.query.sessionId);
+                const metrics = await progressService.trackProgress(clientId, sessionId);
                 setProgressMetrics(metrics);
 
-                // Fetch treatment alignment
-                const alignment = await progressService.checkTreatmentAlignment(router.query.clientId, router.query.sessionId);
+                // Fetch treatment alignment with validated IDs
+                const alignment = await progressService.checkTreatmentAlignment(clientId, sessionId);
                 setTreatmentAlignment(alignment);
             } catch (err) {
                 setError(err instanceof Error ? err : new Error('Failed to fetch data'));
@@ -190,7 +203,10 @@ const EvaluationPage: React.FC = () => {
             }
         };
 
-        fetchData();
+        // Only fetch if we have both IDs
+        if (router.query.clientId && router.query.sessionId) {
+            fetchData();
+        }
     }, [router.query.clientId, router.query.sessionId]);
 
     const calculateOverallScore = () => {
@@ -217,11 +233,19 @@ const EvaluationPage: React.FC = () => {
         setError(null);
 
         try {
-            const response = await fetch(`/api/sessions/${router.query.sessionId}/analyze`, {
+            // Validate and sanitize the API route
+            const validRoute = validateApiRoute('/api/sessions', router.query.sessionId);
+            const response = await fetch(`${validRoute}/analyze`, {
                 method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
             });
 
-            if (!response.ok) throw new Error('Failed to analyze session');
+            if (!response.ok) {
+                const error = await response.json().catch(() => ({}));
+                throw new Error(error.message || 'Failed to analyze session');
+            }
 
             const analysis = await response.json();
             setAnalysis(analysis);

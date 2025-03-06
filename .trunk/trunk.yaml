@@ -2,12 +2,12 @@
 # To learn more about the format of this file, see https://docs.trunk.io/reference/trunk-yaml
 version: 0.1
 cli:
-  version: 1.17.2
+  version: 1.22.10
 # Trunk provides extensibility via plugins. (https://docs.trunk.io/plugins)
 plugins:
   sources:
     - id: trunk
-      ref: v1.2.6
+      ref: v1.6.7
       uri: https://github.com/trunk-io/plugins
 # Many linters and tools depend on runtimes - configure them here. (https://docs.trunk.io/runtimes)
 runtimes:
@@ -20,7 +20,8 @@ lint:
   disabled:
     - markdownlint
   enabled:
-    - eslint@8.56.0:
+    - trivy@0.59.1
+    - eslint@8.57.0:
         files: ["src/**/*.{ts,tsx,js,jsx}"]
     - hadolint@2.12.1-beta
     - tflint@0.55.1
@@ -32,7 +33,7 @@ lint:
     - isort@6.0.1
     - osv-scanner@1.9.2
     - oxipng@9.1.4
-    - prettier@3.2.4
+    - prettier@3.5.3
     - ruff@0.9.9
     - shellcheck@0.10.0
     - shfmt@3.6.0

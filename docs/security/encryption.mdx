@@ -1,6 +1,6 @@
 ---
-title: 'Encryption & Zero-Knowledge System'
-description: 'Learn about Gradiant's encryption architecture and zero-knowledge implementation'
+title: "Encryption & Zero-Knowledge System"
+description: "Learn about Gradiants encryption architecture and zero-knowledge implementation"
 ---
 
 # Encryption & Zero-Knowledge System
@@ -10,7 +10,11 @@ Gradiant's encryption system provides end-to-end security through zero-knowledge
 ## Architecture Overview
 
 <CardGroup cols={2}>
-  <Card title="Zero-Knowledge Proofs" icon="lock-keyhole" href="#zero-knowledge-proofs">
+  <Card
+    title="Zero-Knowledge Proofs"
+    icon="lock-keyhole"
+    href="#zero-knowledge-proofs"
+  >
     Privacy-preserving verification
   </Card>
   <Card title="Key Management" icon="key" href="#key-management">
@@ -27,7 +31,10 @@ Gradiant's encryption system provides end-to-end security through zero-knowledge
 ## Zero-Knowledge Proofs
 
 ### Implementation
-<Tip>Our zero-knowledge system ensures data privacy while enabling verification</Tip>
+
+<Tip>
+  Our zero-knowledge system ensures data privacy while enabling verification
+</Tip>
 
 ```mermaid
 graph TD
@@ -44,28 +51,31 @@ graph TD
 import { SessionDataCircuit } from '@gradiant/zk';
 
 const circuit = new SessionDataCircuit({
-  hashFunction: 'Poseidon',
-  curveType: 'BN254',
-  merkleTreeDepth: 20
+hashFunction: 'Poseidon',
+curveType: 'BN254',
+merkleTreeDepth: 20
 });
 
 const proof = await circuit.generateProof({
-  sessionData: encryptedData,
-  publicInputs: publicParams
+sessionData: encryptedData,
+publicInputs: publicParams
 });
-```
+
+````
 
 ```typescript Verification
 const isValid = await circuit.verifyProof({
   proof: proof,
   publicInputs: publicParams
 });
-```
+````
+
 </CodeGroup>
 
 ## Key Management
 
 ### Key Hierarchy
+
 <Info>Multi-layer key management system for enhanced security</Info>
 
 - Master Key (KMS)
@@ -78,25 +88,25 @@ const isValid = await circuit.verifyProof({
 
 ```typescript
 const keyManager = new KeyManager({
-  kmsProvider: 'aws',
-  region: 'us-east-1',
-  keyRotationPeriod: '30d',
-  backupEnabled: true
+  kmsProvider: "aws",
+  region: "us-east-1",
+  keyRotationPeriod: "30d",
+  backupEnabled: true,
 });
 
 // Generate new data encryption key
 const dek = await keyManager.generateDataKey({
-  keySpec: 'AES_256',
+  keySpec: "AES_256",
   context: {
-    purpose: 'session_encryption',
-    userId: 'user_123'
-  }
+    purpose: "session_encryption",
+    userId: "user_123",
+  },
 });
 
 // Rotate keys
 await keyManager.rotateKeys({
-  keyType: 'data',
-  gracePeriod: '7d'
+  keyType: "data",
+  gracePeriod: "7d",
 });
 ```
 
@@ -106,24 +116,19 @@ await keyManager.rotateKeys({
 
 <AccordionGroup>
   <Accordion title="Transport Layer">
-    - TLS 1.3
-    - Perfect forward secrecy
-    - Strong cipher suites
-    - Certificate pinning
+    - TLS 1.3 - Perfect forward secrecy - Strong cipher suites - Certificate
+    pinning
   </Accordion>
-  
-  <Accordion title="Application Layer">
-    - End-to-end encryption
-    - Zero-knowledge proofs
-    - Homomorphic encryption
-    - Secure key exchange
-  </Accordion>
-  
+
+{" "}
+
+<Accordion title="Application Layer">
+  - End-to-end encryption - Zero-knowledge proofs - Homomorphic encryption -
+  Secure key exchange
+</Accordion>
+
   <Accordion title="Storage Layer">
-    - At-rest encryption
-    - Key wrapping
-    - Secure key storage
-    - Backup encryption
+    - At-rest encryption - Key wrapping - Secure key storage - Backup encryption
   </Accordion>
 </AccordionGroup>
 
@@ -134,18 +139,19 @@ await keyManager.rotateKeys({
 import { DataEncryption } from '@gradiant/crypto';
 
 const encryption = new DataEncryption({
-  algorithm: 'AES-256-GCM',
-  keyDerivation: 'HKDF',
-  padding: 'PKCS7'
+algorithm: 'AES-256-GCM',
+keyDerivation: 'HKDF',
+padding: 'PKCS7'
 });
 
 // Encrypt data
 const encrypted = await encryption.encrypt({
-  data: sensitiveData,
-  key: dek,
-  associated: metadata
+data: sensitiveData,
+key: dek,
+associated: metadata
 });
-```
+
+````
 
 ```typescript Decryption
 // Decrypt data
@@ -154,12 +160,14 @@ const decrypted = await encryption.decrypt({
   key: dek,
   associated: metadata
 });
-```
+````
+
 </CodeGroup>
 
 ## Quantum Resistance
 
 ### Algorithms
+
 <Warning>Prepared for post-quantum threats with hybrid cryptography</Warning>
 
 - CRYSTALS-Kyber (Key Encapsulation)
@@ -171,9 +179,9 @@ const decrypted = await encryption.decrypt({
 
 ```typescript
 const quantumResistant = new QuantumResistantCrypto({
-  kemAlgorithm: 'Kyber1024',
-  signatureAlgorithm: 'Dilithium5',
-  useHybridMode: true
+  kemAlgorithm: "Kyber1024",
+  signatureAlgorithm: "Dilithium5",
+  useHybridMode: true,
 });
 
 // Generate quantum-resistant keypair
@@ -181,19 +189,20 @@ const keyPair = await quantumResistant.generateKeyPair();
 
 // Encapsulate key
 const { ciphertext, sharedSecret } = await quantumResistant.encapsulate({
-  publicKey: keyPair.publicKey
+  publicKey: keyPair.publicKey,
 });
 
 // Decapsulate key
 const decapsulated = await quantumResistant.decapsulate({
   ciphertext: ciphertext,
-  privateKey: keyPair.privateKey
+  privateKey: keyPair.privateKey,
 });
 ```
 
 ## Homomorphic Encryption
 
 ### Features
+
 <Check>Perform computations on encrypted data</Check>
 
 - Partial homomorphic encryption
@@ -205,9 +214,9 @@ const decapsulated = await quantumResistant.decapsulate({
 
 ```typescript
 const homomorphic = new HomomorphicEncryption({
-  scheme: 'BFV',
+  scheme: "BFV",
   securityLevel: 128,
-  polyModulusDegree: 4096
+  polyModulusDegree: 4096,
 });
 
 // Encrypt numbers
@@ -224,6 +233,7 @@ const sum = await homomorphic.decrypt(encryptedSum); // 8
 ## Forward Secrecy
 
 ### Protocol
+
 <Note>Ensures past communications remain secure</Note>
 
 ```mermaid
@@ -242,19 +252,19 @@ sequenceDiagram
 
 ```typescript
 const forwardSecrecy = new ForwardSecrecyProtocol({
-  ratchetAlgorithm: 'Double',
-  kdf: 'HKDF-SHA256',
-  messageKeyLimit: 100
+  ratchetAlgorithm: "Double",
+  kdf: "HKDF-SHA256",
+  messageKeyLimit: 100,
 });
 
 // Initialize session
 const session = await forwardSecrecy.initSession({
   identityKey: localIdentityKey,
-  preKey: remotePreKey
+  preKey: remotePreKey,
 });
 
 // Send message
-const encrypted = await session.encrypt('Hello');
+const encrypted = await session.encrypt("Hello");
 
 // Receive message
 const decrypted = await session.decrypt(encrypted);
@@ -281,24 +291,20 @@ const decrypted = await session.decrypt(encrypted);
 
 <AccordionGroup>
   <Accordion title="Key Issues">
-    - Check key permissions
-    - Verify key version
-    - Ensure key availability
-    - Check rotation status
+    - Check key permissions - Verify key version - Ensure key availability -
+    Check rotation status
   </Accordion>
-  
-  <Accordion title="Encryption Errors">
-    - Validate input format
-    - Check algorithm compatibility
-    - Verify key integrity
-    - Review operation logs
-  </Accordion>
-  
+
+{" "}
+
+<Accordion title="Encryption Errors">
+  - Validate input format - Check algorithm compatibility - Verify key integrity
+  - Review operation logs
+</Accordion>
+
   <Accordion title="Performance Issues">
-    - Monitor operation timing
-    - Check resource usage
-    - Optimize key cache
-    - Review batch operations
+    - Monitor operation timing - Check resource usage - Optimize key cache -
+    Review batch operations
   </Accordion>
 </AccordionGroup>
 
@@ -307,10 +313,14 @@ const decrypted = await session.decrypt(encrypted);
 Need help with encryption? Contact our security team:
 
 <CardGroup cols={2}>
-  <Card title="Security Support" icon="shield" href="mailto:security@gradiant.dev">
+  <Card
+    title="Security Support"
+    icon="shield"
+    href="mailto:security@gradiant.dev"
+  >
     Contact security team
   </Card>
   <Card title="Technical Docs" icon="book" href="/security/technical-docs">
     View technical guides
   </Card>
-</CardGroup> 
+</CardGroup>

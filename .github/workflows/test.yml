@@ -3,9 +3,9 @@ name: CI/CD Pipeline
 # Specify when this workflow runs
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
   pull_request:
-    branches: [ main, develop ]
+    branches: [main, develop]
 
 # Define global permissions at workflow level
 permissions:
@@ -74,10 +74,13 @@ jobs:
       - uses: actions/cache@v4
         name: Setup pnpm cache
         with:
-          path: ${{ steps.pnpm-cache.outputs.dir }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          path: |
+            ${{ steps.pnpm-cache.outputs.dir }}
+            **/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('**/pnpm-lock.yaml') }}-${{ hashFiles('**/package.json') }}
           restore-keys: |
-            ${{ runner.os }}-pnpm-store-
+            ${{ runner.os }}-node-${{ hashFiles('**/pnpm-lock.yaml') }}-
+            ${{ runner.os }}-node-
 
       # Install all dependencies including dev dependencies
       - name: Install dependencies

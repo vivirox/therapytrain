@@ -438,4 +438,30 @@ export class PasswordService {
       });
     }
   }
-} 
+
+  async signIn(credentials: { email: string; password: string }): Promise<{ user: any; session: any }> {
+    await this.checkFailedAttempts(credentials.email);
+
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: credentials.email,
+      password: credentials.password,
+    });
+
+    if (error) {
+      // Record failed attempt
+      await this.recordFailedAttempt(credentials.email);
+      throw new AuthError({
+        code: 'invalid_credentials',
+        message: error.message
+      });
+    }
+
+    // Reset failed attempts on successful login
+    await this.resetFailedAttempts(credentials.email);
+
+    return {
+      user: data.session?.user,
+      session: data.session
+    };
+  }
+}

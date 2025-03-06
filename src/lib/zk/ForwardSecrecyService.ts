@@ -1,6 +1,6 @@
-import { createHash, randomBytes } from 'crypto';
-import { SecurityAuditService } from '@/services/SecurityAuditService';
-import { SupabaseClient, createClient } from '@supabase/supabase-js';
+import { createHash, randomBytes } from "crypto";
+import { SecurityAuditService } from "@/services/SecurityAuditService";
+import { SupabaseClient, createClient } from "@supabase/supabase-js";
 
 interface RatchetState {
   rootKey: Buffer;
@@ -18,24 +18,30 @@ export class ForwardSecrecyService {
   private supabase: SupabaseClient;
   private ratchetStates: Map<string, RatchetState>;
   private readonly MAX_SKIP = 1000;
-  private readonly HASH_ALG = 'sha256';
+  private readonly HASH_ALG = "sha256";
 
-  constructor(supabaseClient?: SupabaseClient, securityAudit?: SecurityAuditService) {
+  constructor(
+    supabaseClient?: SupabaseClient,
+    securityAudit?: SecurityAuditService,
+  ) {
     this.securityAudit = securityAudit || new SecurityAuditService();
     if (supabaseClient) {
       this.supabase = supabaseClient;
     } else {
-      if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-        throw new Error('Supabase environment variables are required');
+      if (
+        !process.env.NEXT_PUBLIC_SUPABASE_URL ||
+        !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+      ) {
+        throw new Error("Supabase environment variables are required");
       }
       this.supabase = createClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
       );
     }
     this.ratchetStates = new Map();
   }
-  
+
   public setSupabaseClient(supabaseClient: SupabaseClient): void {
     this.supabase = supabaseClient;
   }
@@ -43,7 +49,7 @@ export class ForwardSecrecyService {
   public async initializeRatchet(
     threadId: string,
     sharedSecret: Buffer,
-    isInitiator: boolean
+    isInitiator: boolean,
   ): Promise<void> {
     const rootKey = await this.generateRootKey(sharedSecret);
     const ratchetKeyPair = await this.generateRatchetKeyPair();
@@ -56,21 +62,21 @@ export class ForwardSecrecyService {
       receivingRatchetPublicKey: Buffer.alloc(0),
       previousRatchetPublicKeys: [],
       messageNumbers: new Map(),
-      skippedMessageKeys: new Map()
+      skippedMessageKeys: new Map(),
     };
 
     this.ratchetStates.set(threadId, state);
 
     await this.securityAudit.logEvent({
-      type: 'ratchet_initialized',
+      type: "ratchet_initialized",
       threadId,
-      isInitiator
+      isInitiator,
     });
   }
 
   public async ratchetEncrypt(
     threadId: string,
-    message: Buffer
+    message: Buffer,
   ): Promise<{
     ciphertext: Buffer;
     header: {
@@ -80,10 +86,12 @@ export class ForwardSecrecyService {
     };
   }> {
     const state = this.ratchetStates.get(threadId);
-    if (!state) throw new Error('Ratchet not initialized');
+    if (!state) throw new Error("Ratchet not initialized");
 
     // Generate message key and next chain key
-    const { messageKey, nextChainKey } = await this.ratchetStep(state.sendingChainKey);
+    const { messageKey, nextChainKey } = await this.ratchetStep(
+      state.sendingChainKey,
+    );
     state.sendingChainKey = nextChainKey;
 
     // Encrypt message
@@ -94,15 +102,17 @@ export class ForwardSecrecyService {
     state.messageNumbers.set(threadId, messageNumber + 1);
 
     const header = {
-      publicKey: await this.getPublicKey(state.sendingRatchetKeyPair.privateKey),
+      publicKey: await this.getPublicKey(
+        state.sendingRatchetKeyPair.privateKey,
+      ),
       messageNumber,
-      previousChainLength: state.previousRatchetPublicKeys.length
+      previousChainLength: state.previousRatchetPublicKeys.length,
     };
 
     await this.securityAudit.logEvent({
-      type: 'message_encrypted',
+      type: "message_encrypted",
       threadId,
-      messageNumber
+      messageNumber,
     });
 
     return { ciphertext, header };
@@ -117,10 +127,10 @@ export class ForwardSecrecyService {
         messageNumber: number;
         previousChainLength: number;
       };
-    }
+    },
   ): Promise<Buffer> {
     const state = this.ratchetStates.get(threadId);
-    if (!state) throw new Error('Ratchet not initialized');
+    if (!state) throw new Error("Ratchet not initialized");
 
     // Try to decrypt with skipped message keys
     const skippedKey = this.trySkippedMessageKeys(state, message.header);
@@ -134,13 +144,15 @@ export class ForwardSecrecyService {
     }
 
     // Generate message key and next chain key
-    const { messageKey, nextChainKey } = await this.ratchetStep(state.receivingChainKey);
+    const { messageKey, nextChainKey } = await this.ratchetStep(
+      state.receivingChainKey,
+    );
     state.receivingChainKey = nextChainKey;
 
     await this.securityAudit.logEvent({
-      type: 'message_decrypted',
+      type: "message_decrypted",
       threadId,
-      messageNumber: message.header.messageNumber
+      messageNumber: message.header.messageNumber,
     });
 
     return await this.decrypt(messageKey, message.ciphertext);
@@ -149,94 +161,105 @@ export class ForwardSecrecyService {
   private async generateRootKey(sharedSecret: Buffer): Promise<Buffer> {
     // Use HKDF to derive root key
     const key = await window.crypto.subtle.importKey(
-      'raw',
+      "raw",
       sharedSecret,
-      { name: 'HKDF' },
+      { name: "HKDF" },
       false,
-      ['deriveBits']
+      ["deriveBits"],
     );
 
     const rootKey = await window.crypto.subtle.deriveBits(
       {
-        name: 'HKDF',
-        hash: 'SHA-256',
+        name: "HKDF",
+        hash: "SHA-256",
         salt: new Uint8Array(32),
-        info: new TextEncoder().encode('RootKey')
+        info: new TextEncoder().encode("RootKey"),
       },
       key,
-      256
+      256,
     );
 
     return Buffer.from(rootKey);
   }
 
-  private async generateRatchetKeyPair(): Promise<{ privateKey: Buffer; publicKey: Buffer }> {
+  private async generateRatchetKeyPair(): Promise<{
+    privateKey: Buffer;
+    publicKey: Buffer;
+  }> {
     const keyPair = await window.crypto.subtle.generateKey(
       {
-        name: 'ECDH',
-        namedCurve: 'P-256'
+        name: "ECDH",
+        namedCurve: "P-256",
       },
       true,
-      ['deriveKey', 'deriveBits']
+      ["deriveKey", "deriveBits"],
     );
 
-    const privateKeyBuffer = await window.crypto.subtle.exportKey('raw', keyPair.privateKey);
-    const publicKeyBuffer = await window.crypto.subtle.exportKey('raw', keyPair.publicKey);
+    const privateKeyBuffer = await window.crypto.subtle.exportKey(
+      "raw",
+      keyPair.privateKey,
+    );
+    const publicKeyBuffer = await window.crypto.subtle.exportKey(
+      "raw",
+      keyPair.publicKey,
+    );
 
     return {
       privateKey: Buffer.from(privateKeyBuffer),
-      publicKey: Buffer.from(publicKeyBuffer)
+      publicKey: Buffer.from(publicKeyBuffer),
     };
   }
 
-  private async ratchetStep(chainKey: Buffer): Promise<{ messageKey: Buffer; nextChainKey: Buffer }> {
+  private async ratchetStep(
+    chainKey: Buffer,
+  ): Promise<{ messageKey: Buffer; nextChainKey: Buffer }> {
     // Import chain key
     const key = await window.crypto.subtle.importKey(
-      'raw',
+      "raw",
       chainKey,
-      { name: 'HKDF' },
+      { name: "HKDF" },
       false,
-      ['deriveBits']
+      ["deriveBits"],
     );
 
     // Derive message key
     const messageKeyBits = await window.crypto.subtle.deriveBits(
       {
-        name: 'HKDF',
-        hash: 'SHA-256',
+        name: "HKDF",
+        hash: "SHA-256",
         salt: new Uint8Array(32),
-        info: new TextEncoder().encode('MessageKey')
+        info: new TextEncoder().encode("MessageKey"),
       },
       key,
-      256
+      256,
     );
 
     // Derive next chain key
     const nextChainKeyBits = await window.crypto.subtle.deriveBits(
       {
-        name: 'HKDF',
-        hash: 'SHA-256',
+        name: "HKDF",
+        hash: "SHA-256",
         salt: new Uint8Array(32),
-        info: new TextEncoder().encode('ChainKey')
+        info: new TextEncoder().encode("ChainKey"),
       },
       key,
-      256
+      256,
     );
 
     return {
       messageKey: Buffer.from(messageKeyBits),
-      nextChainKey: Buffer.from(nextChainKeyBits)
+      nextChainKey: Buffer.from(nextChainKeyBits),
     };
   }
 
   private async encrypt(key: Buffer, message: Buffer): Promise<Buffer> {
     // Import key for encryption
     const cryptoKey = await window.crypto.subtle.importKey(
-      'raw',
+      "raw",
       key,
-      { name: 'AES-GCM' },
+      { name: "AES-GCM" },
       false,
-      ['encrypt']
+      ["encrypt"],
     );
 
     // Generate IV
@@ -245,12 +268,12 @@ export class ForwardSecrecyService {
     // Encrypt
     const ciphertext = await window.crypto.subtle.encrypt(
       {
-        name: 'AES-GCM',
+        name: "AES-GCM",
         iv,
-        tagLength: 128
+        tagLength: 128,
       },
       cryptoKey,
-      message
+      message,
     );
 
     // Combine IV and ciphertext
@@ -260,11 +283,11 @@ export class ForwardSecrecyService {
   private async decrypt(key: Buffer, ciphertext: Buffer): Promise<Buffer> {
     // Import key for decryption
     const cryptoKey = await window.crypto.subtle.importKey(
-      'raw',
+      "raw",
       key,
-      { name: 'AES-GCM' },
+      { name: "AES-GCM" },
       false,
-      ['decrypt']
+      ["decrypt"],
     );
 
     // Split IV and ciphertext
@@ -274,12 +297,12 @@ export class ForwardSecrecyService {
     // Decrypt
     const plaintext = await window.crypto.subtle.decrypt(
       {
-        name: 'AES-GCM',
+        name: "AES-GCM",
         iv,
-        tagLength: 128
+        tagLength: 128,
       },
       cryptoKey,
-      encryptedData
+      encryptedData,
     );
 
     return Buffer.from(plaintext);
@@ -292,9 +315,9 @@ export class ForwardSecrecyService {
 
   private trySkippedMessageKeys(
     state: RatchetState,
-    header: { publicKey: Buffer; messageNumber: number }
+    header: { publicKey: Buffer; messageNumber: number },
   ): Buffer | null {
-    const key = `${header.publicKey.toString('hex')}-${header.messageNumber}`;
+    const key = `${header.publicKey.toString("hex")}-${header.messageNumber}`;
     const messageKey = state.skippedMessageKeys.get(key);
     if (messageKey) {
       state.skippedMessageKeys.delete(key);
@@ -305,7 +328,11 @@ export class ForwardSecrecyService {
 
   private async performRatchetSteps(
     state: RatchetState,
-    header: { publicKey: Buffer; messageNumber: number; previousChainLength: number }
+    header: {
+      publicKey: Buffer;
+      messageNumber: number;
+      previousChainLength: number;
+    },
   ): Promise<void> {
     // Store current receiving chain key for skipped messages
     if (state.receivingChainKey.length > 0) {
@@ -314,56 +341,56 @@ export class ForwardSecrecyService {
 
     // Import keys for DH
     const privateKey = await window.crypto.subtle.importKey(
-      'raw',
+      "raw",
       state.sendingRatchetKeyPair.privateKey,
       {
-        name: 'ECDH',
-        namedCurve: 'P-256'
+        name: "ECDH",
+        namedCurve: "P-256",
       },
       true,
-      ['deriveKey', 'deriveBits']
+      ["deriveKey", "deriveBits"],
     );
 
     const publicKey = await window.crypto.subtle.importKey(
-      'raw',
+      "raw",
       header.publicKey,
       {
-        name: 'ECDH',
-        namedCurve: 'P-256'
+        name: "ECDH",
+        namedCurve: "P-256",
       },
       true,
-      []
+      [],
     );
 
     // Perform DH and derive new root key
     const dhResult = await window.crypto.subtle.deriveBits(
       {
-        name: 'ECDH',
-        public: publicKey
+        name: "ECDH",
+        public: publicKey,
       },
       privateKey,
-      256
+      256,
     );
 
     // Import current root key
     const rootKey = await window.crypto.subtle.importKey(
-      'raw',
+      "raw",
       state.rootKey,
-      { name: 'HKDF' },
+      { name: "HKDF" },
       false,
-      ['deriveBits']
+      ["deriveBits"],
     );
 
     // Derive new root key and chain key
     const newKeys = await window.crypto.subtle.deriveBits(
       {
-        name: 'HKDF',
-        hash: 'SHA-256',
+        name: "HKDF",
+        hash: "SHA-256",
         salt: Buffer.from(dhResult),
-        info: new TextEncoder().encode('RatchetStep')
+        info: new TextEncoder().encode("RatchetStep"),
       },
       rootKey,
-      512 // 256 bits for root key + 256 bits for chain key
+      512, // 256 bits for root key + 256 bits for chain key
     );
 
     // Update state
@@ -374,4 +401,4 @@ export class ForwardSecrecyService {
     // Generate new sending ratchet key pair
     state.sendingRatchetKeyPair = await this.generateRatchetKeyPair();
   }
-} 
+}

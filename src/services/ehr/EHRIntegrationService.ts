@@ -1,22 +1,26 @@
-import { EventEmitter } from 'events';
-import { HIPAACompliantAuditService } from '../HIPAACompliantAuditService';
-import { SecurityAuditService } from '../SecurityAuditService';
-import { DataRetentionService } from '../DataRetentionService';
-import { QualityMetricsService } from '../QualityMetricsService';
-import { HIPAAEventType, HIPAAActionType } from '@/types/hipaa';
-import { EpicProvider } from '@/integrations/ehr/providers/epic';
-import { CernerProvider } from '@/integrations/ehr/providers/cerner';
-import { AllscriptsProvider } from '@/integrations/ehr/providers/allscripts';
-import { AthenahealthProvider } from '@/integrations/ehr/providers/athenahealth';
-import { FHIRClient } from '@/integrations/ehr/fhir-client';
+import { EventEmitter } from "events";
+import { singleton } from "tsyringe";
+import { HIPAACompliantAuditService } from "../../../backend/src/services/HIPAACompliantAuditService";
+import { SecurityAuditService } from "../../../backend/src/services/SecurityAuditService";
+import { DataRetentionService } from "../../../backend/src/services/DataRetentionService";
+import { QualityMetricsService } from "../../../backend/src/services/QualityMetricsService";
+import {
+  HIPAAEventType,
+  HIPAAActionType,
+} from "../../../backend/src/types/hipaa";
+import { EpicProvider } from "@/integrations/ehr/providers/epic";
+import { CernerProvider } from "@/integrations/ehr/providers/cerner";
+import { AllscriptsProvider } from "@/integrations/ehr/providers/allscripts";
+import { AthenahealthProvider } from "@/integrations/ehr/providers/athenahealth";
+import { FHIRClient } from "@/integrations/ehr/fhir-client";
 
-interface EHRConfig {
-  vendor: 'epic' | 'cerner' | 'allscripts' | 'athenahealth';
+interface EHRProviderConfig {
+  vendor: "epic" | "cerner" | "allscripts" | "athenahealth";
   baseUrl: string;
   clientId: string;
   clientSecret: string;
   scopes: string[];
-  fhirVersion: '4.0.1' | '3.0.2';
+  fhirVersion: "4.0.1" | "3.0.2";
 }
 
 interface EHRConnectionStatus {
@@ -25,72 +29,75 @@ interface EHRConnectionStatus {
   error?: string;
 }
 
-type EHRProvider = EpicProvider | CernerProvider | AllscriptsProvider | AthenahealthProvider;
+type EHRProvider =
+  | EpicProvider
+  | CernerProvider
+  | AllscriptsProvider
+  | AthenahealthProvider;
 
 @singleton()
 export class EHRIntegrationService extends EventEmitter {
   private static instance: EHRIntegrationService;
-  private readonly configs: Map<string, EHRConfig> = new Map();
-  private readonly connectionStatus: Map<string, EHRConnectionStatus> = new Map();
+  private readonly configs: Map<string, EHRProviderConfig> = new Map();
+  private readonly connectionStatus: Map<string, EHRConnectionStatus> =
+    new Map();
   private readonly providers: Map<string, EHRProvider> = new Map();
-  
+
   constructor(
     private readonly hipaaAuditService: HIPAACompliantAuditService,
     private readonly securityAuditService: SecurityAuditService,
     private readonly dataRetentionService: DataRetentionService,
-    private readonly qualityMetricsService: QualityMetricsService
+    private readonly qualityMetricsService: QualityMetricsService,
   ) {
     super();
     this.initializeEventListeners();
   }
 
   private initializeEventListeners(): void {
-    this.on('ehrConnection', this.handleEHRConnection.bind(this));
-    this.on('dataSync', this.handleDataSync.bind(this));
-    this.on('error', this.handleError.bind(this));
+    this.on("ehrConnection", this.handleEHRConnection.bind(this));
+    this.on("dataSync", this.handleDataSync.bind(this));
+    this.on("error", this.handleError.bind(this));
   }
 
-  async configureEHRProvider(providerId: string, config: EHRConfig): Promise<void> {
+  async configureEHRProvider(
+    providerId: string,
+    config: EHRProviderConfig,
+  ): Promise<void> {
     try {
       // Validate config
       this.validateConfig(config);
-      
+
       // Store configuration
       this.configs.set(providerId, config);
-      
+
       // Initialize connection status
       this.connectionStatus.set(providerId, {
         isConnected: false,
-        lastSync: null
+        lastSync: null,
       });
 
       await this.hipaaAuditService.logEvent({
         eventType: HIPAAEventType.SYSTEM_OPERATION,
         timestamp: new Date(),
-        actor: {
-          id: 'SYSTEM',
-          role: 'SYSTEM',
-          ipAddress: '127.0.0.1'
-        },
         action: {
           type: HIPAAActionType.CREATE,
-          status: 'SUCCESS',
+          status: "SUCCESS",
           details: {
-            operation: 'CONFIGURE_EHR_PROVIDER',
+            operation: "CONFIGURE_EHR_PROVIDER",
             providerId,
-            vendor: config.vendor
-          }
+            vendor: config.vendor,
+          },
         },
         resource: {
-          type: 'SYSTEM',
+          type: "SYSTEM",
           id: providerId,
-          description: 'EHR Provider Configuration'
-        }
+          description: "EHR Provider Configuration",
+        },
       });
     } catch (error) {
-      await this.securityAuditService.recordAlert('EHR_CONFIG_ERROR', 'HIGH', {
-        error: error instanceof Error ? error.message : 'Unknown error',
-        providerId
+      await this.securityAuditService.recordAlert("EHR_CONFIG_ERROR", "HIGH", {
+        error: error instanceof Error ? error.message : "Unknown error",
+        providerId,
       });
       throw error;
     }
@@ -106,20 +113,96 @@ export class EHRIntegrationService extends EventEmitter {
       // Create and connect provider based on vendor
       let provider: EHRProvider;
       switch (config.vendor) {
-        case 'epic': {
-          provider = new EpicProvider(config);
+        case "epic": {
+          provider = new EpicProvider({
+            providers: [
+              {
+                id: providerId,
+                name: config.vendor,
+                baseUrl: config.baseUrl,
+                authType: "oauth2",
+                settings: {
+                  clientId: config.clientId,
+                  clientSecret: config.clientSecret,
+                  scope: config.scopes,
+                },
+              },
+            ],
+            defaultProvider: providerId,
+            auditLogEnabled: true,
+            cacheDuration: 300,
+            retryAttempts: 3,
+            timeout: 30000,
+          });
           break;
         }
-        case 'cerner': {
-          provider = new CernerProvider(config);
+        case "cerner": {
+          provider = new CernerProvider({
+            providers: [
+              {
+                id: providerId,
+                name: config.vendor,
+                baseUrl: config.baseUrl,
+                authType: "oauth2",
+                settings: {
+                  clientId: config.clientId,
+                  clientSecret: config.clientSecret,
+                  scope: config.scopes,
+                },
+              },
+            ],
+            defaultProvider: providerId,
+            auditLogEnabled: true,
+            cacheDuration: 300,
+            retryAttempts: 3,
+            timeout: 30000,
+          });
           break;
         }
-        case 'allscripts': {
-          provider = new AllscriptsProvider(config);
+        case "allscripts": {
+          provider = new AllscriptsProvider({
+            providers: [
+              {
+                id: providerId,
+                name: config.vendor,
+                baseUrl: config.baseUrl,
+                authType: "oauth2",
+                settings: {
+                  clientId: config.clientId,
+                  clientSecret: config.clientSecret,
+                  scope: config.scopes,
+                },
+              },
+            ],
+            defaultProvider: providerId,
+            auditLogEnabled: true,
+            cacheDuration: 300,
+            retryAttempts: 3,
+            timeout: 30000,
+          });
           break;
         }
-        case 'athenahealth': {
-          provider = new AthenahealthProvider(config);
+        case "athenahealth": {
+          provider = new AthenahealthProvider({
+            providers: [
+              {
+                id: providerId,
+                name: config.vendor,
+                baseUrl: config.baseUrl,
+                authType: "oauth2",
+                settings: {
+                  clientId: config.clientId,
+                  clientSecret: config.clientSecret,
+                  scope: config.scopes,
+                },
+              },
+            ],
+            defaultProvider: providerId,
+            auditLogEnabled: true,
+            cacheDuration: 300,
+            retryAttempts: 3,
+            timeout: 30000,
+          });
           break;
         }
         default:
@@ -133,36 +216,31 @@ export class EHRIntegrationService extends EventEmitter {
       // Update connection status
       this.connectionStatus.set(providerId, {
         isConnected: true,
-        lastSync: new Date()
+        lastSync: new Date(),
       });
 
-      this.emit('ehrConnection', {
+      this.emit("ehrConnection", {
         providerId,
-        status: 'connected'
+        status: "connected",
       });
 
       await this.hipaaAuditService.logEvent({
         eventType: HIPAAEventType.SYSTEM_OPERATION,
         timestamp: new Date(),
-        actor: {
-          id: 'SYSTEM',
-          role: 'SYSTEM',
-          ipAddress: '127.0.0.1'
-        },
         action: {
           type: HIPAAActionType.UPDATE,
-          status: 'SUCCESS',
+          status: "SUCCESS",
           details: {
-            operation: 'CONNECT_EHR_PROVIDER',
+            operation: "CONNECT_EHR_PROVIDER",
             providerId,
-            vendor: config.vendor
-          }
+            vendor: config.vendor,
+          },
         },
         resource: {
-          type: 'SYSTEM',
+          type: "SYSTEM",
           id: providerId,
-          description: 'EHR Provider Connection'
-        }
+          description: "EHR Provider Connection",
+        },
       });
     } catch (error) {
       await this.handleError(providerId, error);
@@ -174,22 +252,33 @@ export class EHRIntegrationService extends EventEmitter {
     this.connectionStatus.set(providerId, {
       isConnected: false,
       lastSync: null,
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: error instanceof Error ? error.message : "Unknown error",
     });
 
-    await this.securityAuditService.recordAlert('EHR_CONNECTION_ERROR', 'HIGH', {
-      error: error instanceof Error ? error.message : 'Unknown error',
-      providerId
-    });
+    await this.securityAuditService.recordAlert(
+      "EHR_CONNECTION_ERROR",
+      "HIGH",
+      {
+        error: error instanceof Error ? error.message : "Unknown error",
+        providerId,
+      },
+    );
 
-    this.emit('error', {
+    this.emit("error", {
       providerId,
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: error instanceof Error ? error.message : "Unknown error",
     });
   }
 
-  private validateConfig(config: EHRConfig): void {
-    const requiredFields = ['vendor', 'baseUrl', 'clientId', 'clientSecret', 'scopes', 'fhirVersion'];
+  private validateConfig(config: EHRProviderConfig): void {
+    const requiredFields = [
+      "vendor",
+      "baseUrl",
+      "clientId",
+      "clientSecret",
+      "scopes",
+      "fhirVersion",
+    ];
     for (const field of requiredFields) {
       if (!config[field]) {
         throw new Error(`Missing required field: ${field}`);
@@ -198,22 +287,22 @@ export class EHRIntegrationService extends EventEmitter {
 
     // Validate vendor-specific requirements
     switch (config.vendor) {
-      case 'epic':
+      case "epic":
         // Epic-specific validation could go here
         break;
-      case 'cerner':
-        if (!config.baseUrl.includes('fhir-ehr')) {
-          throw new Error('Invalid Cerner FHIR URL format');
+      case "cerner":
+        if (!config.baseUrl.includes("fhir-ehr")) {
+          throw new Error("Invalid Cerner FHIR URL format");
         }
         break;
-      case 'allscripts':
-        if (!config.baseUrl.includes('fhirapi')) {
-          throw new Error('Invalid Allscripts FHIR URL format');
+      case "allscripts":
+        if (!config.baseUrl.includes("fhirapi")) {
+          throw new Error("Invalid Allscripts FHIR URL format");
         }
         break;
-      case 'athenahealth':
-        if (!config.baseUrl.includes('athenahealth.com/fhir')) {
-          throw new Error('Invalid Athenahealth FHIR URL format');
+      case "athenahealth":
+        if (!config.baseUrl.includes("athenahealth.com/fhir")) {
+          throw new Error("Invalid Athenahealth FHIR URL format");
         }
         break;
     }
@@ -227,21 +316,33 @@ export class EHRIntegrationService extends EventEmitter {
     return provider.getClient();
   }
 
-  private async handleEHRConnection(event: { providerId: string; status: string }): Promise<void> {
+  private async handleEHRConnection(event: {
+    providerId: string;
+    status: string;
+  }): Promise<void> {
     // Handle connection events (could be used for monitoring, metrics, etc.)
-    await this.qualityMetricsService.recordMetric('ehr_connection', {
-      providerId: event.providerId,
-      status: event.status,
-      timestamp: new Date().toISOString(),
+    await this.qualityMetricsService.recordMetric({
+      name: "ehr_connection",
+      value: {
+        providerId: event.providerId,
+        status: event.status,
+        timestamp: new Date().toISOString(),
+      },
     });
   }
 
-  private async handleDataSync(event: { providerId: string; resourceType: string }): Promise<void> {
+  private async handleDataSync(event: {
+    providerId: string;
+    resourceType: string;
+  }): Promise<void> {
     // Handle data sync events (could be used for monitoring, metrics, etc.)
-    await this.qualityMetricsService.recordMetric('ehr_sync', {
-      providerId: event.providerId,
-      resourceType: event.resourceType,
-      timestamp: new Date().toISOString(),
+    await this.qualityMetricsService.recordMetric({
+      name: "ehr_sync",
+      value: {
+        providerId: event.providerId,
+        resourceType: event.resourceType,
+        timestamp: new Date().toISOString(),
+      },
     });
   }
-} 
+}

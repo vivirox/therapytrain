@@ -1,54 +1,44 @@
-import { createServerClient } from '@supabase/ssr'
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { validateSessionId } from "@/lib/validation";
 
-export async function middleware(request: NextRequest) {
-  let response = NextResponse.next({
-    request: {
-      headers: request.headers,
-    },
-  })
+export function middleware(request: NextRequest) {
+  // Only apply to API routes
+  if (!request.nextUrl.pathname.startsWith("/api/")) {
+    return NextResponse.next();
+  }
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get(name: string) {
-          return request.cookies.get(name)?.value
-        },
-        set(name: string, value: string, options: any) {
-          response.cookies.set({
-            name,
-            value,
-            ...options,
-          })
-        },
-        remove(name: string, options: any) {
-          response.cookies.set({
-            name,
-            value: '',
-            ...options,
-          })
+  try {
+    // Extract session ID from URL if present
+    const sessionIdMatch =
+      request.nextUrl.pathname.match(/\/sessions\/([^\/]+)/);
+    if (sessionIdMatch) {
+      const sessionId = sessionIdMatch[1];
+      validateSessionId(sessionId);
+    }
+
+    // Validate path for traversal attempts
+    if (request.nextUrl.pathname.includes("..")) {
+      throw new Error("Invalid path");
+    }
+
+    return NextResponse.next();
+  } catch (error) {
+    return new NextResponse(
+      JSON.stringify({
+        error: "Invalid request",
+        message: error instanceof Error ? error.message : "Validation failed",
+      }),
+      {
+        status: 400,
+        headers: {
+          "Content-Type": "application/json",
         },
       },
-    }
-  )
-
-  await supabase.auth.getSession()
-
-  return response
+    );
+  }
 }
 
 export const config = {
-  matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * Feel free to modify this pattern to include more paths.
-     */
-    '/((?!_next/static|_next/image|favicon.ico).*)',
-  ],
-} 
+  matcher: "/api/:path*",
+};

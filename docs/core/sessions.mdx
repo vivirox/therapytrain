@@ -1,6 +1,6 @@
 ---
-title: 'Session Management'
-description: 'Understanding Gradiant's session management system'
+title: "Session Management"
+description: "Understanding Gradiant's session management system"
 ---
 
 ## Overview
@@ -26,18 +26,12 @@ Gradiant's session management system handles real-time communication, state mana
 ## Session Lifecycle
 
 <Frame>
-  ```mermaid
-  stateDiagram-v2
-    [*] --> Created
-    Created --> Active: Start Session
-    Active --> Paused: Pause
-    Paused --> Active: Resume
-    Active --> Completed: End Session
-    Active --> Cancelled: Cancel
-    Paused --> Cancelled: Cancel
-    Completed --> [*]
-    Cancelled --> [*]
-  ```
+```
+mermaid stateDiagram-v2 [*] --> Created Created --> Active: Start Session
+Active --> Paused: Pause Paused --> Active: Resume Active --> Completed: End
+Session Active --> Cancelled: Cancel Paused --> Cancelled: Cancel Completed
+--> [*] Cancelled --> [*]
+```
 </Frame>
 
 ## WebSocket Communication
@@ -45,27 +39,27 @@ Gradiant's session management system handles real-time communication, state mana
 ### Connection Setup
 
 ```typescript
-const socket = new WebSocket('wss://api.gemcity.xyz/ws', {
+const socket = new WebSocket("wss://api.gemcity.xyz/ws", {
   headers: {
-    Authorization: `Bearer ${token}`
-  }
-})
+    Authorization: `Bearer ${token}`,
+  },
+});
 
 socket.onopen = () => {
-  console.log('Connected to session')
-}
+  console.log("Connected to session");
+};
 
 socket.onmessage = (event) => {
-  const message = JSON.parse(event.data)
-  handleMessage(message)
-}
+  const message = JSON.parse(event.data);
+  handleMessage(message);
+};
 ```
 
 ### Message Types
 
 ```typescript
 interface Message {
-  type: 'text' | 'system' | 'ai' | 'action';
+  type: "text" | "system" | "ai" | "action";
   content: string;
   metadata?: {
     sentiment?: number;
@@ -82,17 +76,17 @@ interface Message {
 // Send heartbeat every 30 seconds
 setInterval(() => {
   if (socket.readyState === WebSocket.OPEN) {
-    socket.send(JSON.stringify({ type: 'ping' }))
+    socket.send(JSON.stringify({ type: "ping" }));
   }
-}, 30000)
+}, 30000);
 
 // Handle heartbeat response
 socket.onmessage = (event) => {
-  const message = JSON.parse(event.data)
-  if (message.type === 'pong') {
-    updateLastHeartbeat()
+  const message = JSON.parse(event.data);
+  if (message.type === "pong") {
+    updateLastHeartbeat();
   }
-}
+};
 ```
 
 ## Session Data Model
@@ -101,8 +95,8 @@ socket.onmessage = (event) => {
 interface Session {
   id: string;
   clientId: string;
-  mode: 'chat' | 'voice' | 'video';
-  status: 'active' | 'completed' | 'cancelled';
+  mode: "chat" | "voice" | "video";
+  status: "active" | "completed" | "cancelled";
   startTime: string;
   endTime?: string;
   metrics?: {
@@ -131,7 +125,7 @@ const SessionContext = createContext<{
   session: SessionContext;
   sendMessage: (content: string) => void;
   updateStatus: (status: SessionStatus) => void;
-}>()
+}>();
 ```
 
 ### Message Queue
@@ -164,31 +158,27 @@ class MessageQueue {
 ### Message Processing
 
 <Frame>
-  ```mermaid
-  graph LR
-    Message[New Message] --> Analysis[AI Analysis]
-    Analysis --> Sentiment[Sentiment Analysis]
-    Analysis --> Topics[Topic Extraction]
-    Analysis --> Crisis[Crisis Detection]
-    Sentiment --> Response[Response]
-    Topics --> Response
-    Crisis --> Alert[Crisis Alert]
-    Response --> Queue[Message Queue]
+  ```mermaid graph LR Message[New Message] --> Analysis[AI Analysis] Analysis
+  --> Sentiment[Sentiment Analysis] Analysis --> Topics[Topic Extraction]
+  Analysis --> Crisis[Crisis Detection] Sentiment --> Response[Response] Topics
+  --> Response Crisis --> Alert[Crisis Alert] Response --> Queue[Message Queue]
   ```
 </Frame>
 
 ### AI Features
 
 1. **Sentiment Analysis**
+
 ```typescript
 interface SentimentAnalysis {
-  score: number;  // -1 to 1
+  score: number; // -1 to 1
   labels: string[];
   confidence: number;
 }
 ```
 
 2. **Topic Extraction**
+
 ```typescript
 interface TopicAnalysis {
   topics: string[];
@@ -198,9 +188,10 @@ interface TopicAnalysis {
 ```
 
 3. **Crisis Detection**
+
 ```typescript
 interface CrisisDetection {
-  risk_level: 'none' | 'low' | 'medium' | 'high';
+  risk_level: "none" | "low" | "medium" | "high";
   triggers: string[];
   recommended_action: string;
 }
@@ -227,7 +218,7 @@ class ConnectionManager {
         await this.wait(this.backoffMs * Math.pow(2, this.retryCount));
       }
     }
-    throw new Error('Connection failed');
+    throw new Error("Connection failed");
   }
 }
 ```
@@ -237,11 +228,11 @@ class ConnectionManager {
 ```typescript
 async function recoverMessages(sessionId: string, lastMessageId: string) {
   const { data, error } = await supabase
-    .from('messages')
-    .select('*')
-    .eq('session_id', sessionId)
-    .gt('id', lastMessageId)
-    .order('created_at', { ascending: true });
+    .from("messages")
+    .select("*")
+    .eq("session_id", sessionId)
+    .gt("id", lastMessageId)
+    .order("created_at", { ascending: true });
 
   if (error) throw error;
   return data;
@@ -286,7 +277,7 @@ const pool = {
   min: 5,
   idle: 10000,
   acquire: 30000,
-  evict: 1000
+  evict: 1000,
 };
 ```
 
@@ -320,38 +311,26 @@ const monitor = {
     await persistMetrics(metrics);
     checkThresholds(metrics);
   },
-  
+
   checkHealth: async () => {
     const status = await getSystemStatus();
     if (status.hasIssues) {
       alertOperations(status);
     }
-  }
+  },
 };
 ```
 
 ## Next Steps
 
 <CardGroup>
-  <Card
-    title="AI Integration"
-    icon="robot"
-    href="/core/ai-integration"
-  >
+  <Card title="AI Integration" icon="robot" href="/core/ai-integration">
     Learn about AI capabilities
   </Card>
-  <Card
-    title="API Reference"
-    icon="code"
-    href="/api-reference/sessions"
-  >
+  <Card title="API Reference" icon="code" href="/api-reference/sessions">
     View session management API
   </Card>
-  <Card
-    title="WebSocket Guide"
-    icon="bolt"
-    href="/api-reference/websocket"
-  >
+  <Card title="WebSocket Guide" icon="bolt" href="/api-reference/websocket">
     WebSocket implementation details
   </Card>
 </CardGroup>

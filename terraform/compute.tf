@@ -82,7 +82,7 @@ resource "aws_ecs_service" "app" {
 # Application Load Balancer
 resource "aws_lb" "app" {
   name               = "${var.app_name}-alb"
-  internal           = false
+  internal           = true
   load_balancer_type = "application"
   security_groups    = [aws_security_group.alb.id]
   subnets           = aws_subnet.public[*].id
@@ -103,8 +103,30 @@ resource "aws_lb" "app" {
 # S3 Bucket for ALB Access Logs
 resource "aws_s3_bucket" "alb_logs" {
   bucket = "${var.app_name}-alb-logs-${data.aws_caller_identity.current.account_id}"
-
   tags = var.tags
+}
+
+# Add lifecycle configuration
+resource "aws_s3_bucket_lifecycle_configuration" "alb_logs" {
+  bucket = aws_s3_bucket.alb_logs.id
+
+  rule {
+    id     = "log-management"
+    status = "Enabled"
+
+    abort_incomplete_multipart_upload {
+      days_after_initiation = 7
+    }
+
+    transition {
+      days          = 30
+      storage_class = "STANDARD_IA"
+    }
+
+    expiration {
+      days = 90
+    }
+  }
 }
 
 # Enable versioning

@@ -1,6 +1,6 @@
 ---
-title: 'API Overview'
-description: 'Learn about Gradiant's API architecture and capabilities'
+title: "API Overview"
+description: "Learn about Gradiants API architecture and capabilities"
 ---
 
 # API Overview
@@ -30,9 +30,7 @@ The Gradiant API is built on modern REST principles, providing secure and effici
 https://api.gradiant.dev/v1
 ```
 
-<Note>
-  All API requests must use HTTPS. HTTP requests will be rejected.
-</Note>
+<Note>All API requests must use HTTPS. HTTP requests will be rejected.</Note>
 
 ## Authentication
 
@@ -50,24 +48,26 @@ user = client.users.get()
 ```
 
 ```typescript TypeScript
-import { GradiantClient } from '@gradiant/sdk';
+import { GradiantClient } from "@gradiant/sdk";
 
-const client = new GradiantClient('YOUR_API_TOKEN');
+const client = new GradiantClient("YOUR_API_TOKEN");
 const user = await client.users.get();
 ```
+
 </CodeGroup>
 
 ## Rate Limiting
 
 <Info>
-Our rate limits are based on the type of API token and endpoint being accessed.
+  Our rate limits are based on the type of API token and endpoint being
+  accessed.
 </Info>
 
-| Plan | Rate Limit | Burst Limit |
-|------|------------|-------------|
-| Developer | 100/min | 200/min |
-| Professional | 1000/min | 2000/min |
-| Enterprise | Custom | Custom |
+| Plan         | Rate Limit | Burst Limit |
+| ------------ | ---------- | ----------- |
+| Developer    | 100/min    | 200/min     |
+| Professional | 1000/min   | 2000/min    |
+| Enterprise   | Custom     | Custom      |
 
 ## Response Format
 
@@ -158,9 +158,7 @@ Our rate limits are based on the type of API token and endpoint being accessed.
 
 ## Webhooks
 
-<Warning>
-Webhooks require HTTPS endpoints with valid SSL certificates.
-</Warning>
+<Warning>Webhooks require HTTPS endpoints with valid SSL certificates.</Warning>
 
 ```json
 {
@@ -175,14 +173,9 @@ Webhooks require HTTPS endpoints with valid SSL certificates.
 ## Best Practices
 
 <Steps>
-  ### Use Appropriate Authentication
-  Always use secure authentication methods
-  
-  ### Handle Rate Limits
-  Implement proper rate limit handling and backoff strategies
-  
-  ### Monitor Usage
-  Track your API usage and set up alerts
+  ### Use Appropriate Authentication Always use secure authentication methods
+  ### Handle Rate Limits Implement proper rate limit handling and backoff
+  strategies ### Monitor Usage Track your API usage and set up alerts
 </Steps>
 
 ## Support
@@ -190,10 +183,18 @@ Webhooks require HTTPS endpoints with valid SSL certificates.
 Need help with the API? Contact our developer support:
 
 <CardGroup cols={2}>
-  <Card title="Developer Discord" icon="discord" href="https://discord.gg/gradiant">
+  <Card
+    title="Developer Discord"
+    icon="discord"
+    href="https://discord.gg/gradiant"
+  >
     Join our developer community
   </Card>
-  <Card title="API Support" icon="headset" href="mailto:api-support@gradiant.dev">
+  <Card
+    title="API Support"
+    icon="headset"
+    href="mailto:api-support@gradiant.dev"
+  >
     Contact API support team
   </Card>
 </CardGroup>

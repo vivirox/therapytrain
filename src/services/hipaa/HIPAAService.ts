@@ -1,7 +1,7 @@
-import { singleton } from 'tsyringe';
-import { dataService } from '@/lib/data';
-import { SecurityService } from '../security/SecurityService';
-import { AuditService } from '../audit/AuditService';
+import { singleton } from "tsyringe";
+import { dataService } from "@/lib/data";
+import { SecurityService } from "../security/SecurityService";
+import { AuditService } from "../audit/AuditService";
 
 @singleton()
 export class HIPAAService {
@@ -51,7 +51,8 @@ export class HIPAAService {
     }
 
     // Check enforcement rule compliance
-    const enforcementStatus = await this.checkEnforcementRuleCompliance(session);
+    const enforcementStatus =
+      await this.checkEnforcementRuleCompliance(session);
     if (!enforcementStatus.isCompliant) {
       issues.push(...(enforcementStatus.issues || []));
       recommendations.push(...(enforcementStatus.recommendations || []));
@@ -60,7 +61,7 @@ export class HIPAAService {
     return {
       isCompliant: issues.length === 0,
       issues: issues.length > 0 ? issues : undefined,
-      recommendations: recommendations.length > 0 ? recommendations : undefined
+      recommendations: recommendations.length > 0 ? recommendations : undefined,
     };
   }
 
@@ -96,7 +97,7 @@ export class HIPAAService {
     return {
       isSecure: issues.length === 0,
       issues: issues.length > 0 ? issues : undefined,
-      recommendations: recommendations.length > 0 ? recommendations : undefined
+      recommendations: recommendations.length > 0 ? recommendations : undefined,
     };
   }
 
@@ -111,28 +112,28 @@ export class HIPAAService {
     // Check notice of privacy practices
     const noticeStatus = await this.checkPrivacyNotice(session);
     if (!noticeStatus.isValid) {
-      issues.push('Privacy notice not properly implemented');
-      recommendations.push('Update privacy notice to meet HIPAA requirements');
+      issues.push("Privacy notice not properly implemented");
+      recommendations.push("Update privacy notice to meet HIPAA requirements");
     }
 
     // Check patient rights implementation
     const rightsStatus = await this.checkPatientRights(session);
     if (!rightsStatus.isValid) {
-      issues.push('Patient rights not properly implemented');
-      recommendations.push('Review and update patient rights implementation');
+      issues.push("Patient rights not properly implemented");
+      recommendations.push("Review and update patient rights implementation");
     }
 
     // Check minimum necessary standard
     const minimumNecessaryStatus = await this.checkMinimumNecessary(session);
     if (!minimumNecessaryStatus.isValid) {
-      issues.push('Minimum necessary standard not met');
-      recommendations.push('Implement minimum necessary data access controls');
+      issues.push("Minimum necessary standard not met");
+      recommendations.push("Implement minimum necessary data access controls");
     }
 
     return {
       isCompliant: issues.length === 0,
       issues: issues.length > 0 ? issues : undefined,
-      recommendations: recommendations.length > 0 ? recommendations : undefined
+      recommendations: recommendations.length > 0 ? recommendations : undefined,
     };
   }
 
@@ -147,28 +148,28 @@ export class HIPAAService {
     // Check administrative safeguards
     const adminStatus = await this.checkAdministrativeSafeguards(session);
     if (!adminStatus.isValid) {
-      issues.push('Administrative safeguards not properly implemented');
-      recommendations.push('Review and update administrative safeguards');
+      issues.push("Administrative safeguards not properly implemented");
+      recommendations.push("Review and update administrative safeguards");
     }
 
     // Check physical safeguards
     const physicalStatus = await this.checkPhysicalSafeguards(session);
     if (!physicalStatus.isValid) {
-      issues.push('Physical safeguards not properly implemented');
-      recommendations.push('Review and update physical safeguards');
+      issues.push("Physical safeguards not properly implemented");
+      recommendations.push("Review and update physical safeguards");
     }
 
     // Check technical safeguards
     const technicalStatus = await this.checkTechnicalSafeguards(session);
     if (!technicalStatus.isValid) {
-      issues.push('Technical safeguards not properly implemented');
-      recommendations.push('Review and update technical safeguards');
+      issues.push("Technical safeguards not properly implemented");
+      recommendations.push("Review and update technical safeguards");
     }
 
     return {
       isCompliant: issues.length === 0,
       issues: issues.length > 0 ? issues : undefined,
-      recommendations: recommendations.length > 0 ? recommendations : undefined
+      recommendations: recommendations.length > 0 ? recommendations : undefined,
     };
   }
 
@@ -183,28 +184,28 @@ export class HIPAAService {
     // Check breach detection mechanisms
     const detectionStatus = await this.checkBreachDetection(session);
     if (!detectionStatus.isValid) {
-      issues.push('Breach detection mechanisms not properly implemented');
-      recommendations.push('Implement robust breach detection mechanisms');
+      issues.push("Breach detection mechanisms not properly implemented");
+      recommendations.push("Implement robust breach detection mechanisms");
     }
 
     // Check notification procedures
     const notificationStatus = await this.checkNotificationProcedures(session);
     if (!notificationStatus.isValid) {
-      issues.push('Breach notification procedures not properly implemented');
-      recommendations.push('Review and update breach notification procedures');
+      issues.push("Breach notification procedures not properly implemented");
+      recommendations.push("Review and update breach notification procedures");
     }
 
     // Check documentation requirements
     const documentationStatus = await this.checkBreachDocumentation(session);
     if (!documentationStatus.isValid) {
-      issues.push('Breach documentation requirements not met');
-      recommendations.push('Implement proper breach documentation procedures');
+      issues.push("Breach documentation requirements not met");
+      recommendations.push("Implement proper breach documentation procedures");
     }
 
     return {
       isCompliant: issues.length === 0,
       issues: issues.length > 0 ? issues : undefined,
-      recommendations: recommendations.length > 0 ? recommendations : undefined
+      recommendations: recommendations.length > 0 ? recommendations : undefined,
     };
   }
 
@@ -219,28 +220,28 @@ export class HIPAAService {
     // Check compliance policies
     const policyStatus = await this.checkCompliancePolicies(session);
     if (!policyStatus.isValid) {
-      issues.push('Compliance policies not properly implemented');
-      recommendations.push('Review and update compliance policies');
+      issues.push("Compliance policies not properly implemented");
+      recommendations.push("Review and update compliance policies");
     }
 
     // Check enforcement procedures
     const enforcementStatus = await this.checkEnforcementProcedures(session);
     if (!enforcementStatus.isValid) {
-      issues.push('Enforcement procedures not properly implemented');
-      recommendations.push('Review and update enforcement procedures');
+      issues.push("Enforcement procedures not properly implemented");
+      recommendations.push("Review and update enforcement procedures");
     }
 
     // Check penalty provisions
     const penaltyStatus = await this.checkPenaltyProvisions(session);
     if (!penaltyStatus.isValid) {
-      issues.push('Penalty provisions not properly implemented');
-      recommendations.push('Review and update penalty provisions');
+      issues.push("Penalty provisions not properly implemented");
+      recommendations.push("Review and update penalty provisions");
     }
 
     return {
       isCompliant: issues.length === 0,
       issues: issues.length > 0 ? issues : undefined,
-      recommendations: recommendations.length > 0 ? recommendations : undefined
+      recommendations: recommendations.length > 0 ? recommendations : undefined,
     };
   }
 
@@ -255,28 +256,28 @@ export class HIPAAService {
     // Check access control mechanisms
     const accessControls = await this.getAccessControls(session);
     if (!this.validateAccessControls(accessControls)) {
-      issues.push('Inadequate PHI access controls');
-      recommendations.push('Implement stronger PHI access controls');
+      issues.push("Inadequate PHI access controls");
+      recommendations.push("Implement stronger PHI access controls");
     }
 
     // Check role-based access
     const roleAccess = await this.getRoleBasedAccess(session);
     if (!this.validateRoleAccess(roleAccess)) {
-      issues.push('Role-based access not properly implemented');
-      recommendations.push('Review and update role-based access controls');
+      issues.push("Role-based access not properly implemented");
+      recommendations.push("Review and update role-based access controls");
     }
 
     // Check access monitoring
     const accessMonitoring = await this.getAccessMonitoring(session);
     if (!this.validateAccessMonitoring(accessMonitoring)) {
-      issues.push('Inadequate access monitoring');
-      recommendations.push('Implement comprehensive access monitoring');
+      issues.push("Inadequate access monitoring");
+      recommendations.push("Implement comprehensive access monitoring");
     }
 
     return {
       isSecure: issues.length === 0,
       issues: issues.length > 0 ? issues : undefined,
-      recommendations: recommendations.length > 0 ? recommendations : undefined
+      recommendations: recommendations.length > 0 ? recommendations : undefined,
     };
   }
 
@@ -291,28 +292,28 @@ export class HIPAAService {
     // Check encryption at rest
     const restEncryption = await this.checkEncryptionAtRest(session);
     if (!restEncryption.isSecure) {
-      issues.push('PHI not properly encrypted at rest');
-      recommendations.push('Implement proper encryption for stored PHI');
+      issues.push("PHI not properly encrypted at rest");
+      recommendations.push("Implement proper encryption for stored PHI");
     }
 
     // Check encryption in transit
     const transitEncryption = await this.checkEncryptionInTransit(session);
     if (!transitEncryption.isSecure) {
-      issues.push('PHI not properly encrypted in transit');
-      recommendations.push('Implement proper encryption for PHI transmission');
+      issues.push("PHI not properly encrypted in transit");
+      recommendations.push("Implement proper encryption for PHI transmission");
     }
 
     // Check key management
     const keyManagement = await this.checkKeyManagement(session);
     if (!keyManagement.isSecure) {
-      issues.push('Inadequate encryption key management');
-      recommendations.push('Implement proper encryption key management');
+      issues.push("Inadequate encryption key management");
+      recommendations.push("Implement proper encryption key management");
     }
 
     return {
       isSecure: issues.length === 0,
       issues: issues.length > 0 ? issues : undefined,
-      recommendations: recommendations.length > 0 ? recommendations : undefined
+      recommendations: recommendations.length > 0 ? recommendations : undefined,
     };
   }
 
@@ -327,97 +328,121 @@ export class HIPAAService {
     // Check transmission protocols
     const protocolStatus = await this.checkTransmissionProtocols(session);
     if (!protocolStatus.isSecure) {
-      issues.push('Insecure transmission protocols');
-      recommendations.push('Implement secure transmission protocols');
+      issues.push("Insecure transmission protocols");
+      recommendations.push("Implement secure transmission protocols");
     }
 
     // Check recipient authentication
     const recipientStatus = await this.checkRecipientAuthentication(session);
     if (!recipientStatus.isSecure) {
-      issues.push('Inadequate recipient authentication');
-      recommendations.push('Implement proper recipient authentication');
+      issues.push("Inadequate recipient authentication");
+      recommendations.push("Implement proper recipient authentication");
     }
 
     // Check transmission logging
     const loggingStatus = await this.checkTransmissionLogging(session);
     if (!loggingStatus.isSecure) {
-      issues.push('Inadequate transmission logging');
-      recommendations.push('Implement comprehensive transmission logging');
+      issues.push("Inadequate transmission logging");
+      recommendations.push("Implement comprehensive transmission logging");
     }
 
     return {
       isSecure: issues.length === 0,
       issues: issues.length > 0 ? issues : undefined,
-      recommendations: recommendations.length > 0 ? recommendations : undefined
+      recommendations: recommendations.length > 0 ? recommendations : undefined,
     };
   }
 
   // Helper methods for various checks
-  private async checkPrivacyNotice(session: any): Promise<{ isValid: boolean }> {
+  private async checkPrivacyNotice(
+    session: any,
+  ): Promise<{ isValid: boolean }> {
     // Implement privacy notice validation
     return { isValid: true };
   }
 
-  private async checkPatientRights(session: any): Promise<{ isValid: boolean }> {
+  private async checkPatientRights(
+    session: any,
+  ): Promise<{ isValid: boolean }> {
     // Implement patient rights validation
     return { isValid: true };
   }
 
-  private async checkMinimumNecessary(session: any): Promise<{ isValid: boolean }> {
+  private async checkMinimumNecessary(
+    session: any,
+  ): Promise<{ isValid: boolean }> {
     // Implement minimum necessary validation
     return { isValid: true };
   }
 
-  private async checkAdministrativeSafeguards(session: any): Promise<{ isValid: boolean }> {
+  private async checkAdministrativeSafeguards(
+    session: any,
+  ): Promise<{ isValid: boolean }> {
     // Implement administrative safeguards validation
     return { isValid: true };
   }
 
-  private async checkPhysicalSafeguards(session: any): Promise<{ isValid: boolean }> {
+  private async checkPhysicalSafeguards(
+    session: any,
+  ): Promise<{ isValid: boolean }> {
     // Implement physical safeguards validation
     return { isValid: true };
   }
 
-  private async checkTechnicalSafeguards(session: any): Promise<{ isValid: boolean }> {
+  private async checkTechnicalSafeguards(
+    session: any,
+  ): Promise<{ isValid: boolean }> {
     // Implement technical safeguards validation
     return { isValid: true };
   }
 
-  private async checkBreachDetection(session: any): Promise<{ isValid: boolean }> {
+  private async checkBreachDetection(
+    session: any,
+  ): Promise<{ isValid: boolean }> {
     // Implement breach detection validation
     return { isValid: true };
   }
 
-  private async checkNotificationProcedures(session: any): Promise<{ isValid: boolean }> {
+  private async checkNotificationProcedures(
+    session: any,
+  ): Promise<{ isValid: boolean }> {
     // Implement notification procedures validation
     return { isValid: true };
   }
 
-  private async checkBreachDocumentation(session: any): Promise<{ isValid: boolean }> {
+  private async checkBreachDocumentation(
+    session: any,
+  ): Promise<{ isValid: boolean }> {
     // Implement breach documentation validation
     return { isValid: true };
   }
 
-  private async checkCompliancePolicies(session: any): Promise<{ isValid: boolean }> {
+  private async checkCompliancePolicies(
+    session: any,
+  ): Promise<{ isValid: boolean }> {
     // Implement compliance policies validation
     return { isValid: true };
   }
 
-  private async checkEnforcementProcedures(session: any): Promise<{ isValid: boolean }> {
+  private async checkEnforcementProcedures(
+    session: any,
+  ): Promise<{ isValid: boolean }> {
     // Implement enforcement procedures validation
     return { isValid: true };
   }
 
-  private async checkPenaltyProvisions(session: any): Promise<{ isValid: boolean }> {
+  private async checkPenaltyProvisions(
+    session: any,
+  ): Promise<{ isValid: boolean }> {
     // Implement penalty provisions validation
     return { isValid: true };
   }
 
   private async getAccessControls(session: any): Promise<any> {
-    return await dataService.get('access_controls', {
+    return await dataService.get("access_controls", {
       where: {
-        sessionId: session.id
-      }
+        sessionId: session.id,
+      },
     });
   }
 
@@ -427,10 +452,10 @@ export class HIPAAService {
   }
 
   private async getRoleBasedAccess(session: any): Promise<any> {
-    return await dataService.get('role_access', {
+    return await dataService.get("role_access", {
       where: {
-        sessionId: session.id
-      }
+        sessionId: session.id,
+      },
     });
   }
 
@@ -440,10 +465,10 @@ export class HIPAAService {
   }
 
   private async getAccessMonitoring(session: any): Promise<any> {
-    return await dataService.get('access_monitoring', {
+    return await dataService.get("access_monitoring", {
       where: {
-        sessionId: session.id
-      }
+        sessionId: session.id,
+      },
     });
   }
 
@@ -493,4 +518,4 @@ export class HIPAAService {
     // Implement transmission logging validation
     return { isSecure: true };
   }
-} 
+}

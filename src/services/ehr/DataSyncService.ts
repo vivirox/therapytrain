@@ -1,18 +1,32 @@
-import { EventEmitter } from 'events';
-import { HIPAACompliantAuditService } from '../HIPAACompliantAuditService';
-import { SecurityAuditService } from '../SecurityAuditService';
-import { QualityMetricsService } from '../QualityMetricsService';
-import { EHRIntegrationService } from './EHRIntegrationService';
-import { HIPAAEventType, HIPAAActionType } from '@/types/hipaa';
-import { FHIRClient } from '@/integrations/ehr/fhir-client';
-import { Resource } from '@smile-cdr/fhirts/dist/FHIR-R4';
+import { EventEmitter } from "events";
+import { HIPAACompliantAuditService } from "../../../backend/src/services/HIPAACompliantAuditService";
+import { SecurityAuditService } from "../../../backend/src/services/SecurityAuditService";
+import { QualityMetricsService } from "../../../backend/src/services/QualityMetricsService";
+import { EHRIntegrationService } from "./EHRIntegrationService";
+import { FHIRClient } from "@/integrations/ehr/fhir-client";
+import { FHIRResource, FHIRResourceType } from "@/integrations/ehr/types";
+import { HIPAAEventType, HIPAAActionType } from "@/types/hipaa";
+import { singleton } from "tsyringe";
+import { Resource, ResourceType } from "@/types/fhir";
+
+const defaultResourceTypes: FHIRResourceType[] = [
+  "Patient",
+  "Practitioner",
+  "Organization",
+  "Observation",
+  "Condition",
+];
+
+function isFHIRResourceType(type: string): type is FHIRResourceType {
+  return defaultResourceTypes.includes(type as FHIRResourceType);
+}
 
 interface SyncConfig {
   batchSize: number;
   maxRetries: number;
   retryDelay: number;
   lockTimeout: number;
-  resourceTypes: string[];
+  resourceTypes: FHIRResourceType[];
 }
 
 interface SyncStatus {
@@ -42,30 +56,33 @@ export class DataSyncService extends EventEmitter {
     maxRetries: 3,
     retryDelay: 5000,
     lockTimeout: 300000, // 5 minutes
-    resourceTypes: ['Patient', 'Practitioner', 'Organization', 'PractitionerRole'],
+    resourceTypes: defaultResourceTypes,
   };
 
   constructor(
     private readonly ehrService: EHRIntegrationService,
     private readonly hipaaAuditService: HIPAACompliantAuditService,
     private readonly securityAuditService: SecurityAuditService,
-    private readonly qualityMetricsService: QualityMetricsService
+    private readonly qualityMetricsService: QualityMetricsService,
   ) {
     super();
     this.initializeEventListeners();
   }
 
   private initializeEventListeners(): void {
-    this.on('syncStarted', this.handleSyncStarted.bind(this));
-    this.on('syncCompleted', this.handleSyncCompleted.bind(this));
-    this.on('syncError', this.handleSyncError.bind(this));
-    this.on('resourceSynced', this.handleResourceSynced.bind(this));
+    this.on("syncStarted", this.handleSyncStarted.bind(this));
+    this.on("syncCompleted", this.handleSyncCompleted.bind(this));
+    this.on("syncError", this.handleSyncError.bind(this));
+    this.on("resourceSynced", this.handleResourceSynced.bind(this));
   }
 
-  async startSync(providerId: string, config?: Partial<SyncConfig>): Promise<void> {
+  async startSync(
+    providerId: string,
+    config?: Partial<SyncConfig>,
+  ): Promise<void> {
     try {
       const syncConfig = { ...this.defaultConfig, ...config };
-      
+
       // Get FHIR client for the provider
       const client = this.ehrService.getFHIRClient(providerId);
 
@@ -80,11 +97,16 @@ export class DataSyncService extends EventEmitter {
         },
       });
 
-      this.emit('syncStarted', { providerId });
+      this.emit("syncStarted", { providerId });
 
       // Sync each resource type
       for (const resourceType of syncConfig.resourceTypes) {
-        await this.syncResourceType(providerId, resourceType, client, syncConfig);
+        await this.syncResourceType(
+          providerId,
+          resourceType,
+          client,
+          syncConfig,
+        );
       }
 
       // Update sync status
@@ -94,30 +116,25 @@ export class DataSyncService extends EventEmitter {
         status.inProgress = false;
       }
 
-      this.emit('syncCompleted', { providerId });
+      this.emit("syncCompleted", { providerId });
 
       await this.hipaaAuditService.logEvent({
         eventType: HIPAAEventType.SYSTEM_OPERATION,
         timestamp: new Date(),
-        actor: {
-          id: 'SYSTEM',
-          role: 'SYSTEM',
-          ipAddress: '127.0.0.1'
-        },
         action: {
           type: HIPAAActionType.UPDATE,
-          status: 'SUCCESS',
+          status: "SUCCESS",
           details: {
-            operation: 'EHR_DATA_SYNC',
+            operation: "EHR_DATA_SYNC",
             providerId,
-            resourceTypes: syncConfig.resourceTypes
-          }
+            resourceTypes: syncConfig.resourceTypes,
+          },
         },
         resource: {
-          type: 'SYSTEM',
+          type: "SYSTEM",
           id: providerId,
-          description: 'EHR Data Synchronization'
-        }
+          description: "EHR Data Synchronization",
+        },
       });
     } catch (error) {
       await this.handleError(providerId, error);
@@ -129,8 +146,12 @@ export class DataSyncService extends EventEmitter {
     providerId: string,
     resourceType: string,
     client: FHIRClient,
-    config: SyncConfig
+    config: SyncConfig,
   ): Promise<void> {
+    if (!isFHIRResourceType(resourceType)) {
+      throw new Error(`Invalid FHIR resource type: ${resourceType}`);
+    }
+
     try {
       // Acquire lock for this resource type
       if (!this.acquireLock(providerId, resourceType, config.lockTimeout)) {
@@ -143,9 +164,9 @@ export class DataSyncService extends EventEmitter {
       while (hasMore) {
         const resources = await this.fetchResourceBatch(
           client,
-          resourceType,
+          resourceType, // Now resourceType is properly typed as FHIRResourceType
           page,
-          config.batchSize
+          config.batchSize,
         );
 
         if (resources.length === 0) {
@@ -164,10 +185,10 @@ export class DataSyncService extends EventEmitter {
 
   private async fetchResourceBatch(
     client: FHIRClient,
-    resourceType: string,
+    resourceType: FHIRResourceType,
     page: number,
-    batchSize: number
-  ): Promise<Resource[]> {
+    batchSize: number,
+  ): Promise<FHIRResource[]> {
     const offset = (page - 1) * batchSize;
     return await client.searchResources(resourceType, {
       _count: batchSize.toString(),
@@ -177,8 +198,8 @@ export class DataSyncService extends EventEmitter {
 
   private async processBatch(
     providerId: string,
-    resources: Resource[],
-    config: SyncConfig
+    resources: FHIRResource[],
+    config: SyncConfig,
   ): Promise<void> {
     for (const resource of resources) {
       let retries = 0;
@@ -186,7 +207,7 @@ export class DataSyncService extends EventEmitter {
 
       while (!success && retries < config.maxRetries) {
         try {
-          await this.processResource(providerId, resource);
+          await this.processResource(resource as Resource, providerId);
           success = true;
 
           // Update progress
@@ -195,10 +216,10 @@ export class DataSyncService extends EventEmitter {
             status.progress.completed++;
           }
 
-          this.emit('resourceSynced', {
+          this.emit("resourceSynced", {
             providerId,
             resourceType: resource.resourceType,
-            resourceId: resource.id,
+            resourceId: ("id" in resource && resource.id) || "unknown",
           });
         } catch (error) {
           retries++;
@@ -215,48 +236,45 @@ export class DataSyncService extends EventEmitter {
             });
           } else {
             // Wait before retry
-            await new Promise(resolve => setTimeout(resolve, config.retryDelay));
+            await new Promise((resolve) =>
+              setTimeout(resolve, config.retryDelay),
+            );
           }
         }
       }
     }
   }
 
-  private async processResource(providerId: string, resource: Resource): Promise<void> {
-    // Implement resource-specific processing logic here
-    // This could include:
-    // 1. Validation
-    // 2. Transformation
-    // 3. Storage
-    // 4. Conflict resolution
-    // For now, we'll just log the event
+  private async processResource(
+    resource: Resource,
+    providerId: string,
+    eventType: HIPAAEventType = HIPAAEventType.SYSTEM_OPERATION,
+    actionType: HIPAAActionType = HIPAAActionType.CREATE,
+  ): Promise<void> {
     await this.hipaaAuditService.logEvent({
-      eventType: HIPAAEventType.DATA_ACCESS,
+      eventType: eventType as unknown as import("@/types/hipaa").HIPAAEventType,
       timestamp: new Date(),
-      actor: {
-        id: 'SYSTEM',
-        role: 'SYSTEM',
-        ipAddress: '127.0.0.1'
-      },
       action: {
-        type: HIPAAActionType.CREATE,
-        status: 'SUCCESS',
+        type: actionType as unknown as import("@/types/hipaa").HIPAAActionType,
+        status: "SUCCESS",
         details: {
-          operation: 'SYNC_RESOURCE',
-          providerId,
           resourceType: resource.resourceType,
-          resourceId: resource.id
-        }
+          resourceId: resource.id || "unknown",
+        },
       },
       resource: {
-        type: resource.resourceType,
-        id: resource.id as string,
-        description: 'Resource Synchronization'
-      }
+        type: "PHI",
+        id: resource.id || "unknown",
+        description: "Resource Synchronization",
+      },
     });
   }
 
-  private acquireLock(providerId: string, resourceType: string, timeout: number): boolean {
+  private acquireLock(
+    providerId: string,
+    resourceType: string,
+    timeout: number,
+  ): boolean {
     const lockKey = `${providerId}:${resourceType}`;
     const now = new Date();
 
@@ -286,39 +304,49 @@ export class DataSyncService extends EventEmitter {
   private async handleError(
     providerId: string,
     error: unknown,
-    details?: Record<string, unknown>
+    details?: Record<string, unknown>,
   ): Promise<void> {
     const status = this.syncStatus.get(providerId);
     if (status) {
-      status.error = error instanceof Error ? error.message : 'Unknown error';
+      status.error = error instanceof Error ? error.message : "Unknown error";
       status.inProgress = false;
     }
 
-    await this.securityAuditService.recordAlert('EHR_SYNC_ERROR', 'HIGH', {
-      error: error instanceof Error ? error.message : 'Unknown error',
+    await this.securityAuditService.recordAlert("EHR_SYNC_ERROR", "HIGH", {
+      error: error instanceof Error ? error.message : "Unknown error",
       providerId,
       ...details,
     });
 
-    this.emit('syncError', {
+    this.emit("syncError", {
       providerId,
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: error instanceof Error ? error.message : "Unknown error",
       details,
     });
   }
 
-  private async handleSyncStarted(event: { providerId: string }): Promise<void> {
-    await this.qualityMetricsService.recordMetric('ehr_sync_started', {
-      providerId: event.providerId,
-      timestamp: new Date().toISOString(),
+  private async handleSyncStarted(event: {
+    providerId: string;
+  }): Promise<void> {
+    await this.qualityMetricsService.recordMetric({
+      name: "ehr_sync_started",
+      value: {
+        providerId: event.providerId,
+        timestamp: new Date().toISOString(),
+      },
     });
   }
 
-  private async handleSyncCompleted(event: { providerId: string }): Promise<void> {
-    await this.qualityMetricsService.recordMetric('ehr_sync_completed', {
-      providerId: event.providerId,
-      timestamp: new Date().toISOString(),
-      status: this.syncStatus.get(event.providerId),
+  private async handleSyncCompleted(event: {
+    providerId: string;
+  }): Promise<void> {
+    await this.qualityMetricsService.recordMetric({
+      name: "ehr_sync_completed",
+      value: {
+        providerId: event.providerId,
+        timestamp: new Date().toISOString(),
+        status: this.syncStatus.get(event.providerId),
+      },
     });
   }
 
@@ -327,28 +355,34 @@ export class DataSyncService extends EventEmitter {
     error: string;
     details?: Record<string, unknown>;
   }): Promise<void> {
-    await this.qualityMetricsService.recordMetric('ehr_sync_error', {
-      providerId: event.providerId,
-      timestamp: new Date().toISOString(),
-      error: event.error,
-      details: event.details,
+    await this.qualityMetricsService.recordMetric({
+      name: "ehr_sync_error",
+      value: {
+        providerId: event.providerId,
+        timestamp: new Date().toISOString(),
+        error: event.error,
+        details: event.details,
+      },
     });
   }
 
   private async handleResourceSynced(event: {
     providerId: string;
-    resourceType: string;
+    resourceType: FHIRResourceType;
     resourceId: string;
   }): Promise<void> {
-    await this.qualityMetricsService.recordMetric('ehr_resource_synced', {
-      providerId: event.providerId,
-      resourceType: event.resourceType,
-      resourceId: event.resourceId,
-      timestamp: new Date().toISOString(),
+    await this.qualityMetricsService.recordMetric({
+      name: "ehr_resource_synced",
+      value: {
+        providerId: event.providerId,
+        resourceType: event.resourceType,
+        resourceId: event.resourceId,
+        timestamp: new Date().toISOString(),
+      },
     });
   }
 
   getSyncStatus(providerId: string): SyncStatus | undefined {
     return this.syncStatus.get(providerId);
   }
-} 
+}

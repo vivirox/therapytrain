@@ -13,11 +13,12 @@
   "type": "module",
   "dependencies": {
     "@ai-sdk/openai": "^1.1.14",
-    "@mastra/core": "^0.4.2",
-    "mastra": "^0.2.6",
+    "@mastra/core": "^0.4.3",
+    "mastra": "^0.2.7",
     "zod": "^3.24.2"
   },
   "devDependencies": {
+    "@types/fhir": "^0.0.41",
     "@types/node": "^22.13.5",
     "tsx": "^4.19.3",
     "typescript": "^5.7.3"

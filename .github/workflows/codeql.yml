@@ -35,10 +35,10 @@ jobs:
           fetch-depth: 0
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        # trunk-ignore(actionlint/action)
+        uses: actions/setup-node@v3
         with:
           node-version: 22
-          cache: pnpm
 
       - name: Install pnpm
         uses: pnpm/action-setup@v2
@@ -53,6 +53,8 @@ jobs:
           languages: ${{ matrix.language }}
           config-file: ./.github/codeql/codeql-config.yml
           queries: security-extended,security-and-quality
+          setup-python-dependencies: false
+          tools: latest
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -65,5 +67,11 @@ jobs:
         with:
           category: /language:${{matrix.language}}
           upload: true
+          output: sarif-results
           ram: 6144
           threads: 6
+
+      - name: Upload SARIF results
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: sarif-results

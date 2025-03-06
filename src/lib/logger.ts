@@ -1,10 +1,10 @@
-import { Redis } from '@upstash/redis';
-import { cacheConfig } from '@/config/cache.config';
-import { env } from '@/utils/env';
-import { MetricsService } from './metrics';
+import { Redis } from "@upstash/redis";
+import { cacheConfig } from "@/config/cache.config";
+import { env } from "@/utils/env";
+import { MetricsService } from "./metrics";
 
 interface LogEntry {
-  level: 'info' | 'warn' | 'error' | 'debug';
+  level: "info" | "warn" | "error" | "debug";
   message: string;
   timestamp: number;
   context?: Record<string, any>;
@@ -13,7 +13,11 @@ interface LogEntry {
   error?: Error;
 }
 
-type MetricKey = 'totalRequests' | 'totalErrors' | 'activeConnections' | 'averageResponseTime';
+type MetricKey =
+  | "totalRequests"
+  | "totalErrors"
+  | "activeConnections"
+  | "averageResponseTime";
 
 interface LogMetrics extends Record<string, unknown> {
   totalRequests: number;
@@ -25,8 +29,8 @@ interface LogMetrics extends Record<string, unknown> {
 export class Logger {
   private static instance: Logger;
   private redis: Redis;
-  private metricsKey = 'chat:metrics';
-  private logsKey = 'chat:logs';
+  private metricsKey = "chat:metrics";
+  private logsKey = "chat:logs";
   private context: string;
   private metrics: MetricsService;
 
@@ -49,14 +53,14 @@ export class Logger {
   /**
    * Log an event with context
    */
-  async log(entry: Omit<LogEntry, 'timestamp'>) {
+  async log(entry: Omit<LogEntry, "timestamp">) {
     const logEntry: LogEntry = {
       ...entry,
       timestamp: Date.now(),
     };
 
     // Log to console in development
-    if (process.env.NODE_ENV === 'development') {
+    if (process.env.NODE_ENV === "development") {
       console[entry.level](entry.message, {
         context: entry.context,
         userId: entry.userId,
@@ -71,8 +75,8 @@ export class Logger {
     await this.redis.expire(this.logsKey, cacheConfig.redis.ttl.messages);
 
     // Update metrics
-    if (entry.level === 'error') {
-      await this.incrementMetric('totalErrors');
+    if (entry.level === "error") {
+      await this.incrementMetric("totalErrors");
     }
   }
 
@@ -80,33 +84,38 @@ export class Logger {
    * Log info level message
    */
   async info(message: string, data?: Record<string, any>) {
-    console.log(`[${this.context}] INFO:`, message, data || '');
-    await this.log({ level: 'info', message, context: data });
+    console.log(`[${this.context}] INFO:`, message, data || "");
+    await this.log({ level: "info", message, context: data });
   }
 
   /**
    * Log warning level message
    */
   async warn(message: string, data?: Record<string, any>) {
-    console.warn(`[${this.context}] WARN:`, message, data || '');
-    await this.log({ level: 'warn', message, context: data });
+    console.warn(`[${this.context}] WARN:`, message, data || "");
+    await this.log({ level: "warn", message, context: data });
   }
 
   /**
    * Log error level message
    */
   async error(message: string, error?: Error, data?: Record<string, any>) {
-    console.error(`[${this.context}] ERROR:`, message, error?.message || '', data || '');
-    this.metrics.incrementCounter('errors', { type: error?.name || 'unknown' });
-    await this.log({ level: 'error', message, error, context: data });
+    console.error(
+      `[${this.context}] ERROR:`,
+      message,
+      error?.message || "",
+      data || "",
+    );
+    this.metrics.incrementCounter("errors", { type: error?.name || "unknown" });
+    await this.log({ level: "error", message, error, context: data });
   }
 
   /**
    * Log debug level message
    */
   async debug(message: string, context?: Record<string, any>) {
-    if (process.env.NODE_ENV === 'development') {
-      await this.log({ level: 'debug', message, context });
+    if (process.env.NODE_ENV === "development") {
+      await this.log({ level: "debug", message, context });
     }
   }
 
@@ -114,8 +123,10 @@ export class Logger {
    * Track request metrics
    */
   async trackRequest(duration: number) {
-    this.metrics.timing('http_request_duration', duration, { context: this.context });
-    await this.incrementMetric('totalRequests');
+    this.metrics.timing("http_request_duration", duration, {
+      context: this.context,
+    });
+    await this.incrementMetric("totalRequests");
     await this.updateAverageResponseTime(duration);
   }
 
@@ -124,9 +135,9 @@ export class Logger {
    */
   async trackConnection(active: boolean) {
     if (active) {
-      await this.incrementMetric('activeConnections');
+      await this.incrementMetric("activeConnections");
     } else {
-      await this.decrementMetric('activeConnections');
+      await this.decrementMetric("activeConnections");
     }
   }
 
@@ -148,7 +159,7 @@ export class Logger {
    */
   async getLogs(limit: number = 100): Promise<LogEntry[]> {
     const logs = await this.redis.lrange(this.logsKey, 0, limit - 1);
-    return logs.map(log => JSON.parse(log));
+    return logs.map((log) => JSON.parse(log));
   }
 
   /**
@@ -169,13 +180,14 @@ export class Logger {
   private async updateAverageResponseTime(duration: number) {
     const metrics = await this.getMetrics();
     const totalRequests = metrics.totalRequests + 1;
-    const newAverage = 
-      ((metrics.averageResponseTime * metrics.totalRequests) + duration) / totalRequests;
-    
+    const newAverage =
+      (metrics.averageResponseTime * metrics.totalRequests + duration) /
+      totalRequests;
+
     await this.redis.hset(this.metricsKey, {
       averageResponseTime: newAverage,
     });
   }
 }
 
-export const logger = Logger.getInstance('default');
+export const logger = Logger.getInstance("default");

@@ -165,6 +165,9 @@ resource "aws_rds_cluster_instance" "reader" {
   monitoring_interval = 60
   monitoring_role_arn = aws_iam_role.rds_monitoring.arn
   
+  performance_insights_enabled    = true
+  performance_insights_kms_key_id = aws_kms_key.database.arn
+
   tags = {
     Name        = "${var.environment}-aurora-reader"
     Environment = var.environment
@@ -399,11 +402,19 @@ resource "aws_security_group" "lambda" {
   vpc_id      = aws_vpc.main.id
 
   egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-    description = "Allow all outbound traffic"
+    from_port       = 443
+    to_port         = 443
+    protocol        = "tcp"
+    security_groups = [aws_security_group.aurora.id]
+    description     = "Allow HTTPS to RDS"
+  }
+
+  egress {
+    from_port       = 443
+    to_port         = 443
+    protocol        = "tcp"
+    prefix_list_ids = [aws_vpc_endpoint.secretsmanager.prefix_list_id]
+    description     = "Allow HTTPS to Secrets Manager VPC Endpoint"
   }
 
   tags = {
@@ -530,6 +541,98 @@ resource "aws_iam_role_policy" "secret_rotation" {
           "rds:ModifyDBCluster"
         ]
         Resource = aws_rds_cluster.main.arn
+      }
+    ]
+  })
+}
+
+# AWS Backup plan for RDS
+resource "aws_backup_plan" "rds" {
+  name = "${var.environment}-rds-backup-plan"
+
+  rule {
+    rule_name         = "daily_backup"
+    target_vault_name = aws_backup_vault.main.name
+    schedule          = "cron(0 5 ? * * *)"
+
+    lifecycle {
+      delete_after = 30
+    }
+  }
+
+  tags = {
+    Environment = var.environment
+    Terraform   = "true"
+  }
+}
+
+resource "aws_backup_vault" "main" {
+  name        = "${var.environment}-backup-vault"
+  kms_key_arn = aws_kms_key.backup.arn
+}
+
+resource "aws_backup_selection" "rds" {
+  name         = "${var.environment}-rds-backup-selection"
+  plan_id      = aws_backup_plan.rds.id
+  iam_role_arn = aws_iam_role.backup.arn
+
+  resources = [
+    aws_rds_cluster.main.arn
+  ]
+}
+
+# IAM role for AWS Backup
+resource "aws_iam_role" "backup" {
+  name = "${var.environment}-backup-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "backup.amazonaws.com"
+        }
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "backup" {
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSBackupServiceRolePolicyForBackup"
+  role       = aws_iam_role.backup.name
+}
+
+# KMS key for AWS Backup
+resource "aws_kms_key" "backup" {
+  description             = "KMS key for AWS Backup encryption"
+  deletion_window_in_days = 7
+  enable_key_rotation     = true
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "Enable IAM User Permissions"
+        Effect = "Allow"
+        Principal = {
+          AWS = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
+        }
+        Action   = "kms:*"
+        Resource = "*"
+      },
+      {
+        Sid    = "Allow Backup Service"
+        Effect = "Allow"
+        Principal = {
+          Service = "backup.amazonaws.com"
+        }
+        Action = [
+          "kms:Decrypt",
+          "kms:GenerateDataKey"
+        ]
+        Resource = "*"
       }
     ]
   })

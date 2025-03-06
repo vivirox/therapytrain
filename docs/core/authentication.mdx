@@ -1,6 +1,6 @@
 ---
-title: 'Authentication'
-description: 'Understanding Gradiant's authentication and authorization system'
+title: "Authentication"
+description: "Understanding Gradiants authentication and authorization system"
 ---
 
 ## Overview
@@ -10,22 +10,11 @@ Gradiant uses Supabase Auth for secure user authentication and authorization. Th
 ## Authentication Flow
 
 <Frame>
-  ```mermaid
-  sequenceDiagram
-    participant User
-    participant Client
-    participant API
-    participant Supabase
-    
-    User->>Client: Enter Credentials
-    Client->>Supabase: Sign In Request
-    Supabase-->>Client: JWT Token
-    Client->>API: API Request + Token
-    API->>Supabase: Verify Token
-    Supabase-->>API: Token Valid
-    API-->>Client: Response
-    Client-->>User: Update UI
-  ```
+  ```mermaid sequenceDiagram participant User participant Client participant API
+  participant Supabase User->>Client: Enter Credentials Client->>Supabase: Sign
+  In Request Supabase-->>Client: JWT Token Client->>API: API Request + Token
+  API->>Supabase: Verify Token Supabase-->>API: Token Valid API-->>Client:
+  Response Client-->>User: Update UI ```
 </Frame>
 
 ## Authentication Methods
@@ -34,25 +23,25 @@ Gradiant uses Supabase Auth for secure user authentication and authorization. Th
 
 ```typescript
 const { data, error } = await supabase.auth.signInWithPassword({
-  email: 'user@example.com',
-  password: 'secure-password'
-})
+  email: "user@example.com",
+  password: "secure-password",
+});
 ```
 
 ### Magic Link
 
 ```typescript
 const { data, error } = await supabase.auth.signInWithOtp({
-  email: 'user@example.com'
-})
+  email: "user@example.com",
+});
 ```
 
 ### OAuth Providers
 
 ```typescript
 const { data, error } = await supabase.auth.signInWithOAuth({
-  provider: 'google'
-})
+  provider: "google",
+});
 ```
 
 ## Session Management
@@ -60,6 +49,7 @@ const { data, error } = await supabase.auth.signInWithOAuth({
 ### Token Lifecycle
 
 1. **Access Token**
+
    - JWT format
    - Short expiration (1 hour)
    - Contains user claims
@@ -72,7 +62,7 @@ const { data, error } = await supabase.auth.signInWithOAuth({
 ### Session Refresh
 
 ```typescript
-const { data, error } = await supabase.auth.refreshSession()
+const { data, error } = await supabase.auth.refreshSession();
 ```
 
 ## Authorization
@@ -80,6 +70,7 @@ const { data, error } = await supabase.auth.refreshSession()
 ### Role-Based Access Control
 
 Available roles:
+
 - `client`: Regular user role
 - `therapist`: Professional role
 - `admin`: System administrator
@@ -110,7 +101,7 @@ USING (
 ```typescript
 const rateLimit = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100 // limit each IP to 100 requests per windowMs
+  max: 100, // limit each IP to 100 requests per windowMs
 });
 ```
 
@@ -118,10 +109,10 @@ const rateLimit = rateLimit({
 
 ```typescript
 const jwtConfig = {
-  expiresIn: '1h',
-  algorithm: 'RS256',
-  audience: 'https://api.gemcity.xyz'
-}
+  expiresIn: "1h",
+  algorithm: "RS256",
+  audience: "https://api.gemcity.xyz",
+};
 ```
 
 ## Error Handling
@@ -132,19 +123,19 @@ const jwtConfig = {
 try {
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
-    password
-  })
-  
+    password,
+  });
+
   if (error) {
     switch (error.status) {
       case 400:
         // Invalid credentials
-        break
+        break;
       case 429:
         // Too many requests
-        break
+        break;
       default:
-        // Other errors
+      // Other errors
     }
   }
 } catch (err) {
@@ -157,11 +148,13 @@ try {
 ### Client-Side
 
 1. **Token Storage**
+
    - Use secure storage (httpOnly cookies)
    - Clear on logout
    - Refresh automatically
 
 2. **Input Validation**
+
    - Sanitize user input
    - Validate email format
    - Check password strength
@@ -174,11 +167,13 @@ try {
 ### Server-Side
 
 1. **Request Validation**
+
    - Validate all inputs
    - Check content types
    - Verify token signatures
 
 2. **Session Management**
+
    - Secure session storage
    - Proper timeout handling
    - Concurrent session limits
@@ -193,33 +188,36 @@ try {
 ### Frontend Setup
 
 1. Initialize Supabase Client:
+
 ```typescript
-import { createClient } from '@supabase/supabase-js'
+import { createClient } from "@supabase/supabase-js";
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
-  process.env.SUPABASE_ANON_KEY
-)
+  process.env.SUPABASE_ANON_KEY,
+);
 ```
 
 2. Create Auth Context:
+
 ```typescript
 const AuthContext = createContext<{
-  user: User | null
-  signIn: (email: string, password: string) => Promise<void>
-  signOut: () => Promise<void>
-}>()
+  user: User | null;
+  signIn: (email: string, password: string) => Promise<void>;
+  signOut: () => Promise<void>;
+}>();
 ```
 
 3. Implement Protected Routes:
+
 ```typescript
 const ProtectedRoute = ({ children }) => {
   const { user } = useAuth()
-  
+
   if (!user) {
     return <Navigate to="/login" />
   }
-  
+
   return children
 }
 ```
@@ -227,57 +225,47 @@ const ProtectedRoute = ({ children }) => {
 ### Backend Setup
 
 1. Configure Middleware:
+
 ```typescript
 app.use(async (req, res, next) => {
   try {
-    const token = req.headers.authorization?.split(' ')[1]
-    if (!token) throw new Error('No token provided')
-    
-    const { user, error } = await supabase.auth.getUser(token)
-    if (error) throw error
-    
-    req.user = user
-    next()
+    const token = req.headers.authorization?.split(" ")[1];
+    if (!token) throw new Error("No token provided");
+
+    const { user, error } = await supabase.auth.getUser(token);
+    if (error) throw error;
+
+    req.user = user;
+    next();
   } catch (error) {
-    res.status(401).json({ error: 'Unauthorized' })
+    res.status(401).json({ error: "Unauthorized" });
   }
-})
+});
 ```
 
 2. Implement Role Checks:
+
 ```typescript
 const requireRole = (role: string) => {
   return (req, res, next) => {
     if (req.user?.role !== role) {
-      return res.status(403).json({ error: 'Forbidden' })
+      return res.status(403).json({ error: "Forbidden" });
     }
-    next()
-  }
-}
+    next();
+  };
+};
 ```
 
 ## Next Steps
 
 <CardGroup>
-  <Card
-    title="Sessions"
-    icon="messages"
-    href="/core/sessions"
-  >
+  <Card title="Sessions" icon="messages" href="/core/sessions">
     Learn about session management
   </Card>
-  <Card
-    title="API Reference"
-    icon="code"
-    href="/api-reference/authentication"
-  >
+  <Card title="API Reference" icon="code" href="/api-reference/authentication">
     View authentication API endpoints
   </Card>
-  <Card
-    title="Security"
-    icon="shield"
-    href="/deployment/security"
-  >
+  <Card title="Security" icon="shield" href="/deployment/security">
     Review security measures
   </Card>
 </CardGroup>

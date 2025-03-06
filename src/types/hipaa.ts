@@ -1,4 +1,4 @@
-import { BaseEntity, Metadata } from './common';
+import { BaseEntity, Metadata } from "./common";
 
 export interface HIPAAEvent extends BaseEntity {
   type: HIPAAEventType;
@@ -7,41 +7,25 @@ export interface HIPAAEvent extends BaseEntity {
   resource_id: string;
   resource_type: string;
   details: Record<string, unknown>;
-  status: 'success' | 'failure';
+  status: "success" | "failure";
   metadata?: Metadata;
 }
 
-export type HIPAAEventType =
-  | 'phi_access'
-  | 'phi_modification'
-  | 'phi_deletion'
-  | 'phi_export'
-  | 'authentication'
-  | 'authorization'
-  | 'security_incident'
-  | 'policy_change'
-  | 'system_access'
-  | 'data_backup'
-  | 'emergency_access';
+export enum HIPAAEventType {
+  SYSTEM_OPERATION = "SYSTEM_OPERATION",
+  USER_ACCESS = "USER_ACCESS",
+  DATA_MODIFICATION = "DATA_MODIFICATION",
+  SECURITY_EVENT = "SECURITY_EVENT",
+}
 
-export type HIPAAActionType =
-  | 'create'
-  | 'read'
-  | 'update'
-  | 'delete'
-  | 'export'
-  | 'import'
-  | 'share'
-  | 'print'
-  | 'download'
-  | 'upload'
-  | 'access_granted'
-  | 'access_denied'
-  | 'login'
-  | 'logout'
-  | 'password_change'
-  | 'policy_update'
-  | 'system_update';
+export enum HIPAAActionType {
+  CREATE = "CREATE",
+  READ = "READ",
+  UPDATE = "UPDATE",
+  DELETE = "DELETE",
+  LOGIN = "LOGIN",
+  LOGOUT = "LOGOUT",
+}
 
 export interface HIPAAComplianceReport {
   id: string;
@@ -63,14 +47,14 @@ export interface HIPAAComplianceReport {
   violations: Array<{
     type: string;
     description: string;
-    severity: 'low' | 'medium' | 'high';
+    severity: "low" | "medium" | "high";
     count: number;
   }>;
   recommendations: Array<{
     category: string;
     description: string;
-    priority: 'low' | 'medium' | 'high';
-    status: 'pending' | 'in_progress' | 'completed';
+    priority: "low" | "medium" | "high";
+    status: "pending" | "in_progress" | "completed";
   }>;
   metadata?: Metadata;
 }
@@ -101,16 +85,16 @@ export interface HIPAAPolicy {
 }
 
 export type HIPAAPolicyType =
-  | 'access_control'
-  | 'audit_logging'
-  | 'data_encryption'
-  | 'backup_recovery'
-  | 'incident_response'
-  | 'business_associates'
-  | 'training_awareness'
-  | 'device_media'
-  | 'facility_access'
-  | 'workstation_security';
+  | "access_control"
+  | "audit_logging"
+  | "data_encryption"
+  | "backup_recovery"
+  | "incident_response"
+  | "business_associates"
+  | "training_awareness"
+  | "device_media"
+  | "facility_access"
+  | "workstation_security";
 
 export interface HIPAAQueryFilters {
   type?: HIPAAEventType;
@@ -125,14 +109,25 @@ export interface HIPAAQueryFilters {
 }
 
 export interface HIPAAManager {
-  logEvent: (event: Omit<HIPAAEvent, 'id' | 'created_at'>) => Promise<HIPAAEvent>;
+  logEvent: (
+    event: Omit<HIPAAEvent, "id" | "created_at">,
+  ) => Promise<HIPAAEvent>;
   getEvent: (event_id: string) => Promise<HIPAAEvent>;
   getEvents: (filters: HIPAAQueryFilters) => Promise<HIPAAEvent[]>;
-  generateReport: (period: { start: string; end: string }) => Promise<HIPAAComplianceReport>;
-  createPolicy: (policy: Omit<HIPAAPolicy, 'id'>) => Promise<HIPAAPolicy>;
-  updatePolicy: (policy_id: string, updates: Partial<HIPAAPolicy>) => Promise<HIPAAPolicy>;
+  generateReport: (period: {
+    start: string;
+    end: string;
+  }) => Promise<HIPAAComplianceReport>;
+  createPolicy: (policy: Omit<HIPAAPolicy, "id">) => Promise<HIPAAPolicy>;
+  updatePolicy: (
+    policy_id: string,
+    updates: Partial<HIPAAPolicy>,
+  ) => Promise<HIPAAPolicy>;
   getPolicies: () => Promise<HIPAAPolicy[]>;
-  validateCompliance: (resource_type: string, action: HIPAAActionType) => Promise<{
+  validateCompliance: (
+    resource_type: string,
+    action: HIPAAActionType,
+  ) => Promise<{
     compliant: boolean;
     violations: Array<{
       policy_id: string;
@@ -140,4 +135,4 @@ export interface HIPAAManager {
       description: string;
     }>;
   }>;
-} 
+}

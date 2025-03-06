@@ -1,19 +1,23 @@
 // FHIR R4 Resource Types
 export type ResourceType =
-  | 'Patient'
-  | 'Practitioner'
-  | 'PractitionerRole'
-  | 'Organization'
-  | 'Location'
-  | 'Encounter'
-  | 'Observation'
-  | 'Condition'
-  | 'Procedure'
-  | 'MedicationRequest'
-  | 'CarePlan'
-  | 'Goal'
-  | 'DiagnosticReport'
-  | 'DocumentReference';
+  | "Patient"
+  | "Practitioner"
+  | "PractitionerRole"
+  | "Organization"
+  | "Location"
+  | "Encounter"
+  | "Observation"
+  | "Condition"
+  | "Procedure"
+  | "MedicationRequest"
+  | "CarePlan"
+  | "Goal"
+  | "DiagnosticReport"
+  | "DocumentReference"
+  | "Appointment"
+  | "Schedule"
+  | "Slot"
+  | "MedicationStatement";
 
 // Base Resource Interface
 export interface Resource {
@@ -53,7 +57,7 @@ export interface Reference {
 }
 
 export interface Identifier {
-  use?: 'usual' | 'official' | 'temp' | 'secondary' | 'old';
+  use?: "usual" | "official" | "temp" | "secondary" | "old";
   type?: CodeableConcept;
   system?: string;
   value?: string;
@@ -68,12 +72,12 @@ export interface Period {
 
 // Patient Resource
 export interface Patient extends Resource {
-  resourceType: 'Patient';
+  resourceType: "Patient";
   identifier?: Identifier[];
   active?: boolean;
   name?: HumanName[];
   telecom?: ContactPoint[];
-  gender?: 'male' | 'female' | 'other' | 'unknown';
+  gender?: "male" | "female" | "other" | "unknown";
   birthDate?: string;
   deceasedBoolean?: boolean;
   deceasedDateTime?: string;
@@ -89,7 +93,14 @@ export interface Patient extends Resource {
 }
 
 export interface HumanName {
-  use?: 'usual' | 'official' | 'temp' | 'nickname' | 'anonymous' | 'old' | 'maiden';
+  use?:
+    | "usual"
+    | "official"
+    | "temp"
+    | "nickname"
+    | "anonymous"
+    | "old"
+    | "maiden";
   text?: string;
   family?: string;
   given?: string[];
@@ -99,16 +110,16 @@ export interface HumanName {
 }
 
 export interface ContactPoint {
-  system?: 'phone' | 'fax' | 'email' | 'pager' | 'url' | 'sms' | 'other';
+  system?: "phone" | "fax" | "email" | "pager" | "url" | "sms" | "other";
   value?: string;
-  use?: 'home' | 'work' | 'temp' | 'old' | 'mobile';
+  use?: "home" | "work" | "temp" | "old" | "mobile";
   rank?: number;
   period?: Period;
 }
 
 export interface Address {
-  use?: 'home' | 'work' | 'temp' | 'old' | 'billing';
-  type?: 'postal' | 'physical' | 'both';
+  use?: "home" | "work" | "temp" | "old" | "billing";
+  type?: "postal" | "physical" | "both";
   text?: string;
   line?: string[];
   city?: string;
@@ -124,7 +135,7 @@ export interface PatientContact {
   name?: HumanName;
   telecom?: ContactPoint[];
   address?: Address;
-  gender?: 'male' | 'female' | 'other' | 'unknown';
+  gender?: "male" | "female" | "other" | "unknown";
   organization?: Reference;
   period?: Period;
 }
@@ -136,14 +147,23 @@ export interface PatientCommunication {
 
 export interface PatientLink {
   other: Reference;
-  type: 'replaced-by' | 'replaces' | 'refer' | 'seealso';
+  type: "replaced-by" | "replaces" | "refer" | "seealso";
 }
 
 // Encounter Resource
 export interface Encounter extends Resource {
-  resourceType: 'Encounter';
+  resourceType: "Encounter";
   identifier?: Identifier[];
-  status: 'planned' | 'arrived' | 'triaged' | 'in-progress' | 'onleave' | 'finished' | 'cancelled' | 'entered-in-error' | 'unknown';
+  status:
+    | "planned"
+    | "arrived"
+    | "triaged"
+    | "in-progress"
+    | "onleave"
+    | "finished"
+    | "cancelled"
+    | "entered-in-error"
+    | "unknown";
   class: Coding;
   type?: CodeableConcept[];
   serviceType?: CodeableConcept;
@@ -175,14 +195,14 @@ export interface EncounterDiagnosis {
 
 export interface EncounterLocation {
   location: Reference;
-  status?: 'planned' | 'active' | 'reserved' | 'completed';
+  status?: "planned" | "active" | "reserved" | "completed";
   physicalType?: CodeableConcept;
   period?: Period;
 }
 
 export interface Duration {
   value?: number;
-  comparator?: '<' | '<=' | '>=' | '>';
+  comparator?: "<" | "<=" | ">=" | ">";
   unit?: string;
   system?: string;
   code?: string;
@@ -190,11 +210,19 @@ export interface Duration {
 
 // Observation Resource
 export interface Observation extends Resource {
-  resourceType: 'Observation';
+  resourceType: "Observation";
   identifier?: Identifier[];
   basedOn?: Reference[];
   partOf?: Reference[];
-  status: 'registered' | 'preliminary' | 'final' | 'amended' | 'corrected' | 'cancelled' | 'entered-in-error' | 'unknown';
+  status:
+    | "registered"
+    | "preliminary"
+    | "final"
+    | "amended"
+    | "corrected"
+    | "cancelled"
+    | "entered-in-error"
+    | "unknown";
   category?: CodeableConcept[];
   code: CodeableConcept;
   subject?: Reference;
@@ -230,7 +258,7 @@ export interface Observation extends Resource {
 
 export interface Quantity {
   value?: number;
-  comparator?: '<' | '<=' | '>=' | '>';
+  comparator?: "<" | "<=" | ">=" | ">";
   unit?: string;
   system?: string;
   code?: string;
@@ -288,4 +316,4 @@ export interface ObservationComponent {
   dataAbsentReason?: CodeableConcept;
   interpretation?: CodeableConcept[];
   referenceRange?: ObservationReferenceRange[];
-} 
+}

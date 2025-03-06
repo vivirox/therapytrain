@@ -1,41 +1,56 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-import { ChatOpenAI } from '@langchain/openai';
-import { HumanMessage } from '@langchain/core/messages';
-import { StreamingTextResponse } from '@/lib/streaming-text-response';
-import { createRouteHandlerClient } from '@supabase/ssr';
-import { cookies } from 'next/headers';
+import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
+import { ChatOpenAI } from "@langchain/openai";
+import { HumanMessage } from "@langchain/core/messages";
+import { StreamingTextResponse } from "@/lib/streaming-text-response";
+import { createRouteHandlerClient } from "@supabase/ssr";
+import { cookies } from "next/headers";
 
-import { ZKMessage } from '@/lib/zk/types';
-import { encrypt, decrypt, generateMessageId } from '@/lib/zk/crypto';
-import { getOrCreateSharedKey } from '@/lib/zk/session';
-import { cache, invalidateByPattern } from '@/lib/redis';
-import { cacheConfig } from '@/config/cache.config';
-import { ChatEncryptionService } from '@/app/chat/ChatEncryptionService';
-import { LangChainStream } from '@/lib/langchain/stream';
-import { MetricsService } from '@/lib/metrics';
-import { Logger } from '@/lib/logger';
-import { ResourceMonitor } from '@/lib/monitoring';
-import { ConnectionStore } from '@/lib/ConnectionStore';
-import { RateLimiter } from '@/lib/RateLimiter';
-import { InstanceManager } from '@/lib/InstanceManager';
-import { streamToAsyncIterable } from '@/lib/stream-utils';
-import { getRateLimit, isTooManyRequests, createRateLimitResponse } from '@/lib/edge/rate-limit';
-import { cacheMessage, getCachedMessages, invalidateMessageCache } from '@/lib/edge/message-cache';
-import { encryptMessageForRecipient, decryptMessageContent } from '@/lib/encryption/message-encryption';
-import { logMessageEncryption, logMessageDecryption, logMessageAccess } from '@/lib/audit/audit-logger';
-import { ZKService } from '@/lib/zk/ZKService';
-import { ChatService } from '@/services/chat/ChatService';
-import { SecurityAuditService } from '@/services/SecurityAuditService';
-import { cache as reactCache } from 'react';
-import type { Message as ChatMessage } from '@/types/chat';
+import { ZKMessage } from "@/lib/zk/types";
+import { encrypt, decrypt, generateMessageId } from "@/lib/zk/crypto";
+import { getOrCreateSharedKey } from "@/lib/zk/session";
+import { cache, invalidateByPattern } from "@/lib/redis";
+import { cacheConfig } from "@/config/cache.config";
+import { ChatEncryptionService } from "@/app/chat/ChatEncryptionService";
+import { LangChainStream } from "@/lib/langchain/stream";
+import { MetricsService } from "@/lib/metrics";
+import { Logger } from "@/lib/logger";
+import { ResourceMonitor } from "@/lib/monitoring";
+import { ConnectionStore } from "@/lib/ConnectionStore";
+import { RateLimiter } from "@/lib/RateLimiter";
+import { InstanceManager } from "@/lib/InstanceManager";
+import { streamToAsyncIterable } from "@/lib/stream-utils";
+import {
+  getRateLimit,
+  isTooManyRequests,
+  createRateLimitResponse,
+} from "@/lib/edge/rate-limit";
+import {
+  cacheMessage,
+  getCachedMessages,
+  invalidateMessageCache,
+} from "@/lib/edge/message-cache";
+import {
+  encryptMessageForRecipient,
+  decryptMessageContent,
+} from "@/lib/encryption/message-encryption";
+import {
+  logMessageEncryption,
+  logMessageDecryption,
+  logMessageAccess,
+} from "@/lib/audit/audit-logger";
+import { ZKService } from "@/lib/zk/ZKService";
+import { ChatService } from "@/services/chat/ChatService";
+import { SecurityAuditService } from "@/services/SecurityAuditService";
+import { cache as reactCache } from "react";
+import type { Message as ChatMessage } from "@/types/chat";
 
 // Initialize services
 const zkService = new ZKService();
 const chatService = new ChatService();
 const securityAudit = SecurityAuditService.getInstance();
 const metrics = new MetricsService();
-const logger = Logger.getInstance('chat-api');
+const logger = Logger.getInstance("chat-api");
 const resourceMonitor = new ResourceMonitor();
 const connectionStore = new ConnectionStore();
 const rateLimiter = new RateLimiter();
@@ -51,7 +66,7 @@ const getSessionData = reactCache(async () => {
 const storeMessage = reactCache(async (supabase: any, message: any) => {
   // Generate ZK proof for message storage
   const proof = await zkService.generateMessageProof(message);
-  
+
   // Encrypt message with recipient's public key
   const encryptedMessage = await zkService.encryptMessageWithSessionKey(
     message.content,
@@ -59,20 +74,20 @@ const storeMessage = reactCache(async (supabase: any, message: any) => {
     {
       senderId: message.user_id,
       recipientId: message.recipient_id,
-      threadId: message.thread_id
-    }
+      threadId: message.thread_id,
+    },
   );
-  
+
   const { data, error } = await supabase
-    .from('messages')
+    .from("messages")
     .insert({
       ...encryptedMessage,
       proof,
       audit_metadata: {
         encryption_version: zkService.getVersion(),
         timestamp: new Date().toISOString(),
-        proof_verified: true
-      }
+        proof_verified: true,
+      },
     })
     .select()
     .single();
@@ -84,43 +99,46 @@ const storeMessage = reactCache(async (supabase: any, message: any) => {
       user_id: data.user_id,
       content: data.content,
       created_at: data.created_at,
-      role: data.role || 'user'
+      role: data.role || "user",
     });
 
     await securityAudit.logOperation({
       id: generateMessageId(),
-      type: 'MESSAGE_STORE',
+      type: "MESSAGE_STORE",
       userId: message.user_id,
       sessionId: data.thread_id,
-      status: 'SUCCESS',
+      status: "SUCCESS",
       timestamp: new Date(),
       metadata: {
         messageId: data.id,
-        operation: 'store'
-      }
+        operation: "store",
+      },
     });
   }
 
   return { data, error };
 });
 
-export const runtime = 'edge';
+export const runtime = "edge";
 
 export async function POST(req: Request) {
   const startTime = Date.now();
-  
+
   try {
     // Get session with caching
-    const { data: { session }, error: authError } = await getSessionData();
+    const {
+      data: { session },
+      error: authError,
+    } = await getSessionData();
 
     if (authError || !session) {
-      return new Response('Unauthorized', { status: 401 });
+      return new Response("Unauthorized", { status: 401 });
     }
 
     // Rate limiting with edge support
     const identifier = session.user.id;
     const rateLimit = await getRateLimit(identifier);
-    
+
     if (isTooManyRequests(rateLimit)) {
       return createRateLimitResponse(rateLimit);
     }
@@ -144,23 +162,23 @@ export async function POST(req: Request) {
       {
         senderId: session.user.id,
         recipientId,
-        threadId
-      }
+        threadId,
+      },
     );
 
     // Log message encryption
     await securityAudit.logOperation({
       id: generateMessageId(),
-      type: 'MESSAGE_ENCRYPTION',
+      type: "MESSAGE_ENCRYPTION",
       userId: session.user.id,
       sessionId: threadId,
-      status: 'SUCCESS',
+      status: "SUCCESS",
       timestamp: new Date(),
       metadata: {
         messageId: encryptedMessage.id,
         recipientId,
-        operation: 'encrypt'
-      }
+        operation: "encrypt",
+      },
     });
 
     // Store the encrypted message
@@ -172,56 +190,64 @@ export async function POST(req: Request) {
       iv: encryptedMessage.iv,
       proof: encryptedMessage.proof,
       session_key_id: sessionKeys.id,
-      created_at: new Date().toISOString()
+      created_at: new Date().toISOString(),
     });
 
     if (insertError) {
       await securityAudit.logOperation({
         id: generateMessageId(),
-        type: 'MESSAGE_STORE',
+        type: "MESSAGE_STORE",
         userId: session.user.id,
         sessionId: threadId,
-        status: 'FAILURE',
+        status: "FAILURE",
         timestamp: new Date(),
         metadata: {
           error: insertError,
-          operation: 'message_store'
-        }
+          operation: "message_store",
+        },
       });
-      return new Response('Failed to store message', { status: 500 });
+      return new Response("Failed to store message", { status: 500 });
     }
 
     const chatModel = new ChatOpenAI({
-      modelName: 'gpt-4',
-      streaming: true
+      modelName: "gpt-4",
+      streaming: true,
     });
 
-    const stream = await chatModel.stream(messages.map((m: any) => new HumanMessage(m.content)));
+    const stream = await chatModel.stream(
+      messages.map((m: any) => new HumanMessage(m.content)),
+    );
 
     // Convert the response into a friendly text-stream
     const asyncIterable = await streamToAsyncIterable(stream);
     const response = new StreamingTextResponse(asyncIterable as any);
 
     // Add monitoring headers
-    response.headers.set('X-RateLimit-Remaining', rateLimit.remaining.toString());
-    response.headers.set('X-RateLimit-Reset', rateLimit.reset.toString());
-    response.headers.set('X-Response-Time', (Date.now() - startTime).toString());
+    response.headers.set(
+      "X-RateLimit-Remaining",
+      rateLimit.remaining.toString(),
+    );
+    response.headers.set("X-RateLimit-Reset", rateLimit.reset.toString());
+    response.headers.set(
+      "X-Response-Time",
+      (Date.now() - startTime).toString(),
+    );
 
     return response;
   } catch (error) {
     await securityAudit.logOperation({
       id: generateMessageId(),
-      type: 'API_ERROR',
-      userId: 'system',
-      sessionId: 'unknown',
-      status: 'FAILURE',
+      type: "API_ERROR",
+      userId: "system",
+      sessionId: "unknown",
+      status: "FAILURE",
       timestamp: new Date(),
       metadata: {
         error,
-        operation: 'chat_api'
-      }
+        operation: "chat_api",
+      },
     });
-    return new Response('Internal Server Error', { status: 500 });
+    return new Response("Internal Server Error", { status: 500 });
   }
 }
 
@@ -229,20 +255,23 @@ export async function POST(req: Request) {
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
-    const threadId = searchParams.get('threadId');
+    const threadId = searchParams.get("threadId");
 
     if (!threadId) {
-      return new Response('Missing threadId', { status: 400 });
+      return new Response("Missing threadId", { status: 400 });
     }
 
-    const limit = parseInt(searchParams.get('limit') || '50');
-    const before = searchParams.get('before');
+    const limit = parseInt(searchParams.get("limit") || "50");
+    const before = searchParams.get("before");
 
     // Get session with caching
-    const { data: { session }, error: authError } = await getSessionData();
+    const {
+      data: { session },
+      error: authError,
+    } = await getSessionData();
 
     if (authError || !session) {
-      return new Response('Unauthorized', { status: 401 });
+      return new Response("Unauthorized", { status: 401 });
     }
 
     // Rate limiting
@@ -257,38 +286,38 @@ export async function GET(req: Request) {
     const cachedMessages = await getCachedMessages(threadId);
     if (cachedMessages) {
       return new Response(JSON.stringify(cachedMessages), {
-        headers: { 'Content-Type': 'application/json' }
+        headers: { "Content-Type": "application/json" },
       });
     }
 
     // Get session keys
     const sessionKeys = await zkService.getSessionKeys(threadId);
     if (!sessionKeys) {
-      return new Response('Session not found', { status: 404 });
+      return new Response("Session not found", { status: 404 });
     }
 
     // Get encrypted messages
     const { data: encryptedMessages, error: fetchError } = await supabase
-      .from('messages')
-      .select('*')
-      .eq('thread_id', threadId)
-      .order('created_at', { ascending: false })
+      .from("messages")
+      .select("*")
+      .eq("thread_id", threadId)
+      .order("created_at", { ascending: false })
       .limit(limit);
 
     if (fetchError) {
       await securityAudit.logOperation({
         id: generateMessageId(),
-        type: 'MESSAGE_FETCH',
+        type: "MESSAGE_FETCH",
         userId: session.user.id,
         sessionId: threadId,
-        status: 'FAILURE',
+        status: "FAILURE",
         timestamp: new Date(),
         metadata: {
           error: fetchError,
-          operation: 'fetch_messages'
-        }
+          operation: "fetch_messages",
+        },
       });
-      return new Response('Failed to fetch messages', { status: 500 });
+      return new Response("Failed to fetch messages", { status: 500 });
     }
 
     // Decrypt messages
@@ -299,20 +328,20 @@ export async function GET(req: Request) {
             message.content,
             message.iv,
             sessionKeys.privateKey,
-            message.session_key_id
+            message.session_key_id,
           );
 
           await securityAudit.logOperation({
             id: generateMessageId(),
-            type: 'MESSAGE_DECRYPTION',
+            type: "MESSAGE_DECRYPTION",
             userId: session.user.id,
             sessionId: threadId,
-            status: 'SUCCESS',
+            status: "SUCCESS",
             timestamp: new Date(),
             metadata: {
               messageId: message.id,
-              operation: 'decrypt'
-            }
+              operation: "decrypt",
+            },
           });
 
           return {
@@ -321,49 +350,49 @@ export async function GET(req: Request) {
             sender_id: message.user_id,
             recipient_id: message.recipient_id,
             created_at: message.created_at,
-            role: message.role || 'user'
+            role: message.role || "user",
           };
         } catch (error) {
           await securityAudit.logOperation({
             id: generateMessageId(),
-            type: 'MESSAGE_DECRYPTION',
+            type: "MESSAGE_DECRYPTION",
             userId: session.user.id,
             sessionId: threadId,
-            status: 'FAILURE',
+            status: "FAILURE",
             timestamp: new Date(),
             metadata: {
               error,
               messageId: message.id,
-              operation: 'decrypt'
-            }
+              operation: "decrypt",
+            },
           });
           return null;
         }
-      })
+      }),
     );
 
     // Filter out failed decryptions
     const validMessages = decryptedMessages.filter((m) => m !== null);
 
     // Cache the decrypted messages
-    await Promise.all(validMessages.map(msg => cacheMessage(msg)));
+    await Promise.all(validMessages.map((msg) => cacheMessage(msg)));
 
     return new Response(JSON.stringify(validMessages), {
-      headers: { 'Content-Type': 'application/json' }
+      headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
     await securityAudit.logOperation({
       id: generateMessageId(),
-      type: 'API_ERROR',
-      userId: 'system',
-      sessionId: 'unknown',
-      status: 'FAILURE',
+      type: "API_ERROR",
+      userId: "system",
+      sessionId: "unknown",
+      status: "FAILURE",
       timestamp: new Date(),
       metadata: {
         error,
-        operation: 'get_messages'
-      }
+        operation: "get_messages",
+      },
     });
-    return new Response('Internal Server Error', { status: 500 });
+    return new Response("Internal Server Error", { status: 500 });
   }
 }

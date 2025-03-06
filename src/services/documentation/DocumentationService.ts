@@ -1,6 +1,6 @@
-import { singleton } from 'tsyringe';
-import { dataService } from '@/lib/data';
-import { NLPService } from '../nlp/NLPService';
+import { singleton } from "tsyringe";
+import { dataService } from "@/lib/data";
+import { NLPService } from "../nlp/NLPService";
 
 @singleton()
 export class DocumentationService {
@@ -46,14 +46,14 @@ export class DocumentationService {
       return {
         readability: readabilityScore,
         structure: structureScore,
-        consistency: consistencyScore
+        consistency: consistencyScore,
       };
     } catch (error) {
-      console.error('Error assessing documentation clarity:', error);
+      console.error("Error assessing documentation clarity:", error);
       return {
         readability: 0,
         structure: 0,
-        consistency: 0
+        consistency: 0,
       };
     }
   }
@@ -71,13 +71,13 @@ export class DocumentationService {
 
       return {
         submissionTime: submissionScore,
-        completionTime: completionScore
+        completionTime: completionScore,
       };
     } catch (error) {
-      console.error('Error assessing documentation timeliness:', error);
+      console.error("Error assessing documentation timeliness:", error);
       return {
         submissionTime: 0,
-        completionTime: 0
+        completionTime: 0,
       };
     }
   }
@@ -89,25 +89,27 @@ export class DocumentationService {
   }> {
     try {
       // Analyze factual correctness
-      const correctnessScore = await this.analyzeFactualCorrectness(documentation);
+      const correctnessScore =
+        await this.analyzeFactualCorrectness(documentation);
 
       // Analyze completeness
       const completenessScore = await this.analyzeCompleteness(documentation);
 
       // Analyze internal consistency
-      const consistencyScore = await this.analyzeInternalConsistency(documentation);
+      const consistencyScore =
+        await this.analyzeInternalConsistency(documentation);
 
       return {
         factualCorrectness: correctnessScore,
         completeness: completenessScore,
-        consistency: consistencyScore
+        consistency: consistencyScore,
       };
     } catch (error) {
-      console.error('Error assessing documentation accuracy:', error);
+      console.error("Error assessing documentation accuracy:", error);
       return {
         factualCorrectness: 0,
         completeness: 0,
-        consistency: 0
+        consistency: 0,
       };
     }
   }
@@ -125,62 +127,58 @@ export class DocumentationService {
       const contentScore = await this.checkContentCompliance(documentation);
 
       // Check regulatory compliance
-      const regulatoryScore = await this.checkRegulatoryCompliance(documentation);
+      const regulatoryScore =
+        await this.checkRegulatoryCompliance(documentation);
 
       return {
         formatCompliance: formatScore,
         contentCompliance: contentScore,
-        regulatoryCompliance: regulatoryScore
+        regulatoryCompliance: regulatoryScore,
       };
     } catch (error) {
-      console.error('Error assessing documentation standards:', error);
+      console.error("Error assessing documentation standards:", error);
       return {
         formatCompliance: 0,
         contentCompliance: 0,
-        regulatoryCompliance: 0
+        regulatoryCompliance: 0,
       };
     }
   }
 
   private async getSessionType(session: any): Promise<string> {
-    const sessionData = await dataService.get('sessions', session.id);
+    const sessionData = await dataService.get("sessions", session.id);
     return sessionData.type;
   }
 
   private getRequiredFieldsByType(type: string): string[] {
     const baseFields = [
-      'clientInformation',
-      'sessionDate',
-      'sessionDuration',
-      'presentingProblems',
-      'interventions',
-      'observations',
-      'planOfCare'
+      "clientInformation",
+      "sessionDate",
+      "sessionDuration",
+      "presentingProblems",
+      "interventions",
+      "observations",
+      "planOfCare",
     ];
 
     switch (type) {
-      case 'initial':
+      case "initial":
         return [
           ...baseFields,
-          'intakeAssessment',
-          'diagnosticImpression',
-          'treatmentGoals',
-          'riskAssessment'
+          "intakeAssessment",
+          "diagnosticImpression",
+          "treatmentGoals",
+          "riskAssessment",
         ];
-      case 'progress':
+      case "progress":
+        return [...baseFields, "progressNotes", "goalProgress", "adjustments"];
+      case "termination":
         return [
           ...baseFields,
-          'progressNotes',
-          'goalProgress',
-          'adjustments'
-        ];
-      case 'termination':
-        return [
-          ...baseFields,
-          'treatmentSummary',
-          'outcomeMeasures',
-          'terminationReason',
-          'recommendations'
+          "treatmentSummary",
+          "outcomeMeasures",
+          "terminationReason",
+          "recommendations",
         ];
       default:
         return baseFields;
@@ -188,10 +186,10 @@ export class DocumentationService {
   }
 
   private async getSessionDocumentation(session: any): Promise<any> {
-    return await dataService.get('session_documentation', {
+    return await dataService.get("session_documentation", {
       where: {
-        sessionId: session.id
-      }
+        sessionId: session.id,
+      },
     });
   }
 
@@ -205,9 +203,9 @@ export class DocumentationService {
 
   private isFieldComplete(value: any): boolean {
     if (value === null || value === undefined) return false;
-    if (typeof value === 'string') return value.trim().length > 0;
+    if (typeof value === "string") return value.trim().length > 0;
     if (Array.isArray(value)) return value.length > 0;
-    if (typeof value === 'object') return Object.keys(value).length > 0;
+    if (typeof value === "object") return Object.keys(value).length > 0;
     return true;
   }
 
@@ -217,7 +215,7 @@ export class DocumentationService {
       const analysis = await this.nlpService.assessUnderstanding(content);
       return analysis.taskClarity;
     } catch (error) {
-      console.error('Error analyzing readability:', error);
+      console.error("Error analyzing readability:", error);
       return 0;
     }
   }
@@ -235,7 +233,7 @@ export class DocumentationService {
 
       return (sectionScore + formatScore + flowScore) / 3;
     } catch (error) {
-      console.error('Error analyzing structure:', error);
+      console.error("Error analyzing structure:", error);
       return 0;
     }
   }
@@ -243,7 +241,8 @@ export class DocumentationService {
   private async analyzeConsistency(documentation: any): Promise<number> {
     try {
       // Check terminology consistency
-      const terminologyScore = await this.checkTerminologyConsistency(documentation);
+      const terminologyScore =
+        await this.checkTerminologyConsistency(documentation);
 
       // Check format consistency
       const formatScore = this.checkFormatConsistency(documentation);
@@ -253,7 +252,7 @@ export class DocumentationService {
 
       return (terminologyScore + formatScore + styleScore) / 3;
     } catch (error) {
-      console.error('Error analyzing consistency:', error);
+      console.error("Error analyzing consistency:", error);
       return 0;
     }
   }
@@ -265,8 +264,9 @@ export class DocumentationService {
 
     if (submissionTime <= deadline) return 1;
 
-    const hoursLate = (submissionTime.getTime() - deadline.getTime()) / (60 * 60 * 1000);
-    return Math.max(0, 1 - (hoursLate / 72)); // Deduct points for up to 72 hours late
+    const hoursLate =
+      (submissionTime.getTime() - deadline.getTime()) / (60 * 60 * 1000);
+    return Math.max(0, 1 - hoursLate / 72); // Deduct points for up to 72 hours late
   }
 
   private calculateCompletionTimeliness(documentation: any): number {
@@ -287,18 +287,21 @@ export class DocumentationService {
       const clientAccuracy = await this.checkClientAccuracy(documentation);
 
       // Check against treatment plan
-      const treatmentAccuracy = await this.checkTreatmentAccuracy(documentation);
+      const treatmentAccuracy =
+        await this.checkTreatmentAccuracy(documentation);
 
       return (sessionAccuracy + clientAccuracy + treatmentAccuracy) / 3;
     } catch (error) {
-      console.error('Error analyzing factual correctness:', error);
+      console.error("Error analyzing factual correctness:", error);
       return 0;
     }
   }
 
   private async analyzeCompleteness(documentation: any): Promise<number> {
     try {
-      const requiredFields = await this.getRequiredFields(documentation.sessionId);
+      const requiredFields = await this.getRequiredFields(
+        documentation.sessionId,
+      );
       const completedFields = this.extractCompletedFields(documentation);
 
       const completionRate = completedFields.length / requiredFields.length;
@@ -306,25 +309,28 @@ export class DocumentationService {
 
       return (completionRate + contentQuality) / 2;
     } catch (error) {
-      console.error('Error analyzing completeness:', error);
+      console.error("Error analyzing completeness:", error);
       return 0;
     }
   }
 
-  private async analyzeInternalConsistency(documentation: any): Promise<number> {
+  private async analyzeInternalConsistency(
+    documentation: any,
+  ): Promise<number> {
     try {
       // Check data consistency
       const dataConsistency = this.checkDataConsistency(documentation);
 
       // Check narrative consistency
-      const narrativeConsistency = await this.checkNarrativeConsistency(documentation);
+      const narrativeConsistency =
+        await this.checkNarrativeConsistency(documentation);
 
       // Check temporal consistency
       const temporalConsistency = this.checkTemporalConsistency(documentation);
 
       return (dataConsistency + narrativeConsistency + temporalConsistency) / 3;
     } catch (error) {
-      console.error('Error analyzing internal consistency:', error);
+      console.error("Error analyzing internal consistency:", error);
       return 0;
     }
   }
@@ -342,7 +348,7 @@ export class DocumentationService {
 
       return (templateScore + formattingScore + structureScore) / 3;
     } catch (error) {
-      console.error('Error checking format compliance:', error);
+      console.error("Error checking format compliance:", error);
       return 0;
     }
   }
@@ -360,7 +366,7 @@ export class DocumentationService {
 
       return (contentScore + terminologyScore + standardsScore) / 3;
     } catch (error) {
-      console.error('Error checking content compliance:', error);
+      console.error("Error checking content compliance:", error);
       return 0;
     }
   }
@@ -378,22 +384,25 @@ export class DocumentationService {
 
       return (hipaaScore + standardsScore + legalScore) / 3;
     } catch (error) {
-      console.error('Error checking regulatory compliance:', error);
+      console.error("Error checking regulatory compliance:", error);
       return 0;
     }
   }
 
   private extractTextContent(documentation: any): string {
     return Object.values(documentation)
-      .filter(value => typeof value === 'string')
-      .join('\n');
+      .filter((value) => typeof value === "string")
+      .join("\n");
   }
 
   private assessSectionOrganization(documentation: any): number {
     const requiredSections = this.getRequiredSections(documentation.type);
     const presentSections = Object.keys(documentation);
-    
-    return requiredSections.filter(section => presentSections.includes(section)).length / requiredSections.length;
+
+    return (
+      requiredSections.filter((section) => presentSections.includes(section))
+        .length / requiredSections.length
+    );
   }
 
   private assessFormattingConsistency(documentation: any): number {
@@ -406,7 +415,9 @@ export class DocumentationService {
     return 1;
   }
 
-  private async checkTerminologyConsistency(documentation: any): Promise<number> {
+  private async checkTerminologyConsistency(
+    documentation: any,
+  ): Promise<number> {
     const content = this.extractTextContent(documentation);
     const analysis = await this.nlpService.analyzeTherapeuticContent(content);
     return analysis.appropriateness;
@@ -423,21 +434,21 @@ export class DocumentationService {
   }
 
   private async checkSessionAccuracy(documentation: any): Promise<number> {
-    const session = await dataService.get('sessions', documentation.sessionId);
+    const session = await dataService.get("sessions", documentation.sessionId);
     return this.compareSessionData(documentation, session);
   }
 
   private async checkClientAccuracy(documentation: any): Promise<number> {
-    const client = await dataService.get('clients', documentation.clientId);
+    const client = await dataService.get("clients", documentation.clientId);
     return this.compareClientData(documentation, client);
   }
 
   private async checkTreatmentAccuracy(documentation: any): Promise<number> {
-    const treatment = await dataService.get('treatment_plans', {
+    const treatment = await dataService.get("treatment_plans", {
       where: {
         clientId: documentation.clientId,
-        status: 'active'
-      }
+        status: "active",
+      },
     });
     return this.compareTreatmentData(documentation, treatment);
   }
@@ -511,33 +522,29 @@ export class DocumentationService {
 
   private getRequiredSections(type: string): string[] {
     const baseSections = [
-      'clientInformation',
-      'sessionSummary',
-      'interventions',
-      'observations',
-      'planOfCare'
+      "clientInformation",
+      "sessionSummary",
+      "interventions",
+      "observations",
+      "planOfCare",
     ];
 
     switch (type) {
-      case 'initial':
+      case "initial":
         return [
           ...baseSections,
-          'intakeAssessment',
-          'diagnosis',
-          'treatmentPlan'
+          "intakeAssessment",
+          "diagnosis",
+          "treatmentPlan",
         ];
-      case 'progress':
+      case "progress":
+        return [...baseSections, "progressNotes", "goalProgress"];
+      case "termination":
         return [
           ...baseSections,
-          'progressNotes',
-          'goalProgress'
-        ];
-      case 'termination':
-        return [
-          ...baseSections,
-          'treatmentSummary',
-          'outcomes',
-          'recommendations'
+          "treatmentSummary",
+          "outcomes",
+          "recommendations",
         ];
       default:
         return baseSections;
@@ -545,10 +552,10 @@ export class DocumentationService {
   }
 
   private compareSessionData(documentation: any, session: any): number {
-    const fields = ['date', 'duration', 'type', 'modality'];
+    const fields = ["date", "duration", "type", "modality"];
     let matches = 0;
 
-    fields.forEach(field => {
+    fields.forEach((field) => {
       if (documentation[field] === session[field]) {
         matches++;
       }
@@ -558,10 +565,10 @@ export class DocumentationService {
   }
 
   private compareClientData(documentation: any, client: any): number {
-    const fields = ['name', 'id', 'demographics', 'diagnosis'];
+    const fields = ["name", "id", "demographics", "diagnosis"];
     let matches = 0;
 
-    fields.forEach(field => {
+    fields.forEach((field) => {
       if (documentation[field] === client[field]) {
         matches++;
       }
@@ -571,10 +578,10 @@ export class DocumentationService {
   }
 
   private compareTreatmentData(documentation: any, treatment: any): number {
-    const fields = ['goals', 'interventions', 'progress'];
+    const fields = ["goals", "interventions", "progress"];
     let matches = 0;
 
-    fields.forEach(field => {
+    fields.forEach((field) => {
       if (this.compareArrays(documentation[field], treatment[field])) {
         matches++;
       }
@@ -592,7 +599,7 @@ export class DocumentationService {
   private deepEqual(obj1: any, obj2: any): boolean {
     if (obj1 === obj2) return true;
     if (typeof obj1 !== typeof obj2) return false;
-    if (typeof obj1 !== 'object') return false;
+    if (typeof obj1 !== "object") return false;
     if (obj1 === null || obj2 === null) return false;
 
     const keys1 = Object.keys(obj1);
@@ -600,8 +607,8 @@ export class DocumentationService {
 
     if (keys1.length !== keys2.length) return false;
 
-    return keys1.every(key => 
-      keys2.includes(key) && this.deepEqual(obj1[key], obj2[key])
+    return keys1.every(
+      (key) => keys2.includes(key) && this.deepEqual(obj1[key], obj2[key]),
     );
   }
-} 
+}

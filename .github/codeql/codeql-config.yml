@@ -1,11 +1,14 @@
 name: Gradiant CodeQL Config
 
-disable-default-queries: true
+disable-default-queries: false
+
+packs:
+  - codeql/javascript-queries
+  - codeql/typescript-queries
 
 queries:
   - uses: security-and-quality
   - uses: security-extended
-  - uses: github/codeql/javascript/ql/src/experimental/Security/@*
 
 paths:
   - src
@@ -20,23 +23,23 @@ paths:
   - integrations
 
 paths-ignore:
-  - '**/node_modules'
-  - '**/dist'
-  - '**/build'
-  - '**/.next'
-  - '**/test'
-  - '**/tests'
-  - '**/e2e'
-  - '**/playwright'
-  - '**/coverage'
-  - '**/public'
-  - '**/docs'
-  - '**/*.min.js'
-  - '**/*.test.*'
-  - '**/*.spec.*'
-  - '**/__tests__/**'
-  - '**/__mocks__/**'
-  - '**/circuits/**'
+  - "**/node_modules"
+  - "**/dist"
+  - "**/build"
+  - "**/.next"
+  - "**/test"
+  - "**/tests"
+  - "**/e2e"
+  - "**/playwright"
+  - "**/coverage"
+  - "**/public"
+  - "**/docs"
+  - "**/*.min.js"
+  - "**/*.test.*"
+  - "**/*.spec.*"
+  - "**/__tests__/**"
+  - "**/__mocks__/**"
+  - "**/circuits/**"
   - build/circuits/**
 
 query-filters:
@@ -62,13 +65,8 @@ extraction:
         - "**/*.spec.tsx"
         - "**/__tests__/**"
         - "**/__mocks__/**"
-      dependencies: true
       typescript: true
+      dependencies: true
       frameworks: true
-      package-lock: true
-      package-json: true
-      environment: true
       memory: 6144
       threads: 6
-      trap-cache: true
-      experimental-features: true

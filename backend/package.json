@@ -12,7 +12,8 @@
     "test:load": "ts-node tests/load/rateLimiter.load.ts",
     "test:integration": "jest --config jest.integration.config.js",
     "test:crisis": "jest tests/integration/crisisDetection.test.ts",
-    "test:all": "npm run test && npm run test:perf && npm run test:integration && npm run test:crisis"
+    "test:all": "npm run test && npm run test:perf && npm run test:integration && npm run test:crisis",
+    "test:coverage": "jest --coverage"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.48.1",

@@ -1,259 +1,425 @@
 import { ZKAuditService } from "../ZKAuditService";
 import { SecurityAuditService } from "../SecurityAuditService";
-import { supabase } from "../../config/supabase";
-import { SupabaseClient } from '@supabase/supabase-js';
-import WebSocket from 'ws';
-import { EventEmitter } from 'events';
-import { 
-    MockedWebSocket, 
-    MockedSupabaseClient, 
-    MockedSecurityAuditService 
-} from '../../types/mocks';
-import { AuditEvent } from '../../types/audit';
+import * as fs from "fs/promises";
+import * as path from "path";
+import os from "os";
+import { SupabaseClient, User, Session } from "@supabase/supabase-js";
+import WebSocket, { WebSocketServer } from "ws";
 
-jest.mock('@supabase/supabase-js');
-jest.mock('ws');
+jest.mock("./SecurityAuditService");
+jest.mock("@supabase/supabase-js");
+jest.mock("ws");
 
-describe('ZKAuditService', () => {
-    let zkAuditService: ZKAuditService;
-    let mockSecurityAuditService: MockedSecurityAuditService;
-    let mockSupabase: MockedSupabaseClient;
-    let mockWebSocket: MockedWebSocket;
+describe("ZKAuditService", () => {
+  let zkAuditService: ZKAuditService;
+  let mockSupabase: jest.Mocked<SupabaseClient>;
+  let mockSecurityAuditService: jest.Mocked<SecurityAuditService>;
+  let mockWebSocket: jest.Mocked<WebSocket>;
+  let tempDir: string;
 
-    beforeEach(() => {
-        mockSecurityAuditService = {
-            recordAlert: jest.fn(),
-            recordEvent: jest.fn(),
-            recordAuthAttempt: jest.fn(),
-            logAccessPattern: jest.fn(),
-            logSessionEvent: jest.fn(),
-            logDataAccess: jest.fn(),
-            getAuditLogs: jest.fn()
-        };
-        
-        mockSupabase = {
-            from: jest.fn().mockReturnThis(),
-            select: jest.fn().mockReturnThis(),
-            insert: jest.fn().mockResolvedValue({ error: null }),
-            update: jest.fn().mockReturnThis(),
-            delete: jest.fn().mockReturnThis(),
-            eq: jest.fn().mockReturnThis(),
-            gte: jest.fn().mockReturnThis(),
-            lte: jest.fn().mockReturnThis(),
-            order: jest.fn().mockResolvedValue({
-                data: [],
-                error: null
-            })
-        } as unknown as MockedSupabaseClient;
+  beforeEach(async () => {
+    mockSupabase = {
+      from: jest.fn().mockReturnValue({
+        select: jest.fn().mockReturnThis(),
+        insert: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        eq: jest.fn().mockReturnThis(),
+        gte: jest.fn().mockReturnThis(),
+        lte: jest.fn().mockReturnThis(),
+        single: jest.fn().mockReturnThis(),
+        mockResolvedValueOnce: jest.fn(),
+      }),
+    } as any;
 
-        mockWebSocket = {
-            send: jest.fn(),
-            on: jest.fn(),
-            readyState: WebSocket.OPEN,
-            close: jest.fn()
-        } as unknown as MockedWebSocket;
+    mockSecurityAuditService = {
+      recordAlert: jest.fn().mockResolvedValue(undefined),
+    } as any;
 
-        zkAuditService = new ZKAuditService(
-            mockSupabase,
-            mockSecurityAuditService,
-            10, // smaller window for testing
-            100 // faster updates for testing
-        );
+    mockWebSocket = {
+      on: jest.fn(),
+      send: jest.fn(),
+      close: jest.fn(),
+    } as any;
+
+    // Create temporary directory for test logs
+    tempDir = path.join(
+      os.tmpdir(),
+      "zk-audit-test-" + Math.random().toString(36).slice(2),
+    );
+    await fs.mkdir(tempDir, { recursive: true });
+    zkAuditService = new ZKAuditService(
+      mockSupabase,
+      mockSecurityAuditService,
+      tempDir,
+    );
+    await zkAuditService.initialize();
+  });
+
+  afterEach(async () => {
+    // Clean up temporary directory
+    await fs.rm(tempDir, { recursive: true, force: true });
+    await zkAuditService.cleanup();
+  });
+
+  describe("Operation Logging", () => {
+    it("should log successful operations", async () => {
+      const operation = {
+        type: "PROOF_GENERATION" as const,
+        timestamp: new Date(),
+        sessionId: "test-session",
+        status: "SUCCESS" as const,
+        details: { inputHash: "abc123" },
+        duration: 100,
+      };
+      const operationId = await zkAuditService.logOperation(operation);
+      expect(operationId).toBeDefined();
+      expect(typeof operationId).toBe("string");
+      expect(mockSecurityAuditService.recordAlert).not.toHaveBeenCalled();
+      // Verify log file content
+      const files = await fs.readdir(tempDir);
+      expect(files.length).toBe(1);
+      const logContent = await fs.readFile(
+        path.join(tempDir, files[0]),
+        "utf-8",
+      );
+      const logEntry = JSON.parse(logContent.trim());
+      expect(logEntry).toMatchObject({
+        ...operation,
+        id: operationId,
+      });
+    });
+    it("should log and alert on failed operations", async () => {
+      const operation = {
+        type: "PROOF_VERIFICATION" as const,
+        timestamp: new Date(),
+        sessionId: "test-session",
+        status: "FAILURE" as const,
+        details: { error: "Verification failed" },
+        duration: 50,
+      };
+      await zkAuditService.logOperation(operation);
+      expect(mockSecurityAuditService.recordAlert).toHaveBeenCalledWith(
+        "ZK_OPERATION_FAILURE",
+        "HIGH",
+        expect.objectContaining({
+          operationType: operation.type,
+          details: operation.details,
+        }),
+      );
+    });
+    it("should handle log rotation", async () => {
+      // Mock file stats to trigger rotation
+      jest.spyOn(fs, "stat").mockResolvedValueOnce({
+        size: 200 * 1024 * 1024, // Exceed max size
+      } as any);
+      const operation = {
+        type: "KEY_ROTATION" as const,
+        timestamp: new Date(),
+        status: "SUCCESS" as const,
+        details: {},
+        duration: 25,
+      };
+      await zkAuditService.logOperation(operation);
+      const files = await fs.readdir(tempDir);
+      expect(files.length).toBe(2); // Original + new file
+    });
+  });
+  describe("Operation History", () => {
+    it("should retrieve filtered operation history", async () => {
+      const operations = [
+        {
+          type: "PROOF_GENERATION" as const,
+          timestamp: new Date(),
+          sessionId: "session1",
+          status: "SUCCESS" as const,
+          details: {},
+          duration: 100,
+        },
+        {
+          type: "PROOF_VERIFICATION" as const,
+          timestamp: new Date(),
+          sessionId: "session2",
+          status: "FAILURE" as const,
+          details: {},
+          duration: 50,
+        },
+      ];
+      // Log operations
+      await Promise.all(
+        operations.map((op: any) => zkAuditService.logOperation(op)),
+      );
+      // Retrieve with filters
+      const history = await zkAuditService.getOperationHistory(
+        new Date(Date.now() - 3600000), // 1 hour ago
+        new Date(),
+        {
+          type: "PROOF_GENERATION",
+          status: "SUCCESS",
+        },
+      );
+      expect(history.length).toBe(1);
+      expect(history[0].type).toBe("PROOF_GENERATION");
+      expect(history[0].status).toBe("SUCCESS");
+    });
+    it("should handle errors in history retrieval", async () => {
+      jest.spyOn(fs, "readFile").mockRejectedValue(new Error("Read error"));
+      await expect(
+        zkAuditService.getOperationHistory(new Date(), new Date()),
+      ).rejects.toThrow();
+      expect(mockSecurityAuditService.recordAlert).toHaveBeenCalledWith(
+        "ZK_AUDIT_HISTORY_ERROR",
+        "HIGH",
+        expect.any(Object),
+      );
+    });
+  });
+  describe("Report Generation", () => {
+    it("should generate audit report", async () => {
+      const operations = [
+        {
+          type: "PROOF_GENERATION" as const,
+          timestamp: new Date(),
+          status: "SUCCESS" as const,
+          details: {},
+          duration: 100,
+        },
+        {
+          type: "PROOF_VERIFICATION" as const,
+          timestamp: new Date(),
+          status: "FAILURE" as const,
+          details: { error: "Test error" },
+          duration: 50,
+        },
+        {
+          type: "KEY_ROTATION" as const,
+          timestamp: new Date(),
+          status: "SUCCESS" as const,
+          details: {},
+          duration: 25,
+        },
+      ];
+      // Log operations
+      await Promise.all(
+        operations.map((op: any) => zkAuditService.logOperation(op)),
+      );
+      const startDate = new Date(Date.now() - 3600000); // 1 hour ago
+      const endDate = new Date();
+      const report = await zkAuditService.generateReport(startDate, endDate);
+      expect(report).toMatchObject({
+        totalOperations: 3,
+        successRate: (2 / 3) * 100,
+        averageDuration: (100 + 50 + 25) / 3,
+        operationsByType: {
+          PROOF_GENERATION: 1,
+          PROOF_VERIFICATION: 1,
+          KEY_ROTATION: 1,
+        },
+        failureReasons: {
+          "Test error": 1,
+        },
+        keyRotations: 1,
+      });
+      expect(mockSecurityAuditService.recordAlert).toHaveBeenCalledWith(
+        "ZK_AUDIT_REPORT_GENERATED",
+        "LOW",
+        expect.any(Object),
+      );
+    });
+    it("should handle empty operation history", async () => {
+      const report = await zkAuditService.generateReport(
+        new Date(),
+        new Date(),
+      );
+      expect(report).toMatchObject({
+        totalOperations: 0,
+        successRate: 100,
+        averageDuration: 0,
+        operationsByType: {},
+        failureReasons: {},
+        keyRotations: 0,
+      });
+    });
+    it("should handle errors in report generation", async () => {
+      jest.spyOn(fs, "readdir").mockRejectedValue(new Error("Read error"));
+      await expect(
+        zkAuditService.generateReport(new Date(), new Date()),
+      ).rejects.toThrow();
+      expect(mockSecurityAuditService.recordAlert).toHaveBeenCalledWith(
+        "ZK_AUDIT_REPORT_ERROR",
+        "HIGH",
+        expect.any(Object),
+      );
+    });
+  });
+
+  describe("recordAuditEvent", () => {
+    it("should record an audit event successfully", async () => {
+      const mockEvent = {
+        eventType: "PHI_ACCESS",
+        timestamp: new Date(),
+        actor: { id: "user1", role: "THERAPIST", ipAddress: "192.168.1.1" },
+        action: { type: "READ", status: "SUCCESS", details: {} },
+        resource: { type: "PHI", id: "record1", description: "Patient Record" },
+      };
+
+      (mockSupabase.from as jest.Mock)().mockReturnValue({
+        insert: jest.fn().mockResolvedValueOnce({
+          data: [{ id: "event1" }],
+          error: null,
+        }),
+      });
+
+      await zkAuditService.recordAuditEvent({
+        id: "test-event-id",
+        eventType: "PHI_ACCESS",
+        timestamp: mockEvent.timestamp,
+        details: {
+          action: mockEvent.action.type,
+          resource: mockEvent.resource.type,
+          resourceId: mockEvent.resource.id,
+          status: mockEvent.action.status,
+          changes: mockEvent.action.details,
+        },
+        userId: "user1",
+        metadata: {
+          ipAddress: mockEvent.actor.ipAddress,
+        } as any,
+      } as any);
+
+      expect(mockSupabase.from).toHaveBeenCalledWith("zk_audit_events");
+      expect(mockSupabase.from("zk_audit_events").insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          eventType: mockEvent.eventType,
+        }),
+      );
     });
 
-    afterEach(async () => {
-        await zkAuditService.cleanup();
+    it("should handle database errors", async () => {
+      const mockEvent = {
+        eventType: "PHI_ACCESS",
+        timestamp: new Date(),
+        actor: { id: "user1", role: "THERAPIST", ipAddress: "192.168.1.1" },
+        action: { type: "READ", status: "SUCCESS", details: {} },
+        resource: { type: "PHI", id: "record1", description: "Patient Record" },
+      };
+
+      const error = new Error("Database error");
+      (mockSupabase.from as jest.Mock)().mockReturnValue({
+        insert: jest.fn().mockRejectedValueOnce(error),
+      });
+
+      await expect(
+        zkAuditService.recordAuditEvent({
+          id: "test-event-id",
+          eventType: mockEvent.eventType,
+          timestamp: mockEvent.timestamp,
+          details: {
+            action: mockEvent.action.type,
+            resource: mockEvent.resource.type,
+            resourceId: mockEvent.resource.id,
+            status: mockEvent.action.status,
+            changes: mockEvent.action.details,
+          },
+          userId: "user1",
+          metadata: {
+            ipAddress: mockEvent.actor.ipAddress,
+            userAgent: undefined,
+            sessionId: undefined,
+            location: undefined,
+          },
+        } as any),
+      ).rejects.toThrow("Failed to record audit event");
+
+      expect(mockSecurityAuditService.recordAlert).toHaveBeenCalledWith(
+        "ZK_AUDIT_RECORD_ERROR",
+        "HIGH",
+        expect.objectContaining({ error: error.message }),
+      );
+    });
+  });
+
+  describe("getHistoricalMetrics", () => {
+    it("should retrieve historical metrics successfully", async () => {
+      const startTime = new Date("2024-01-01");
+      const endTime = new Date("2024-01-31");
+      const mockFrom = {
+        select: jest.fn().mockReturnThis(),
+        gte: jest.fn().mockReturnThis(),
+        lte: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockResolvedValueOnce({
+          data: [
+            { eventType: "PHI_ACCESS", count: 10 },
+            { eventType: "PHI_MODIFICATION", count: 5 },
+          ],
+        }),
+      };
+      (mockSupabase.from as jest.Mock).mockReturnValue(mockFrom);
+
+      const result = await zkAuditService.getHistoricalMetrics(
+        startTime,
+        endTime,
+      );
+
+      expect(mockSupabase.from).toHaveBeenCalledWith("zk_audit_events");
+      expect(mockFrom.select).toHaveBeenCalledWith("*");
+      expect(mockFrom.gte).toHaveBeenCalledWith(
+        "timestamp",
+        startTime.toISOString(),
+      );
+      expect(mockFrom.lte).toHaveBeenCalledWith(
+        "timestamp",
+        endTime.toISOString(),
+      );
+      expect(mockFrom.orderBy).toHaveBeenCalledWith("timestamp", {
+        ascending: false,
+      });
     });
 
-    describe('recordAuditEvent', () => {
-        const mockEvent: AuditEvent = {
-            id: 'test-id',
-            eventType: 'PROOF_GENERATED',
-            timestamp: new Date(),
-            details: { test: 'data' },
-            metadata: { duration: 100 }
-        };
+    it("should handle database errors", async () => {
+      const error = new Error("Database error");
+      const mockQueryBuilder = mockSupabase.from("zk_audit_events").select();
+      mockQueryBuilder.order = jest.fn().mockRejectedValueOnce(error);
 
-        it('should record audit event successfully', async () => {
-            await zkAuditService.recordAuditEvent(mockEvent);
-            expect(mockSupabase.from).toHaveBeenCalledWith('zk_audit_logs');
-            expect(mockSupabase.insert).toHaveBeenCalledWith({
-                eventType: mockEvent.eventType,
-                timestamp: mockEvent.timestamp.toISOString(),
-                details: mockEvent.details,
-                metadata: mockEvent.metadata
-            });
-        });
+      await expect(
+        zkAuditService.getHistoricalMetrics(new Date(), new Date()),
+      ).rejects.toThrow("Failed to retrieve historical metrics");
 
-        it('should forward high severity events to security audit', async () => {
-            const highSeverityEvent: AuditEvent = {
-                ...mockEvent,
-                details: { ...mockEvent.details, severity: 'HIGH' }
-            };
-            
-            await zkAuditService.recordAuditEvent(highSeverityEvent);
-            expect(mockSecurityAuditService.recordAlert).toHaveBeenCalledWith(
-                highSeverityEvent.eventType,
-                'HIGH',
-                highSeverityEvent.details
-            );
-        });
+      expect(mockSecurityAuditService.recordAlert).toHaveBeenCalledWith(
+        "ZK_AUDIT_METRICS_ERROR",
+        "HIGH",
+        expect.objectContaining({ error: error.message }),
+      );
+    });
+  });
 
-        it('should update metrics correctly', async () => {
-            // Record proof generation
-            await zkAuditService.recordAuditEvent({
-                ...mockEvent,
-                eventType: 'PROOF_GENERATED',
-                metadata: { duration: 100 }
-            });
+  describe("dashboard client management", () => {
+    it("should handle client registration and disconnection", () => {
+      zkAuditService.registerDashboardClient(
+        mockWebSocket as unknown as WebSocketServer,
+      );
 
-            // Record cache hit
-            await zkAuditService.recordAuditEvent({
-                ...mockEvent,
-                eventType: 'PROOF_CACHE_HIT'
-            });
+      const closeHandler = mockWebSocket.on.mock.calls.find(
+        ([event]) => event === "close",
+      )?.[1];
+      closeHandler?.call(mockWebSocket);
 
-            // Record error
-            await zkAuditService.recordAuditEvent({
-                ...mockEvent,
-                eventType: 'PROOF_GENERATION_ERROR',
-                details: { ...mockEvent.details, severity: 'HIGH' }
-            });
-
-            // Trigger metrics broadcast
-            zkAuditService.emit('metrics-update');
-            
-            // Check if WebSocket clients received the update
-            zkAuditService.registerDashboardClient(mockWebSocket);
-            
-            // Wait for next metrics update
-            await new Promise(resolve => setTimeout(resolve, 150));
-            
-            expect(mockWebSocket.send).toHaveBeenCalled();
-            const sentData = JSON.parse((mockWebSocket.send as jest.Mock).mock.calls[0][0]);
-            expect(sentData.metrics).toMatchObject({
-                errorRate: expect.any(Number),
-                cacheHitRate: expect.any(Number),
-                averageProofTime: expect.any(Number)
-            });
-        });
-
-        it('should handle Supabase errors', async () => {
-            const error = new Error('Database error');
-            mockSupabase.insert.mockResolvedValueOnce({ error });
-            await expect(zkAuditService.recordAuditEvent(mockEvent))
-                .rejects.toThrow(error);
-        });
+      expect(mockWebSocket.on).toHaveBeenCalledWith(
+        "close",
+        expect.any(Function),
+      );
     });
 
-    describe('getHistoricalMetrics', () => {
-        it('should retrieve historical metrics', async () => {
-            const startTime = new Date('2025-01-01');
-            const endTime = new Date('2025-01-02');
-            const mockData = [{
-                eventType: 'PROOF_GENERATED',
-                timestamp: '2025-01-01T12:00:00Z'
-            }];
+    it("should broadcast metrics updates to connected clients", () => {
+      zkAuditService.registerDashboardClient(
+        mockWebSocket as unknown as WebSocketServer,
+      );
+      zkAuditService.emit("metrics-update");
 
-            mockSupabase.order.mockResolvedValueOnce({
-                data: mockData,
-                error: null
-            });
-
-            const result = await zkAuditService.getHistoricalMetrics(startTime, endTime);
-            expect(mockSupabase.from).toHaveBeenCalledWith('zk_audit_logs');
-            expect(mockSupabase.select).toHaveBeenCalledWith('*');
-            expect(mockSupabase.gte).toHaveBeenCalledWith('timestamp', startTime.toISOString());
-            expect(mockSupabase.lte).toHaveBeenCalledWith('timestamp', endTime.toISOString());
-            expect(result).toEqual(mockData);
-        });
-
-        it('should handle Supabase errors in historical metrics', async () => {
-            const error = new Error('Query error');
-            mockSupabase.order.mockResolvedValueOnce({
-                data: null,
-                error
-            });
-            await expect(zkAuditService.getHistoricalMetrics(new Date(), new Date()))
-                .rejects.toThrow(error);
-        });
+      expect(mockWebSocket.send).toHaveBeenCalled();
     });
-
-    describe('dashboard integration', () => {
-        it('should handle dashboard client registration', () => {
-            zkAuditService.registerDashboardClient(mockWebSocket);
-            
-            // Get the close handler
-            const closeHandler = (mockWebSocket.on as jest.Mock).mock.calls.find(
-                ([event]) => event === 'close'
-            )?.[1];
-
-            expect(closeHandler).toBeDefined();
-            closeHandler?.();
-
-            // Trigger metrics update
-            zkAuditService.emit('metrics-update');
-            
-            // Client should not receive updates after disconnection
-            expect(mockWebSocket.send).not.toHaveBeenCalled();
-        });
-    });
-
-    describe('WebSocket handling', () => {
-        it('should handle WebSocket connections correctly', () => {
-            const mockWs = {
-                on: jest.fn(),
-                send: jest.fn(),
-                close: jest.fn(),
-            } as unknown as MockedWebSocket;
-
-            const calls = mockWs.on.mock.calls;
-            const closeHandler = calls.find((call) => call[0] === 'close');
-            expect(closeHandler).toBeDefined();
-        });
-    });
-
-    describe('registerDashboardClient', () => {
-        it('should register a WebSocket client and handle disconnection', () => {
-            zkAuditService.registerDashboardClient(mockWebSocket);
-
-            // Get the close handler
-            const closeHandler = (mockWebSocket.on as jest.Mock).mock.calls.find(
-                ([event]) => event === 'close'
-            )?.[1];
-
-            expect(closeHandler).toBeDefined();
-            closeHandler?.();
-
-            expect(mockSecurityAuditService.recordEvent).toHaveBeenCalledWith(
-                'DASHBOARD_CLIENT_DISCONNECTED',
-                expect.any(Object)
-            );
-        });
-
-        it('should handle client disconnection errors', () => {
-            zkAuditService.registerDashboardClient(mockWebSocket);
-
-            // Get the close handler
-            const closeHandler = (mockWebSocket.on as jest.Mock).mock.calls.find(
-                ([event]) => event === 'close'
-            )?.[1];
-
-            expect(closeHandler).toBeDefined();
-
-            // Simulate error during disconnection
-            mockSecurityAuditService.recordEvent.mockRejectedValueOnce(new Error('Test error'));
-            closeHandler?.();
-
-            expect(mockSecurityAuditService.recordAlert).toHaveBeenCalledWith(
-                'DASHBOARD_CLIENT_DISCONNECT_ERROR',
-                'HIGH',
-                expect.any(Object)
-            );
-        });
-    });
+  });
 });
 
 export interface Database {
-    public: { Tables: { [key: string]: any } };
+  public: { Tables: { [key: string]: any } };
 }

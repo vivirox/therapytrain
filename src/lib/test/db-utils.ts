@@ -1,13 +1,13 @@
-import { createClient } from '@supabase/supabase-js';
-import { nanoid } from 'nanoid';
-import { Logger } from '@/lib/logger';
+import { createClient } from "@supabase/supabase-js";
+import { nanoid } from "nanoid";
+import { Logger } from "@/lib/logger";
 
-const logger = new Logger('db-utils');
+const logger = Logger.getInstance("db-utils");
 
 // Initialize test client
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_TEST_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_TEST_ANON_KEY!
+  process.env.NEXT_PUBLIC_SUPABASE_TEST_ANON_KEY!,
 );
 
 // Types
@@ -51,12 +51,12 @@ interface TestProfile {
 
 // Table names
 const TABLES = {
-  USERS: 'users',
-  MESSAGES: 'messages',
-  THREADS: 'threads',
-  PROFILES: 'profiles',
-  SESSIONS: 'sessions',
-  AUDIT_LOGS: 'audit_logs',
+  USERS: "users",
+  MESSAGES: "messages",
+  THREADS: "threads",
+  PROFILES: "profiles",
+  SESSIONS: "sessions",
+  AUDIT_LOGS: "audit_logs",
 };
 
 /**
@@ -65,19 +65,16 @@ const TABLES = {
 export async function cleanupTestData() {
   try {
     const tables = Object.values(TABLES);
-    
+
     for (const table of tables) {
-      const { error } = await supabase
-        .from(table)
-        .delete()
-        .neq('id', 'system'); // Preserve system records
-        
+      const { error } = await supabase.from(table).delete().neq("id", "system"); // Preserve system records
+
       if (error) {
         throw error;
       }
     }
   } catch (error) {
-    logger.error('Failed to clean up test data', error as Error);
+    logger.error("Failed to clean up test data", error as Error);
     throw error;
   }
 }
@@ -88,18 +85,18 @@ export async function cleanupTestData() {
 export async function createTestUser(email?: string): Promise<TestUser> {
   try {
     const testEmail = email || `test-${nanoid()}@example.com`;
-    const password = 'Test123!@#';
-    
+    const password = "Test123!@#";
+
     // Create auth user
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email: testEmail,
       password,
     });
-    
+
     if (authError || !authData.user) {
-      throw authError || new Error('Failed to create test user');
+      throw authError || new Error("Failed to create test user");
     }
-    
+
     // Create profile
     const { error: profileError } = await supabase
       .from(TABLES.PROFILES)
@@ -109,11 +106,11 @@ export async function createTestUser(email?: string): Promise<TestUser> {
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       });
-      
+
     if (profileError) {
       throw profileError;
     }
-    
+
     return {
       id: authData.user.id,
       email: testEmail,
@@ -122,7 +119,7 @@ export async function createTestUser(email?: string): Promise<TestUser> {
       updated_at: authData.user.updated_at,
     };
   } catch (error) {
-    logger.error('Failed to create test user', error as Error);
+    logger.error("Failed to create test user", error as Error);
     throw error;
   }
 }
@@ -132,7 +129,7 @@ export async function createTestUser(email?: string): Promise<TestUser> {
  */
 export async function createTestThread(
   userId: string,
-  initialMessage?: string
+  initialMessage?: string,
 ): Promise<TestThread> {
   try {
     // Create thread
@@ -146,11 +143,11 @@ export async function createTestThread(
       })
       .select()
       .single();
-      
+
     if (threadError || !thread) {
-      throw threadError || new Error('Failed to create test thread');
+      throw threadError || new Error("Failed to create test thread");
     }
-    
+
     // Add initial message if provided
     if (initialMessage) {
       const { error: messageError } = await supabase
@@ -160,19 +157,19 @@ export async function createTestThread(
           user_id: userId,
           content: initialMessage,
           iv: nanoid(),
-          role: 'user',
+          role: "user",
           created_at: new Date().toISOString(),
           sender_public_key: nanoid(),
         });
-        
+
       if (messageError) {
         throw messageError;
       }
     }
-    
+
     return thread;
   } catch (error) {
-    logger.error('Failed to create test thread', error as Error);
+    logger.error("Failed to create test thread", error as Error);
     throw error;
   }
 }
@@ -184,7 +181,7 @@ export async function createTestMessage(
   threadId: string,
   userId: string,
   content: string,
-  role: string = 'user'
+  role: string = "user",
 ): Promise<TestMessage> {
   try {
     const { data: message, error } = await supabase
@@ -200,14 +197,14 @@ export async function createTestMessage(
       })
       .select()
       .single();
-      
+
     if (error || !message) {
-      throw error || new Error('Failed to create test message');
+      throw error || new Error("Failed to create test message");
     }
-    
+
     return message;
   } catch (error) {
-    logger.error('Failed to create test message', error as Error);
+    logger.error("Failed to create test message", error as Error);
     throw error;
   }
 }
@@ -216,15 +213,15 @@ export async function createTestMessage(
  * Wraps a test in a transaction
  */
 export async function withTransaction<T>(
-  callback: () => Promise<T>
+  callback: () => Promise<T>,
 ): Promise<T> {
   try {
-    await supabase.rpc('begin_transaction');
+    await supabase.rpc("begin_transaction");
     const result = await callback();
-    await supabase.rpc('commit_transaction');
+    await supabase.rpc("commit_transaction");
     return result;
   } catch (error) {
-    await supabase.rpc('rollback_transaction');
+    await supabase.rpc("rollback_transaction");
     throw error;
   }
 }
@@ -234,22 +231,22 @@ export async function withTransaction<T>(
  */
 export async function verifyDataIntegrity(
   table: string,
-  id: string
+  id: string,
 ): Promise<boolean> {
   try {
     const { data, error } = await supabase
       .from(table)
-      .select('*')
-      .eq('id', id)
+      .select("*")
+      .eq("id", id)
       .single();
-      
+
     if (error) {
       throw error;
     }
-    
+
     return !!data;
   } catch (error) {
-    logger.error('Failed to verify data integrity', error as Error);
+    logger.error("Failed to verify data integrity", error as Error);
     throw error;
   }
 }
@@ -261,16 +258,16 @@ export async function getTestData(table: string): Promise<any[]> {
   try {
     const { data, error } = await supabase
       .from(table)
-      .select('*')
-      .order('created_at', { ascending: false });
-      
+      .select("*")
+      .order("created_at", { ascending: false });
+
     if (error) {
       throw error;
     }
-    
+
     return data || [];
   } catch (error) {
-    logger.error('Failed to get test data', error as Error);
+    logger.error("Failed to get test data", error as Error);
     throw error;
   }
 }
@@ -280,19 +277,19 @@ export async function getTestData(table: string): Promise<any[]> {
  */
 export async function createTestProfile(
   userId: string,
-  customData: Partial<TestProfile> = {}
+  customData: Partial<TestProfile> = {},
 ): Promise<TestProfile> {
   try {
     const defaultProfile = {
       id: userId, // Profile ID matches user ID
       user_id: userId,
       display_name: `Test User ${nanoid(6)}`,
-      bio: 'Test user bio',
+      bio: "Test user bio",
       avatar_url: null,
       preferences: {
-        theme: 'light',
+        theme: "light",
         notifications: true,
-        language: 'en',
+        language: "en",
       },
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
@@ -307,12 +304,12 @@ export async function createTestProfile(
       .single();
 
     if (error || !profile) {
-      throw error || new Error('Failed to create test profile');
+      throw error || new Error("Failed to create test profile");
     }
 
     return profile;
   } catch (error) {
-    logger.error('Failed to create test profile', error as Error);
+    logger.error("Failed to create test profile", error as Error);
     throw error;
   }
 }
@@ -322,7 +319,7 @@ export async function createTestProfile(
  */
 export async function updateTestProfile(
   userId: string,
-  updates: Partial<TestProfile>
+  updates: Partial<TestProfile>,
 ): Promise<TestProfile> {
   try {
     const { data: profile, error } = await supabase
@@ -331,17 +328,17 @@ export async function updateTestProfile(
         ...updates,
         updated_at: new Date().toISOString(),
       })
-      .eq('id', userId)
+      .eq("id", userId)
       .select()
       .single();
 
     if (error || !profile) {
-      throw error || new Error('Failed to update test profile');
+      throw error || new Error("Failed to update test profile");
     }
 
     return profile;
   } catch (error) {
-    logger.error('Failed to update test profile', error as Error);
+    logger.error("Failed to update test profile", error as Error);
     throw error;
   }
 }
@@ -355,7 +352,7 @@ export async function withTransactionRetry<T>(
     maxRetries?: number;
     timeoutMs?: number;
     onRetry?: (error: Error, attempt: number) => void;
-  } = {}
+  } = {},
 ): Promise<T> {
   const { maxRetries = 3, timeoutMs = 5000, onRetry } = options;
   let lastError: Error | null = null;
@@ -363,12 +360,15 @@ export async function withTransactionRetry<T>(
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error(`Transaction timeout after ${timeoutMs}ms`)), timeoutMs);
+        setTimeout(
+          () => reject(new Error(`Transaction timeout after ${timeoutMs}ms`)),
+          timeoutMs,
+        );
       });
 
       const result = await Promise.race([
         withTransaction(callback),
-        timeoutPromise
+        timeoutPromise,
       ]);
 
       return result as T;
@@ -376,7 +376,9 @@ export async function withTransactionRetry<T>(
       lastError = error as Error;
       if (attempt < maxRetries) {
         onRetry?.(lastError, attempt);
-        await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 100)); // Exponential backoff
+        await new Promise((resolve) =>
+          setTimeout(resolve, Math.pow(2, attempt) * 100),
+        ); // Exponential backoff
       }
     }
   }
@@ -394,7 +396,7 @@ export async function createBulkTestData<T extends keyof typeof TABLES>(
   options: {
     transaction?: boolean;
     batchSize?: number;
-  } = {}
+  } = {},
 ): Promise<any[]> {
   const { transaction = true, batchSize = 50 } = options;
 
@@ -403,7 +405,7 @@ export async function createBulkTestData<T extends keyof typeof TABLES>(
       ...template,
       id: nanoid(),
       created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
     }));
 
     const { data, error } = await supabase
@@ -438,7 +440,7 @@ export async function createBulkTestData<T extends keyof typeof TABLES>(
 export async function verifyReferentialIntegrity(
   table: string,
   id: string,
-  relations: Array<{ table: string; foreignKey: string }>
+  relations: Array<{ table: string; foreignKey: string }>,
 ): Promise<boolean> {
   try {
     // Check main record
@@ -449,7 +451,7 @@ export async function verifyReferentialIntegrity(
     for (const relation of relations) {
       const { data, error } = await supabase
         .from(relation.table)
-        .select('id')
+        .select("id")
         .eq(relation.foreignKey, id)
         .limit(1);
 
@@ -459,9 +461,9 @@ export async function verifyReferentialIntegrity(
 
     return true;
   } catch (error) {
-    logger.error('Failed to verify referential integrity', error as Error);
+    logger.error("Failed to verify referential integrity", error as Error);
     throw error;
   }
 }
 
-export { TABLES }; 
+export { TABLES };

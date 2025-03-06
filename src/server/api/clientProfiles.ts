@@ -1,15 +1,20 @@
-import { createClient, SupabaseClient, User, Session } from '@supabase/supabase-js';
-import { type ClientProfile } from '@/types/clientprofile';
+import {
+  createClient,
+  SupabaseClient,
+  User,
+  Session,
+} from "@supabase/supabase-js";
+import { type ClientProfile } from "@/types/clientprofile";
 
 const supabase: SupabaseClient<Database> = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
 );
 
 export async function getClientProfiles() {
   const { data: profiles, error } = await supabase
-    .from('client_profiles')
-    .select('*');
+    .from("client_profiles")
+    .select("*");
 
   if (error) {
     throw new Error(`Failed to fetch profiles: ${error.message}`);
@@ -20,9 +25,9 @@ export async function getClientProfiles() {
 
 export async function getClientProfile(id: number) {
   const { data: profile, error } = await supabase
-    .from('client_profiles')
-    .select('*')
-    .eq('id', id)
+    .from("client_profiles")
+    .select("*")
+    .eq("id", id)
     .single();
 
   if (error) {
@@ -32,9 +37,11 @@ export async function getClientProfile(id: number) {
   return profile;
 }
 
-export async function createClientProfile(profile: Omit<ClientProfile, 'id' | 'created_at' | 'updated_at'>) {
+export async function createClientProfile(
+  profile: Omit<ClientProfile, "id" | "created_at" | "updated_at">,
+) {
   const { data, error } = await supabase
-    .from('client_profiles')
+    .from("client_profiles")
     .insert([profile])
     .select()
     .single();
@@ -47,13 +54,13 @@ export async function createClientProfile(profile: Omit<ClientProfile, 'id' | 'c
 }
 
 export async function updateClientProfile(
-  id: number, 
-  profile: Partial<Omit<ClientProfile, 'id' | 'created_at' | 'updated_at'>>
+  id: number,
+  profile: Partial<Omit<ClientProfile, "id" | "created_at" | "updated_at">>,
 ) {
   const { data, error } = await supabase
-    .from('client_profiles')
+    .from("client_profiles")
     .update(profile)
-    .eq('id', id)
+    .eq("id", id)
     .select()
     .single();
 
@@ -66,9 +73,9 @@ export async function updateClientProfile(
 
 export async function deleteClientProfile(id: number) {
   const { error } = await supabase
-    .from('client_profiles')
+    .from("client_profiles")
     .delete()
-    .eq('id', id);
+    .eq("id", id);
 
   if (error) {
     throw new Error(`Failed to delete profile: ${error.message}`);
@@ -76,5 +83,5 @@ export async function deleteClientProfile(id: number) {
 }
 
 export interface Database {
-    public: { Tables: { [key: string]: any } };
+  public: { Tables: { [key: string]: any } };
 }

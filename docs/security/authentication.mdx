@@ -1,6 +1,6 @@
 ---
-title: 'Authentication'
-description: 'Learn about Gradiant's authentication system and security features'
+title: "Authentication"
+description: "Learn about Gradiants authentication system and security features"
 ---
 
 # Authentication
@@ -10,10 +10,18 @@ Gradiant's authentication system provides robust security through multiple authe
 ## Authentication Methods
 
 <CardGroup cols={2}>
-  <Card title="Password Authentication" icon="key" href="#password-authentication">
+  <Card
+    title="Password Authentication"
+    icon="key"
+    href="#password-authentication"
+  >
     Secure password-based login
   </Card>
-  <Card title="Multi-Factor Auth" icon="shield-check" href="#multi-factor-authentication">
+  <Card
+    title="Multi-Factor Auth"
+    icon="shield-check"
+    href="#multi-factor-authentication"
+  >
     Additional security layers
   </Card>
   <Card title="WebAuthn" icon="fingerprint" href="#webauthn">
@@ -28,7 +36,9 @@ Gradiant's authentication system provides robust security through multiple authe
 
 ### Requirements
 
-<Info>Password requirements ensure strong security while maintaining usability</Info>
+<Info>
+  Password requirements ensure strong security while maintaining usability
+</Info>
 
 - Minimum 12 characters
 - Mix of uppercase and lowercase letters
@@ -44,16 +54,17 @@ Gradiant's authentication system provides robust security through multiple authe
 import { GradiantAuth } from '@gradiant/auth';
 
 const auth = new GradiantAuth({
-  passwordPolicy: {
-    minLength: 12,
-    requireUppercase: true,
-    requireLowercase: true,
-    requireNumbers: true,
-    requireSpecial: true,
-    preventCommonPasswords: true
-  }
+passwordPolicy: {
+minLength: 12,
+requireUppercase: true,
+requireLowercase: true,
+requireNumbers: true,
+requireSpecial: true,
+preventCommonPasswords: true
+}
 });
-```
+
+````
 
 ```typescript Password Change
 const response = await auth.updatePassword({
@@ -61,7 +72,8 @@ const response = await auth.updatePassword({
   currentPassword: 'current-password',
   newPassword: 'new-secure-password'
 });
-```
+````
+
 </CodeGroup>
 
 ## Multi-Factor Authentication
@@ -70,46 +82,35 @@ const response = await auth.updatePassword({
 
 <AccordionGroup>
   <Accordion title="Time-based OTP (TOTP)">
-    - Compatible with Google Authenticator
-    - 30-second code rotation
-    - Secure key generation
-    - Backup codes provided
+    - Compatible with Google Authenticator - 30-second code rotation - Secure
+    key generation - Backup codes provided
   </Accordion>
-  
-  <Accordion title="SMS Authentication">
-    - Phone number verification
-    - Rate-limited sending
-    - Code expiration
-    - Fallback options
-  </Accordion>
-  
+
+{" "}
+
+<Accordion title="SMS Authentication">
+  - Phone number verification - Rate-limited sending - Code expiration -
+  Fallback options
+</Accordion>
+
   <Accordion title="Email Authentication">
-    - Secure code delivery
-    - Limited validity period
-    - Anti-phishing measures
-    - Backup verification
+    - Secure code delivery - Limited validity period - Anti-phishing measures -
+    Backup verification
   </Accordion>
 </AccordionGroup>
 
 ### Setup Process
 
 <Steps>
-  ### Enable MFA
-  Navigate to security settings and enable MFA
-  
-  ### Choose Method
-  Select preferred authentication method
-  
-  ### Verify Setup
-  Complete verification process
-  
-  ### Save Backup Codes
-  Store backup codes securely
+  ### Enable MFA Navigate to security settings and enable MFA ### Choose Method
+  Select preferred authentication method ### Verify Setup Complete verification
+  process ### Save Backup Codes Store backup codes securely
 </Steps>
 
 ## WebAuthn Support
 
 ### Features
+
 <Check>Built on FIDO2 standards for strong authentication</Check>
 
 - Biometric authentication
@@ -122,22 +123,22 @@ const response = await auth.updatePassword({
 
 ```typescript
 const webAuthnAuth = new WebAuthnAuthentication({
-  rpName: 'Gradiant Healthcare',
-  rpID: 'gradiant.dev',
-  origin: 'https://gradiant.dev',
-  userVerification: 'preferred'
+  rpName: "Gradiant Healthcare",
+  rpID: "gradiant.dev",
+  origin: "https://gradiant.dev",
+  userVerification: "preferred",
 });
 
 // Register new credential
 const credential = await webAuthnAuth.register({
-  userId: 'user_123',
-  userName: 'john.doe@example.com'
+  userId: "user_123",
+  userName: "john.doe@example.com",
 });
 
 // Authenticate with credential
 const auth = await webAuthnAuth.authenticate({
-  userId: 'user_123',
-  credentialId: credential.id
+  userId: "user_123",
+  credentialId: credential.id,
 });
 ```
 
@@ -145,12 +146,12 @@ const auth = await webAuthnAuth.authenticate({
 
 ### Supported Providers
 
-| Provider | OAuth 2.0 | OpenID Connect | SAML 2.0 |
-|----------|-----------|----------------|-----------|
-| Google Workspace | ✓ | ✓ | ✓ |
-| Microsoft Azure AD | ✓ | ✓ | ✓ |
-| Okta | ✓ | ✓ | ✓ |
-| Auth0 | ✓ | ✓ | ✓ |
+| Provider           | OAuth 2.0 | OpenID Connect | SAML 2.0 |
+| ------------------ | --------- | -------------- | -------- |
+| Google Workspace   | ✓         | ✓              | ✓        |
+| Microsoft Azure AD | ✓         | ✓              | ✓        |
+| Okta               | ✓         | ✓              | ✓        |
+| Auth0              | ✓         | ✓              | ✓        |
 
 ### Configuration
 
@@ -174,12 +175,13 @@ const oauthConfig = {
 
 ```typescript SAML Setup
 const samlConfig = {
-  entryPoint: 'https://sso.healthcare.org/saml2/idp',
-  issuer: 'gradiant-healthcare',
+  entryPoint: "https://sso.healthcare.org/saml2/idp",
+  issuer: "gradiant-healthcare",
   cert: process.env.SAML_CERT,
-  privateKey: process.env.SAML_PRIVATE_KEY
+  privateKey: process.env.SAML_PRIVATE_KEY,
 };
 ```
+
 </CodeGroup>
 
 ## Session Management
@@ -199,17 +201,17 @@ const samlConfig = {
 
 ```typescript
 const sessionConfig = {
-  maxAge: '24h',
+  maxAge: "24h",
   secure: true,
   httpOnly: true,
-  sameSite: 'strict',
+  sameSite: "strict",
   fingerprint: true,
-  maxConcurrent: 5
+  maxConcurrent: 5,
 };
 
 const session = await auth.createSession({
-  userId: 'user_123',
-  config: sessionConfig
+  userId: "user_123",
+  config: sessionConfig,
 });
 ```
 
@@ -261,24 +263,20 @@ const session = await auth.createSession({
 
 <AccordionGroup>
   <Accordion title="Account Lockout">
-    - Wait for lockout period to expire
-    - Contact support for manual unlock
-    - Use account recovery process
-    - Verify identity through alternate means
+    - Wait for lockout period to expire - Contact support for manual unlock -
+    Use account recovery process - Verify identity through alternate means
   </Accordion>
-  
-  <Accordion title="MFA Issues">
-    - Check time synchronization
-    - Use backup codes if available
-    - Contact support for reset
-    - Verify device settings
-  </Accordion>
-  
+
+{" "}
+
+<Accordion title="MFA Issues">
+  - Check time synchronization - Use backup codes if available - Contact support
+  for reset - Verify device settings
+</Accordion>
+
   <Accordion title="SSO Problems">
-    - Verify provider configuration
-    - Check network connectivity
-    - Validate certificates
-    - Review error logs
+    - Verify provider configuration - Check network connectivity - Validate
+    certificates - Review error logs
   </Accordion>
 </AccordionGroup>
 
@@ -287,10 +285,14 @@ const session = await auth.createSession({
 Need help with authentication? Contact our security team:
 
 <CardGroup cols={2}>
-  <Card title="Security Support" icon="headset" href="mailto:security@gradiant.dev">
+  <Card
+    title="Security Support"
+    icon="headset"
+    href="mailto:security@gradiant.dev"
+  >
     Contact security team
   </Card>
   <Card title="Documentation" icon="book" href="/security/docs">
     View security guides
   </Card>
-</CardGroup> 
+</CardGroup>

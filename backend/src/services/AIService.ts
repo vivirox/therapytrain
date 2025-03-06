@@ -86,10 +86,13 @@ export class AIService {
     } catch (error) {
       this.securityAudit.recordEvent("ai_error", {
         userId,
-        error: error instanceof Error ? error.message : 'Unknown error occurred',
+        error:
+          error instanceof Error ? error.message : "Unknown error occurred",
         timestamp: Date.now(),
       });
-      throw error instanceof Error ? error : new Error('Unknown error occurred');
+      throw error instanceof Error
+        ? error
+        : new Error("Unknown error occurred");
     }
   }
 
@@ -213,5 +216,47 @@ export class AIService {
       "Can you tell me more about that?",
       "What thoughts come up when you think about this?",
     ];
+  }
+
+  /**
+   * Stream an AI response for a conversation history
+   * @param history Array of message history
+   * @returns An async generator that yields response chunks
+   */
+  async streamResponse(history: any): Promise<AsyncGenerator<string>> {
+    // Validate the user isn't rate limited
+    const userId =
+      history.length > 0 && history[history.length - 1].user_id
+        ? history[history.length - 1].user_id
+        : "anonymous";
+
+    if (this.rateLimiter.isRateLimited(userId, "ai_stream")) {
+      throw new Error("Rate limit exceeded for AI streaming requests");
+    }
+
+    this.securityAudit.recordEvent("AI_STREAM_RESPONSE", { userId });
+
+    // Implementation for streaming response
+    async function* generateResponse() {
+      // This is a simplified implementation
+      // In a real system, you would call an AI streaming API
+      const responseChunks = [
+        "I'm ",
+        "processing ",
+        "your ",
+        "request ",
+        "and ",
+        "will ",
+        "respond ",
+        "soon.",
+      ];
+
+      for (const chunk of responseChunks) {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        yield chunk;
+      }
+    }
+
+    return generateResponse();
   }
 }

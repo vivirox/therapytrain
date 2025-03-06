@@ -1,6 +1,6 @@
 ---
-title: 'Core Architecture'
-description: 'Understanding Gradiant's core architecture and components'
+title: "Core Architecture"
+description: "Understanding Gradiants core architecture and components"
 ---
 
 ## Overview
@@ -8,19 +8,11 @@ description: 'Understanding Gradiant's core architecture and components'
 Gradiant is built on a modern, scalable architecture that prioritizes security, real-time communication, and AI integration. The system consists of several key components working together to provide a seamless experience.
 
 <Frame>
-  ```mermaid
-  graph TD
-    Client[Client Application] --> API[API Gateway]
-    API --> Auth[Authentication Service]
-    API --> Session[Session Service]
-    API --> AI[AI Service]
-    Session --> WebSocket[WebSocket Server]
-    Session --> DB[(Supabase Database)]
-    AI --> LLM[Language Models]
-    LLM --> OpenAI[OpenAI]
-    LLM --> Anthropic[Anthropic]
-    LLM --> GoogleAI[Google AI]
-  ```
+  ```mermaid graph TD Client[Client Application] --> API[API Gateway] API -->
+  Auth[Authentication Service] API --> Session[Session Service] API --> AI[AI
+  Service] Session --> WebSocket[WebSocket Server] Session --> DB[(Supabase
+  Database)] AI --> LLM[Language Models] LLM --> OpenAI[OpenAI] LLM -->
+  Anthropic[Anthropic] LLM --> GoogleAI[Google AI] ```
 </Frame>
 
 ## Core Components
@@ -28,6 +20,7 @@ Gradiant is built on a modern, scalable architecture that prioritizes security, 
 ### Client Application
 
 The frontend is built with:
+
 - Vite for development and building
 - React for UI components
 - WebSocket for real-time communication
@@ -36,6 +29,7 @@ The frontend is built with:
 ### API Gateway
 
 The API gateway handles:
+
 - Request routing
 - Authentication
 - Rate limiting
@@ -45,6 +39,7 @@ The API gateway handles:
 ### Authentication Service
 
 Built on Supabase Auth, providing:
+
 - User registration and login
 - Session management
 - Password reset flows
@@ -54,6 +49,7 @@ Built on Supabase Auth, providing:
 ### Session Service
 
 Manages therapy sessions with:
+
 - Real-time communication
 - Session state management
 - Message persistence
@@ -63,6 +59,7 @@ Manages therapy sessions with:
 ### AI Service
 
 Integrates multiple AI models for:
+
 - Message processing
 - Sentiment analysis
 - Topic extraction
@@ -72,6 +69,7 @@ Integrates multiple AI models for:
 ### WebSocket Server
 
 Handles real-time communication:
+
 - Secure message delivery
 - Presence management
 - Heartbeat monitoring
@@ -80,6 +78,7 @@ Handles real-time communication:
 ### Database
 
 Uses Supabase (PostgreSQL) for:
+
 - User data
 - Session records
 - Message history
@@ -91,30 +90,22 @@ Uses Supabase (PostgreSQL) for:
 ### Authentication Flow
 
 <Frame>
-  ```mermaid
-  sequenceDiagram
-    participant Client
-    participant API
-    participant Auth
-    participant DB
-    
-    Client->>API: Login Request
-    API->>Auth: Validate Credentials
-    Auth->>DB: Check User
-    DB-->>Auth: User Data
-    Auth-->>API: JWT Token
-    API-->>Client: Session Token
-  ```
+  ```mermaid sequenceDiagram participant Client participant API participant Auth
+  participant DB Client->>API: Login Request API->>Auth: Validate Credentials
+  Auth->>DB: Check User DB-->>Auth: User Data Auth-->>API: JWT Token
+  API-->>Client: Session Token ```
 </Frame>
 
 ### Data Security
 
 1. **Encryption**
+
    - End-to-end encryption for messages
    - At-rest encryption for stored data
    - TLS for all API communication
 
 2. **Access Control**
+
    - Role-based access control
    - Row-level security in database
    - Token-based authentication
@@ -131,20 +122,15 @@ Uses Supabase (PostgreSQL) for:
 ### Model Pipeline
 
 <Frame>
-  ```mermaid
-  graph LR
-    Input[User Input] --> Preprocess[Preprocessing]
-    Preprocess --> Models[AI Models]
-    Models --> Analysis[Analysis]
-    Models --> Generation[Generation]
-    Analysis --> Output[Response]
-    Generation --> Output
-  ```
+  ```mermaid graph LR Input[User Input] --> Preprocess[Preprocessing] Preprocess
+  --> Models[AI Models] Models --> Analysis[Analysis] Models -->
+  Generation[Generation] Analysis --> Output[Response] Generation --> Output ```
 </Frame>
 
 ### Model Selection
 
 The system dynamically selects the most appropriate AI model based on:
+
 - Task requirements
 - Response time needs
 - Cost considerations
@@ -156,6 +142,7 @@ The system dynamically selects the most appropriate AI model based on:
 ### Horizontal Scaling
 
 Components that can be horizontally scaled:
+
 - API servers
 - WebSocket servers
 - AI processing nodes
@@ -164,6 +151,7 @@ Components that can be horizontally scaled:
 ### Vertical Scaling
 
 Resources that benefit from vertical scaling:
+
 - Database writes
 - AI model inference
 - Real-time processing
@@ -173,6 +161,7 @@ Resources that benefit from vertical scaling:
 ### System Health
 
 Monitored metrics include:
+
 - API response times
 - WebSocket connections
 - Database performance
@@ -182,6 +171,7 @@ Monitored metrics include:
 ### Business Metrics
 
 Tracked indicators include:
+
 - Active sessions
 - User engagement
 - AI response quality
@@ -193,6 +183,7 @@ Tracked indicators include:
 ### Local Setup
 
 Development environment requires:
+
 - Node.js >= 16.x
 - Python >= 3.11
 - Local database
@@ -201,6 +192,7 @@ Development environment requires:
 ### Deployment
 
 Deployment options include:
+
 - Docker containers
 - Kubernetes clusters
 - Cloud services (AWS, GCP)
@@ -209,25 +201,13 @@ Deployment options include:
 ## Next Steps
 
 <CardGroup>
-  <Card
-    title="Authentication"
-    icon="lock"
-    href="/core/authentication"
-  >
+  <Card title="Authentication" icon="lock" href="/core/authentication">
     Learn about the authentication system
   </Card>
-  <Card
-    title="Sessions"
-    icon="messages"
-    href="/core/sessions"
-  >
+  <Card title="Sessions" icon="messages" href="/core/sessions">
     Understand session management
   </Card>
-  <Card
-    title="AI Integration"
-    icon="robot"
-    href="/core/ai-integration"
-  >
+  <Card title="AI Integration" icon="robot" href="/core/ai-integration">
     Explore AI capabilities
   </Card>
 </CardGroup>

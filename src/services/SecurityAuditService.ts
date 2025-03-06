@@ -2,6 +2,12 @@ import { ZKOperation } from './zkService';
 import * as Sentry from '@sentry/nextjs';
 
 export class SecurityAuditService {
+  recordAuthAttempt(recordAuthAttempt: any) {
+    throw new Error("Method not implemented.");
+  }
+  recordAlert(recordAlert: any) {
+    throw new Error("Method not implemented.");
+  }
   private static instance: SecurityAuditService;
   private auditLog: ZKOperation[];
 

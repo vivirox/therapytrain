@@ -1,6 +1,6 @@
 ---
-title: 'AI Integration'
-description: 'Understanding Gradiant's AI capabilities and integration'
+title: "AI Integration"
+description: "Understanding Gradiants AI capabilities and integration"
 ---
 
 ## Overview
@@ -24,18 +24,11 @@ Gradiant leverages multiple AI models and providers to deliver intelligent featu
 ## AI Pipeline
 
 <Frame>
-  ```mermaid
-  graph TD
-    Input[User Input] --> Preprocess[Preprocessing]
-    Preprocess --> Router[Model Router]
-    Router --> OpenAI[OpenAI Models]
-    Router --> Anthropic[Anthropic Models]
-    Router --> GoogleAI[Google AI Models]
-    OpenAI --> Postprocess[Postprocessing]
-    Anthropic --> Postprocess
-    GoogleAI --> Postprocess
-    Postprocess --> Output[Response]
-  ```
+  ```mermaid graph TD Input[User Input] --> Preprocess[Preprocessing] Preprocess
+  --> Router[Model Router] Router --> OpenAI[OpenAI Models] Router -->
+  Anthropic[Anthropic Models] Router --> GoogleAI[Google AI Models] OpenAI -->
+  Postprocess[Postprocessing] Anthropic --> Postprocess GoogleAI --> Postprocess
+  Postprocess --> Output[Response] ```
 </Frame>
 
 ## Model Selection
@@ -44,7 +37,7 @@ Gradiant leverages multiple AI models and providers to deliver intelligent featu
 
 ```typescript
 interface ModelConfig {
-  provider: 'openai' | 'anthropic' | 'google';
+  provider: "openai" | "anthropic" | "google";
   model: string;
   capabilities: string[];
   costPerToken: number;
@@ -64,11 +57,13 @@ class ModelRouter {
 ### Selection Criteria
 
 1. **Task Requirements**
+
    - Response time needs
    - Output quality requirements
    - Special capabilities needed
 
 2. **Resource Constraints**
+
    - Cost limitations
    - Token budget
    - Latency requirements
@@ -103,11 +98,11 @@ interface MessageAnalysis {
 
 async function analyzeMessage(content: string): Promise<MessageAnalysis> {
   const model = await modelRouter.selectModel({
-    type: 'analysis',
-    priority: 'high',
-    requirements: ['sentiment', 'topics', 'entities']
+    type: "analysis",
+    priority: "high",
+    requirements: ["sentiment", "topics", "entities"],
   });
-  
+
   return model.analyze(content);
 }
 ```
@@ -116,22 +111,22 @@ async function analyzeMessage(content: string): Promise<MessageAnalysis> {
 
 ```typescript
 interface ResponseConfig {
-  style: 'empathetic' | 'directive' | 'reflective';
-  tone: 'warm' | 'professional' | 'casual';
-  length: 'concise' | 'detailed';
+  style: "empathetic" | "directive" | "reflective";
+  tone: "warm" | "professional" | "casual";
+  length: "concise" | "detailed";
   focus: string[];
 }
 
 async function generateResponse(
   context: ConversationContext,
-  config: ResponseConfig
+  config: ResponseConfig,
 ): Promise<string> {
   const model = await modelRouter.selectModel({
-    type: 'generation',
-    priority: 'high',
-    requirements: ['therapeutic', 'contextual']
+    type: "generation",
+    priority: "high",
+    requirements: ["therapeutic", "contextual"],
   });
-  
+
   return model.generate(context, config);
 }
 ```
@@ -140,7 +135,7 @@ async function generateResponse(
 
 ```typescript
 interface CrisisAssessment {
-  riskLevel: 'none' | 'low' | 'medium' | 'high';
+  riskLevel: "none" | "low" | "medium" | "high";
   triggers: {
     type: string;
     confidence: number;
@@ -152,14 +147,14 @@ interface CrisisAssessment {
 
 async function assessCrisis(
   message: string,
-  history: Message[]
+  history: Message[],
 ): Promise<CrisisAssessment> {
   const model = await modelRouter.selectModel({
-    type: 'crisis',
-    priority: 'critical',
-    requirements: ['clinical', 'risk-assessment']
+    type: "crisis",
+    priority: "critical",
+    requirements: ["clinical", "risk-assessment"],
   });
-  
+
   return model.assess(message, history);
 }
 ```
@@ -171,24 +166,24 @@ async function assessCrisis(
 ```typescript
 class OpenAIProvider implements AIProvider {
   private client: OpenAI;
-  
+
   async generateResponse(prompt: string): Promise<string> {
     const completion = await this.client.chat.completions.create({
       model: "gpt-4",
       messages: [
         {
           role: "system",
-          content: "You are a therapeutic AI assistant..."
+          content: "You are a therapeutic AI assistant...",
         },
         {
           role: "user",
-          content: prompt
-        }
+          content: prompt,
+        },
       ],
       temperature: 0.7,
-      max_tokens: 150
+      max_tokens: 150,
     });
-    
+
     return completion.choices[0].message.content;
   }
 }
@@ -199,17 +194,19 @@ class OpenAIProvider implements AIProvider {
 ```typescript
 class AnthropicProvider implements AIProvider {
   private client: Anthropic;
-  
+
   async generateResponse(prompt: string): Promise<string> {
     const completion = await this.client.messages.create({
       model: "claude-2",
       max_tokens: 150,
-      messages: [{
-        role: "user",
-        content: prompt
-      }]
+      messages: [
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
     });
-    
+
     return completion.content;
   }
 }
@@ -220,15 +217,15 @@ class AnthropicProvider implements AIProvider {
 ```typescript
 class GoogleAIProvider implements AIProvider {
   private client: GoogleAI;
-  
+
   async generateResponse(prompt: string): Promise<string> {
     const result = await this.client.generateText({
-      model: 'text-bison-001',
+      model: "text-bison-001",
       prompt: prompt,
       temperature: 0.7,
-      maxOutputTokens: 150
+      maxOutputTokens: 150,
     });
-    
+
     return result.response.text();
   }
 }
@@ -241,9 +238,9 @@ class GoogleAIProvider implements AIProvider {
 ```typescript
 class AIFallbackHandler {
   private providers: AIProvider[];
-  
+
   async withFallback<T>(
-    operation: (provider: AIProvider) => Promise<T>
+    operation: (provider: AIProvider) => Promise<T>,
   ): Promise<T> {
     for (const provider of this.providers) {
       try {
@@ -253,7 +250,7 @@ class AIFallbackHandler {
         continue;
       }
     }
-    throw new Error('All providers failed');
+    throw new Error("All providers failed");
   }
 }
 ```
@@ -263,11 +260,11 @@ class AIFallbackHandler {
 ```typescript
 class RateLimiter {
   private quotas: Map<string, Quota>;
-  
+
   async checkQuota(provider: string): Promise<boolean> {
     const quota = this.quotas.get(provider);
     if (!quota) return true;
-    
+
     if (quota.remaining <= 0) {
       const waitTime = quota.resetTime - Date.now();
       if (waitTime > 0) {
@@ -275,7 +272,7 @@ class RateLimiter {
       }
       await this.resetQuota(provider);
     }
-    
+
     return true;
   }
 }
@@ -289,21 +286,21 @@ class RateLimiter {
 interface CacheConfig {
   ttl: number;
   maxSize: number;
-  strategy: 'lru' | 'fifo';
+  strategy: "lru" | "fifo";
 }
 
 class ResponseCache {
   private cache: Map<string, CachedResponse>;
-  
+
   async get(key: string): Promise<string | null> {
     const cached = this.cache.get(key);
     if (!cached) return null;
-    
+
     if (this.isExpired(cached)) {
       this.cache.delete(key);
       return null;
     }
-    
+
     return cached.response;
   }
 }
@@ -316,17 +313,17 @@ class BatchProcessor {
   private batch: Message[] = [];
   private batchSize = 10;
   private processingInterval = 1000;
-  
+
   async processBatch() {
     if (this.batch.length === 0) return;
-    
+
     const messages = [...this.batch];
     this.batch = [];
-    
+
     const analyses = await Promise.all(
-      messages.map(msg => this.analyzeMessage(msg))
+      messages.map((msg) => this.analyzeMessage(msg)),
     );
-    
+
     return analyses;
   }
 }
@@ -372,9 +369,7 @@ interface QualityMetrics {
 }
 
 class QualityMonitor {
-  async assessQuality(
-    interaction: Interaction
-  ): Promise<QualityMetrics> {
+  async assessQuality(interaction: Interaction): Promise<QualityMetrics> {
     const metrics = await this.evaluateInteraction(interaction);
     if (metrics.safetyCompliance < 0.9) {
       await this.raiseAlert(interaction);
@@ -387,25 +382,13 @@ class QualityMonitor {
 ## Next Steps
 
 <CardGroup>
-  <Card
-    title="API Reference"
-    icon="code"
-    href="/api-reference/ai"
-  >
+  <Card title="API Reference" icon="code" href="/api-reference/ai">
     View AI integration API
   </Card>
-  <Card
-    title="Model Configuration"
-    icon="gear"
-    href="/deployment/ai-config"
-  >
+  <Card title="Model Configuration" icon="gear" href="/deployment/ai-config">
     Configure AI models
   </Card>
-  <Card
-    title="Security"
-    icon="shield"
-    href="/deployment/security"
-  >
+  <Card title="Security" icon="shield" href="/deployment/security">
     AI security measures
   </Card>
 </CardGroup>

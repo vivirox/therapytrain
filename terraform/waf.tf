@@ -160,7 +160,7 @@ resource "aws_wafv2_web_acl_logging_configuration" "main" {
 # CloudWatch Log Group for WAF Logs
 resource "aws_cloudwatch_log_group" "waf" {
   name              = "/aws/waf/${var.app_name}"
-  retention_in_days = 30
+  retention_in_days = 400
   kms_key_id        = aws_kms_key.logs.arn
 
   tags = var.tags

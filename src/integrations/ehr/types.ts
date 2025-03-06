@@ -1,19 +1,24 @@
-import { Resource, Patient, Practitioner, Organization } from '@smile-cdr/fhirts/dist/FHIR-R4';
+import Resource from "fhir-kit-client";
+import Patient from "fhir-kit-client";
+import Practitioner from "fhir-kit-client";
+import Organization from "fhir-kit-client";
+import { boolean, number, string } from "zod";
 
 // Core FHIR resource types we'll be working with
-export type FHIRResourceType = 
-  | 'Patient'
-  | 'Practitioner'
-  | 'Organization'
-  | 'Appointment'
-  | 'Schedule'
-  | 'Slot'
-  | 'Observation'
-  | 'Condition'
-  | 'MedicationStatement';
+export type FHIRResourceType =
+  | "Patient"
+  | "Practitioner"
+  | "Organization"
+  | "Appointment"
+  | "Schedule"
+  | "Slot"
+  | "Observation"
+  | "Condition"
+  | "MedicationStatement";
 
 // Base interface for all FHIR resources
 export interface FHIRResource extends Resource {
+  id: unknown;
   resourceType: FHIRResourceType;
 }
 
@@ -22,7 +27,7 @@ export interface EHRProvider {
   id: string;
   name: string;
   baseUrl: string;
-  authType: 'oauth2' | 'apikey' | 'basic';
+  authType: "oauth2" | "apikey" | "basic";
   settings: {
     clientId?: string;
     clientSecret?: string;
@@ -38,16 +43,16 @@ export interface AuditLogEntry {
   timestamp: string;
   actor: {
     id: string;
-    type: 'user' | 'system';
+    type: "user" | "system";
     name: string;
   };
-  action: 'create' | 'read' | 'update' | 'delete';
+  action: "create" | "read" | "update" | "delete";
   resource: {
     type: FHIRResourceType;
     id: string;
   };
   details: string;
-  status: 'success' | 'failure';
+  status: "success" | "failure";
   ipAddress: string;
   userAgent: string;
 }
@@ -58,15 +63,15 @@ export type EHRError = {
   message: string;
   details?: unknown;
   timestamp: string;
-  source: 'ehr' | 'fhir' | 'internal';
+  source: "ehr" | "fhir" | "internal";
 };
 
 // Configuration types
 export interface EHRConfig {
-  providers: EHRProvider[];
+  providers: Array<EHRProvider>;
   defaultProvider: string;
   auditLogEnabled: boolean;
   cacheDuration: number; // in seconds
   retryAttempts: number;
   timeout: number; // in milliseconds
-} 
+}
