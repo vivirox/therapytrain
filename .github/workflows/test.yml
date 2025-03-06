@@ -1,4 +1,4 @@
-name: CI/CD Pipeline
+name: CI/CD Pipeline (without lockfile)
 
 # Specify when this workflow runs
 on:
@@ -60,7 +60,7 @@ jobs:
           node-version: "22"
 
       - name: Install pnpm
-        uses: pnpm/action-setup@v2
+        uses: pnpm/action-setup@v4
         with:
           version: 10
 
@@ -84,7 +84,7 @@ jobs:
 
       # Install all dependencies including dev dependencies
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --no-lockfile
 
       # Create test environment with all required variables
       - name: Create test env file

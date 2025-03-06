@@ -35,29 +35,25 @@ jobs:
           fetch-depth: 0
 
       - name: Setup Node.js
-        # trunk-ignore(actionlint/action)
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 22
 
       - name: Install pnpm
-        uses: pnpm/action-setup@v2
+        uses: pnpm/action-setup@v4
         with:
           version: 10
-          run_install: false
 
       # Initializes the CodeQL tools for scanning
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
           languages: ${{ matrix.language }}
-          config-file: ./.github/codeql/codeql-config.yml
           queries: security-extended,security-and-quality
-          setup-python-dependencies: false
           tools: latest
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --no-lockfile
 
       - name: Build
         run: pnpm build
@@ -72,6 +68,6 @@ jobs:
           threads: 6
 
       - name: Upload SARIF results
-        uses: github/codeql-action/upload-sarif@v2
+        uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: sarif-results

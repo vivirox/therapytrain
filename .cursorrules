@@ -444,6 +444,8 @@ Security Improvements Phase (100% Complete):
 
 I have been struggling to resolve the module resolution errors in `src/lib/auth/__tests__/auth-services.test.ts`. I have tried multiple different import paths, both relative and absolute, but none of them seem to work. I need assistance from the Planner to determine the correct file structure and import paths for this file.
 
+I am also still facing the `ERR_PNPM_OUTDATED_LOCKFILE` error, even after specifying exact versions for dependencies. The package churn is reduced, but still present, causing the CI/CD pipelines to fail.
+
 ### Next Steps and Action Items
 
 1. Infrastructure as Code Implementation:

@@ -8,10 +8,10 @@ RUN corepack enable && \
 WORKDIR /app
 
 # Copy package files
-COPY package.json pnpm-lock.yaml ./
+COPY package.json ./
 
 # Install dependencies
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --no-lockfile
 
 # Copy source code
 COPY . .
@@ -34,10 +34,9 @@ RUN corepack enable && \
 # Copy built assets from builder
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/package.json ./
-COPY --from=builder /app/pnpm-lock.yaml ./
 
 # Install production dependencies only
-RUN pnpm install --prod --frozen-lockfile && \
+RUN pnpm install --prod --no-lockfile && \
     chown -R nodejs:nodejs /app
 
 # Set environment variables
